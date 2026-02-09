@@ -58,13 +58,17 @@ from src.core.entities.cotisation import (
 )
 from src.core.entities.attendance import Attendance, AttendanceType, AttendanceStatus
 from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.notification import (
+    Notification, NotificationPreference, NotificationType,
+    NotificationChannel, NotificationStatus, NotificationPriority,
+)
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.security.utils import SecurityUtils
 from src.presentation.api.v1 import (
     admin, auth, users, activities, assignments,
     responsables, poste, discipline, cotisations,
-    attendance, subgroups,
+    attendance, subgroups, communication,
 )
 
 # ── Constantes de test ───────────────────────────────────────────────────
@@ -87,6 +91,7 @@ def create_test_app() -> FastAPI:
     test_app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
     test_app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
     test_app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
+    test_app.include_router(communication.router, prefix="/api/v1/communication", tags=["Communication"])
     return test_app
 
 
@@ -542,3 +547,48 @@ async def sample_subgroup_member(
     await db_session.commit()
     await db_session.refresh(member)
     return member
+
+
+# ── Fixtures notifications ──────────────────────────────────────────────
+@pytest_asyncio.fixture()
+async def sample_notification(
+    db_session: AsyncSession,
+    servant_user: User,
+    aumonier_user: User,
+) -> Notification:
+    """Notification IN_APP de test envoyee par l'aumonier au servant."""
+    notif = Notification(
+        id=uuid4(),
+        recipient_id=servant_user.id,
+        notification_type=NotificationType.GENERAL,
+        channel=NotificationChannel.IN_APP,
+        priority=NotificationPriority.NORMAL,
+        title="Reunion ce dimanche",
+        body="Rappel : reunion de preparation a 8h.",
+        status=NotificationStatus.SENT,
+        sent_by=aumonier_user.id,
+    )
+    db_session.add(notif)
+    await db_session.commit()
+    await db_session.refresh(notif)
+    return notif
+
+
+@pytest_asyncio.fixture()
+async def sample_notification_preference(
+    db_session: AsyncSession,
+    servant_user: User,
+) -> NotificationPreference:
+    """Preference de notification de test pour le servant."""
+    pref = NotificationPreference(
+        id=uuid4(),
+        user_id=servant_user.id,
+        notification_type=NotificationType.GENERAL,
+        email_enabled=False,
+        whatsapp_enabled=False,
+        in_app_enabled=True,
+    )
+    db_session.add(pref)
+    await db_session.commit()
+    await db_session.refresh(pref)
+    return pref

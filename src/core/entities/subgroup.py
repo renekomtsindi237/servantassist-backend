@@ -15,6 +15,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Table : Sous-groupes
@@ -38,8 +40,8 @@ class SubGroup(SQLModel, table=True):
     max_members: Optional[int] = Field(default=None, ge=1)
     # Metadata
     created_by: UUID = Field(foreign_key="users.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -60,6 +62,6 @@ class SubGroupMember(SQLModel, table=True):
     is_active: bool = Field(default=True)
     # Qui a ajoute ce membre
     added_by: UUID = Field(foreign_key="users.id")
-    joined_at: datetime = Field(default_factory=datetime.utcnow)
+    joined_at: datetime = Field(default_factory=utc_now)
     left_at: Optional[datetime] = Field(default=None)
 

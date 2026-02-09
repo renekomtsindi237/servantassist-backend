@@ -22,6 +22,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now
+
 
 class AssignmentStatus(str, Enum):
     """Statut d'une affectation dans son cycle de vie."""
@@ -63,5 +65,5 @@ class Assignment(AssignmentBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     assigned_by: UUID = Field(foreign_key="users.id")          # Qui a cree l'affectation
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

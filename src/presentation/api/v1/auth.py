@@ -28,9 +28,9 @@ router = APIRouter()
 _SELF_REGISTER_ROLES = {UserRole.SERVANT, UserRole.PARENT}
 
 
-def _check_brute_force(identifier: str) -> None:
+async def _check_brute_force(identifier: str) -> None:
     """Verifie si l'identifiant est verrouille par la protection brute-force."""
-    is_locked, remaining = brute_force_guard.check_locked(identifier)
+    is_locked, remaining = await brute_force_guard.check_locked(identifier)
     if is_locked:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -54,12 +54,12 @@ async def login_for_access_token(
 
     # -- Protection brute-force ------------------------------------
     identifier = form_data.username.lower().strip()
-    _check_brute_force(identifier)
+    await _check_brute_force(identifier)
 
     try:
         login_data = UserLogin(email=form_data.username, password=form_data.password)
     except PydanticValidationError:
-        brute_force_guard.record_failure(identifier)
+        await brute_force_guard.record_failure(identifier)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -72,11 +72,11 @@ async def login_for_access_token(
     try:
         user = await auth_service.authenticate_user(login_data)
     except HTTPException:
-        brute_force_guard.record_failure(identifier)
+        await brute_force_guard.record_failure(identifier)
         raise
 
     if not user:
-        brute_force_guard.record_failure(identifier)
+        await brute_force_guard.record_failure(identifier)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -84,7 +84,7 @@ async def login_for_access_token(
         )
 
     # Connexion reussie : reinitialiser le compteur
-    brute_force_guard.record_success(identifier)
+    await brute_force_guard.record_success(identifier)
     return await auth_service.create_tokens(user)
 
 
@@ -100,7 +100,7 @@ async def login_with_phone(
     """
     # -- Protection brute-force ------------------------------------
     identifier = login_data.phone_number.strip()
-    _check_brute_force(identifier)
+    await _check_brute_force(identifier)
 
     user_repo = UserRepository(session)
     auth_service = AuthService(user_repo)
@@ -108,11 +108,11 @@ async def login_with_phone(
     try:
         user = await auth_service.authenticate_user(login_data)
     except HTTPException:
-        brute_force_guard.record_failure(identifier)
+        await brute_force_guard.record_failure(identifier)
         raise
 
     # Connexion reussie : reinitialiser le compteur
-    brute_force_guard.record_success(identifier)
+    await brute_force_guard.record_success(identifier)
     return await auth_service.create_tokens(user)
 
 

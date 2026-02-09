@@ -5,6 +5,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now
+
 
 class UserRole(str, Enum):
     ADMIN = "ADMIN"
@@ -28,7 +30,7 @@ class User(UserBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     hashed_password: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     created_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # Admin who created this user
     invited_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # For PARENT: who sent invitation

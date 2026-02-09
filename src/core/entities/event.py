@@ -10,6 +10,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now
+
 
 class EventType(str, Enum):
     """Types d'evenements geres par ServantAssist."""
@@ -58,8 +60,8 @@ class Event(EventBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     created_by: UUID = Field(foreign_key="users.id")      # Aumonier ou Admin
     updated_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -102,5 +104,5 @@ class EventParticipant(SQLModel, table=True):
     status: ParticipantStatus = Field(default=ParticipantStatus.INVITE)
     notes: Optional[str] = Field(default=None, max_length=500)
     added_by: UUID = Field(foreign_key="users.id")          # Qui a ajoute ce participant
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

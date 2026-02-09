@@ -29,3 +29,11 @@ from src.core.entities.attendance import (
     AttendanceStatus,
 )
 from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.notification import (
+    Notification,
+    NotificationPreference,
+    NotificationType,
+    NotificationChannel,
+    NotificationStatus,
+    NotificationPriority,
+)
