@@ -8,11 +8,16 @@ from fastapi.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
 
 from src.infrastructure.config.settings import get_settings
-from src.infrastructure.database.connection import database
-from src.presentation.api.v1 import auth, users, activities, communication
+from src.infrastructure.database.session import sessionmanager
+from src.presentation.api.v1 import (
+    admin, auth, users, activities, communication,
+    assignments, responsables, poste,
+    discipline, cotisations, attendance, subgroups,
+)
 from src.presentation.middleware.error_handler import ErrorHandlerMiddleware
 from src.presentation.middleware.logging_middleware import LoggingMiddleware
 from src.presentation.middleware.rate_limit import RateLimitMiddleware
+from src.presentation.middleware.security_headers import SecurityHeadersMiddleware
 
 settings = get_settings()
 
@@ -21,14 +26,14 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
-    await database.connect()
-    print("✅ Database connected")
+    print("Database session manager initialized")
     
     yield
     
     # Shutdown
-    await database.disconnect()
-    print("❌ Database disconnected")
+    if sessionmanager._engine is not None:
+        await sessionmanager.close()
+    print("Database disconnected")
 
 
 # Create FastAPI application
@@ -41,18 +46,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Middleware
+# ── Middleware (ordre : du plus externe au plus interne) ──────────────
+# 1. Rate limiting (bloque avant tout traitement)
+app.add_middleware(RateLimitMiddleware)
+# 2. Logging (trace toutes les requetes, y compris les bloquees)
+app.add_middleware(LoggingMiddleware)
+# 3. Error handler (attrape les exceptions non gerees)
+app.add_middleware(ErrorHandlerMiddleware)
+# 4. Security headers (ajoute HSTS, CSP, X-Frame-Options, etc.)
+app.add_middleware(SecurityHeadersMiddleware)
+# 5. GZip (compression des reponses)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+# 6. CORS (autorise les origines configurees)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "Retry-After"],
+    max_age=600,  # Cache preflight pour 10 min
 )
-app.add_middleware(GZipMiddleware, minimum_size=1000)
-app.add_middleware(ErrorHandlerMiddleware)
-app.add_middleware(LoggingMiddleware)
-app.add_middleware(RateLimitMiddleware)
 
 # API Routes
 app.include_router(
@@ -61,19 +75,59 @@ app.include_router(
     tags=["Authentication"]
 )
 app.include_router(
+    admin.router,
+    prefix="/api/v1/admin",
+    tags=["Admin"]
+)
+app.include_router(
     users.router,
     prefix="/api/v1/users",
     tags=["Users"]
 )
 app.include_router(
     activities.router,
-    prefix="/api/v1/activities",
-    tags=["Activities"]
+    prefix="/api/v1/events",
+    tags=["Events"]
 )
 app.include_router(
     communication.router,
     prefix="/api/v1/communication",
     tags=["Communication"]
+)
+app.include_router(
+    assignments.router,
+    prefix="/api/v1/assignments",
+    tags=["Assignments"]
+)
+app.include_router(
+    responsables.router,
+    prefix="/api/v1/responsables",
+    tags=["Responsables"]
+)
+app.include_router(
+    poste.router,
+    prefix="/api/v1/poste",
+    tags=["Poste Actions"]
+)
+app.include_router(
+    discipline.router,
+    prefix="/api/v1/discipline",
+    tags=["Discipline"]
+)
+app.include_router(
+    cotisations.router,
+    prefix="/api/v1/cotisations",
+    tags=["Cotisations"]
+)
+app.include_router(
+    attendance.router,
+    prefix="/api/v1/attendance",
+    tags=["Attendance"]
+)
+app.include_router(
+    subgroups.router,
+    prefix="/api/v1/subgroups",
+    tags=["Sub-Groups"]
 )
 
 
@@ -93,7 +147,6 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "database": "connected" if database.is_connected else "disconnected",
         "environment": settings.APP_ENV
     }
 
@@ -102,7 +155,7 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
+        host="0.0.0.0",  # nosec B104 — bind all interfaces dans Docker
         port=8000,
-        reload=settings.APP_ENV == "development"
+        reload=settings.APP_ENV == "development",
     )

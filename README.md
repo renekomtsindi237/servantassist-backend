@@ -57,6 +57,8 @@ pytest tests/unit/test_user_service.py
 
 - API Docs: http://localhost:8000/api/docs
 - Architecture: [CLEAN_ARCHITECTURE.md](../docs/CLEAN_ARCHITECTURE.md)
+- [📘 Guide Technique V0](./docs/TECHNICAL_V0.md)
+- [🏛️ Spécifications Complètes (Platform)](../servantassist-platform/docs/V0_SPECS/)
 
 ## 🔗 Related Repositories
 

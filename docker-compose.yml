@@ -1,0 +1,101 @@
+# ──────────────────────────────────────────────────────────────────────────
+# ServantAssist Backend — Docker Compose
+# Usage:
+#   Dev:   docker compose up
+#   Test:  docker compose --profile test up --abort-on-container-exit
+#   Prod:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ──────────────────────────────────────────────────────────────────────────
+version: "3.9"
+
+services:
+  # ── PostgreSQL ────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: servantassist-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-servantassist}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-servantassist_password}
+      POSTGRES_DB: ${POSTGRES_DB:-servantassist_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-servantassist} -d ${POSTGRES_DB:-servantassist_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ─────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: servantassist-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (développement) ───────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-servantassist}:${POSTGRES_PASSWORD:-servantassist_password}@db:5432/${POSTGRES_DB:-servantassist_db}"
+      REDIS_URL: "redis://redis:6379/0"
+      APP_ENV: development
+      APP_DEBUG: "True"
+
+  # ── Tests (profil « test ») ───────────────────────────────────────
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-test
+    profiles: [test]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: testing
+      APP_DEBUG: "False"
+      DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+      JWT_SECRET_KEY: "test-jwt-secret-key-minimum-32-chars-long-for-hs256!"
+      JWT_ALGORITHM: HS256
+      SECRET_KEY: "test-app-secret-key-minimum-32-chars-long!"
+      CLOUDFLARE_R2_ENDPOINT: "https://test.r2.cloudflarestorage.com"
+      CLOUDFLARE_R2_ACCESS_KEY: "test-access-key"
+      CLOUDFLARE_R2_SECRET_KEY: "test-secret-key"
+      CLOUDFLARE_R2_BUCKET: "test-bucket"
+      CLOUDFLARE_R2_PUBLIC_URL: "https://test.r2.dev"
+    command: >
+      python -m pytest tests/
+        --cov=src
+        --cov-report=term-missing
+        --cov-report=xml:coverage.xml
+        --junitxml=junit.xml
+        -v --tb=short
+
+volumes:
+  pgdata:
+

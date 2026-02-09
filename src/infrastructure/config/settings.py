@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     CLOUDFLARE_R2_SECRET_KEY: str
     CLOUDFLARE_R2_BUCKET: str
     CLOUDFLARE_R2_PUBLIC_URL: str
+    CLOUDFLARE_R2_PROFILE_BUCKET: str = "profile"  # Bucket dedie aux photos de profil
     
     # Email
     SMTP_HOST: str = "smtp.gmail.com"
@@ -50,6 +51,11 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = "noreply@servantassist.com"
+    SMTP_FROM_NAME: str = "ServantAssist"
+    SMTP_USE_TLS: bool = True
+    
+    # Frontend (pour les liens dans les emails)
+    FRONTEND_URL: str = "http://localhost:3000"
     
     # WhatsApp
     WHATSAPP_API_URL: str = ""
@@ -60,6 +66,7 @@ class Settings(BaseSettings):
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_PHONE_NUMBER: str = ""
+    TWILIO_WHATSAPP_FROM: str = ""  # Format: "whatsapp:+237xxxxxxxxx"
     
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
@@ -67,6 +74,14 @@ class Settings(BaseSettings):
     # Security
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
     SECRET_KEY: str
+    
+    # Brute-force protection
+    LOGIN_MAX_ATTEMPTS: int = 5        # Tentatives avant verrouillage
+    LOGIN_LOCKOUT_SECONDS: int = 60    # Duree du premier palier de verrouillage
+    
+    # Rate limiting
+    RATE_LIMIT_AUTH: int = 5           # Requetes/min sur les endpoints auth
+    RATE_LIMIT_GLOBAL: int = 60        # Requetes/min global par IP
     
     # File Upload
     MAX_UPLOAD_SIZE: int = 10485760  # 10MB

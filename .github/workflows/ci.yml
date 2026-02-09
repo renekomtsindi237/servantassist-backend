@@ -1,0 +1,404 @@
+# ──────────────────────────────────────────────────────────────────────────
+# ServantAssist Backend — CI Pipeline
+# Runs on every push/PR to main and develop branches.
+# Stages: Lint → Unit Tests → E2E Tests → Security Tests → Coverage
+# ──────────────────────────────────────────────────────────────────────────
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "servantassist-backend/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "servantassist-backend/**"
+      - ".github/workflows/ci.yml"
+
+defaults:
+  run:
+    working-directory: servantassist-backend
+
+env:
+  PYTHON_VERSION: "3.12"
+  # ── Variables d'environnement de test ──────────────────────────────
+  APP_ENV: testing
+  APP_DEBUG: "False"
+  DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+  JWT_SECRET_KEY: "ci-jwt-secret-key-minimum-32-chars-long-for-hs256!"
+  JWT_ALGORITHM: HS256
+  SECRET_KEY: "ci-app-secret-key-minimum-32-chars-long!"
+  CLOUDFLARE_R2_ENDPOINT: "https://ci.r2.cloudflarestorage.com"
+  CLOUDFLARE_R2_ACCESS_KEY: "ci-access-key"
+  CLOUDFLARE_R2_SECRET_KEY: "ci-secret-key"
+  CLOUDFLARE_R2_BUCKET: "ci-bucket"
+  CLOUDFLARE_R2_PUBLIC_URL: "https://ci.r2.dev"
+
+jobs:
+  # ════════════════════════════════════════════════════════════════════
+  # 1. Code Quality — Lint, Format, Type-check
+  # ════════════════════════════════════════════════════════════════════
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-lint-${{ hashFiles('servantassist-backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-lint-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Black — Check formatting
+        run: black --check --diff src/ tests/
+
+      - name: isort — Check import order
+        run: isort --check-only --diff src/ tests/
+
+      - name: Flake8 — Lint
+        run: flake8 src/ tests/ --max-line-length=120 --statistics --count
+
+      - name: MyPy -- Type check
+        run: mypy src/ --ignore-missing-imports --no-strict-optional
+        continue-on-error: true  # advisory for now
+
+  # ════════════════════════════════════════════════════════════════════
+  # 1b. Security Scanning -- Static analysis & dependency audit
+  # ════════════════════════════════════════════════════════════════════
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-security-${{ hashFiles('servantassist-backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-security-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Bandit -- Python security linter
+        run: |
+          bandit -r src/ \
+            -f json -o bandit-report.json \
+            --severity-level medium \
+            --confidence-level medium \
+            -x tests/ \
+            || true
+          bandit -r src/ \
+            --severity-level high \
+            --confidence-level high \
+            -x tests/
+
+      - name: pip-audit -- Dependency vulnerability check
+        run: pip-audit --strict --desc
+        continue-on-error: true  # advisory, ne bloque pas le CI pour l'instant
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: servantassist-backend/bandit-report.json
+
+  # ════════════════════════════════════════════════════════════════════
+  # 2. Unit Tests
+  # ════════════════════════════════════════════════════════════════════
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-test-${{ hashFiles('servantassist-backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-test-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run unit tests
+        run: |
+          python -m pytest tests/unit/ \
+            -v --tb=short \
+            --cov=src --cov-report=xml:coverage-unit.xml \
+            --junitxml=junit-unit.xml
+
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results
+          path: |
+            servantassist-backend/coverage-unit.xml
+            servantassist-backend/junit-unit.xml
+
+  # ════════════════════════════════════════════════════════════════════
+  # 3. E2E Tests (full HTTP cycle with in-memory DB)
+  # ════════════════════════════════════════════════════════════════════
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-test-${{ hashFiles('servantassist-backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-test-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run E2E tests
+        run: |
+          python -m pytest tests/e2e/ \
+            -v --tb=short \
+            --cov=src --cov-report=xml:coverage-e2e.xml \
+            --junitxml=junit-e2e.xml
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results
+          path: |
+            servantassist-backend/coverage-e2e.xml
+            servantassist-backend/junit-e2e.xml
+
+  # ════════════════════════════════════════════════════════════════════
+  # 4. Security Tests (RBAC, JWT, Injection)
+  # ════════════════════════════════════════════════════════════════════
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    needs: [lint, security-scan]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-test-${{ hashFiles('servantassist-backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-test-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run security tests
+        run: |
+          python -m pytest tests/security/ \
+            -v --tb=short \
+            --junitxml=junit-security.xml
+
+      - name: Upload security test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-test-results
+          path: servantassist-backend/junit-security.xml
+
+  # ════════════════════════════════════════════════════════════════════
+  # 5. Use-Case Tests (full business scenarios)
+  # ════════════════════════════════════════════════════════════════════
+  usecase-tests:
+    name: Use-Case Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-test-${{ hashFiles('servantassist-backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-test-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run use-case tests
+        run: |
+          python -m pytest tests/use_cases/ \
+            -v --tb=short \
+            --junitxml=junit-usecases.xml
+
+      - name: Upload use-case test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: usecase-test-results
+          path: servantassist-backend/junit-usecases.xml
+
+  # ════════════════════════════════════════════════════════════════════
+  # 6. Performance Tests
+  # ════════════════════════════════════════════════════════════════════
+  performance-tests:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests, e2e-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-test-${{ hashFiles('servantassist-backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-test-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run performance tests
+        run: |
+          python -m pytest tests/performance/ \
+            -v --tb=short \
+            --junitxml=junit-performance.xml
+
+      - name: Upload performance test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-test-results
+          path: servantassist-backend/junit-performance.xml
+
+  # ════════════════════════════════════════════════════════════════════
+  # 7. Coverage Report (combined)
+  # ════════════════════════════════════════════════════════════════════
+  coverage:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, e2e-tests, security-tests, usecase-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-test-${{ hashFiles('servantassist-backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-test-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run full test suite with coverage
+        run: |
+          python -m pytest tests/ \
+            --cov=src \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            --cov-report=term-missing \
+            --cov-fail-under=55 \
+            --junitxml=junit-all.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: servantassist-backend/coverage.xml
+          flags: backend
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-html
+          path: servantassist-backend/htmlcov/
+
+      - name: Upload full test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-test-results
+          path: |
+            servantassist-backend/coverage.xml
+            servantassist-backend/junit-all.xml
+
