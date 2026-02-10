@@ -293,3 +293,212 @@ def render_password_changed(
     return subject, html
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  3. Notification d'affectation a un evenement
+# ═══════════════════════════════════════════════════════════════════════════
+
+def render_assignment_notification(
+    user_first_name: str,
+    event_title: str,
+    event_date: str,
+    liturgical_role: str,
+    event_location: str = "",
+) -> tuple[str, str]:
+    """Retourne (subject, html_body) pour une notification d'affectation."""
+    subject = f"Nouvelle affectation — {event_title}"
+    preview = f"{user_first_name}, vous etes affecte(e) a {event_title}."
+
+    location_line = ""
+    if event_location:
+        location_line = f"""
+                <tr>
+                  <td style="padding:4px 16px;font-size:14px;color:{_TEXT};">
+                    <strong>Lieu :</strong> {event_location}
+                  </td>
+                </tr>"""
+
+    content = f"""\
+              <td style="padding:40px 40px 0 40px;">
+                <div style="text-align:center;margin-bottom:24px;">
+                  <div style="display:inline-block;background-color:{_PRIMARY_LIGHT};border-radius:50%;width:64px;height:64px;line-height:64px;text-align:center;">
+                    <span style="font-size:28px;">&#9769;</span>
+                  </div>
+                </div>
+                <h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:{_TEXT};text-align:center;">
+                  Nouvelle affectation
+                </h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 40px;">
+                <p style="margin:0 0 16px 0;font-size:15px;color:{_TEXT};line-height:1.6;">
+                  Bonjour <strong>{user_first_name}</strong>,
+                </p>
+                <p style="margin:0 0 16px 0;font-size:15px;color:{_TEXT};line-height:1.6;">
+                  Vous avez ete affecte(e) a un evenement :
+                </p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                       style="background-color:{_PRIMARY_LIGHT};border-radius:8px;padding:16px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:4px 16px;font-size:14px;color:{_TEXT};">
+                    <strong>Evenement :</strong> {event_title}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:4px 16px;font-size:14px;color:{_TEXT};">
+                    <strong>Date :</strong> {event_date}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:4px 16px;font-size:14px;color:{_TEXT};">
+                    <strong>Role :</strong> {liturgical_role}
+                  </td>
+                </tr>{location_line}
+                </table>
+                <p style="margin:0;font-size:13px;color:{_TEXT_LIGHT};">
+                  Connectez-vous a ServantAssist pour accepter ou decliner cette affectation.
+                </p>
+              </td>
+            </tr>"""
+
+    card_content = f"<table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr>{content}</table>"
+    return subject, _base_layout(card_content, preview)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  4. Rappel d'evenement (24h avant)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def render_event_reminder(
+    user_first_name: str,
+    event_title: str,
+    event_date: str,
+    event_location: str = "",
+    liturgical_role: str = "",
+) -> tuple[str, str]:
+    """Retourne (subject, html_body) pour un rappel d'evenement."""
+    subject = f"Rappel — {event_title} demain"
+    preview = f"{user_first_name}, rappel pour {event_title} demain."
+
+    role_line = ""
+    if liturgical_role:
+        role_line = f"<br>Votre role : <strong>{liturgical_role}</strong>"
+
+    content = f"""\
+              <td style="padding:40px 40px 0 40px;">
+                <div style="text-align:center;margin-bottom:24px;">
+                  <div style="display:inline-block;background-color:{_PRIMARY_LIGHT};border-radius:50%;width:64px;height:64px;line-height:64px;text-align:center;">
+                    <span style="font-size:28px;">&#128276;</span>
+                  </div>
+                </div>
+                <h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:{_TEXT};text-align:center;">
+                  Rappel : evenement demain
+                </h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 40px 40px 40px;">
+                <p style="margin:0 0 16px 0;font-size:15px;color:{_TEXT};line-height:1.6;">
+                  Bonjour <strong>{user_first_name}</strong>,
+                </p>
+                <p style="margin:0 0 16px 0;font-size:15px;color:{_TEXT};line-height:1.6;">
+                  Ceci est un rappel pour l'evenement <strong>{event_title}</strong>
+                  prevu le <strong>{event_date}</strong>.
+                  {role_line}
+                </p>
+                <p style="margin:0;font-size:13px;color:{_TEXT_LIGHT};">
+                  Merci de confirmer votre presence dans l'application.
+                </p>
+              </td>
+            </tr>"""
+
+    card_content = f"<table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr>{content}</table>"
+    return subject, _base_layout(card_content, preview)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  5. Notification d'absence au parent
+# ═══════════════════════════════════════════════════════════════════════════
+
+def render_absence_parent_notification(
+    parent_first_name: str,
+    child_first_name: str,
+    child_last_name: str,
+    event_title: str,
+    event_date: str,
+) -> tuple[str, str]:
+    """Retourne (subject, html_body) pour informer un parent d'une absence."""
+    subject = f"Absence de {child_first_name} — {event_title}"
+    preview = f"{parent_first_name}, {child_first_name} a ete marque(e) absent(e)."
+
+    content = f"""\
+              <td style="padding:40px 40px 0 40px;">
+                <div style="text-align:center;margin-bottom:24px;">
+                  <div style="display:inline-block;background-color:#FEF2F2;border-radius:50%;width:64px;height:64px;line-height:64px;text-align:center;">
+                    <span style="font-size:28px;">&#9888;</span>
+                  </div>
+                </div>
+                <h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:{_TEXT};text-align:center;">
+                  Notification d'absence
+                </h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 40px 40px 40px;">
+                <p style="margin:0 0 16px 0;font-size:15px;color:{_TEXT};line-height:1.6;">
+                  Bonjour <strong>{parent_first_name}</strong>,
+                </p>
+                <p style="margin:0 0 16px 0;font-size:15px;color:{_TEXT};line-height:1.6;">
+                  Nous vous informons que <strong>{child_first_name} {child_last_name}</strong>
+                  a ete marque(e) <strong style="color:#EF4444;">absent(e)</strong>
+                  lors de l'evenement <strong>{event_title}</strong> du <strong>{event_date}</strong>.
+                </p>
+                <p style="margin:0;font-size:13px;color:{_TEXT_LIGHT};">
+                  Si votre enfant avait un motif valable, veuillez le communiquer a l'aumonier.
+                </p>
+              </td>
+            </tr>"""
+
+    card_content = f"<table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr>{content}</table>"
+    return subject, _base_layout(card_content, preview)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  6. Notification generale (broadcast / message personnalise)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def render_general_notification(
+    user_first_name: str,
+    title: str,
+    body: str,
+) -> tuple[str, str]:
+    """Retourne (subject, html_body) pour une notification generale."""
+    subject = f"{title} — ServantAssist"
+    preview = f"{user_first_name}, {title}"
+
+    content = f"""\
+              <td style="padding:40px 40px 0 40px;">
+                <div style="text-align:center;margin-bottom:24px;">
+                  <div style="display:inline-block;background-color:{_PRIMARY_LIGHT};border-radius:50%;width:64px;height:64px;line-height:64px;text-align:center;">
+                    <span style="font-size:28px;">&#128172;</span>
+                  </div>
+                </div>
+                <h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:{_TEXT};text-align:center;">
+                  {title}
+                </h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 40px 40px 40px;">
+                <p style="margin:0 0 16px 0;font-size:15px;color:{_TEXT};line-height:1.6;">
+                  Bonjour <strong>{user_first_name}</strong>,
+                </p>
+                <p style="margin:0;font-size:15px;color:{_TEXT};line-height:1.6;">
+                  {body}
+                </p>
+              </td>
+            </tr>"""
+
+    card_content = f"<table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr>{content}</table>"
+    return subject, _base_layout(card_content, preview)
+

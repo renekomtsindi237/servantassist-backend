@@ -1,7 +1,6 @@
 """
 Repository for managing invitation codes
 """
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -9,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from src.core.entities.invitation import InvitationCode, InvitationStatus
+from src.core.utils import utc_now
 
 
 class InvitationCodeRepository:
@@ -61,7 +61,7 @@ class InvitationCodeRepository:
         
         invitation.status = InvitationStatus.ACCEPTED
         invitation.used_by = user_id
-        invitation.used_at = datetime.utcnow()
+        invitation.used_at = utc_now()
         return await self.update(invitation.id, invitation)
     
     async def revoke(self, invitation_id: UUID) -> Optional[InvitationCode]:

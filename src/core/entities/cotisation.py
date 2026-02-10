@@ -21,6 +21,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enums
@@ -80,8 +82,8 @@ class CotisationPeriod(SQLModel, table=True):
     is_active: bool = Field(default=True)
     # Metadata
     created_by: UUID = Field(foreign_key="users.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -110,6 +112,6 @@ class MemberCotisation(SQLModel, table=True):
     # Qui a enregistre le paiement
     recorded_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
     # Metadata
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 

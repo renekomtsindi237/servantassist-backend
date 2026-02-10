@@ -27,10 +27,37 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
     print("Database session manager initialized")
-    
+
+    # ── Initialisation Redis (optionnel) ────────────────────────────
+    redis_client = None
+    if settings.APP_ENV != "testing":
+        try:
+            import redis.asyncio as aioredis
+
+            redis_client = aioredis.from_url(
+                settings.REDIS_URL,
+                decode_responses=True,
+                socket_connect_timeout=3,
+            )
+            await redis_client.ping()
+            print(f"Redis connected: {settings.REDIS_URL}")
+
+            # Configurer les backends distribues
+            from src.infrastructure.security.brute_force import brute_force_guard
+            from src.presentation.middleware.rate_limit import rate_limiter
+
+            brute_force_guard.configure_redis(redis_client)
+            rate_limiter.configure_redis(redis_client)
+        except Exception as exc:
+            print(f"Redis unavailable ({exc}), using in-memory fallback")
+            redis_client = None
+
     yield
-    
+
     # Shutdown
+    if redis_client:
+        await redis_client.close()
+        print("Redis disconnected")
     if sessionmanager._engine is not None:
         await sessionmanager.close()
     print("Database disconnected")
