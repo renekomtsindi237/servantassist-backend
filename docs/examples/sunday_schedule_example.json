@@ -1,0 +1,269 @@
+{
+  "title": "Classement du Dimanche du temps ordinaire - 16/02/2026",
+  "schedule_date": "2026-02-16T00:00:00",
+  "mass_type": "ORDINAIRE",
+  "is_exceptional": false,
+  "notes": "Classement dominical avec horaires ordinaires",
+  "masses": [
+    {
+      "mass_time": "06h30",
+      "language": "EWONDO",
+      "notes": null,
+      "assignments": [
+        {
+          "position": "CEREMONIAIRE_1",
+          "servant_name": "Etienne NGOUM",
+          "notes": null
+        },
+        {
+          "position": "CEREMONIAIRE_2",
+          "servant_name": "Bianda ATANGANA",
+          "notes": null
+        },
+        {
+          "position": "RESPONSABLE",
+          "servant_name": "JSDE",
+          "notes": null
+        },
+        {
+          "position": "CRUCIFERE",
+          "servant_name": "Andre EMMANUEL",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_1",
+          "servant_name": "Patrick MAWACK",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_2",
+          "servant_name": "Rodrigue MOMO",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_3",
+          "servant_name": "Christophe ABADA",
+          "notes": null
+        },
+        {
+          "position": "THURIFERAIRE",
+          "servant_name": "Sylvain AYALA",
+          "notes": null
+        },
+        {
+          "position": "PORTE_INSIGNES",
+          "servant_name": "Michel EBOGO",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "mass_time": "08h30",
+      "language": "FRANCAIS",
+      "notes": null,
+      "assignments": [
+        {
+          "position": "CEREMONIAIRE_1",
+          "servant_name": "Etienne NGOUM",
+          "notes": null
+        },
+        {
+          "position": "CEREMONIAIRE_2",
+          "servant_name": "Bianda ATANGANA",
+          "notes": null
+        },
+        {
+          "position": "RESPONSABLE",
+          "servant_name": "JSDE",
+          "notes": null
+        },
+        {
+          "position": "CRUCIFERE",
+          "servant_name": "Andre EMMANUEL",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_1",
+          "servant_name": "Patrick MAWACK",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_2",
+          "servant_name": "Rodrigue MOMO",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_3",
+          "servant_name": "Christophe ABADA",
+          "notes": null
+        },
+        {
+          "position": "THURIFERAIRE",
+          "servant_name": "Sylvain AYALA",
+          "notes": null
+        },
+        {
+          "position": "PORTE_INSIGNES",
+          "servant_name": "Diana ELOUE",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "mass_time": "10h00",
+      "language": "EWONDO",
+      "notes": null,
+      "assignments": [
+        {
+          "position": "CEREMONIAIRE_1",
+          "servant_name": "Etienne NGOUM",
+          "notes": null
+        },
+        {
+          "position": "CEREMONIAIRE_2",
+          "servant_name": "Bianda ATANGANA",
+          "notes": null
+        },
+        {
+          "position": "RESPONSABLE",
+          "servant_name": "JSDE",
+          "notes": null
+        },
+        {
+          "position": "CRUCIFERE",
+          "servant_name": "Andre EMMANUEL",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_1",
+          "servant_name": "Patrick MAWACK",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_2",
+          "servant_name": "Rodrigue MOMO",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_3",
+          "servant_name": "Christophe ABADA",
+          "notes": null
+        },
+        {
+          "position": "THURIFERAIRE",
+          "servant_name": "Sylvain AYALA",
+          "notes": null
+        },
+        {
+          "position": "PORTE_INSIGNES",
+          "servant_name": "Jacque HALE",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "mass_time": "11h30",
+      "language": "ANGLAIS",
+      "notes": null,
+      "assignments": [
+        {
+          "position": "CEREMONIAIRE_1",
+          "servant_name": "Etienne NGOUM",
+          "notes": null
+        },
+        {
+          "position": "CEREMONIAIRE_2",
+          "servant_name": "Bianda ATANGANA",
+          "notes": null
+        },
+        {
+          "position": "RESPONSABLE",
+          "servant_name": "JSDE",
+          "notes": null
+        },
+        {
+          "position": "CRUCIFERE",
+          "servant_name": "Andre EMMANUEL",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_1",
+          "servant_name": "Patrick MAWACK",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_2",
+          "servant_name": "Rodrigue MOMO",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_3",
+          "servant_name": "Christophe ABADA",
+          "notes": null
+        },
+        {
+          "position": "THURIFERAIRE",
+          "servant_name": "Sylvain AYALA",
+          "notes": null
+        },
+        {
+          "position": "PORTE_INSIGNES",
+          "servant_name": "Duran MOMO",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "mass_time": "17h00",
+      "language": "FRANCAIS",
+      "notes": null,
+      "assignments": [
+        {
+          "position": "CEREMONIAIRE_1",
+          "servant_name": "Etienne NGOUM",
+          "notes": null
+        },
+        {
+          "position": "CEREMONIAIRE_2",
+          "servant_name": "Bianda ATANGANA",
+          "notes": null
+        },
+        {
+          "position": "RESPONSABLE",
+          "servant_name": "JSDE",
+          "notes": null
+        },
+        {
+          "position": "CRUCIFERE",
+          "servant_name": "Andre EMMANUEL",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_1",
+          "servant_name": "Patrick MAWACK",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_2",
+          "servant_name": "Rodrigue MOMO",
+          "notes": null
+        },
+        {
+          "position": "ACOLYTE_3",
+          "servant_name": "Christophe ABADA",
+          "notes": null
+        },
+        {
+          "position": "THURIFERAIRE",
+          "servant_name": "Sylvain AYALA",
+          "notes": null
+        },
+        {
+          "position": "PORTE_INSIGNES",
+          "servant_name": "Hayael LONGA",
+          "notes": null
+        }
+      ]
+    }
+  ]
+}

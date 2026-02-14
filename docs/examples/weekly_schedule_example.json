@@ -1,0 +1,252 @@
+{
+  "title": "Classement Hebdomadaire du 10/02 au 16/02/2026",
+  "start_date": "2026-02-10T00:00:00",
+  "end_date": "2026-02-16T23:59:59",
+  "notes": "Modèle de classement pour la semaine avec tous les créneaux de messe",
+  "slots": [
+    {
+      "day": "LUNDI",
+      "mass_time": "MATIN",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Jean DUPONT",
+          "notes": null
+        },
+        {
+          "servant_name": "Sylvain AYALA",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "LUNDI",
+      "mass_time": "MIDI",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Albert LOMO",
+          "notes": null
+        },
+        {
+          "servant_name": "David SANO",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "LUNDI",
+      "mass_time": "SOIR",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Israël ABAH",
+          "notes": null
+        },
+        {
+          "servant_name": "Ngaremba ISRAEL",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "MARDI",
+      "mass_time": "MATIN",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Pierre MARTIN",
+          "notes": null
+        },
+        {
+          "servant_name": "Abdel KENA",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "MARDI",
+      "mass_time": "MIDI",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "David MONGO",
+          "notes": null
+        },
+        {
+          "servant_name": "Noël MONGO",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "MARDI",
+      "mass_time": "SOIR",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Maud ODONGO",
+          "notes": null
+        },
+        {
+          "servant_name": "Maud ODONGO",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "MERCREDI",
+      "mass_time": "MATIN",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "André NSAMBA",
+          "notes": null
+        },
+        {
+          "servant_name": "Eric NZAMBA",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "MERCREDI",
+      "mass_time": "MIDI",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Eric NZAMBA",
+          "notes": null
+        },
+        {
+          "servant_name": "Darline ETAMBALA",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "MERCREDI",
+      "mass_time": "SOIR",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Hermann MUKENDI",
+          "notes": null
+        },
+        {
+          "servant_name": "Mukendi HERMANN",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "JEUDI",
+      "mass_time": "MATIN",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Paul EYENGA",
+          "notes": null
+        },
+        {
+          "servant_name": "Thierry EYENGA",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "JEUDI",
+      "mass_time": "MIDI",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Thierry EYENGA",
+          "notes": null
+        },
+        {
+          "servant_name": "Josue MILUMBU",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "JEUDI",
+      "mass_time": "SOIR",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Ingrid NSAMBA",
+          "notes": null
+        },
+        {
+          "servant_name": "Nsamba INGRID",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "VENDREDI",
+      "mass_time": "MATIN",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Nicolas ATANGANA",
+          "notes": null
+        },
+        {
+          "servant_name": "Nathanel NANGA",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "VENDREDI",
+      "mass_time": "MIDI",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Nathanel NANGA",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "VENDREDI",
+      "mass_time": "SOIR",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Hayael LONGA",
+          "notes": null
+        },
+        {
+          "servant_name": "Ange EPOLO",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "day": "SAMEDI",
+      "mass_time": "MATIN",
+      "notes": null,
+      "servants": [
+        {
+          "servant_name": "Adrien MANGA",
+          "notes": null
+        },
+        {
+          "servant_name": "Gildas JEAN COE",
+          "notes": null
+        },
+        {
+          "servant_name": "Paulin EYENGA",
+          "notes": null
+        },
+        {
+          "servant_name": "Sylvie ESSOMBA",
+          "notes": null
+        }
+      ]
+    }
+  ]
+}

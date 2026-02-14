@@ -1,0 +1,547 @@
+name: ServantAssist CI/CD Pipeline
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "18"
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════
+  #  PHASE 1: QUALITY CHECKS & TESTS
+  # ══════════════════════════════════════════════════════════════════
+  
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for SonarCloud
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      
+      - name: Code formatting check (Black)
+        run: black --check --diff src/ tests/
+      
+      - name: Import sorting check (isort)
+        run: isort --check-only --diff src/ tests/
+      
+      - name: Linting (Flake8)
+        run: flake8 src/ tests/
+      
+      - name: Type checking (MyPy)
+        run: mypy src/
+      
+      - name: Security scan (Bandit)
+        run: bandit -r src/ -f json -o bandit-report.json
+        continue-on-error: true
+      
+      - name: Dependency vulnerability scan (Safety)
+        run: safety check --json --output safety-report.json
+        continue-on-error: true
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.TEST_DB_USER }}
+          POSTGRES_DB: ${{ secrets.TEST_DB_NAME }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      
+      - name: Wait for services
+        run: |
+          sleep 10
+          pg_isready -h localhost -p 5432 -U ${{ secrets.TEST_DB_USER }}
+          redis-cli -h localhost -p 6379 ping
+      
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@localhost:5432/${{ secrets.TEST_DB_NAME }}
+        run: |
+          alembic upgrade head
+      
+      - name: Run unit tests with coverage
+        env:
+          DATABASE_URL: postgresql://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@localhost:5432/${{ secrets.TEST_DB_NAME }}
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET_KEY: ${{ secrets.TEST_JWT_SECRET }}
+          ENVIRONMENT: testing
+        run: |
+          pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=html --cov-fail-under=85
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+      
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+  integration-tests:
+    name: Integration & E2E Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.TEST_DB_USER }}
+          POSTGRES_DB: ${{ secrets.TEST_DB_NAME }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@localhost:5432/${{ secrets.TEST_DB_NAME }}
+        run: |
+          alembic upgrade head
+      
+      - name: Run E2E tests
+        env:
+          DATABASE_URL: postgresql://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@localhost:5432/${{ secrets.TEST_DB_NAME }}
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET_KEY: ${{ secrets.TEST_JWT_SECRET }}
+          ENVIRONMENT: testing
+        run: |
+          pytest tests/e2e/ -v --maxfail=5
+      
+      - name: Run performance tests
+        env:
+          DATABASE_URL: postgresql://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@localhost:5432/${{ secrets.TEST_DB_NAME }}
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET_KEY: ${{ secrets.TEST_JWT_SECRET }}
+          ENVIRONMENT: testing
+        run: |
+          pytest tests/performance/ -v
+      
+      - name: Run security tests
+        env:
+          DATABASE_URL: postgresql://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@localhost:5432/${{ secrets.TEST_DB_NAME }}
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET_KEY: ${{ secrets.TEST_JWT_SECRET }}
+          ENVIRONMENT: testing
+        run: |
+          pytest tests/security/ -v
+
+  # ══════════════════════════════════════════════════════════════════
+  #  PHASE 2: BUILD & CONTAINERIZATION
+  # ══════════════════════════════════════════════════════════════════
+  
+  build:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests, integration-tests]
+    if: github.event_name == 'push'
+    
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.CONTAINER_REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.CONTAINER_REGISTRY }}/servantassist/api
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+      
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+      
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: sbom.spdx.json
+
+  # ══════════════════════════════════════════════════════════════════
+  #  PHASE 3: SECURITY SCANNING
+  # ══════════════════════════════════════════════════════════════════
+  
+  security-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build.outputs.image-tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ══════════════════════════════════════════════════════════════════
+  #  PHASE 4: DEPLOYMENT
+  # ══════════════════════════════════════════════════════════════════
+  
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: [build, security-scan]
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    environment: development
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Deploy to ECS
+        run: |
+          # Update ECS service with new image
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER_DEV }} \
+            --service ${{ secrets.ECS_SERVICE_DEV }} \
+            --task-definition ${{ secrets.ECS_TASK_DEFINITION_DEV }} \
+            --force-new-deployment
+      
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER_DEV }} \
+            --services ${{ secrets.ECS_SERVICE_DEV }}
+      
+      - name: Run database migrations
+        run: |
+          # Run migrations on dev environment
+          aws ecs run-task \
+            --cluster ${{ secrets.ECS_CLUSTER_DEV }} \
+            --task-definition ${{ secrets.ECS_MIGRATION_TASK_DEV }} \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_IDS_DEV }}],securityGroups=[${{ secrets.SECURITY_GROUP_DEV }}],assignPublicIp=ENABLED}"
+      
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f ${{ secrets.DEV_API_URL }}/health || exit 1
+      
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER_STAGING }} \
+            --service ${{ secrets.ECS_SERVICE_STAGING }} \
+            --task-definition ${{ secrets.ECS_TASK_DEFINITION_STAGING }} \
+            --force-new-deployment
+      
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER_STAGING }} \
+            --services ${{ secrets.ECS_SERVICE_STAGING }}
+      
+      - name: Run database migrations
+        run: |
+          aws ecs run-task \
+            --cluster ${{ secrets.ECS_CLUSTER_STAGING }} \
+            --task-definition ${{ secrets.ECS_MIGRATION_TASK_STAGING }} \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_IDS_STAGING }}],securityGroups=[${{ secrets.SECURITY_GROUP_STAGING }}],assignPublicIp=ENABLED}"
+      
+      - name: Run smoke tests
+        run: |
+          sleep 30
+          curl -f ${{ secrets.STAGING_API_URL }}/health || exit 1
+          # Add more comprehensive smoke tests here
+      
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Create deployment backup
+        run: |
+          # Backup current production state
+          aws rds create-db-snapshot \
+            --db-instance-identifier ${{ secrets.RDS_INSTANCE_PROD }} \
+            --db-snapshot-identifier "pre-deploy-$(date +%Y%m%d-%H%M%S)"
+      
+      - name: Deploy to ECS (Blue/Green)
+        run: |
+          # Blue/Green deployment
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER_PROD }} \
+            --service ${{ secrets.ECS_SERVICE_PROD }} \
+            --task-definition ${{ secrets.ECS_TASK_DEFINITION_PROD }} \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50"
+      
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER_PROD }} \
+            --services ${{ secrets.ECS_SERVICE_PROD }}
+      
+      - name: Run database migrations
+        run: |
+          aws ecs run-task \
+            --cluster ${{ secrets.ECS_CLUSTER_PROD }} \
+            --task-definition ${{ secrets.ECS_MIGRATION_TASK_PROD }} \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_IDS_PROD }}],securityGroups=[${{ secrets.SECURITY_GROUP_PROD }}],assignPublicIp=ENABLED}"
+      
+      - name: Production health check
+        run: |
+          sleep 60
+          for i in {1..5}; do
+            if curl -f ${{ secrets.PROD_API_URL }}/health; then
+              echo "Health check passed"
+              break
+            fi
+            if [ $i -eq 5 ]; then
+              echo "Health check failed after 5 attempts"
+              exit 1
+            fi
+            sleep 30
+          done
+      
+      - name: Notify production deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#production'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+
+  # ══════════════════════════════════════════════════════════════════
+  #  PHASE 5: POST-DEPLOYMENT
+  # ══════════════════════════════════════════════════════════════════
+  
+  post-deployment:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Update monitoring dashboards
+        run: |
+          # Update Grafana dashboards, alerts, etc.
+          echo "Updating monitoring configuration..."
+      
+      - name: Generate deployment report
+        run: |
+          echo "Deployment completed successfully at $(date)"
+          echo "Image: ${{ needs.build.outputs.image-tag }}"
+          echo "Digest: ${{ needs.build.outputs.image-digest }}"
+      
+      - name: Clean up old images
+        run: |
+          # Clean up old container images (keep last 10)
+          echo "Cleaning up old container images..."
