@@ -9,6 +9,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now
+
 
 class InvitationStatus(str, Enum):
     """Status of invitation"""
@@ -38,7 +40,7 @@ class InvitationCode(SQLModel, table=True):
     
     # Audit trail
     created_by: UUID = Field(foreign_key="users.id")  # Admin who created this invitation
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
     # No automatic expiration - admin controls lifespan via revocation
     
     # Usage tracking

@@ -26,6 +26,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enums
@@ -110,7 +112,7 @@ class Nomination(SQLModel, table=True):
     status: NominationStatus = Field(default=NominationStatus.ACTIVE)
     nominated_by: UUID = Field(foreign_key="users.id")  # Aumonier qui a nomme
     notes: Optional[str] = Field(default=None, max_length=500)
-    nominated_at: datetime = Field(default_factory=datetime.utcnow)
+    nominated_at: datetime = Field(default_factory=utc_now)
     revoked_at: Optional[datetime] = Field(default=None)
     revoked_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
 
@@ -151,8 +153,8 @@ class PosteAction(SQLModel, table=True):
     extra_data: Optional[str] = Field(default=None, max_length=10000)
     # Auteur
     created_by: UUID = Field(foreign_key="users.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

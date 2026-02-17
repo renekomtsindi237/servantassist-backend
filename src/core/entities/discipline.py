@@ -18,6 +18,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enums
@@ -100,7 +102,7 @@ class DisciplineCase(SQLModel, table=True):
     # Description de la faute
     offense_category: OffenseCategory = Field(index=True)
     offense_description: str = Field(max_length=2000)
-    offense_date: datetime = Field(default_factory=datetime.utcnow)
+    offense_date: datetime = Field(default_factory=utc_now)
     severity: SanctionSeverity = Field(default=SanctionSeverity.MINEUR)
     # Statut du dossier
     status: DisciplineCaseStatus = Field(
@@ -119,8 +121,8 @@ class DisciplineCase(SQLModel, table=True):
     suspension_end: Optional[datetime] = Field(default=None)
     suspension_days: Optional[int] = Field(default=None)
     # Metadata
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

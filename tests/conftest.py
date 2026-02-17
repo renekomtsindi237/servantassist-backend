@@ -72,6 +72,10 @@ from src.core.entities.material import (
     CleaningTask, AubeTask, TaskType, TaskStatus
 )
 from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.notification import (
+    Notification, NotificationPreference, NotificationType,
+    NotificationChannel, NotificationStatus, NotificationPriority,
+)
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.security.utils import SecurityUtils
@@ -81,7 +85,7 @@ from src.presentation.api.v1 import (
     attendance, subgroups, attendance_sessions,
     contributions, financial_entries, material,
     reports, sport_culture, sunday_schedule,
-    training, weekly_schedule,
+    training, weekly_schedule, communication,
 )
 
 # ── Constantes de test ───────────────────────────────────────────────────
@@ -104,6 +108,7 @@ def create_test_app() -> FastAPI:
     test_app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
     test_app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
     test_app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
+<<<<<<< HEAD
     test_app.include_router(attendance_sessions.router, prefix="/api/v1/attendance-sessions", tags=["Attendance Sessions"])
     test_app.include_router(contributions.router, prefix="/api/v1/contributions", tags=["Contributions"])
     test_app.include_router(financial_entries.router, prefix="/api/v1/financial-entries", tags=["Financial Entries"])
@@ -113,6 +118,9 @@ def create_test_app() -> FastAPI:
     test_app.include_router(sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"])
     test_app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])
     test_app.include_router(weekly_schedule.router, prefix="/api/v1/weekly-schedule", tags=["Weekly Schedule"])
+=======
+    test_app.include_router(communication.router, prefix="/api/v1/communication", tags=["Communication"])
+>>>>>>> 6c8bb197ee555c35afb3ed8d1af6ea329544b04f
     return test_app
 
 
@@ -881,6 +889,7 @@ async def sample_subgroup_member(
     return member
 
 
+<<<<<<< HEAD
 @pytest_asyncio.fixture()
 async def sample_contribution(
     db_session: AsyncSession,
@@ -1361,3 +1370,48 @@ async def sample_attachment(
     await db_session.commit()
     await db_session.refresh(attachment)
     return attachment
+=======
+# ── Fixtures notifications ──────────────────────────────────────────────
+@pytest_asyncio.fixture()
+async def sample_notification(
+    db_session: AsyncSession,
+    servant_user: User,
+    aumonier_user: User,
+) -> Notification:
+    """Notification IN_APP de test envoyee par l'aumonier au servant."""
+    notif = Notification(
+        id=uuid4(),
+        recipient_id=servant_user.id,
+        notification_type=NotificationType.GENERAL,
+        channel=NotificationChannel.IN_APP,
+        priority=NotificationPriority.NORMAL,
+        title="Reunion ce dimanche",
+        body="Rappel : reunion de preparation a 8h.",
+        status=NotificationStatus.SENT,
+        sent_by=aumonier_user.id,
+    )
+    db_session.add(notif)
+    await db_session.commit()
+    await db_session.refresh(notif)
+    return notif
+
+
+@pytest_asyncio.fixture()
+async def sample_notification_preference(
+    db_session: AsyncSession,
+    servant_user: User,
+) -> NotificationPreference:
+    """Preference de notification de test pour le servant."""
+    pref = NotificationPreference(
+        id=uuid4(),
+        user_id=servant_user.id,
+        notification_type=NotificationType.GENERAL,
+        email_enabled=False,
+        whatsapp_enabled=False,
+        in_app_enabled=True,
+    )
+    db_session.add(pref)
+    await db_session.commit()
+    await db_session.refresh(pref)
+    return pref
+>>>>>>> 6c8bb197ee555c35afb3ed8d1af6ea329544b04f
