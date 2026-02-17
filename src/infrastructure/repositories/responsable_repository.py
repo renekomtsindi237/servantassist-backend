@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -152,6 +152,10 @@ class PosteActionRepository:
         result = await self.session.exec(stmt)
         return result.first()
 
+    async def get_by_id(self, action_id: UUID) -> Optional[PosteAction]:
+        """Alias pour get() pour compatibility."""
+        return await self.get(action_id)
+
     async def list_by_poste(
         self,
         poste: PosteResponsable,
@@ -178,6 +182,94 @@ class PosteActionRepository:
 
         result = await self.session.exec(stmt)
         return result.all(), total
+
+    async def list_with_filters(
+        self,
+        *,
+        poste: Optional[PosteResponsable] = None,
+        category: Optional[ActionCategory] = None,
+        status: Optional[ActionStatus] = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Dict:
+        """Liste toutes les actions avec filtres optionnels et pagination."""
+        stmt = select(PosteAction)
+
+        if poste:
+            stmt = stmt.where(PosteAction.poste == poste)
+        if category:
+            stmt = stmt.where(PosteAction.category == category)
+        if status:
+            stmt = stmt.where(PosteAction.status == status)
+
+        # Compter le total
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        count_result = await self.session.exec(count_stmt)
+        total = count_result.one()
+
+        # Paginer et trier
+        offset = (page - 1) * page_size
+        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+
+        result = await self.session.exec(stmt)
+        items = result.all()
+
+        total_pages = (total + page_size - 1) // page_size
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+        }
+
+    async def list_by_visibility(
+        self,
+        user_id: UUID,
+        *,
+        poste: Optional[PosteResponsable] = None,
+        category: Optional[ActionCategory] = None,
+        status: Optional[ActionStatus] = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Dict:
+        """Liste les actions visibles pour un utilisateur (ses actions + actions publiées)."""
+        from sqlalchemy import or_
+        
+        stmt = select(PosteAction).where(
+            or_(
+                PosteAction.created_by == user_id,
+                PosteAction.status == ActionStatus.PUBLIE,
+            )
+        )
+
+        if poste:
+            stmt = stmt.where(PosteAction.poste == poste)
+        if category:
+            stmt = stmt.where(PosteAction.category == category)
+        if status:
+            stmt = stmt.where(PosteAction.status == status)
+
+        # Compter le total
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        count_result = await self.session.exec(count_stmt)
+        total = count_result.one()
+
+        # Paginer et trier
+        offset = (page - 1) * page_size
+        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+
+        result = await self.session.exec(stmt)
+        items = result.all()
+
+        total_pages = (total + page_size - 1) // page_size
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+        }
 
     async def list_by_user(self, user_id: UUID) -> List[PosteAction]:
         """Toutes les actions creees par un utilisateur."""
@@ -269,13 +361,50 @@ class PosteActionRepository:
 
     # ── Ecriture ──────────────────────────────────────────────────────
 
-    async def create(self, action: PosteAction) -> PosteAction:
+    async def create(
+        self,
+        poste: PosteResponsable,
+        category: ActionCategory,
+        title: str,
+        content: Optional[str] = None,
+        target_user_id: Optional[UUID] = None,
+        target_event_id: Optional[UUID] = None,
+        amount: Optional[float] = None,
+        action_date: Optional[datetime] = None,
+        status: Optional[ActionStatus] = None,
+        extra_data: Optional[str] = None,
+        created_by: Optional[UUID] = None,
+    ) -> PosteAction:
+        """Crée une nouvelle action."""
+        action = PosteAction(
+            poste=poste,
+            category=category,
+            title=title,
+            content=content,
+            target_user_id=target_user_id,
+            target_event_id=target_event_id,
+            amount=amount,
+            action_date=action_date,
+            extra_data=extra_data,
+            created_by=created_by,
+            status=status or ActionStatus.BROUILLON,
+        )
         self.session.add(action)
         await self.session.commit()
         await self.session.refresh(action)
         return action
 
-    async def update(self, action: PosteAction) -> PosteAction:
+    async def update(self, action_id: UUID, data: Dict) -> Optional[PosteAction]:
+        """Modifie une action existante par son ID avec un dictionnaire de données."""
+        action = await self.get(action_id)
+        if not action:
+            return None
+        
+        for key, value in data.items():
+            if hasattr(action, key) and value is not None:
+                setattr(action, key, value)
+        
+        action.updated_at = datetime.now(timezone.utc)
         self.session.add(action)
         await self.session.commit()
         await self.session.refresh(action)

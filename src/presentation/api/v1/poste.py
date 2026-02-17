@@ -47,10 +47,12 @@ router = APIRouter()
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 def _get_service(session: AsyncSession) -> ResponsableService:
+    from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
     return ResponsableService(
         nomination_repo=NominationRepository(session),
         action_repo=PosteActionRepository(session),
         user_repo=UserRepository(session),
+        council_repo=CouncilMeetingRepository(session),
     )
 
 

@@ -35,6 +35,8 @@ from src.infrastructure.repositories.responsable_repository import (
     PosteActionRepository,
 )
 from src.infrastructure.repositories.user_repository import UserRepository
+from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
+from src.core.entities.council_meeting import CouncilAttendanceStatus
 from src.presentation.schemas.responsable import (
     NominationCreate,
     NominationResponse,
@@ -44,7 +46,11 @@ from src.presentation.schemas.responsable import (
     PosteDashboardResponse,
     PosteDetailResponse,
     PosteListResponse,
+    CouncilMeetingCreate,
+    CouncilMeetingResponse,
+    CouncilAttendanceRecordList,
 )
+from src.core.entities.council_meeting import CouncilMeeting, CouncilAttendance
 from src.presentation.schemas.user import PaginatedResponse
 
 
@@ -56,10 +62,12 @@ class ResponsableService:
         nomination_repo: NominationRepository,
         action_repo: PosteActionRepository,
         user_repo: UserRepository,
+        council_repo: CouncilMeetingRepository,
     ):
         self.nomination_repo = nomination_repo
         self.action_repo = action_repo
         self.user_repo = user_repo
+        self.council_repo = council_repo
 
     # ══════════════════════════════════════════════════════════════════
     #  NOMINATIONS (Aumonier / Admin)
@@ -277,7 +285,8 @@ class ResponsableService:
                 ),
             )
 
-        action = PosteAction(
+        # Appeler le repository avec les parametres individuels
+        created = await self.action_repo.create(
             poste=poste,
             category=data.category,
             title=data.title,
@@ -290,7 +299,6 @@ class ResponsableService:
             extra_data=data.extra_data,
             created_by=created_by,
         )
-        created = await self.action_repo.create(action)
         enriched = await self.action_repo.enrich_action(created)
         return PosteActionResponse(**enriched)
 
@@ -353,25 +361,27 @@ class ResponsableService:
                 detail="Vous ne pouvez modifier que vos propres actions.",
             )
 
+        # Preparer les donnees a mettre a jour
+        update_dict = {}
         if data.title is not None:
-            action.title = data.title
+            update_dict['title'] = data.title
         if data.content is not None:
-            action.content = data.content
+            update_dict['content'] = data.content
         if data.target_user_id is not None:
-            action.target_user_id = data.target_user_id
+            update_dict['target_user_id'] = data.target_user_id
         if data.target_event_id is not None:
-            action.target_event_id = data.target_event_id
+            update_dict['target_event_id'] = data.target_event_id
         if data.amount is not None:
-            action.amount = data.amount
+            update_dict['amount'] = data.amount
         if data.action_date is not None:
-            action.action_date = data.action_date
+            update_dict['action_date'] = data.action_date
         if data.status is not None:
-            action.status = data.status
+            update_dict['status'] = data.status
         if data.extra_data is not None:
-            action.extra_data = data.extra_data
+            update_dict['extra_data'] = data.extra_data
 
-        action.updated_at = datetime.now(timezone.utc)
-        updated = await self.action_repo.update(action)
+        # Appeler le repository avec l'ID et le dictionnaire
+        updated = await self.action_repo.update(action_id, update_dict)
         enriched = await self.action_repo.enrich_action(updated)
         return PosteActionResponse(**enriched)
 
@@ -416,4 +426,65 @@ class ResponsableService:
             actions_terminees=counts.get(ActionStatus.TERMINE.value, 0),
             recent_actions=[PosteActionResponse(**e) for e in enriched_recent],
         )
+
+    async def monitor_council_attendance(self, responsable_id: UUID) -> dict:
+        """
+        Vérifie l'assiduité d'un responsable au conseil (Art 15).
+        Si 3 absences consécutives -> Destitution.
+        """
+        attendances = await self.council_repo.get_responsable_attendances(responsable_id, limit=3)
+        
+        if len(attendances) < 3:
+            return {"responsable_id": responsable_id, "destituted": False, "reason": "Not enough data"}
+
+        is_consecutive_absent = all(a.status == CouncilAttendanceStatus.ABSENT for a in attendances)
+        
+        if is_consecutive_absent:
+            # Révoquer toutes les nominations actives
+            active_nominations = await self.nomination_repo.get_active_by_user(responsable_id)
+            for nom in active_nominations:
+                nom.status = NominationStatus.REVOQUEE
+                nom.revoked_at = datetime.now(timezone.utc)
+                nom.revoked_by = UUID("00000000-0000-0000-0000-000000000000") # System ID (Délégué d'office)
+                nom.notes = "Destitution automatique pour 3 absences consécutives au conseil (Art 15)"
+                await self.nomination_repo.update(nom)
+            
+            return {"responsable_id": responsable_id, "destituted": True, "reason": "3 consecutive absences"}
+        
+        return {"responsable_id": responsable_id, "destituted": False}
+
+    async def create_council_meeting(
+        self, data: CouncilMeetingCreate, created_by: UUID
+    ) -> CouncilMeetingResponse:
+        """Crée une nouvelle réunion du conseil (Délégué/SG)."""
+        meeting = CouncilMeeting(
+            meeting_date=data.meeting_date,
+            location=data.location,
+            agenda=data.agenda,
+            created_by=created_by,
+        )
+        created = await self.council_repo.create_meeting(meeting)
+        return CouncilMeetingResponse.from_orm(created)
+
+    async def record_council_attendance(
+        self, meeting_id: UUID, data: CouncilAttendanceRecordList
+    ) -> List[dict]:
+        """Enregistre les présences pour une réunion (SG)."""
+        meeting = await self.council_repo.get_meeting(meeting_id)
+        if not meeting:
+            raise HTTPException(404, "Réunion introuvable")
+
+        results = []
+        for att in data.attendances:
+            status = CouncilAttendanceStatus.PRESENT if att.is_present else CouncilAttendanceStatus.ABSENT
+            attendance = CouncilAttendance(
+                meeting_id=meeting_id,
+                responsable_id=att.responsable_id,
+                status=status,
+                excuse=att.excuse,
+            )
+            await self.council_repo.save_attendance(attendance)
+            results.append({"responsable_id": att.responsable_id, "status": status})
+        
+        return results
 

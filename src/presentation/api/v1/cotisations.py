@@ -36,6 +36,7 @@ from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_admin_or_aumonier,
+    require_econome,
 )
 from src.presentation.schemas.cotisation import (
     CotisationBilanResponse,
@@ -56,6 +57,8 @@ def _get_service(session: AsyncSession) -> CotisationService:
         payment_repo=MemberCotisationRepository(session),
         user_repo=UserRepository(session),
     )
+
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -166,12 +169,21 @@ async def delete_period(
 async def get_period_bilan(
     period_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_econome)],
 ):
     """
     Bilan financier d'une periode de cotisation.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - ECONOME (via nomination active)
+    - ADMIN
+    - AUMÔNIER
+
+    **Contenu du bilan** :
+    - Total collecté
+    - Nombre de cotisants
+    - Détail par cotisant
+    - Taux de participation
     """
     service = _get_service(session)
     return await service.get_bilan(period_id)
@@ -189,7 +201,7 @@ async def get_period_bilan(
 async def record_payment(
     data: MemberCotisationCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_econome)],
 ):
     """
     Enregistrer un paiement de cotisation.
@@ -197,7 +209,19 @@ async def record_payment(
     Si un paiement existe deja pour cette periode et cet utilisateur,
     le montant sera ajoute (paiement supplementaire).
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - ECONOME (via nomination active)
+    - ADMIN
+    - AUMÔNIER
+
+    **Processus** :
+    1. Vérifier l'accès ECONOME (nomination active ou ADMIN/AUMÔNIER)
+    2. Enregistrer le paiement en base de données
+    3. Retourner l'objet créé
+
+    **Réponse 201** : Paiement enregistré  
+    **Réponse 403** : Non autorisé (pas ECONOME)  
+    **Réponse 400** : Validation échouée
     """
     service = _get_service(session)
     return await service.record_payment(data, recorded_by=current_user.id)
@@ -210,12 +234,19 @@ async def record_payment(
 async def get_period_payments(
     period_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_econome)],
 ):
     """
     Paiements d'une periode de cotisation.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - ECONOME (via nomination active)
+    - ADMIN
+    - AUMÔNIER
+
+    **Visibilité** :
+    - Les ECONOME voient TOUS les paiements de la période
+    - ADMIN/AUMÔNIER voient aussi tous les paiements
     """
     service = _get_service(session)
     return await service.get_period_payments(period_id)

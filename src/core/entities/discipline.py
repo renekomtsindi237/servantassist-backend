@@ -30,6 +30,9 @@ class SanctionType(str, Enum):
     AVERTISSEMENT_ECRIT = "AVERTISSEMENT_ECRIT"            # 2eme manquement
     SUSPENSION_TEMPORAIRE = "SUSPENSION_TEMPORAIRE"        # Manquement grave / recidive
     EXCLUSION_DEFINITIVE = "EXCLUSION_DEFINITIVE"          # Faute tres grave
+    LETTRE_EXCUSE = "LETTRE_EXCUSE"                        # Article 44
+    CORVEE_INTENSIVE = "CORVEE_INTENSIVE"                  # Article 43
+    RECYCLAGE_SERVICE = "RECYCLAGE_SERVICE"                # Article 46
 
 
 class SanctionSeverity(str, Enum):
@@ -64,6 +67,11 @@ class OffenseCategory(str, Enum):
     NON_PAIEMENT_COTISATION = "NON_PAIEMENT_COTISATION"
     NEGLIGENCE_MATERIEL = "NEGLIGENCE_MATERIEL"
     BAVARDAGE_PENDANT_SERVICE = "BAVARDAGE_PENDANT_SERVICE"
+    RELATION_AMOUREUSE = "RELATION_AMOUREUSE"
+    CONSOMMATION_STUPEFIANTS = "CONSOMMATION_STUPEFIANTS"
+    AGRESSION_PHYSIQUE_RESPONSABLE = "AGRESSION_PHYSIQUE_RESPONSABLE"
+    MENSONGE = "MENSONGE"
+    INFLUENCE_PARENTALE_INAPPROPRIEE = "INFLUENCE_PARENTALE_INAPPROPRIEE"
     AUTRE = "AUTRE"
 
 
@@ -132,6 +140,11 @@ OFFENSE_DEFAULT_SEVERITY: dict[OffenseCategory, SanctionSeverity] = {
     OffenseCategory.NON_PAIEMENT_COTISATION: SanctionSeverity.MINEUR,
     OffenseCategory.NEGLIGENCE_MATERIEL: SanctionSeverity.MOYEN,
     OffenseCategory.BAVARDAGE_PENDANT_SERVICE: SanctionSeverity.MINEUR,
+    OffenseCategory.RELATION_AMOUREUSE: SanctionSeverity.TRES_GRAVE,
+    OffenseCategory.CONSOMMATION_STUPEFIANTS: SanctionSeverity.TRES_GRAVE,
+    OffenseCategory.AGRESSION_PHYSIQUE_RESPONSABLE: SanctionSeverity.TRES_GRAVE,
+    OffenseCategory.MENSONGE: SanctionSeverity.MOYEN,
+    OffenseCategory.INFLUENCE_PARENTALE_INAPPROPRIEE: SanctionSeverity.MINEUR,
     OffenseCategory.AUTRE: SanctionSeverity.MINEUR,
 }
 

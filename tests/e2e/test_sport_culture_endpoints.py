@@ -125,11 +125,11 @@ async def test_update_event(
 async def test_delete_event(
     client: AsyncClient,
     charge_sport_culture_token: str,
-    sample_cultural_event,
+    sample_sport_event,
 ):
     """Test suppression d'un événement."""
     response = await client.delete(
-        f"/api/v1/sport-culture/events/{sample_cultural_event.id}",
+        f"/api/v1/sport-culture/events/{sample_sport_event.id}",
         headers={"Authorization": f"Bearer {charge_sport_culture_token}"},
     )
     assert response.status_code == 204
@@ -182,13 +182,13 @@ async def test_register_to_event(
 async def test_register_batch_to_event(
     client: AsyncClient,
     charge_sport_culture_token: str,
-    sample_cultural_event,
+    sample_sport_event,
     servant_user,
     servant_user_2,
 ):
     """Test inscription par lot."""
     response = await client.post(
-        f"/api/v1/sport-culture/events/{sample_cultural_event.id}/register-batch",
+        f"/api/v1/sport-culture/events/{sample_sport_event.id}/register-batch",
         json={
             "servant_ids": [str(servant_user.id), str(servant_user_2.id)],
         },

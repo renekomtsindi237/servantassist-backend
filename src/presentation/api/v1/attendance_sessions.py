@@ -17,6 +17,7 @@ from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_user,
     require_censeur,
+    require_censeur_strict,
 )
 from src.presentation.schemas.attendance_session import (
     AttendanceRecordCreate,
@@ -31,7 +32,7 @@ from src.presentation.schemas.attendance_session import (
 )
 from src.presentation.schemas.user import PaginatedResponse
 
-router = APIRouter(prefix="/attendance-sessions", tags=["Attendance Sessions"])
+router = APIRouter()
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -62,7 +63,7 @@ async def get_attendance_service(
 )
 async def create_session(
     data: AttendanceSessionCreate,
-    current_user: User = Depends(require_censeur),
+    current_user: User = Depends(require_censeur_strict),
     service: AttendanceSessionService = Depends(get_attendance_service),
 ):
     """Crée une nouvelle session d'appel."""

@@ -63,7 +63,7 @@ def get_sport_culture_service(
 
 
 @router.post(
-    "/sport-culture/events",
+    "/events",
     response_model=SportCultureEventResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer un événement",
@@ -104,7 +104,7 @@ async def create_event(
 
 
 @router.get(
-    "/sport-culture/events",
+    "/events",
     response_model=SportCultureEventListResponse,
     summary="Liste des événements",
     description="Liste tous les événements avec filtres",
@@ -150,7 +150,7 @@ async def list_events(
 
 
 @router.get(
-    "/sport-culture/events/{event_id}",
+    "/events/{event_id}",
     response_model=SportCultureEventResponse,
     summary="Détail d'un événement",
     description="Récupère les détails d'un événement",
@@ -180,7 +180,7 @@ async def get_event(
 
 
 @router.patch(
-    "/sport-culture/events/{event_id}",
+    "/events/{event_id}",
     response_model=SportCultureEventResponse,
     summary="Modifier un événement",
     description="Modifie un événement (CHARGE_SPORT_CULTURE uniquement)",
@@ -226,7 +226,7 @@ async def update_event(
 
 
 @router.delete(
-    "/sport-culture/events/{event_id}",
+    "/events/{event_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer un événement",
     description="Supprime un événement (CHARGE_SPORT_CULTURE uniquement)",
@@ -246,7 +246,7 @@ async def delete_event(
 
 
 @router.get(
-    "/sport-culture/events/upcoming/list",
+    "/events/upcoming/list",
     response_model=SportCultureEventListResponse,
     summary="Événements à venir",
     description="Récupère les événements à venir",
@@ -285,7 +285,7 @@ async def get_upcoming_events(
 
 
 @router.post(
-    "/sport-culture/events/{event_id}/register",
+    "/events/{event_id}/register",
     response_model=EventParticipationResponse,
     status_code=status.HTTP_201_CREATED,
     summary="S'inscrire à un événement",
@@ -308,7 +308,7 @@ async def register_to_event(
 
 
 @router.post(
-    "/sport-culture/events/{event_id}/register-batch",
+    "/events/{event_id}/register-batch",
     response_model=EventParticipationListResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Inscrire plusieurs servants",
@@ -334,7 +334,7 @@ async def register_batch_to_event(
 
 
 @router.get(
-    "/sport-culture/events/{event_id}/participants",
+    "/events/{event_id}/participants",
     response_model=EventParticipationListResponse,
     summary="Participants d'un événement",
     description="Liste les participants d'un événement",
@@ -353,7 +353,7 @@ async def get_event_participants(
 
 
 @router.post(
-    "/sport-culture/participations/{participation_id}/attendance",
+    "/participations/{participation_id}/attendance",
     response_model=EventParticipationResponse,
     summary="Marquer la présence",
     description="Marque la présence d'un participant (CHARGE_SPORT_CULTURE uniquement)",
@@ -380,7 +380,7 @@ async def mark_participant_attendance(
 
 
 @router.post(
-    "/sport-culture/participations/{participation_id}/payment",
+    "/participations/{participation_id}/payment",
     response_model=EventParticipationResponse,
     summary="Marquer le paiement",
     description="Marque le paiement d'un participant (CHARGE_SPORT_CULTURE uniquement)",
@@ -406,7 +406,7 @@ async def mark_participant_payment(
 
 
 @router.delete(
-    "/sport-culture/participations/{participation_id}",
+    "/participations/{participation_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Annuler une inscription",
     description="Annule l'inscription d'un participant (CHARGE_SPORT_CULTURE uniquement)",
@@ -426,7 +426,7 @@ async def cancel_participation(
 
 
 @router.get(
-    "/sport-culture/servants/{servant_id}/participations",
+    "/servants/{servant_id}/participations",
     response_model=EventParticipationListResponse,
     summary="Participations d'un servant",
     description="Liste les participations d'un servant",
@@ -451,7 +451,7 @@ async def get_servant_participations(
 
 
 @router.get(
-    "/sport-culture/servants/{servant_id}/stats",
+    "/servants/{servant_id}/stats",
     response_model=ServantParticipationStatsResponse,
     summary="Statistiques d'un servant",
     description="Récupère les statistiques de participation d'un servant",
@@ -479,7 +479,7 @@ async def get_servant_stats(
 
 
 @router.post(
-    "/sport-culture/events/{event_id}/results",
+    "/events/{event_id}/results",
     response_model=EventResultResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Ajouter un résultat",
@@ -513,7 +513,7 @@ async def add_event_result(
 
 
 @router.get(
-    "/sport-culture/events/{event_id}/results",
+    "/events/{event_id}/results",
     response_model=List[EventResultResponse],
     summary="Résultats d'un événement",
     description="Récupère les résultats d'un événement",
@@ -529,7 +529,7 @@ async def get_event_results(
 
 
 @router.delete(
-    "/sport-culture/results/{result_id}",
+    "/results/{result_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer un résultat",
     description="Supprime un résultat (CHARGE_SPORT_CULTURE uniquement)",
@@ -554,7 +554,7 @@ async def delete_result(
 
 
 @router.post(
-    "/sport-culture/events/{event_id}/teams",
+    "/events/{event_id}/teams",
     response_model=EventTeamResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer une équipe",
@@ -583,7 +583,7 @@ async def create_event_team(
 
 
 @router.get(
-    "/sport-culture/events/{event_id}/teams",
+    "/events/{event_id}/teams",
     response_model=List[EventTeamResponse],
     summary="Équipes d'un événement",
     description="Récupère les équipes d'un événement",
@@ -599,7 +599,7 @@ async def get_event_teams(
 
 
 @router.patch(
-    "/sport-culture/teams/{team_id}",
+    "/teams/{team_id}",
     response_model=EventTeamResponse,
     summary="Modifier une équipe",
     description="Modifie une équipe (CHARGE_SPORT_CULTURE uniquement)",
@@ -626,7 +626,7 @@ async def update_team(
 
 
 @router.delete(
-    "/sport-culture/teams/{team_id}",
+    "/teams/{team_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer une équipe",
     description="Supprime une équipe (CHARGE_SPORT_CULTURE uniquement)",
@@ -651,7 +651,7 @@ async def delete_team(
 
 
 @router.post(
-    "/sport-culture/report",
+    "/report",
     response_model=SportCultureReportResponse,
     summary="Générer un rapport",
     description="Génère un rapport d'activités (CHARGE_SPORT_CULTURE uniquement)",
@@ -672,7 +672,7 @@ async def generate_report(
 
 
 @router.get(
-    "/sport-culture/stats",
+    "/stats",
     response_model=SportCultureStatsResponse,
     summary="Statistiques globales",
     description="Récupère les statistiques globales",

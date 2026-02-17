@@ -392,3 +392,41 @@ class ContributionService:
             months_late=months_late,
             last_payment_date=last_payment_date,
         )
+
+    async def check_payment_compliance(self, servant_id: UUID) -> dict:
+        """
+        Vérifie la conformité des paiements (Art 48, 50) :
+        - 2 mois consécutifs -> Alerte convocation parents.
+        - 6 mois consécutifs -> Radiation.
+        """
+        now = datetime.utcnow()
+        current_month = now.month
+        current_year = now.year
+        
+        # On remonte sur les 6 derniers mois
+        consecutive_missing = 0
+        max_consecutive_missing = 0
+        
+        for i in range(1, 7):
+            m = current_month - i
+            y = current_year
+            if m <= 0:
+                m += 12
+                y -= 1
+            
+            # Vérifier si payé pour ce mois
+            summary = await self.contribution_repo.get_monthly_summary(servant_id, m, y)
+            if summary.status == PaymentStatus.LATE:
+                consecutive_missing += 1
+                max_consecutive_missing = max(max_consecutive_missing, consecutive_missing)
+            else:
+                consecutive_missing = 0 # On reset car on veut du consécutif
+
+        status = {
+            "servant_id": servant_id,
+            "consecutive_missing_months": max_consecutive_missing,
+            "needs_parent_convocation": max_consecutive_missing >= 2,
+            "flagged_for_radiation": max_consecutive_missing >= 6,
+            "checked_at": now
+        }
+        return status

@@ -28,7 +28,7 @@ os.environ.update(
     }
 )
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import AsyncGenerator
 from uuid import uuid4
 
@@ -56,7 +56,21 @@ from src.core.entities.cotisation import (
     CotisationPeriod, MemberCotisation, CotisationType,
     CotisationStatus, PeriodType,
 )
-from src.core.entities.attendance import Attendance, AttendanceType, AttendanceStatus
+from src.core.entities.attendance import Attendance, AttendanceType, AttendanceStatus as BaseAttendanceStatus
+from src.core.entities.attendance_session import (
+    AttendanceSession,
+    AttendanceRecord,
+    AttendanceStatus,
+)
+from src.core.entities.contribution import Contribution, PaymentMode
+from src.core.entities.report import Report, ReportType, ReportStatus
+from src.core.entities.sport_culture import SportCultureEvent, SportType, EventType as SportEventType
+from src.core.entities.training import TrainingSession
+from src.core.entities.financial_entry import FinancialEntry, EntryCategory, EntrySource
+from src.core.entities.material import (
+    MaterialItem, MaterialCategory, MaterialCondition,
+    CleaningTask, AubeTask, TaskType, TaskStatus
+)
 from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
@@ -64,7 +78,10 @@ from src.infrastructure.security.utils import SecurityUtils
 from src.presentation.api.v1 import (
     admin, auth, users, activities, assignments,
     responsables, poste, discipline, cotisations,
-    attendance, subgroups,
+    attendance, subgroups, attendance_sessions,
+    contributions, financial_entries, material,
+    reports, sport_culture, sunday_schedule,
+    training, weekly_schedule,
 )
 
 # ── Constantes de test ───────────────────────────────────────────────────
@@ -87,6 +104,15 @@ def create_test_app() -> FastAPI:
     test_app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
     test_app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
     test_app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
+    test_app.include_router(attendance_sessions.router, prefix="/api/v1/attendance-sessions", tags=["Attendance Sessions"])
+    test_app.include_router(contributions.router, prefix="/api/v1/contributions", tags=["Contributions"])
+    test_app.include_router(financial_entries.router, prefix="/api/v1/financial-entries", tags=["Financial Entries"])
+    test_app.include_router(material.router, prefix="/api/v1/material", tags=["Material"])
+    test_app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
+    test_app.include_router(sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"])
+    test_app.include_router(sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"])
+    test_app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])
+    test_app.include_router(weekly_schedule.router, prefix="/api/v1/weekly-schedule", tags=["Weekly Schedule"])
     return test_app
 
 
@@ -116,12 +142,15 @@ async def db_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest_asyncio.fixture()
-async def app(db_session: AsyncSession) -> FastAPI:
+async def app(db_engine) -> FastAPI:
     """Application de test avec session DB surchargée."""
     test_app = create_test_app()
 
     async def _override():
-        yield db_session
+        """Crée une nouvelle session pour chaque requête (évite les conflits concurrents)."""
+        factory = sessionmaker(bind=db_engine, class_=AsyncSession, expire_on_commit=False)
+        async with factory() as session:
+            yield session
 
     test_app.dependency_overrides[get_db_session] = _override
     return test_app
@@ -232,6 +261,314 @@ def make_access_token(user: User, expires: timedelta | None = None) -> str:
         role=user.role.value,
         expires_delta=expires or timedelta(minutes=30),
     )
+
+
+@pytest_asyncio.fixture()
+async def econome_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with ECONOME nomination."""
+    user = User(
+        id=uuid4(),
+        email="econome@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Econome",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.ECONOME,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def admin_token(admin_user: User) -> str:
+    return make_access_token(admin_user)
+
+
+@pytest_asyncio.fixture()
+async def aumonier_token(aumonier_user: User) -> str:
+    return make_access_token(aumonier_user)
+
+
+@pytest_asyncio.fixture()
+async def servant_token(servant_user: User) -> str:
+    return make_access_token(servant_user)
+
+
+@pytest_asyncio.fixture()
+async def econome_token(econome_user: User) -> str:
+    return make_access_token(econome_user)
+
+
+@pytest_asyncio.fixture()
+async def servant_user_id(servant_user: User) -> str:
+    return str(servant_user.id)
+
+
+@pytest_asyncio.fixture()
+async def secretaire_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with SECRETAIRE nomination."""
+    user = User(
+        id=uuid4(),
+        email="secretaire@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Secretaire",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.SECRETAIRE_GENERAL,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def secretaire_token(secretaire_user: User) -> str:
+    return make_access_token(secretaire_user)
+
+
+@pytest_asyncio.fixture()
+async def secretaire_adjoint_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with SECRETAIRE_ADJOINT nomination."""
+    user = User(
+        id=uuid4(),
+        email="secretaire_adj@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Secretaire",
+        last_name="Adjoint",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.SECRETAIRE_GENERAL_ADJOINT,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def secretaire_adjoint_token(secretaire_adjoint_user: User) -> str:
+    return make_access_token(secretaire_adjoint_user)
+
+
+@pytest_asyncio.fixture()
+async def censeur_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with CENSEUR nomination."""
+    user = User(
+        id=uuid4(),
+        email="censeur@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Censeur",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.CENSEUR,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def censeur_token(censeur_user: User) -> str:
+    return make_access_token(censeur_user)
+
+
+@pytest_asyncio.fixture()
+async def commissaire_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with COMMISSAIRE nomination."""
+    user = User(
+        id=uuid4(),
+        email="commissaire@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Commissaire",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.COMMISSAIRE_AUX_COMPTES,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def commissaire_token(commissaire_user: User) -> str:
+    return make_access_token(commissaire_user)
+
+
+@pytest_asyncio.fixture()
+async def charge_liturgie_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with CHARGE_LITURGIE nomination."""
+    user = User(
+        id=uuid4(),
+        email="charge_liturgie@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Charge",
+        last_name="Liturgie",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.CHARGE_LITURGIE,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def charge_liturgie_token(charge_liturgie_user: User) -> str:
+    return make_access_token(charge_liturgie_user)
+
+
+@pytest_asyncio.fixture()
+async def econome_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with ECONOME nomination."""
+    user = User(
+        id=uuid4(),
+        email="econome@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Economе",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.ECONOME,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def econome_token(econome_user: User) -> str:
+    return make_access_token(econome_user)
+
+
+@pytest_asyncio.fixture()
+async def intendant_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with INTENDANT nomination."""
+    user = User(
+        id=uuid4(),
+        email="intendant@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Intendant",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.INTENDANT,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def intendant_token(intendant_user: User) -> str:
+    return make_access_token(intendant_user)
+
+
+@pytest_asyncio.fixture()
+async def charge_sport_culture_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with CHARGE_SPORT_CULTURE nomination."""
+    user = User(
+        id=uuid4(),
+        email="charge_sport_culture@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Charge",
+        last_name="Sport",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    
+    nomination = Nomination(
+        user_id=user.id,
+        poste=PosteResponsable.CHARGE_SPORT_CULTURE,
+        status=NominationStatus.ACTIVE,
+        nominated_by=aumonier_user.id,
+    )
+    db_session.add(nomination)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture()
+async def charge_sport_culture_token(charge_sport_culture_user: User) -> str:
+    return make_access_token(charge_sport_culture_user)
 
 
 def make_auth_header(user: User) -> dict:
@@ -542,3 +879,485 @@ async def sample_subgroup_member(
     await db_session.commit()
     await db_session.refresh(member)
     return member
+
+
+@pytest_asyncio.fixture()
+async def sample_contribution(
+    db_session: AsyncSession,
+    servant_user: User,
+    econome_user: User,
+) -> Contribution:
+    """Contribution de test."""
+    contribution = Contribution(
+        id=uuid4(),
+        servant_id=servant_user.id,
+        amount=500.0,
+        payment_mode=PaymentMode.MONTHLY,
+        payment_date=datetime.now(timezone.utc),
+        month=2,
+        year=2026,
+        recorded_by=econome_user.id,
+    )
+    db_session.add(contribution)
+    await db_session.commit()
+    await db_session.refresh(contribution)
+    return contribution
+
+
+@pytest_asyncio.fixture()
+async def contribution_id(sample_contribution: Contribution) -> str:
+    return str(sample_contribution.id)
+
+
+@pytest_asyncio.fixture()
+async def sample_report(
+    db_session: AsyncSession,
+    secretaire_user: User,
+) -> Report:
+    """Rapport de test."""
+    report = Report(
+        id=uuid4(),
+        type=ReportType.MEETING,
+        title="Rapport de test",
+        content="Contenu du rapport de test",
+        report_date=datetime.now(timezone.utc),
+        location="Salle de test",
+        status=ReportStatus.DRAFT,
+        created_by=secretaire_user.id,
+    )
+    db_session.add(report)
+    await db_session.commit()
+    await db_session.refresh(report)
+    return report
+
+
+@pytest_asyncio.fixture()
+async def report_id(sample_report: Report) -> str:
+    return str(sample_report.id)
+
+
+@pytest_asyncio.fixture()
+async def sample_sport_event(
+    db_session: AsyncSession,
+    aumonier_user: User,
+) -> SportCultureEvent:
+    """Evenement sportif de test."""
+    event = SportCultureEvent(
+        id=uuid4(),
+        title="Match de foot",
+        description="Match amical",
+        date=datetime.now(timezone.utc) + timedelta(days=1),
+        start_time="16h00",
+        end_time="18h00",
+        location="Terrain de foot",
+        sport_type=SportType.FOOTBALL,
+        event_type=SportEventType.MATCH,
+        max_participants=22,
+        created_by=aumonier_user.id,
+    )
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+    return event
+
+
+@pytest_asyncio.fixture()
+async def sport_event_id(sample_sport_event: SportCultureEvent) -> str:
+    return str(sample_sport_event.id)
+
+
+@pytest_asyncio.fixture()
+async def sample_event_participation(
+    db_session: AsyncSession,
+    sample_sport_event: SportCultureEvent,
+    servant_user: User,
+    aumonier_user: User,
+):
+    """Participation à un événement sportif de test."""
+    from src.core.entities.sport_culture import EventParticipation, ParticipationStatus
+    participation = EventParticipation(
+        id=uuid4(),
+        event_id=sample_sport_event.id,
+        servant_id=servant_user.id,
+        servant_name=f"{servant_user.first_name} {servant_user.last_name}",
+        status=ParticipationStatus.INSCRIT,
+        registered_by=aumonier_user.id,
+    )
+    db_session.add(participation)
+    await db_session.commit()
+    await db_session.refresh(participation)
+    return participation
+
+
+@pytest_asyncio.fixture()
+async def sample_training_session(
+    db_session: AsyncSession,
+    aumonier_user: User,
+) -> TrainingSession:
+    """Session de formation de test."""
+    from src.core.entities.training import TrainingLevel, TrainingStatus
+    session = TrainingSession(
+        id=uuid4(),
+        title="Formation Liturgie",
+        description="Apprentissage des rites",
+        objectives=None,
+        level=TrainingLevel.TOUS,
+        date=datetime.now(timezone.utc) + timedelta(days=2),
+        start_time="14:00",
+        end_time="16:00",
+        duration_minutes=120,
+        location="Eglise",
+        trainer_id=aumonier_user.id,
+        trainer_name=None,
+        max_participants=20,
+        current_participants=0,
+        status=TrainingStatus.PLANIFIEE,
+        materials_url=None,
+        notes=None,
+        created_by=aumonier_user.id,
+    )
+    db_session.add(session)
+    await db_session.commit()
+    await db_session.refresh(session)
+    return session
+
+
+@pytest_asyncio.fixture()
+async def sample_financial_entry(
+    db_session: AsyncSession,
+    econome_user: User,
+) -> FinancialEntry:
+    """Entree financiere de test."""
+    entry = FinancialEntry(
+        id=uuid4(),
+        amount=1000.0,
+        category=EntryCategory.COTISATION,
+        source=EntrySource.SERVANT,
+        date=datetime.now(timezone.utc),
+        description="Test revenue",
+        recorded_by=econome_user.id,
+    )
+    db_session.add(entry)
+    await db_session.commit()
+    await db_session.refresh(entry)
+    return entry
+
+
+@pytest_asyncio.fixture()
+async def sample_discrepancy(
+    db_session: AsyncSession,
+    sample_financial_entry: FinancialEntry,
+    commissaire_user: User,
+):
+    """Ecart financier de test."""
+    from src.core.entities.financial_entry import Discrepancy
+    discrepancy = Discrepancy(
+        id=uuid4(),
+        entry_id=sample_financial_entry.id,
+        type="Montant incorrect",
+        description="Écart détecté lors de la vérification",
+        expected_amount=1000.0,
+        actual_amount=950.0,
+        detected_by=commissaire_user.id,
+        resolved=False,
+    )
+    db_session.add(discrepancy)
+    await db_session.commit()
+    await db_session.refresh(discrepancy)
+    return discrepancy
+
+
+@pytest_asyncio.fixture()
+async def sample_material_item(
+    db_session: AsyncSession,
+    aumonier_user: User,
+) -> MaterialItem:
+    """Article de materiel de test."""
+    item = MaterialItem(
+        id=uuid4(),
+        name="Encensoir",
+        category=MaterialCategory.ENCENSOIR,
+        quantity=1,
+        location="Sacristie",
+        condition=MaterialCondition.BON,
+        created_by=aumonier_user.id,
+    )
+    db_session.add(item)
+    await db_session.commit()
+    await db_session.refresh(item)
+    return item
+
+
+@pytest_asyncio.fixture()
+async def sample_cleaning_task(
+    db_session: AsyncSession,
+    aumonier_user: User,
+) -> CleaningTask:
+    """Tache de nettoyage de test."""
+    task = CleaningTask(
+        id=uuid4(),
+        title="Nettoyage des encensoirs",
+        description="Faire briller le cuivre",
+        task_type=TaskType.NETTOYAGE,
+        scheduled_date=datetime.now(timezone.utc) + timedelta(days=1),
+        scheduled_time="15:00",
+        location="Parvis",
+        status=TaskStatus.PLANIFIEE,
+        created_by=aumonier_user.id,
+    )
+    db_session.add(task)
+    await db_session.commit()
+    await db_session.refresh(task)
+    return task
+
+
+@pytest_asyncio.fixture()
+async def sample_task_assignment(
+    db_session: AsyncSession,
+    sample_cleaning_task: CleaningTask,
+    servant_user: User,
+    intendant_user: User,
+):
+    """Assignation de tache de test."""
+    from src.core.entities.material import TaskAssignment
+    assignment = TaskAssignment(
+        id=uuid4(),
+        task_id=sample_cleaning_task.id,
+        servant_id=servant_user.id,
+        servant_name=f"{servant_user.first_name} {servant_user.last_name}",
+        assigned_by=intendant_user.id,
+    )
+    db_session.add(assignment)
+    await db_session.commit()
+    await db_session.refresh(assignment)
+    return assignment
+
+
+@pytest_asyncio.fixture()
+async def sample_maintenance_history(
+    db_session: AsyncSession,
+    sample_material_item: MaterialItem,
+    intendant_user: User,
+):
+    """Historique de maintenance de test."""
+    from src.core.entities.material import MaintenanceHistory
+    history = MaintenanceHistory(
+        id=uuid4(),
+        item_id=sample_material_item.id,
+        maintenance_type=TaskType.NETTOYAGE,
+        description="Nettoyage standard",
+        cost=50.0,
+        performed_date=datetime.now(timezone.utc),
+        performed_by=intendant_user.id,
+        notes="Maintenance de routine",
+    )
+    db_session.add(history)
+    await db_session.commit()
+    await db_session.refresh(history)
+    return history
+
+
+@pytest_asyncio.fixture()
+async def sample_aube_task(
+    db_session: AsyncSession,
+    aumonier_user: User,
+) -> AubeTask:
+    """Tache d'aube de test."""
+    task = AubeTask(
+        id=uuid4(),
+        title="Lavage des aubes",
+        task_type=TaskType.LAVAGE,
+        scheduled_date=datetime.now(timezone.utc) + timedelta(days=1),
+        scheduled_time="10:00",
+        location="Blanchisserie",
+        aube_count=10,
+        status=TaskStatus.PLANIFIEE,
+        created_by=aumonier_user.id,
+    )
+    db_session.add(task)
+    await db_session.commit()
+    await db_session.refresh(task)
+    return task
+@pytest_asyncio.fixture()
+async def sample_attendance_session(
+    db_session: AsyncSession,
+    censeur_user: User,
+) -> AttendanceSession:
+    """Session d'appel de test."""
+    session = AttendanceSession(
+        id=uuid4(),
+        session_date=datetime.now(timezone.utc),
+        session_time="07h30",
+        location="Sacristie",
+        conducted_by=censeur_user.id,
+    )
+    db_session.add(session)
+    await db_session.commit()
+    await db_session.refresh(session)
+    return session
+
+
+@pytest.fixture()
+def attendance_session_id(sample_attendance_session: AttendanceSession) -> str:
+    """ID de la session de test."""
+    return str(sample_attendance_session.id)
+
+
+@pytest.fixture()
+def servant_user_id(servant_user: User) -> str:
+    """ID du servant de test."""
+    return str(servant_user.id)
+
+
+@pytest_asyncio.fixture()
+async def sample_attendance_record(
+    db_session: AsyncSession,
+    sample_attendance_session: AttendanceSession,
+    servant_user: User,
+    aumonier_user: User,
+) -> AttendanceRecord:
+    """Enregistrement de présence de test."""
+    record = AttendanceRecord(
+        id=uuid4(),
+        session_id=sample_attendance_session.id,
+        servant_id=servant_user.id,
+        status=AttendanceStatus.PRESENT,
+        arrival_time="07h25",
+        recorded_by=aumonier_user.id,
+    )
+    db_session.add(record)
+    await db_session.commit()
+    await db_session.refresh(record)
+    return record
+
+
+@pytest.fixture()
+def attendance_record_id(sample_attendance_record: AttendanceRecord) -> str:
+    """ID de l'enregistrement de test."""
+    return str(sample_attendance_record.id)
+
+@pytest_asyncio.fixture()
+async def sample_training_material(
+    db_session: AsyncSession,
+    charge_liturgie_user: User,
+):
+    """Materiel de formation de test."""
+    from src.core.entities.training import TrainingMaterial, MaterialType, TrainingLevel
+    material = TrainingMaterial(
+        id=uuid4(),
+        title="Guide de la liturgie",
+        description="Guide complet des services de messe",
+        type=MaterialType.DOCUMENT,
+        file_url="https://example.com/guide.pdf",
+        file_type="application/pdf",
+        file_size=1024000,
+        thumbnail_url=None,
+        level=TrainingLevel.TOUS,
+        tags=[],
+        is_public=True,
+        view_count=0,
+        uploaded_by=charge_liturgie_user.id,
+        uploaded_by_name=None,
+    )
+    db_session.add(material)
+    await db_session.commit()
+    await db_session.refresh(material)
+    return material
+
+
+@pytest_asyncio.fixture()
+async def sample_training_participation(
+    db_session: AsyncSession,
+    sample_training_session,
+    servant_user: User,
+    aumonier_user: User,
+):
+    """Participation a une formation de test."""
+    from src.core.entities.training import TrainingParticipation
+    from src.core.entities.training import ParticipationStatus
+    participation = TrainingParticipation(
+        id=uuid4(),
+        session_id=sample_training_session.id,
+        servant_id=servant_user.id,
+        status=ParticipationStatus.INSCRIT,
+        registered_by=aumonier_user.id,
+    )
+    db_session.add(participation)
+    await db_session.commit()
+    await db_session.refresh(participation)
+    return participation
+
+
+@pytest_asyncio.fixture()
+async def sample_event_team(
+    db_session: AsyncSession,
+    sample_sport_event: SportCultureEvent,
+    servant_user: User,
+    charge_sport_culture_user: User,
+):
+    """Équipe pour un événement sportif de test."""
+    from src.core.entities.sport_culture import EventTeam
+    team = EventTeam(
+        id=uuid4(),
+        event_id=sample_sport_event.id,
+        team_name="Équipe A",
+        captain_id=servant_user.id,
+        captain_name=f"{servant_user.first_name} {servant_user.last_name}",
+        members=[str(servant_user.id)],
+        members_names=[f"{servant_user.first_name} {servant_user.last_name}"],
+        created_by=charge_sport_culture_user.id,
+    )
+    db_session.add(team)
+    await db_session.commit()
+    await db_session.refresh(team)
+    return team
+
+
+@pytest_asyncio.fixture()
+async def sample_event_result(
+    db_session: AsyncSession,
+    sample_sport_event: SportCultureEvent,
+    charge_sport_culture_user: User,
+):
+    """Résultat d'un événement sportif de test."""
+    from src.core.entities.sport_culture import EventResult, ResultType
+    result = EventResult(
+        id=uuid4(),
+        event_id=sample_sport_event.id,
+        result_type=ResultType.VICTOIRE,
+        team_name="Équipe A",
+        score=2,
+        opponent_name="Équipe B",
+        opponent_score=1,
+        ranking=None,
+        description="Match de football",
+        notes="Bonne performance",
+        recorded_by=charge_sport_culture_user.id,
+    )
+    db_session.add(result)
+    await db_session.commit()
+    await db_session.refresh(result)
+    return result
+
+
+@pytest_asyncio.fixture()
+async def sample_attachment(
+    db_session: AsyncSession,
+    sample_report: Report,
+    secretaire_user: User,
+):
+    """Pièce jointe d'un rapport de test."""
+    from src.core.entities.report import ReportAttachment
+    attachment = ReportAttachment(
+        id=uuid4(),
+        report_id=sample_report.id,
+        filename="rapport_test.pdf",
+        file_url="https://example.com/files/rapport_test.pdf",
+        file_type="application/pdf",
+        file_size=1024000,
+        uploaded_by=secretaire_user.id,
+    )
+    db_session.add(attachment)
+    await db_session.commit()
+    await db_session.refresh(attachment)
+    return attachment

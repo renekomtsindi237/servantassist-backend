@@ -110,7 +110,7 @@ class TestContributionPerformance:
                 servant_id=servant_user.id,
                 amount=100.0 if i % 4 == 0 else 500.0,
                 payment_mode=PaymentMode.WEEKLY if i % 4 == 0 else PaymentMode.MONTHLY,
-                payment_date=datetime(2026, 2, 10 + (i % 20), tzinfo=timezone.utc),
+                payment_date=datetime(2026, 2, 1 + (i % 28), tzinfo=timezone.utc),
                 month=2,
                 year=2026,
                 week_number=(i % 4) + 1 if i % 4 == 0 else None,

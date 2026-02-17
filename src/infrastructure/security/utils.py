@@ -10,6 +10,7 @@ from typing import Any, Union
 
 from jose import jwt
 from passlib.context import CryptContext
+import nh3
 
 from src.infrastructure.config.settings import get_settings
 
@@ -108,3 +109,11 @@ class SecurityUtils:
             to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
         )
         return encoded_jwt
+
+    @staticmethod
+    def sanitize_html(content: str) -> str:
+        """Nettoie le contenu HTML pour éviter les failles XSS."""
+        if not content:
+            return content
+        # Strip all tags as per security test requirements
+        return nh3.clean(content, tags=set())

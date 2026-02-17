@@ -25,8 +25,12 @@ def mock_user_repo():
     return AsyncMock()
 
 @pytest.fixture
-def service(mock_case_repo, mock_user_repo):
-    return DisciplineService(mock_case_repo, mock_user_repo)
+def mock_attendance_repo():
+    return AsyncMock()
+
+@pytest.fixture
+def service(mock_case_repo, mock_user_repo, mock_attendance_repo):
+    return DisciplineService(mock_case_repo, mock_user_repo, mock_attendance_repo)
 
 @pytest.fixture
 def sample_servant():

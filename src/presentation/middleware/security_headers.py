@@ -44,16 +44,31 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
 
         # -- Content Security Policy ----------------------------------
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self'; "
-            "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data:; "
-            "font-src 'self'; "
-            "frame-ancestors 'none'; "
-            "base-uri 'self'; "
-            "form-action 'self'"
-        )
+        if settings.APP_ENV == "development":
+            # En développement, permettre les ressources externes (Swagger, etc.)
+            csp = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fastapi.tiangolo.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "img-src 'self' data: https://fastapi.tiangolo.com; "
+                "font-src 'self' https://cdn.jsdelivr.net; "
+                "frame-ancestors 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self'"
+            )
+        else:
+            # En production, CSP stricte
+            csp = (
+                "default-src 'self'; "
+                "script-src 'self'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' data:; "
+                "font-src 'self'; "
+                "frame-ancestors 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self'"
+            )
+        response.headers["Content-Security-Policy"] = csp
 
         # -- Politique de referrer ------------------------------------
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -70,7 +85,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response.headers["Pragma"] = "no-cache"
 
         # -- Masquer le serveur (ne pas reveler la techno) ------------
-        response.headers.pop("server", None)
+        if "server" in response.headers:
+            del response.headers["server"]
         response.headers["X-Powered-By"] = "ServantAssist"
 
         return response

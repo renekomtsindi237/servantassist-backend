@@ -13,6 +13,9 @@ from src.presentation.api.v1 import (
     admin, auth, users, activities, communication,
     assignments, responsables, poste,
     discipline, cotisations, attendance, subgroups,
+    attendance_sessions, contributions, financial_entries,
+    material, reports, sport_culture, sunday_schedule,
+    training, weekly_schedule,
 )
 from src.presentation.middleware.error_handler import ErrorHandlerMiddleware
 from src.presentation.middleware.logging_middleware import LoggingMiddleware
@@ -107,7 +110,7 @@ app.include_router(
 app.include_router(
     poste.router,
     prefix="/api/v1/poste",
-    tags=["Poste Actions"]
+    tags=["Postes (Dynamic)"]
 )
 app.include_router(
     discipline.router,
@@ -128,6 +131,51 @@ app.include_router(
     subgroups.router,
     prefix="/api/v1/subgroups",
     tags=["Sub-Groups"]
+)
+app.include_router(
+    attendance_sessions.router,
+    prefix="/api/v1/attendance-sessions",
+    tags=["Attendance Sessions"]
+)
+app.include_router(
+    contributions.router,
+    prefix="/api/v1/contributions",
+    tags=["Contributions"]
+)
+app.include_router(
+    financial_entries.router,
+    prefix="/api/v1/financial-entries",
+    tags=["Financial Entries"]
+)
+app.include_router(
+    material.router,
+    prefix="/api/v1/material",
+    tags=["Material"]
+)
+app.include_router(
+    reports.router,
+    prefix="/api/v1/reports",
+    tags=["Reports"]
+)
+app.include_router(
+    sport_culture.router,
+    prefix="/api/v1/sport-culture",
+    tags=["Sport & Culture"]
+)
+app.include_router(
+    sunday_schedule.router,
+    prefix="/api/v1/sunday-schedule",
+    tags=["Sunday Schedule"]
+)
+app.include_router(
+    training.router,
+    prefix="/api/v1/training",
+    tags=["Training"]
+)
+app.include_router(
+    weekly_schedule.router,
+    prefix="/api/v1/weekly-schedule",
+    tags=["Weekly Schedule"]
 )
 
 

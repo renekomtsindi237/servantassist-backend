@@ -24,6 +24,7 @@ from src.presentation.schemas.subgroup import (
     SubGroupResponse,
     SubGroupUpdate,
 )
+from src.infrastructure.repositories.training_repository import TrainingParticipationRepository
 
 
 class SubGroupService:
@@ -33,9 +34,11 @@ class SubGroupService:
         self,
         group_repo: SubGroupRepository,
         user_repo: UserRepository,
+        training_repo: TrainingParticipationRepository,
     ):
         self.group_repo = group_repo
         self.user_repo = user_repo
+        self.training_repo = training_repo
 
     # ══════════════════════════════════════════════════════════════════
     #  SOUS-GROUPES (CRUD)
@@ -223,5 +226,58 @@ class SubGroupService:
         group = await self.group_repo.get(membership.sub_group_id)
         if not group:
             return None
+        return await self._build_group_response(group)
+
+    async def reclassify_servant(self, user_id: UUID) -> Optional[SubGroupResponse]:
+        """
+        Reclassification automatique selon l'Article 26 :
+        - Aspirants : < 12 ans
+        - Confirmés : >= 12 ans
+        - Aînés : >= 15 ans + moyenne >= 14/20
+        """
+        user = await self.user_repo.get(user_id)
+        if not user or user.role != UserRole.SERVANT or not user.birth_date:
+            return None
+
+        # Calcul de l'âge
+        today = datetime.now(timezone.utc)
+        birth = user.birth_date.replace(tzinfo=timezone.utc) if user.birth_date.tzinfo is None else user.birth_date
+        age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+
+        # Déterminer le groupe cible
+        target_name = "ASPIRANTS"
+        if age >= 12:
+            target_name = "CONFIRMÉS"
+        
+        if age >= 15:
+            # Vérifier les notes pour les Aînés (Article 26.4)
+            stats = await self.training_repo.get_servant_stats(user_id)
+            if stats.average_score and stats.average_score >= 70: # 14/20 = 70%
+                target_name = "AÎNÉS"
+
+        # Trouver le groupe
+        group = await self.group_repo.get_by_name(target_name)
+        if not group:
+            # Fallback si le groupe n'existe pas (on ne le crée pas automatiquement 
+            # pour éviter les erreurs de foreign key sur created_by)
+            return None
+
+        # Vérifier si déjà dans ce groupe
+        current = await self.group_repo.get_active_membership(user_id)
+        if current and current.sub_group_id == group.id:
+            return await self._build_group_response(group)
+
+        # Changer de groupe
+        if current:
+            await self.group_repo.remove_member(current)
+        
+        membership = SubGroupMember(
+            sub_group_id=group.id,
+            user_id=user_id,
+            added_by=UUID("00000000-0000-0000-0000-000000000000"), # System
+        )
+        # Note: system ID bypass check if repo allows it. In a real app we'd need a valid user.
+        # But here we commit to BDD for RI compliance.
+        created = await self.group_repo.add_member(membership)
         return await self._build_group_response(group)
 

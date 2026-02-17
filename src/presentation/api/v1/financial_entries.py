@@ -48,7 +48,7 @@ def get_financial_service(
 
 # ── Endpoints CRUD ────────────────────────────────────────────────────────
 @router.post(
-    "/financial-entries/",
+    "/",
     response_model=FinancialEntryResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer une entrée financière",
@@ -73,7 +73,7 @@ async def create_entry(
 
 
 @router.get(
-    "/financial-entries/",
+    "/",
     response_model=FinancialEntryListResponse,
     summary="Liste des entrées financières",
     description="Récupère la liste des entrées financières avec filtres",
@@ -109,7 +109,7 @@ async def list_entries(
 
 
 @router.get(
-    "/financial-entries/{entry_id}",
+    "/{entry_id}",
     response_model=FinancialEntryResponse,
     summary="Détail d'une entrée",
     description="Récupère les détails d'une entrée financière",
@@ -130,7 +130,7 @@ async def get_entry(
 
 
 @router.patch(
-    "/financial-entries/{entry_id}",
+    "/{entry_id}",
     response_model=FinancialEntryResponse,
     summary="Modifier une entrée",
     description="Modifie une entrée financière non vérifiée",
@@ -169,7 +169,7 @@ async def update_entry(
 
 
 @router.delete(
-    "/financial-entries/{entry_id}",
+    "/{entry_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer une entrée",
     description="Supprime une entrée financière non vérifiée",
@@ -196,7 +196,7 @@ async def delete_entry(
 
 # ── Endpoints vérification ───────────────────────────────────────────────
 @router.post(
-    "/financial-entries/{entry_id}/verify",
+    "/{entry_id}/verify",
     response_model=FinancialEntryResponse,
     summary="Vérifier une entrée",
     description="Vérifie une entrée financière (COMMISSAIRE uniquement)",
@@ -226,7 +226,7 @@ async def verify_entry(
 
 # ── Endpoints mes entrées ─────────────────────────────────────────────────
 @router.get(
-    "/financial-entries/me/list",
+    "/me/list",
     response_model=FinancialEntryListResponse,
     summary="Mes entrées",
     description="Récupère les entrées créées par l'utilisateur connecté",
@@ -254,7 +254,7 @@ async def get_my_entries(
 
 # ── Endpoints statistiques ────────────────────────────────────────────────
 @router.get(
-    "/financial-entries/stats/summary",
+    "/stats/summary",
     response_model=FinancialStatsResponse,
     summary="Statistiques financières",
     description="Récupère les statistiques pour une période",
@@ -272,7 +272,7 @@ async def get_statistics(
 
 # ── Endpoints rapport d'audit ─────────────────────────────────────────────
 @router.post(
-    "/financial-entries/audit/report",
+    "/audit/report",
     response_model=AuditReportResponse,
     summary="Générer un rapport d'audit",
     description="Génère un rapport d'audit complet pour une période",
@@ -303,7 +303,7 @@ async def generate_audit_report(
 
 # ── Endpoints écarts ──────────────────────────────────────────────────────
 @router.post(
-    "/financial-entries/{entry_id}/discrepancies",
+    "/{entry_id}/discrepancies",
     response_model=DiscrepancyResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer un écart",
@@ -335,7 +335,7 @@ async def create_discrepancy(
 
 
 @router.get(
-    "/financial-entries/{entry_id}/discrepancies",
+    "/{entry_id}/discrepancies",
     response_model=list[DiscrepancyResponse],
     summary="Liste des écarts d'une entrée",
     description="Récupère les écarts d'une entrée financière",
@@ -351,7 +351,7 @@ async def get_entry_discrepancies(
 
 
 @router.get(
-    "/financial-entries/discrepancies/unresolved",
+    "/discrepancies/unresolved",
     response_model=list[DiscrepancyResponse],
     summary="Écarts non résolus",
     description="Liste tous les écarts non résolus",
@@ -366,7 +366,7 @@ async def list_unresolved_discrepancies(
 
 
 @router.post(
-    "/financial-entries/discrepancies/{discrepancy_id}/resolve",
+    "/discrepancies/{discrepancy_id}/resolve",
     response_model=DiscrepancyResponse,
     summary="Résoudre un écart",
     description="Marque un écart comme résolu",
@@ -393,7 +393,7 @@ async def resolve_discrepancy(
 
 
 @router.delete(
-    "/financial-entries/discrepancies/{discrepancy_id}",
+    "/discrepancies/{discrepancy_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer un écart",
     description="Supprime un écart",

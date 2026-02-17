@@ -90,6 +90,8 @@ async def test_mark_attendance_success(service, mock_session_repo, mock_user_rep
     
     mock_session_repo.get_session.return_value = sample_session
     mock_user_repo.get.return_value = sample_servant
+    # Mock the check for existing records
+    mock_session_repo.get_record_by_session_and_servant.return_value = None
     
     record = AttendanceRecord(
         id=uuid4(),

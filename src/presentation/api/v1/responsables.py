@@ -30,12 +30,17 @@ from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_admin_or_aumonier,
+    require_delegue,
+    require_delegue_or_sg,
 )
 from src.presentation.schemas.responsable import (
     NominationCreate,
     NominationResponse,
     PosteDetailResponse,
     PosteListResponse,
+    CouncilMeetingCreate,
+    CouncilMeetingResponse,
+    CouncilAttendanceRecordList,
 )
 
 router = APIRouter()
@@ -43,10 +48,12 @@ router = APIRouter()
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 def _get_service(session: AsyncSession) -> ResponsableService:
+    from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
     return ResponsableService(
         nomination_repo=NominationRepository(session),
         action_repo=PosteActionRepository(session),
         user_repo=UserRepository(session),
+        council_repo=CouncilMeetingRepository(session),
     )
 
 
@@ -172,4 +179,58 @@ async def get_poste_detail(
     """
     service = _get_service(session)
     return await service.get_poste_detail(poste)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  CONSEIL DES RESPONSABLES (Art 12, 15)
+# ═══════════════════════════════════════════════════════════════════════════
+
+@router.post(
+    "/council-meetings",
+    response_model=CouncilMeetingResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Créer une réunion du conseil",
+    description="Accessible au Délégué ou au Secrétaire Général (Art 12)",
+)
+async def create_council_meeting(
+    data: CouncilMeetingCreate,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(require_delegue_or_sg)],
+):
+    """Crée une réunion du conseil."""
+    service = _get_service(session)
+    return await service.create_council_meeting(data, created_by=current_user.id)
+
+
+@router.post(
+    "/council-meetings/{meeting_id}/attendance",
+    response_model=List[dict],
+    summary="Enregistrer les présences au conseil",
+    description="Accessible au Délégué ou au Secrétaire Général",
+)
+async def record_council_attendance(
+    meeting_id: UUID,
+    data: CouncilAttendanceRecordList,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(require_delegue_or_sg)],
+):
+    """Enregistre les présences au conseil."""
+    service = _get_service(session)
+    return await service.record_council_attendance(meeting_id, data)
+
+
+@router.get(
+    "/council-meetings/responsable/{responsable_id}/monitor",
+    response_model=dict,
+    summary="Contrôler l'assiduité d'un responsable",
+    description="Vérifie si le responsable doit être destitué pour 3 absences consécutives (Art 15). Accessible au Délégué.",
+)
+async def monitor_responsable_attendance(
+    responsable_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(require_delegue)],
+):
+    """Lance le contrôle d'assiduité et destitution automatique."""
+    service = _get_service(session)
+    return await service.monitor_council_attendance(responsable_id)
 

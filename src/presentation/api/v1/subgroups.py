@@ -45,9 +45,11 @@ router = APIRouter()
 
 
 def _get_service(session: AsyncSession) -> SubGroupService:
+    from src.infrastructure.repositories.training_repository import TrainingParticipationRepository
     return SubGroupService(
         group_repo=SubGroupRepository(session),
         user_repo=UserRepository(session),
+        training_repo=TrainingParticipationRepository(session),
     )
 
 
@@ -199,4 +201,20 @@ async def remove_member(
     """
     service = _get_service(session)
     return await service.remove_member(group_id, user_id)
+
+
+@router.post(
+    "/members/{user_id}/reclassify",
+    response_model=Optional[SubGroupResponse],
+    summary="Reclassifier un servant",
+    description="Applique les règles d'âge et de notes pour changer de sous-groupe (Art 26)",
+)
+async def reclassify_servant(
+    user_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+):
+    """Reclassifie un servant selon le RI."""
+    service = _get_service(session)
+    return await service.reclassify_servant(user_id)
 

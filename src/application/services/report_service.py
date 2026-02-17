@@ -11,6 +11,7 @@ from src.core.entities.report import (
 from src.infrastructure.repositories.report_repository import (
     ReportRepository, AttachmentRepository
 )
+from src.infrastructure.security.utils import SecurityUtils
 
 
 class ReportService:
@@ -40,8 +41,8 @@ class ReportService:
         report = Report(
             id=uuid4(),
             type=type,
-            title=title,
-            content=content,
+            title=SecurityUtils.sanitize_html(title),
+            content=SecurityUtils.sanitize_html(content),
             report_date=report_date,
             location=location,
             participants=participants or [],
@@ -98,9 +99,9 @@ class ReportService:
 
         # Mise à jour des champs
         if title is not None:
-            report.title = title
+            report.title = SecurityUtils.sanitize_html(title)
         if content is not None:
-            report.content = content
+            report.content = SecurityUtils.sanitize_html(content)
         if report_date is not None:
             report.report_date = report_date
         if location is not None:

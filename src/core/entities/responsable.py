@@ -32,12 +32,14 @@ from sqlmodel import Field, SQLModel
 # ═══════════════════════════════════════════════════════════════════════════
 
 class PosteResponsable(str, Enum):
-    """Les 16 postes de responsable au sein du groupe de servants."""
+    """Les 19 postes de responsable au sein du groupe de servants."""
     CONSEILLER = "CONSEILLER"
     DELEGUE = "DELEGUE"
     VICE_DELEGUE = "VICE_DELEGUE"
     SECRETAIRE_GENERAL = "SECRETAIRE_GENERAL"
     SECRETAIRE_GENERAL_ADJOINT = "SECRETAIRE_GENERAL_ADJOINT"
+    SECRETAIRE = "SECRETAIRE"  # Alias pour SECRETAIRE_GENERAL
+    SECRETAIRE_ADJOINT = "SECRETAIRE_ADJOINT"  # Alias pour SECRETAIRE_GENERAL_ADJOINT
     CENSEUR = "CENSEUR"
     CENSEUR_ADJOINT = "CENSEUR_ADJOINT"
     ECONOME = "ECONOME"
@@ -48,7 +50,9 @@ class PosteResponsable(str, Enum):
     CHARGE_CLASSEMENT_DIMANCHE = "CHARGE_CLASSEMENT_DIMANCHE"
     CHARGE_CLASSEMENT_SEMAINE = "CHARGE_CLASSEMENT_SEMAINE"
     INTENDANT = "INTENDANT"
+    INTENDANT_ADJOINT = "INTENDANT_ADJOINT"
     CHARGE_SPORT_CULTURE = "CHARGE_SPORT_CULTURE"
+    CHARGE_SPORT_CULTURE_ADJOINT = "CHARGE_SPORT_CULTURE_ADJOINT"
 
 
 class NominationStatus(str, Enum):
@@ -173,6 +177,12 @@ POSTE_ALLOWED_CATEGORIES: dict[PosteResponsable, list[ActionCategory]] = {
     PosteResponsable.SECRETAIRE_GENERAL_ADJOINT: [
         ActionCategory.RAPPORT, ActionCategory.COMMUNICATION, ActionCategory.AUTRE,
     ],
+    PosteResponsable.SECRETAIRE: [
+        ActionCategory.RAPPORT, ActionCategory.COMMUNICATION, ActionCategory.AUTRE,
+    ],
+    PosteResponsable.SECRETAIRE_ADJOINT: [
+        ActionCategory.RAPPORT, ActionCategory.COMMUNICATION, ActionCategory.AUTRE,
+    ],
     PosteResponsable.CENSEUR: [
         ActionCategory.DISCIPLINE, ActionCategory.SANCTION, ActionCategory.AUTRE,
     ],
@@ -204,7 +214,14 @@ POSTE_ALLOWED_CATEGORIES: dict[PosteResponsable, list[ActionCategory]] = {
     PosteResponsable.INTENDANT: [
         ActionCategory.MATERIEL, ActionCategory.LAVAGE, ActionCategory.AUTRE,
     ],
+    PosteResponsable.INTENDANT_ADJOINT: [
+        ActionCategory.MATERIEL, ActionCategory.LAVAGE, ActionCategory.AUTRE,
+    ],
     PosteResponsable.CHARGE_SPORT_CULTURE: [
+        ActionCategory.ACTIVITE_SPORTIVE, ActionCategory.ACTIVITE_CULTURELLE,
+        ActionCategory.AUTRE,
+    ],
+    PosteResponsable.CHARGE_SPORT_CULTURE_ADJOINT: [
         ActionCategory.ACTIVITE_SPORTIVE, ActionCategory.ACTIVITE_CULTURELLE,
         ActionCategory.AUTRE,
     ],
@@ -272,24 +289,24 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
         ],
     },
     PosteResponsable.SECRETAIRE_GENERAL: {
-        "titre": "Secretaire General",
+        "titre": "Secretaire",
         "description": "Organise les conseils et redige les rapports officiels du groupe.",
         "missions": [
             "Organise les conseils et les reunions en collaboration avec le Delegue et son adjoint",
             "Assiste aux reunions organisees en paroisse",
             "Redige les rapports des conseils des responsables et des reunions",
-            "A la capacite de diriger la reunion ordinaire en l'absence du Delegue et de son adjoint",
-            "Est le moderateur des conseils et des reunions",
+            "A la capacite de diriger la reunion ordinaire en l'absence du Delegue and de son adjoint",
+            "Est le moderateur des conseils and des reunions",
         ],
     },
     PosteResponsable.SECRETAIRE_GENERAL_ADJOINT: {
-        "titre": "Secretaire General Adjoint",
+        "titre": "Secretaire Adjoint",
         "description": "Assiste le SG, assure la promotion du bilinguisme et la transmission des informations.",
         "missions": [
-            "Travaille en collaboration avec le Secretaire General",
+            "Travaille en collaboration avec le Secretaire",
             "Assure la transmission des informations a la portee des servants de messe",
             "Assure la promotion du bilinguisme",
-            "Redige les rapports des conseils et des reunions en langue anglaise",
+            "Redige les rapports des conseils and des reunions en langue anglaise",
             "Assure l'interim en cas d'absence du Secretaire",
         ],
     },
@@ -311,7 +328,7 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
         ],
     },
     PosteResponsable.CHARGE_CLASSEMENT_DIMANCHE: {
-        "titre": "Charge du classement (Dimanche & Solennites)",
+        "titre": "Responsable chargé du classement",
         "description": "Elabore et communique le classement des messes dominicales et solennites.",
         "missions": [
             "Elabore et communique le classement des differentes celebrations eucharistiques du Dimanche",
@@ -319,14 +336,14 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
         ],
     },
     PosteResponsable.CHARGE_CLASSEMENT_SEMAINE: {
-        "titre": "Charge du classement (Semaine)",
+        "titre": "Responsable adjoint chargé du classement",
         "description": "Elabore et communique le classement des messes du lundi au samedi.",
         "missions": [
             "Elabore et communique le classement des messes dominicales allant du lundi a samedi",
         ],
     },
     PosteResponsable.CHARGE_LITURGIE: {
-        "titre": "Charge de la spiritualite / liturgie",
+        "titre": "Responsable chargé de la spiritualité",
         "description": "Organise les formations et veille aux bons services de la messe.",
         "missions": [
             "Organise et planifie les enseignements et formations pratiques et theoriques des servants",
@@ -379,10 +396,11 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
         ],
     },
     PosteResponsable.CHARGE_SPORT_CULTURE: {
-        "titre": "Charge des sports et de divertissement",
+        "titre": "Responsable chargé des sports et de divertissement",
         "description": "Organise les activites sportives et culturelles du groupe.",
         "missions": [
             "Organise les activites sportives et culturelles",
+            "Assure la responsabilite de la chorale des enfants de choeur",
         ],
     },
 }

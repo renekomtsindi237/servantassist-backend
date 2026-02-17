@@ -62,7 +62,7 @@ def get_training_service(
 
 
 @router.post(
-    "/training/sessions",
+    "/sessions",
     response_model=TrainingSessionResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer une session de formation",
@@ -94,7 +94,7 @@ async def create_training_session(
 
 
 @router.get(
-    "/training/sessions",
+    "/sessions",
     response_model=TrainingSessionListResponse,
     summary="Liste des sessions",
     description="Liste toutes les sessions de formation avec filtres",
@@ -129,7 +129,7 @@ async def list_training_sessions(
 
 
 @router.get(
-    "/training/sessions/{session_id}",
+    "/sessions/{session_id}",
     response_model=TrainingSessionResponse,
     summary="Détail d'une session",
     description="Récupère les détails d'une session de formation",
@@ -150,7 +150,7 @@ async def get_training_session(
 
 
 @router.patch(
-    "/training/sessions/{session_id}",
+    "/sessions/{session_id}",
     response_model=TrainingSessionResponse,
     summary="Modifier une session",
     description="Modifie une session de formation (CHARGE_LITURGIE uniquement)",
@@ -188,7 +188,7 @@ async def update_training_session(
 
 
 @router.delete(
-    "/training/sessions/{session_id}",
+    "/sessions/{session_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer une session",
     description="Supprime une session de formation (CHARGE_LITURGIE uniquement)",
@@ -208,7 +208,7 @@ async def delete_training_session(
 
 
 @router.get(
-    "/training/sessions/me/list",
+    "/sessions/me/list",
     response_model=TrainingSessionListResponse,
     summary="Mes sessions",
     description="Récupère les sessions créées par l'utilisateur connecté",
@@ -239,7 +239,7 @@ async def get_my_training_sessions(
 
 
 @router.post(
-    "/training/sessions/{session_id}/register",
+    "/sessions/{session_id}/register",
     response_model=TrainingParticipationResponse,
     status_code=status.HTTP_201_CREATED,
     summary="S'inscrire à une session",
@@ -262,7 +262,7 @@ async def register_to_session(
 
 
 @router.post(
-    "/training/sessions/{session_id}/register-batch",
+    "/sessions/{session_id}/register-batch",
     response_model=TrainingParticipationListResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Inscrire plusieurs servants",
@@ -288,7 +288,7 @@ async def register_batch_to_session(
 
 
 @router.get(
-    "/training/sessions/{session_id}/participants",
+    "/sessions/{session_id}/participants",
     response_model=TrainingParticipationListResponse,
     summary="Participants d'une session",
     description="Liste les participants d'une session",
@@ -307,7 +307,7 @@ async def get_session_participants(
 
 
 @router.post(
-    "/training/participations/{participation_id}/attendance",
+    "/participations/{participation_id}/attendance",
     response_model=TrainingParticipationResponse,
     summary="Marquer la présence",
     description="Marque la présence d'un participant (CHARGE_LITURGIE uniquement)",
@@ -334,7 +334,7 @@ async def mark_participant_attendance(
 
 
 @router.post(
-    "/training/participations/{participation_id}/evaluate",
+    "/participations/{participation_id}/evaluate",
     response_model=TrainingParticipationResponse,
     summary="Évaluer un participant",
     description="Évalue un participant (CHARGE_LITURGIE uniquement)",
@@ -361,7 +361,7 @@ async def evaluate_participant(
 
 
 @router.delete(
-    "/training/participations/{participation_id}",
+    "/participations/{participation_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Annuler une inscription",
     description="Annule l'inscription d'un participant (CHARGE_LITURGIE uniquement)",
@@ -381,7 +381,7 @@ async def cancel_participation(
 
 
 @router.get(
-    "/training/servants/{servant_id}/participations",
+    "/servants/{servant_id}/participations",
     response_model=TrainingParticipationListResponse,
     summary="Participations d'un servant",
     description="Liste les participations d'un servant",
@@ -406,7 +406,7 @@ async def get_servant_participations(
 
 
 @router.get(
-    "/training/servants/{servant_id}/stats",
+    "/servants/{servant_id}/stats",
     response_model=TrainingStatsResponse,
     summary="Statistiques d'un servant",
     description="Récupère les statistiques de formation d'un servant",
@@ -433,7 +433,7 @@ async def get_servant_training_stats(
 
 
 @router.post(
-    "/training/materials",
+    "/materials",
     response_model=TrainingMaterialResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer un matériel",
@@ -462,7 +462,7 @@ async def create_training_material(
 
 
 @router.get(
-    "/training/materials",
+    "/materials",
     response_model=TrainingMaterialListResponse,
     summary="Liste des matériels",
     description="Liste tous les matériels pédagogiques (bibliothèque)",
@@ -495,7 +495,7 @@ async def list_training_materials(
 
 
 @router.get(
-    "/training/materials/{material_id}",
+    "/materials/{material_id}",
     response_model=TrainingMaterialResponse,
     summary="Détail d'un matériel",
     description="Récupère les détails d'un matériel pédagogique",
@@ -516,7 +516,7 @@ async def get_training_material(
 
 
 @router.patch(
-    "/training/materials/{material_id}",
+    "/materials/{material_id}",
     response_model=TrainingMaterialResponse,
     summary="Modifier un matériel",
     description="Modifie un matériel pédagogique (CHARGE_LITURGIE uniquement)",
@@ -547,7 +547,7 @@ async def update_training_material(
 
 
 @router.delete(
-    "/training/materials/{material_id}",
+    "/materials/{material_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer un matériel",
     description="Supprime un matériel pédagogique (CHARGE_LITURGIE uniquement)",
@@ -572,7 +572,7 @@ async def delete_training_material(
 
 
 @router.post(
-    "/training/report",
+    "/report",
     response_model=TrainingReportResponse,
     summary="Générer un rapport",
     description="Génère un rapport de formation (CHARGE_LITURGIE uniquement)",

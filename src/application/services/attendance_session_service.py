@@ -142,6 +142,16 @@ class AttendanceSessionService:
                 detail=f"{servant.first_name} {servant.last_name} n'est pas un servant.",
             )
 
+        # Vérifier qu'il n'existe pas déjà un enregistrement pour ce servant dans cette session
+        existing = await self.attendance_repo.get_record_by_session_and_servant(
+            session_id, data.servant_id
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"La présence de {servant.first_name} {servant.last_name} est déjà enregistrée dans cette session.",
+            )
+
         record = AttendanceRecord(
             session_id=session_id,
             servant_id=data.servant_id,

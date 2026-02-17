@@ -380,9 +380,9 @@ class TestPostesReference:
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert body["total_postes"] == 16
-        assert body["postes_vacants"] == 16  # Aucune nomination
-        assert len(body["postes"]) == 16
+        assert body["total_postes"] == 20
+        assert body["postes_vacants"] == 20  # Aucune nomination
+        assert len(body["postes"]) == 20
 
     async def test_list_postes_with_titulaire(
         self,

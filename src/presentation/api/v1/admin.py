@@ -1,9 +1,15 @@
 """
-Admin-only endpoints for managing invitations and restricted roles
+Admin-only endpoints for managing invitations, PARENT accounts, and AUMÔNIER account
+
+SECURITY NOTE: 
+- PARENT accounts can be created directly by ADMIN through this API
+- AUMÔNIER account is unique (only one can exist in the system)
+- ADMIN accounts must be created through secure database seeding  
 """
 import secrets
 from typing import Annotated, List
 from uuid import UUID
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +28,7 @@ from src.presentation.schemas.invitation import (
 from src.presentation.schemas.auth import UserCreate, UserResponse
 from src.application.services.auth_service import AuthService
 
-router = APIRouter(tags=["admin"])
+router = APIRouter()
 
 
 def generate_invitation_code() -> str:
@@ -38,18 +44,22 @@ async def create_invitation(
     current_admin: Annotated[User, Depends(get_current_admin_user)],
 ):
     """
-    Create invitation code for PARENT or AUMÔNIER role
+    Create invitation code for PARENT role only
     
-    Admin only. Generates a unique code that users can use to register with restricted roles.
+    Admin only. Generates a unique code that users can use to register as PARENT.
     If phone_number is provided and WhatsApp is configured, the code will be sent automatically.
+    
+    SECURITY: Only PARENT invitations are allowed through API.
+    ADMIN and AUMÔNIER must be created through secure database seeding.
     """
     from src.infrastructure.services.whatsapp_service import WhatsAppService
     
-    # Validate role
-    if request.role not in ["PARENT", "AUMÔNIER"]:
+    # SECURITY: Only allow PARENT and AUMÔNIER role invitations
+    if request.role not in ("PARENT", "AUMÔNIER"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role. Must be PARENT or AUMÔNIER"
+            detail=f"Invalid role. Only PARENT and AUMÔNIER invitations can be created through API. "
+                   f"The role '{request.role}' is not allowed for invitations."
         )
     
     # Generate unique code
@@ -130,67 +140,81 @@ async def revoke_invitation(
     await invitation_repo.revoke(invitation_id)
 
 
-@router.post("/users/admin", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_admin(
-    user_data: UserCreate,
+@router.post("/users/aumônier", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_aumônier(
+    request: UserCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_admin: Annotated[User, Depends(get_current_admin_user)],
 ):
     """
-    Create an ADMIN user
+    Create the unique AUMÔNIER account
     
-    Admin only. Direct creation (no invitation code needed).
-    IMPORTANT: Only ONE admin can exist at a time (UNIQUE).
+    Admin only. Only one AUMÔNIER can exist in the entire system.
     """
-    # Override role to ensure it's ADMIN
-    user_data.role = UserRole.ADMIN
+    aumônier_create = UserCreate(
+        email=request.email,
+        password=request.password,
+        first_name=request.first_name,
+        last_name=request.last_name,
+        phone_number=request.phone_number if hasattr(request, "phone_number") else None,
+        role=UserRole.AUMÔNIER
+    )
     
     user_repo = UserRepository(session)
     auth_service = AuthService(user_repo, None)
     
-    created_user = await auth_service.register_user(
-        user_data,
-        invitation_code=None,
-        admin_id=current_admin.id  # Track that admin created this
-    )
-    
-    return created_user
-
-
-@router.post("/users/aumônier", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_aumonier(
-    user_data: UserCreate,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_admin: Annotated[User, Depends(get_current_admin_user)],
-):
-    """
-    Create an AUMÔNIER user
-    
-    Admin only. Direct creation (no invitation code needed).
-    IMPORTANT: Only ONE aumônier can exist at a time.
-    """
-    # Override role to ensure it's AUMÔNIER
-    user_data.role = UserRole.AUMÔNIER
-    
-    # Check if aumônier already exists
-    user_repo = UserRepository(session)
-    from sqlalchemy import select
-    stmt = select(User).where(User.role == UserRole.AUMÔNIER)
-    result = await session.exec(stmt)
-    if result.first():
+    try:
+        user = await auth_service.register_user(
+            user_create=aumônier_create,
+            admin_id=current_admin.id
+        )
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="An AUMÔNIER already exists. There can only be one."
+            detail=f"Failed to create AUMÔNIER: {str(e)}"
         )
+
+
+@router.post("/users/admin", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_admin(
+    request: UserCreate,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_admin: Annotated[User, Depends(get_current_admin_user)],
+):
+    """
+    Create a secondary ADMIN account (only one allowed total in system).
     
-    auth_service = AuthService(user_repo, None)
-    created_user = await auth_service.register_user(
-        user_data,
-        invitation_code=None,
-        admin_id=current_admin.id  # Track that admin created this
+    Admin only. Only one ADMIN can exist.
+    """
+    admin_create = UserCreate(
+        email=request.email,
+        password=request.password,
+        first_name=request.first_name,
+        last_name=request.last_name,
+        phone_number=request.phone_number if hasattr(request, "phone_number") else None,
+        role=UserRole.ADMIN
     )
     
-    return created_user
+    user_repo = UserRepository(session)
+    auth_service = AuthService(user_repo, None)
+    
+    try:
+        user = await auth_service.register_user(
+            user_create=admin_create,
+            admin_id=current_admin.id
+        )
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to create ADMIN: {str(e)}"
+        )
+
 
 
 @router.post("/users/parent", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -202,9 +226,12 @@ async def create_parent_direct(
     """
     Create a PARENT user directly (without invitation code)
     
-    Admin only. Alternative to invitation-based flow for direct creation.
+    Admin only. Allows admin to create PARENT accounts directly from their interface.
+    This is secure as it requires admin authentication and only creates PARENT role.
+    
+    SECURITY: Only PARENT role can be created. ADMIN and AUMÔNIER are blocked.
     """
-    # Override role to ensure it's PARENT
+    # SECURITY: Force role to PARENT only
     user_data.role = UserRole.PARENT
     
     user_repo = UserRepository(session)

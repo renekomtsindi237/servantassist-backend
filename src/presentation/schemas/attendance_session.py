@@ -4,8 +4,9 @@ Schémas Pydantic pour le module de gestion des appels (CENSEUR).
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
+import html
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from src.core.entities.attendance_session import AttendanceStatus
 
@@ -21,6 +22,16 @@ class AttendanceSessionCreate(BaseModel):
     location: str = Field(default="Sacristie", description="Lieu de l'appel")
     notes: Optional[str] = None
 
+    @field_validator('notes', mode='before')
+    @classmethod
+    def sanitize_notes(cls, v):
+        """Échappe les caractères HTML/JS dans les notes pour prévenir les XSS."""
+        if v is None:
+            return v
+        if isinstance(v, str):
+            return html.escape(v)
+        return v
+
 
 class AttendanceRecordCreate(BaseModel):
     """Schéma pour marquer la présence d'un servant."""
@@ -29,12 +40,32 @@ class AttendanceRecordCreate(BaseModel):
     arrival_time: Optional[str] = None
     notes: Optional[str] = None
 
+    @field_validator('notes', mode='before')
+    @classmethod
+    def sanitize_notes(cls, v):
+        """Échappe les caractères HTML/JS dans les notes pour prévenir les XSS."""
+        if v is None:
+            return v
+        if isinstance(v, str):
+            return html.escape(v)
+        return v
+
 
 class AttendanceRecordUpdate(BaseModel):
     """Schéma pour modifier un enregistrement de présence."""
     status: Optional[AttendanceStatus] = None
     arrival_time: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator('notes', mode='before')
+    @classmethod
+    def sanitize_notes(cls, v):
+        """Échappe les caractères HTML/JS dans les notes pour prévenir les XSS."""
+        if v is None:
+            return v
+        if isinstance(v, str):
+            return html.escape(v)
+        return v
 
 
 # ══════════════════════════════════════════════════════════════════

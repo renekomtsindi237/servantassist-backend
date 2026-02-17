@@ -112,6 +112,18 @@ class AttendanceSessionRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_record_by_session_and_servant(
+        self, session_id: UUID, servant_id: UUID
+    ) -> Optional[AttendanceRecord]:
+        """Vérifie s'il existe déjà un enregistrement pour ce servant dans cette session."""
+        result = await self.session.execute(
+            select(AttendanceRecord).where(
+                AttendanceRecord.session_id == session_id,
+                AttendanceRecord.servant_id == servant_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
     async def get_session_records(
         self, session_id: UUID
     ) -> List[AttendanceRecord]:

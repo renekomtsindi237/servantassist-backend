@@ -44,7 +44,7 @@ def get_report_service(
 
 # ── Endpoints CRUD ────────────────────────────────────────────────────────
 @router.post(
-    "/reports/",
+    "/",
     response_model=ReportResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer un rapport",
@@ -71,7 +71,7 @@ async def create_report(
 
 
 @router.get(
-    "/reports/",
+    "/",
     response_model=ReportListResponse,
     summary="Liste des rapports",
     description="Récupère la liste des rapports publiés (tous les responsables + aumônier)",
@@ -98,7 +98,7 @@ async def list_reports(
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
         is_secretaire = any(
-            nom.poste in (PosteResponsable.SECRETAIRE, PosteResponsable.SECRETAIRE_ADJOINT)
+            nom.poste in (PosteResponsable.SECRETAIRE_GENERAL, PosteResponsable.SECRETAIRE_GENERAL_ADJOINT)
             for nom in nominations
         )
     
@@ -124,7 +124,7 @@ async def list_reports(
 
 
 @router.get(
-    "/reports/{report_id}",
+    "/{report_id}",
     response_model=ReportResponse,
     summary="Détail d'un rapport",
     description="Récupère les détails d'un rapport",
@@ -153,7 +153,12 @@ async def get_report(
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
         is_secretaire = any(
-            nom.poste in (PosteResponsable.SECRETAIRE, PosteResponsable.SECRETAIRE_ADJOINT)
+            nom.poste in (
+                PosteResponsable.SECRETAIRE_GENERAL,
+                PosteResponsable.SECRETAIRE_GENERAL_ADJOINT,
+                PosteResponsable.SECRETAIRE,
+                PosteResponsable.SECRETAIRE_ADJOINT,
+            )
             for nom in nominations
         )
     
@@ -167,7 +172,7 @@ async def get_report(
 
 
 @router.patch(
-    "/reports/{report_id}",
+    "/{report_id}",
     response_model=ReportResponse,
     summary="Modifier un rapport",
     description="Modifie un rapport en brouillon (SECRETAIRE/SECRETAIRE_ADJOINT uniquement)",
@@ -207,7 +212,7 @@ async def update_report(
 
 
 @router.delete(
-    "/reports/{report_id}",
+    "/{report_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer un rapport",
     description="Supprime un rapport en brouillon (SECRETAIRE/SECRETAIRE_ADJOINT uniquement)",
@@ -234,7 +239,7 @@ async def delete_report(
 
 # ── Endpoints publication ─────────────────────────────────────────────────
 @router.post(
-    "/reports/{report_id}/publish",
+    "/{report_id}/publish",
     response_model=ReportResponse,
     summary="Publier un rapport",
     description="Publie un rapport (SECRETAIRE/SECRETAIRE_ADJOINT uniquement)",
@@ -261,7 +266,7 @@ async def publish_report(
 
 
 @router.post(
-    "/reports/{report_id}/archive",
+    "/{report_id}/archive",
     response_model=ReportResponse,
     summary="Archiver un rapport",
     description="Archive un rapport publié (SECRETAIRE/SECRETAIRE_ADJOINT uniquement)",
@@ -289,7 +294,7 @@ async def archive_report(
 
 # ── Endpoints mes rapports ────────────────────────────────────────────────
 @router.get(
-    "/reports/me/list",
+    "/me/list",
     response_model=ReportListResponse,
     summary="Mes rapports",
     description="Récupère les rapports créés par l'utilisateur connecté",
@@ -317,7 +322,7 @@ async def get_my_reports(
 
 # ── Endpoints pièces jointes ──────────────────────────────────────────────
 @router.post(
-    "/reports/{report_id}/attachments",
+    "/{report_id}/attachments",
     response_model=AttachmentResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Ajouter une pièce jointe",
@@ -356,7 +361,7 @@ async def add_attachment(
 
 
 @router.get(
-    "/reports/{report_id}/attachments",
+    "/{report_id}/attachments",
     response_model=list[AttachmentResponse],
     summary="Liste des pièces jointes",
     description="Récupère les pièces jointes d'un rapport",
@@ -380,7 +385,7 @@ async def get_attachments(
 
 
 @router.delete(
-    "/reports/attachments/{attachment_id}",
+    "/attachments/{attachment_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer une pièce jointe",
     description="Supprime une pièce jointe (SECRETAIRE/SECRETAIRE_ADJOINT uniquement)",

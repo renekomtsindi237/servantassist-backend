@@ -21,6 +21,8 @@ class UserBase(SQLModel):
     is_active: bool = Field(default=True)
     phone_number: Optional[str] = Field(default=None, index=True)  # Indexed for PARENT/SERVANT login
     profile_photo_url: Optional[str] = Field(default=None)  # URL de la photo de profil
+    birth_date: Optional[datetime] = Field(default=None)   # Pour les règles d'âge (Art 19, 26)
+    baptism_date: Optional[datetime] = Field(default=None) # Art 19 : être chrétien baptisé
 
 
 class User(UserBase, table=True):

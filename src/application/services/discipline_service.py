@@ -24,6 +24,9 @@ from src.core.entities.discipline import (
     OFFENSE_DEFAULT_SEVERITY,
     SEVERITY_RECOMMENDED_SANCTION,
 )
+from src.core.entities.attendance import AttendanceStatus, AttendanceType
+from src.infrastructure.repositories.attendance_repository import AttendanceRepository
+
 from src.core.entities.user import User, UserRole
 from src.infrastructure.repositories.discipline_repository import DisciplineCaseRepository
 from src.infrastructure.repositories.user_repository import UserRepository
@@ -45,9 +48,11 @@ class DisciplineService:
         self,
         case_repo: DisciplineCaseRepository,
         user_repo: UserRepository,
+        attendance_repo: AttendanceRepository,
     ):
         self.case_repo = case_repo
         self.user_repo = user_repo
+        self.attendance_repo = attendance_repo
 
     # ══════════════════════════════════════════════════════════════════
     #  OUVRIR UN DOSSIER
@@ -307,4 +312,40 @@ class DisciplineService:
             suspensions=counts.get(SanctionType.SUSPENSION_TEMPORAIRE.value, 0),
             cases_en_cours=active,
         )
+
+    async def check_attendance_compliance(self, user_id: UUID) -> dict:
+        """
+        Vérifie l'assiduité (Art 42, 50) :
+        - 2 absences consécutives aux réunions -> Suspension 1 semaine.
+        - 6 mois d'absence continue -> Radiation.
+        """
+        # Récupérer les 2 dernières réunions hebdomadaires
+        attendances, _ = await self.attendance_repo.list_paginated(
+            user_id=user_id,
+            attendance_type=AttendanceType.WEEKLY,
+            page_size=2
+        )
+        
+        consecutive_absences = all(a.status == AttendanceStatus.ABSENT for a in attendances) if len(attendances) >= 2 else False
+        
+        # Vérifier l'absence continue sur 6 mois
+        six_months_ago = datetime.now(timezone.utc) - timedelta(days=180)
+        recent_activity, _ = await self.attendance_repo.list_paginated(
+            user_id=user_id,
+            start_date=six_months_ago,
+            page_size=1
+        )
+        
+        continuous_absence = len(recent_activity) == 0 # Aucune présence enregistrée en 6 mois
+
+        return {
+            "user_id": user_id,
+            "two_consecutive_absences": consecutive_absences,
+            "six_months_continuous_absence": continuous_absence,
+            "suggested_sanction": (
+                SanctionType.EXCLUSION_DEFINITIVE if continuous_absence else
+                SanctionType.SUSPENSION_TEMPORAIRE if consecutive_absences else
+                SanctionType.AUCUNE
+            )
+        }
 

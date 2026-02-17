@@ -79,25 +79,30 @@ class PosteActionCreate(BaseModel):
     """Schema pour creer une action de responsable."""
     category: ActionCategory
     title: str = Field(..., min_length=1, max_length=300)
-    content: Optional[str] = Field(None, max_length=5000)
+    content: Optional[str] = Field(default=None, max_length=5000)
     target_user_id: Optional[UUID] = None
     target_event_id: Optional[UUID] = None
-    amount: Optional[float] = Field(None, ge=0)
+    amount: Optional[float] = Field(default=None, ge=0)
     action_date: Optional[datetime] = None
-    status: ActionStatus = ActionStatus.BROUILLON
-    extra_data: Optional[str] = Field(None, max_length=10000)
+    status: Optional[ActionStatus] = Field(default=ActionStatus.BROUILLON)
+    extra_data: Optional[str] = Field(default=None, max_length=10000)
 
 
 class PosteActionUpdate(BaseModel):
     """Modification partielle d'une action de responsable."""
-    title: Optional[str] = Field(None, min_length=1, max_length=300)
-    content: Optional[str] = Field(None, max_length=5000)
+    title: Optional[str] = Field(default=None, min_length=1, max_length=300)
+    content: Optional[str] = Field(default=None, max_length=5000)
     target_user_id: Optional[UUID] = None
     target_event_id: Optional[UUID] = None
-    amount: Optional[float] = Field(None, ge=0)
+    amount: Optional[float] = Field(default=None, ge=0)
     action_date: Optional[datetime] = None
     status: Optional[ActionStatus] = None
-    extra_data: Optional[str] = Field(None, max_length=10000)
+    extra_data: Optional[str] = Field(default=None, max_length=10000)
+
+
+class PosteActionPublish(BaseModel):
+    """Schema pour publier une action."""
+    pass  # Pas de paramètres requis
 
 
 class PosteActionResponse(BaseModel):
@@ -126,6 +131,24 @@ class PosteActionResponse(BaseModel):
         from_attributes = True
 
 
+class PosteActionListResponse(BaseModel):
+    """Liste des actions avec pagination."""
+    items: List[PosteActionResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    updated_at: Optional[datetime] = None
+    # Enrichissement
+    author_first_name: Optional[str] = None
+    author_last_name: Optional[str] = None
+    target_user_name: Optional[str] = None
+    target_event_title: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 class PosteDashboardResponse(BaseModel):
     """Tableau de bord d'un poste de responsable."""
     poste: PosteResponsable
@@ -139,4 +162,40 @@ class PosteDashboardResponse(BaseModel):
     actions_en_cours: int
     actions_terminees: int
     recent_actions: List[PosteActionResponse]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Conseil des Responsables
+# ═══════════════════════════════════════════════════════════════════════════
+
+class CouncilMeetingCreate(BaseModel):
+    """Schema pour creer une reunion du conseil."""
+    meeting_date: datetime
+    location: str = Field(..., max_length=200)
+    agenda: Optional[str] = Field(None, max_length=1000)
+
+
+class CouncilAttendanceRecord(BaseModel):
+    """Schema pour enregistrer une presence au conseil."""
+    responsable_id: UUID
+    is_present: bool = True
+    excuse: Optional[str] = Field(None, max_length=500)
+
+
+class CouncilAttendanceRecordList(BaseModel):
+    """Liste des presences a enregistrer."""
+    attendances: List[CouncilAttendanceRecord]
+
+
+class CouncilMeetingResponse(BaseModel):
+    """Reponse pour une reunion du conseil."""
+    id: UUID
+    meeting_date: datetime
+    location: str
+    agenda: Optional[str] = None
+    created_at: datetime
+    created_by: UUID
+
+    class Config:
+        from_attributes = True
 

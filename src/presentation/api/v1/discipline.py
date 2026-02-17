@@ -18,7 +18,7 @@ Accessible a : Aumonier, Admin (toutes operations)
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.discipline_service import DisciplineService
@@ -27,13 +27,15 @@ from src.core.entities.discipline import (
     OffenseCategory,
     SanctionSeverity,
 )
-from src.core.entities.user import User
+from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.discipline_repository import DisciplineCaseRepository
 from src.infrastructure.repositories.user_repository import UserRepository
+from src.infrastructure.repositories.responsable_repository import NominationRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_admin_or_aumonier,
+    require_censeur,
 )
 from src.presentation.schemas.discipline import (
     DisciplineCaseCreate,
@@ -48,14 +50,16 @@ router = APIRouter()
 
 
 def _get_service(session: AsyncSession) -> DisciplineService:
+    from src.infrastructure.repositories.attendance_repository import AttendanceRepository
     return DisciplineService(
         case_repo=DisciplineCaseRepository(session),
         user_repo=UserRepository(session),
+        attendance_repo=AttendanceRepository(session),
     )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  OUVERTURE DE DOSSIER
+#  ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
 
 @router.post(
@@ -66,12 +70,16 @@ def _get_service(session: AsyncSession) -> DisciplineService:
 async def open_discipline_case(
     data: DisciplineCaseCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
 ):
     """
     Ouvrir un dossier disciplinaire a l'encontre d'un servant.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.open_case(data, reported_by=current_user.id)
@@ -86,12 +94,16 @@ async def convoke_to_council(
     case_id: UUID,
     data: DisciplineConvocation,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
 ):
     """
     Convoquer le servant au conseil de discipline.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.convoke(case_id, data)
@@ -101,12 +113,16 @@ async def convoke_to_council(
 async def start_hearing(
     case_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
 ):
     """
     Ouvrir l'audience du conseil de discipline.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.start_hearing(case_id)
@@ -117,12 +133,16 @@ async def render_verdict(
     case_id: UUID,
     data: DisciplineVerdict,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
 ):
     """
     Rendre le verdict du conseil de discipline.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.render_verdict(case_id, data, verdict_by=current_user.id)
@@ -132,14 +152,18 @@ async def render_verdict(
 async def execute_sanction(
     case_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
 ):
     """
     Executer la sanction (application effective).
 
     En cas d'exclusion definitive, le compte du servant est desactive.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.execute_sanction(case_id)
@@ -149,13 +173,17 @@ async def execute_sanction(
 async def dismiss_case(
     case_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
     notes: Optional[str] = Query(None, max_length=2000),
 ):
     """
     Classer le dossier sans suite.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.dismiss_case(case_id, notes=notes)
@@ -168,7 +196,7 @@ async def dismiss_case(
 @router.get("/", response_model=PaginatedResponse[DisciplineCaseResponse])
 async def list_discipline_cases(
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
     accused_user_id: Optional[UUID] = Query(None),
     case_status: Optional[DisciplineCaseStatus] = Query(None, alias="status"),
     severity: Optional[SanctionSeverity] = Query(None),
@@ -179,7 +207,11 @@ async def list_discipline_cases(
     """
     Lister les dossiers disciplinaires (pagine, filtrable).
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.list_cases(
@@ -196,12 +228,16 @@ async def list_discipline_cases(
 async def get_discipline_case(
     case_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
 ):
     """
     Detail d'un dossier disciplinaire.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.get_case(case_id)
@@ -214,13 +250,33 @@ async def get_discipline_case(
 async def get_user_discipline_stats(
     user_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_censeur)],
 ):
     """
     Statistiques disciplinaires d'un servant.
 
-    **Accessible a :** Aumonier, Admin.
+    **Rôles autorisés** :
+    - CENSEUR (via nomination active)
+    - CENSEUR_ADJOINT (via nomination active)
+    - ADMIN
+    - AUMÔNIER
     """
     service = _get_service(session)
     return await service.get_user_discipline_stats(user_id)
+
+
+@router.get(
+    "/user/{user_id}/compliance",
+    response_model=dict,
+    summary="Vérifier l'assiduité",
+    description="Vérifie si le servant respecte les règles d'assiduité (Art 42, 50)",
+)
+async def get_attendance_compliance(
+    user_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(require_censeur)],
+):
+    """Vérifie la conformité de l'assiduité."""
+    service = _get_service(session)
+    return await service.check_attendance_compliance(user_id)
 

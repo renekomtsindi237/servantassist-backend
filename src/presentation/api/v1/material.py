@@ -66,7 +66,7 @@ def get_material_service(
 
 
 @router.post(
-    "/material/items",
+    "/items",
     response_model=MaterialItemResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer un article",
@@ -95,7 +95,7 @@ async def create_material_item(
 
 
 @router.get(
-    "/material/items",
+    "/items",
     response_model=MaterialItemListResponse,
     summary="Liste des articles",
     description="Liste tous les articles de matériel avec filtres",
@@ -126,7 +126,7 @@ async def list_material_items(
 
 
 @router.get(
-    "/material/items/{item_id}",
+    "/items/{item_id}",
     response_model=MaterialItemResponse,
     summary="Détail d'un article",
     description="Récupère les détails d'un article de matériel",
@@ -147,7 +147,7 @@ async def get_material_item(
 
 
 @router.patch(
-    "/material/items/{item_id}",
+    "/items/{item_id}",
     response_model=MaterialItemResponse,
     summary="Modifier un article",
     description="Modifie un article de matériel (INTENDANT uniquement)",
@@ -183,7 +183,7 @@ async def update_material_item(
 
 
 @router.delete(
-    "/material/items/{item_id}",
+    "/items/{item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer un article",
     description="Supprime un article de matériel (INTENDANT uniquement)",
@@ -203,7 +203,7 @@ async def delete_material_item(
 
 
 @router.get(
-    "/material/items/maintenance/needed",
+    "/items/maintenance/needed",
     response_model=MaterialItemListResponse,
     summary="Articles nécessitant maintenance",
     description="Liste les articles nécessitant une maintenance",
@@ -228,7 +228,7 @@ async def get_items_needing_maintenance(
 
 
 @router.post(
-    "/material/cleaning-tasks",
+    "/cleaning-tasks",
     response_model=CleaningTaskResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer une tâche de nettoyage",
@@ -255,7 +255,7 @@ async def create_cleaning_task(
 
 
 @router.get(
-    "/material/cleaning-tasks",
+    "/cleaning-tasks",
     response_model=CleaningTaskListResponse,
     summary="Liste des tâches",
     description="Liste toutes les tâches de nettoyage avec filtres",
@@ -304,7 +304,7 @@ async def list_cleaning_tasks(
 
 
 @router.get(
-    "/material/cleaning-tasks/{task_id}",
+    "/cleaning-tasks/{task_id}",
     response_model=CleaningTaskResponse,
     summary="Détail d'une tâche",
     description="Récupère les détails d'une tâche de nettoyage",
@@ -338,7 +338,7 @@ async def get_cleaning_task(
 
 
 @router.patch(
-    "/material/cleaning-tasks/{task_id}",
+    "/cleaning-tasks/{task_id}",
     response_model=CleaningTaskResponse,
     summary="Modifier une tâche",
     description="Modifie une tâche de nettoyage (INTENDANT uniquement)",
@@ -384,7 +384,7 @@ async def update_cleaning_task(
 
 
 @router.post(
-    "/material/cleaning-tasks/{task_id}/complete",
+    "/cleaning-tasks/{task_id}/complete",
     response_model=CleaningTaskResponse,
     summary="Marquer comme terminée",
     description="Marque une tâche comme terminée",
@@ -423,7 +423,7 @@ async def complete_cleaning_task(
 
 
 @router.post(
-    "/material/cleaning-tasks/{task_id}/validate",
+    "/cleaning-tasks/{task_id}/validate",
     response_model=CleaningTaskResponse,
     summary="Valider une tâche",
     description="Valide une tâche terminée (INTENDANT uniquement)",
@@ -462,7 +462,7 @@ async def validate_cleaning_task(
 
 
 @router.delete(
-    "/material/cleaning-tasks/{task_id}",
+    "/cleaning-tasks/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer une tâche",
     description="Supprime une tâche de nettoyage (INTENDANT uniquement)",
@@ -487,7 +487,7 @@ async def delete_cleaning_task(
 
 
 @router.post(
-    "/material/cleaning-tasks/{task_id}/assign",
+    "/cleaning-tasks/{task_id}/assign",
     response_model=TaskAssignmentResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Assigner un servant",
@@ -509,7 +509,7 @@ async def assign_servant_to_task(
 
 
 @router.post(
-    "/material/cleaning-tasks/{task_id}/assign-batch",
+    "/cleaning-tasks/{task_id}/assign-batch",
     response_model=List[TaskAssignmentResponse],
     status_code=status.HTTP_201_CREATED,
     summary="Assigner plusieurs servants",
@@ -531,7 +531,7 @@ async def assign_servants_batch(
 
 
 @router.get(
-    "/material/servants/{servant_id}/assignments",
+    "/servants/{servant_id}/assignments",
     response_model=List[TaskAssignmentResponse],
     summary="Assignations d'un servant",
     description="Liste les assignations d'un servant",
@@ -553,7 +553,7 @@ async def get_servant_assignments(
 
 
 @router.delete(
-    "/material/assignments/{assignment_id}",
+    "/assignments/{assignment_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Retirer une assignation",
     description="Retire une assignation (INTENDANT uniquement)",
@@ -578,7 +578,7 @@ async def remove_assignment(
 
 
 @router.post(
-    "/material/aube-tasks",
+    "/aube-tasks",
     response_model=AubeTaskResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Créer une tâche d'aubes",
@@ -606,7 +606,7 @@ async def create_aube_task(
 
 
 @router.get(
-    "/material/aube-tasks",
+    "/aube-tasks",
     response_model=AubeTaskListResponse,
     summary="Liste des tâches d'aubes",
     description="Liste toutes les tâches d'aubes avec filtres",
@@ -639,7 +639,7 @@ async def list_aube_tasks(
 
 
 @router.get(
-    "/material/aube-tasks/{task_id}",
+    "/aube-tasks/{task_id}",
     response_model=AubeTaskResponse,
     summary="Détail d'une tâche d'aubes",
     description="Récupère les détails d'une tâche d'aubes",
@@ -660,7 +660,7 @@ async def get_aube_task(
 
 
 @router.patch(
-    "/material/aube-tasks/{task_id}",
+    "/aube-tasks/{task_id}",
     response_model=AubeTaskResponse,
     summary="Modifier une tâche d'aubes",
     description="Modifie une tâche d'aubes (INTENDANT uniquement)",
@@ -693,7 +693,7 @@ async def update_aube_task(
 
 
 @router.post(
-    "/material/aube-tasks/{task_id}/complete",
+    "/aube-tasks/{task_id}/complete",
     response_model=AubeTaskResponse,
     summary="Marquer comme terminée",
     description="Marque une tâche d'aubes comme terminée",
@@ -719,7 +719,7 @@ async def complete_aube_task(
 
 
 @router.post(
-    "/material/aube-tasks/{task_id}/validate",
+    "/aube-tasks/{task_id}/validate",
     response_model=AubeTaskResponse,
     summary="Valider une tâche d'aubes",
     description="Valide une tâche d'aubes terminée (INTENDANT uniquement)",
@@ -745,7 +745,7 @@ async def validate_aube_task(
 
 
 @router.delete(
-    "/material/aube-tasks/{task_id}",
+    "/aube-tasks/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Supprimer une tâche d'aubes",
     description="Supprime une tâche d'aubes (INTENDANT uniquement)",
@@ -770,7 +770,7 @@ async def delete_aube_task(
 
 
 @router.post(
-    "/material/items/{item_id}/maintenance",
+    "/items/{item_id}/maintenance",
     response_model=MaintenanceHistoryResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Ajouter un historique",
@@ -801,7 +801,7 @@ async def add_maintenance_history(
 
 
 @router.get(
-    "/material/items/{item_id}/maintenance",
+    "/items/{item_id}/maintenance",
     response_model=List[MaintenanceHistoryResponse],
     summary="Historique de maintenance",
     description="Récupère l'historique de maintenance d'un article",
@@ -822,7 +822,7 @@ async def get_item_maintenance_history(
 
 
 @router.post(
-    "/material/report",
+    "/report",
     response_model=MaterialReportResponse,
     summary="Générer un rapport",
     description="Génère un rapport de gestion du matériel (INTENDANT uniquement)",
@@ -842,7 +842,7 @@ async def generate_material_report(
 
 
 @router.get(
-    "/material/stats",
+    "/stats",
     response_model=MaterialStatsResponse,
     summary="Statistiques globales",
     description="Récupère les statistiques globales de gestion du matériel",

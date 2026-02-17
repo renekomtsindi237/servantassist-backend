@@ -30,7 +30,7 @@ from src.presentation.schemas.contribution import (
 )
 from src.presentation.schemas.user import PaginatedResponse
 
-router = APIRouter(prefix="/contributions", tags=["Contributions"])
+router = APIRouter()
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -216,3 +216,16 @@ async def generate_financial_report(
 ):
     """Génère un rapport financier complet."""
     return await service.generate_financial_report(request, current_user.id)
+@router.get(
+    "/servant/{servant_id}/compliance",
+    response_model=dict,
+    summary="Vérifier la conformité des paiements",
+    description="Vérifie si le servant est à jour ou en retard (Art 48, 50)",
+)
+async def get_payment_compliance(
+    servant_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: ContributionService = Depends(get_contribution_service),
+):
+    """Vérifie la conformité des paiements."""
+    return await service.check_payment_compliance(servant_id)
