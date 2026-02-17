@@ -108,7 +108,6 @@ def create_test_app() -> FastAPI:
     test_app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
     test_app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
     test_app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
-<<<<<<< HEAD
     test_app.include_router(attendance_sessions.router, prefix="/api/v1/attendance-sessions", tags=["Attendance Sessions"])
     test_app.include_router(contributions.router, prefix="/api/v1/contributions", tags=["Contributions"])
     test_app.include_router(financial_entries.router, prefix="/api/v1/financial-entries", tags=["Financial Entries"])
@@ -118,9 +117,7 @@ def create_test_app() -> FastAPI:
     test_app.include_router(sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"])
     test_app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])
     test_app.include_router(weekly_schedule.router, prefix="/api/v1/weekly-schedule", tags=["Weekly Schedule"])
-=======
     test_app.include_router(communication.router, prefix="/api/v1/communication", tags=["Communication"])
->>>>>>> 6c8bb197ee555c35afb3ed8d1af6ea329544b04f
     return test_app
 
 
@@ -889,7 +886,6 @@ async def sample_subgroup_member(
     return member
 
 
-<<<<<<< HEAD
 @pytest_asyncio.fixture()
 async def sample_contribution(
     db_session: AsyncSession,
@@ -1187,6 +1183,8 @@ async def sample_aube_task(
     await db_session.commit()
     await db_session.refresh(task)
     return task
+
+
 @pytest_asyncio.fixture()
 async def sample_attendance_session(
     db_session: AsyncSession,
@@ -1244,6 +1242,7 @@ async def sample_attendance_record(
 def attendance_record_id(sample_attendance_record: AttendanceRecord) -> str:
     """ID de l'enregistrement de test."""
     return str(sample_attendance_record.id)
+
 
 @pytest_asyncio.fixture()
 async def sample_training_material(
@@ -1370,7 +1369,8 @@ async def sample_attachment(
     await db_session.commit()
     await db_session.refresh(attachment)
     return attachment
-=======
+
+
 # ── Fixtures notifications ──────────────────────────────────────────────
 @pytest_asyncio.fixture()
 async def sample_notification(
@@ -1414,4 +1414,3 @@ async def sample_notification_preference(
     await db_session.commit()
     await db_session.refresh(pref)
     return pref
->>>>>>> 6c8bb197ee555c35afb3ed8d1af6ea329544b04f
