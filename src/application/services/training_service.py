@@ -239,9 +239,7 @@ class TrainingService:
             )
 
         # Vérifier que le servant n'est pas déjà inscrit
-        existing = await self.participation_repo.get_by_session_and_servant(
-            session_id, servant_id
-        )
+        existing = await self.participation_repo.get_by_session_and_servant(session_id, servant_id)
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -336,18 +334,14 @@ class TrainingService:
         updated = await self.participation_repo.update(participation)
         return await self.participation_repo.enrich_participation(updated)
 
-    async def get_session_participants(
-        self, session_id: UUID
-    ) -> List[TrainingParticipation]:
+    async def get_session_participants(self, session_id: UUID) -> List[TrainingParticipation]:
         """Récupère les participants d'une session."""
         participations = await self.participation_repo.list_by_session(session_id)
 
         # Enrichir les participations
         enriched = []
         for participation in participations:
-            enriched_participation = await self.participation_repo.enrich_participation(
-                participation
-            )
+            enriched_participation = await self.participation_repo.enrich_participation(participation)
             enriched.append(enriched_participation)
 
         return enriched
@@ -359,16 +353,12 @@ class TrainingService:
         end_date: Optional[datetime] = None,
     ) -> List[TrainingParticipation]:
         """Récupère les participations d'un servant."""
-        participations = await self.participation_repo.list_by_servant(
-            servant_id, start_date, end_date
-        )
+        participations = await self.participation_repo.list_by_servant(servant_id, start_date, end_date)
 
         # Enrichir les participations
         enriched = []
         for participation in participations:
-            enriched_participation = await self.participation_repo.enrich_participation(
-                participation
-            )
+            enriched_participation = await self.participation_repo.enrich_participation(participation)
             enriched.append(enriched_participation)
 
         return enriched
@@ -384,9 +374,7 @@ class TrainingService:
         end_date: Optional[datetime] = None,
     ) -> TrainingStats:
         """Récupère les statistiques d'un servant."""
-        return await self.participation_repo.get_servant_stats(
-            servant_id, start_date, end_date
-        )
+        return await self.participation_repo.get_servant_stats(servant_id, start_date, end_date)
 
     # ══════════════════════════════════════════════════════════════════
     #  GESTION DES MATÉRIELS
@@ -567,9 +555,7 @@ class TrainingService:
             end_date=end_date,
         )
 
-        completed_sessions = sum(
-            1 for s in sessions if s.status == TrainingStatus.TERMINEE
-        )
+        completed_sessions = sum(1 for s in sessions if s.status == TrainingStatus.TERMINEE)
 
         # Récupérer toutes les participations
         all_participations = []
@@ -580,19 +566,11 @@ class TrainingService:
         total_participants = len(all_participations)
 
         # Calculer le taux de présence moyen
-        attended = sum(
-            1 for p in all_participations if p.status == ParticipationStatus.PRESENT
-        )
-        average_attendance_rate = (
-            (attended / total_participants * 100) if total_participants > 0 else 0.0
-        )
+        attended = sum(1 for p in all_participations if p.status == ParticipationStatus.PRESENT)
+        average_attendance_rate = (attended / total_participants * 100) if total_participants > 0 else 0.0
 
         # Calculer la note moyenne
-        scores = [
-            p.evaluation_score
-            for p in all_participations
-            if p.evaluation_score is not None
-        ]
+        scores = [p.evaluation_score for p in all_participations if p.evaluation_score is not None]
         average_evaluation_score = sum(scores) / len(scores) if scores else None
 
         # Compter les certificats

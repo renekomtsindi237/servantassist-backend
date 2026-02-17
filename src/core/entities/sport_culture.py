@@ -154,9 +154,7 @@ class EventTeam(SQLModel, table=True):
     members: List[str] = Field(
         default_factory=list, sa_column=Column(JSON)
     )  # Changed to List[str] for JSON serialization
-    members_names: List[str] = Field(
-        default_factory=list, sa_column=Column(JSON)
-    )  # Enrichi
+    members_names: List[str] = Field(default_factory=list, sa_column=Column(JSON))  # Enrichi
     created_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

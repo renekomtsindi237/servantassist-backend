@@ -65,14 +65,10 @@ async def list_events(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
     event_type: Optional[EventType] = Query(None, description="Filtrer par type"),
-    event_status: Optional[EventStatus] = Query(
-        None, alias="status", description="Filtrer par statut"
-    ),
+    event_status: Optional[EventStatus] = Query(None, alias="status", description="Filtrer par statut"),
     start_date: Optional[datetime] = Query(None, description="Date de debut minimum"),
     end_date: Optional[datetime] = Query(None, description="Date de debut maximum"),
-    search: Optional[str] = Query(
-        None, max_length=100, description="Recherche par titre ou lieu"
-    ),
+    search: Optional[str] = Query(None, max_length=100, description="Recherche par titre ou lieu"),
     page: int = Query(1, ge=1, description="Numero de page"),
     page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
 ):
@@ -122,9 +118,7 @@ async def get_event(
     return await service.get_event(event_id)
 
 
-@router.post(
-    "/", response_model=EventDetailResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/", response_model=EventDetailResponse, status_code=status.HTTP_201_CREATED)
 async def create_event(
     event_data: EventCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -264,9 +258,7 @@ async def update_my_participation(
     event_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
-    new_status: ParticipantStatus = Query(
-        ..., description="Nouveau statut : CONFIRME ou DECLINE"
-    ),
+    new_status: ParticipantStatus = Query(..., description="Nouveau statut : CONFIRME ou DECLINE"),
 ):
     """
     Confirmer ou decliner ma participation a un evenement.

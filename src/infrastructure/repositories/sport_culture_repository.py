@@ -35,9 +35,7 @@ class SportCultureEventRepository:
 
     async def get_by_id(self, event_id: UUID) -> Optional[SportCultureEvent]:
         """Récupère un événement par son ID."""
-        result = await self.session.execute(
-            select(SportCultureEvent).where(SportCultureEvent.id == event_id)
-        )
+        result = await self.session.execute(select(SportCultureEvent).where(SportCultureEvent.id == event_id))
         return result.scalar_one_or_none()
 
     async def list_events(
@@ -99,11 +97,7 @@ class SportCultureEventRepository:
         result = await self.session.execute(
             select(SportCultureEvent)
             .where(SportCultureEvent.date >= now)
-            .where(
-                SportCultureEvent.status.in_(
-                    [EventStatus.PLANIFIE, EventStatus.OUVERT, EventStatus.COMPLET]
-                )
-            )
+            .where(SportCultureEvent.status.in_([EventStatus.PLANIFIE, EventStatus.OUVERT, EventStatus.COMPLET]))
             .order_by(SportCultureEvent.date)
             .limit(limit)
         )
@@ -123,9 +117,7 @@ class EventParticipationRepository:
         await self.session.refresh(participation)
         return participation
 
-    async def create_batch(
-        self, participations: List[EventParticipation]
-    ) -> List[EventParticipation]:
+    async def create_batch(self, participations: List[EventParticipation]) -> List[EventParticipation]:
         """Crée plusieurs participations en batch."""
         for participation in participations:
             self.session.add(participation)
@@ -136,9 +128,7 @@ class EventParticipationRepository:
 
     async def get_by_id(self, participation_id: UUID) -> Optional[EventParticipation]:
         """Récupère une participation par son ID."""
-        result = await self.session.execute(
-            select(EventParticipation).where(EventParticipation.id == participation_id)
-        )
+        result = await self.session.execute(select(EventParticipation).where(EventParticipation.id == participation_id))
         return result.scalar_one_or_none()
 
     async def get_by_event(self, event_id: UUID) -> List[EventParticipation]:
@@ -160,9 +150,7 @@ class EventParticipationRepository:
         # Joindre avec les événements pour filtrer par date
         query = (
             select(EventParticipation)
-            .join(
-                SportCultureEvent, EventParticipation.event_id == SportCultureEvent.id
-            )
+            .join(SportCultureEvent, EventParticipation.event_id == SportCultureEvent.id)
             .where(EventParticipation.servant_id == servant_id)
         )
 
@@ -176,9 +164,7 @@ class EventParticipationRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
-    async def get_by_event_and_servant(
-        self, event_id: UUID, servant_id: UUID
-    ) -> Optional[EventParticipation]:
+    async def get_by_event_and_servant(self, event_id: UUID, servant_id: UUID) -> Optional[EventParticipation]:
         """Récupère une participation spécifique."""
         result = await self.session.execute(
             select(EventParticipation).where(
@@ -209,9 +195,7 @@ class EventParticipationRepository:
 
     async def count_by_event(self, event_id: UUID) -> int:
         """Compte les participations d'un événement."""
-        result = await self.session.execute(
-            select(func.count()).where(EventParticipation.event_id == event_id)
-        )
+        result = await self.session.execute(select(func.count()).where(EventParticipation.event_id == event_id))
         return result.scalar()
 
     async def count_confirmed_by_event(self, event_id: UUID) -> int:
@@ -220,22 +204,16 @@ class EventParticipationRepository:
             select(func.count()).where(
                 and_(
                     EventParticipation.event_id == event_id,
-                    EventParticipation.status.in_(
-                        [ParticipationStatus.CONFIRME, ParticipationStatus.PRESENT]
-                    ),
+                    EventParticipation.status.in_([ParticipationStatus.CONFIRME, ParticipationStatus.PRESENT]),
                 )
             )
         )
         return result.scalar()
 
-    async def enrich_participation(
-        self, participation: EventParticipation
-    ) -> EventParticipation:
+    async def enrich_participation(self, participation: EventParticipation) -> EventParticipation:
         """Enrichit une participation avec les noms."""
         # Récupérer le nom du servant
-        servant_result = await self.session.execute(
-            select(User).where(User.id == participation.servant_id)
-        )
+        servant_result = await self.session.execute(select(User).where(User.id == participation.servant_id))
         servant = servant_result.scalar_one_or_none()
         if servant:
             participation.servant_name = f"{servant.first_name} {servant.last_name}"
@@ -259,17 +237,13 @@ class EventResultRepository:
     async def get_by_event(self, event_id: UUID) -> List[EventResult]:
         """Récupère les résultats d'un événement."""
         result = await self.session.execute(
-            select(EventResult)
-            .where(EventResult.event_id == event_id)
-            .order_by(EventResult.created_at)
+            select(EventResult).where(EventResult.event_id == event_id).order_by(EventResult.created_at)
         )
         return list(result.scalars().all())
 
     async def delete(self, result_id: UUID) -> bool:
         """Supprime un résultat."""
-        result = await self.session.execute(
-            select(EventResult).where(EventResult.id == result_id)
-        )
+        result = await self.session.execute(select(EventResult).where(EventResult.id == result_id))
         result_obj = result.scalar_one_or_none()
         if not result_obj:
             return False
@@ -294,17 +268,13 @@ class EventTeamRepository:
 
     async def get_by_id(self, team_id: UUID) -> Optional[EventTeam]:
         """Récupère une équipe par son ID."""
-        result = await self.session.execute(
-            select(EventTeam).where(EventTeam.id == team_id)
-        )
+        result = await self.session.execute(select(EventTeam).where(EventTeam.id == team_id))
         return result.scalar_one_or_none()
 
     async def get_by_event(self, event_id: UUID) -> List[EventTeam]:
         """Récupère les équipes d'un événement."""
         result = await self.session.execute(
-            select(EventTeam)
-            .where(EventTeam.event_id == event_id)
-            .order_by(EventTeam.team_name)
+            select(EventTeam).where(EventTeam.event_id == event_id).order_by(EventTeam.team_name)
         )
         return list(result.scalars().all())
 
@@ -327,9 +297,7 @@ class EventTeamRepository:
     async def enrich_team(self, team: EventTeam) -> EventTeam:
         """Enrichit une équipe avec les noms."""
         # Récupérer le nom du capitaine
-        captain_result = await self.session.execute(
-            select(User).where(User.id == team.captain_id)
-        )
+        captain_result = await self.session.execute(select(User).where(User.id == team.captain_id))
         captain = captain_result.scalar_one_or_none()
         if captain:
             team.captain_name = f"{captain.first_name} {captain.last_name}"
@@ -340,9 +308,7 @@ class EventTeamRepository:
                 # Convertir les chaînes UUID en objets UUID
                 member_ids = [UUID(str(m_id)) for m_id in team.members]
 
-                members_result = await self.session.execute(
-                    select(User).where(User.id.in_(member_ids))
-                )
+                members_result = await self.session.execute(select(User).where(User.id.in_(member_ids)))
                 members = list(members_result.scalars().all())
 
                 # Créer une map pour respecter l'ordre ou juste lister les noms

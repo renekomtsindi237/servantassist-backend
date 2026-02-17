@@ -36,9 +36,7 @@ async def test_only_censeur_can_create_session(client, servant_token, admin_toke
 
 
 @pytest.mark.asyncio
-async def test_only_censeur_can_mark_attendance(
-    client, servant_token, sample_attendance_session, servant_user
-):
+async def test_only_censeur_can_mark_attendance(client, servant_token, sample_attendance_session, servant_user):
     """Test que seul le CENSEUR peut marquer la présence."""
     response = await client.post(
         f"/api/v1/attendance-sessions/{sample_attendance_session.id}/records",
@@ -52,9 +50,7 @@ async def test_only_censeur_can_mark_attendance(
 
 
 @pytest.mark.asyncio
-async def test_only_censeur_can_update_record(
-    client, servant_token, sample_attendance_record
-):
+async def test_only_censeur_can_update_record(client, servant_token, sample_attendance_record):
     """Test que seul le CENSEUR peut modifier un enregistrement."""
     response = await client.patch(
         f"/api/v1/attendance-sessions/records/{sample_attendance_record.id}",
@@ -83,16 +79,12 @@ async def test_unauthenticated_cannot_access(client, sample_attendance_session):
     assert response.status_code == 401
 
     # Détail session
-    response = await client.get(
-        f"/api/v1/attendance-sessions/{sample_attendance_session.id}"
-    )
+    response = await client.get(f"/api/v1/attendance-sessions/{sample_attendance_session.id}")
     assert response.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_cannot_mark_duplicate_attendance(
-    client, censeur_token, sample_attendance_session, servant_user
-):
+async def test_cannot_mark_duplicate_attendance(client, censeur_token, sample_attendance_session, servant_user):
     """Test qu'on ne peut pas marquer deux fois la même présence."""
     # Premier marquage
     response = await client.post(
@@ -276,9 +268,7 @@ async def test_rate_limiting(client, censeur_token):
 
 
 @pytest.mark.asyncio
-async def test_invalid_status_values(
-    client, censeur_token, sample_attendance_session, servant_user
-):
+async def test_invalid_status_values(client, censeur_token, sample_attendance_session, servant_user):
     """Test validation des valeurs de statut."""
     response = await client.post(
         f"/api/v1/attendance-sessions/{sample_attendance_session.id}/records",
@@ -305,9 +295,7 @@ async def test_invalid_date_format(client, censeur_token):
 
 
 @pytest.mark.asyncio
-async def test_cannot_modify_past_sessions(
-    client, censeur_token, db_session, censeur_user
-):
+async def test_cannot_modify_past_sessions(client, censeur_token, db_session, censeur_user):
     """Test qu'on ne peut pas modifier des sessions trop anciennes."""
     from src.core.entities.attendance_session import AttendanceSession
 

@@ -49,9 +49,7 @@ class TestAuthenticateEmail:
         repo.get_by_email = AsyncMock(return_value=user)
         service = AuthService(repo)
 
-        result = await service.authenticate_user(
-            UserLogin(email="admin@t.com", password=VALID_PASSWORD)
-        )
+        result = await service.authenticate_user(UserLogin(email="admin@t.com", password=VALID_PASSWORD))
         assert result.email == "admin@t.com"
         assert result.role == UserRole.ADMIN
 
@@ -61,9 +59,7 @@ class TestAuthenticateEmail:
         repo.get_by_email = AsyncMock(return_value=user)
         service = AuthService(repo)
 
-        result = await service.authenticate_user(
-            UserLogin(email="aum@t.com", password=VALID_PASSWORD)
-        )
+        result = await service.authenticate_user(UserLogin(email="aum@t.com", password=VALID_PASSWORD))
         assert result.role == UserRole.AUMÔNIER
 
     async def test_servant_email_login_rejected_403(self):
@@ -74,9 +70,7 @@ class TestAuthenticateEmail:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserLogin(email="srv@t.com", password=VALID_PASSWORD)
-            )
+            await service.authenticate_user(UserLogin(email="srv@t.com", password=VALID_PASSWORD))
         assert exc_info.value.status_code == 403
 
     async def test_parent_email_login_rejected_403(self):
@@ -87,9 +81,7 @@ class TestAuthenticateEmail:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserLogin(email="par@t.com", password=VALID_PASSWORD)
-            )
+            await service.authenticate_user(UserLogin(email="par@t.com", password=VALID_PASSWORD))
         assert exc_info.value.status_code == 403
 
     async def test_nonexistent_email_401(self):
@@ -98,9 +90,7 @@ class TestAuthenticateEmail:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserLogin(email="nope@t.com", password="whatever")
-            )
+            await service.authenticate_user(UserLogin(email="nope@t.com", password="whatever"))
         assert exc_info.value.status_code == 401
 
     async def test_wrong_password_401(self):
@@ -110,9 +100,7 @@ class TestAuthenticateEmail:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserLogin(email="admin@t.com", password="WrongPass1")
-            )
+            await service.authenticate_user(UserLogin(email="admin@t.com", password="WrongPass1"))
         assert exc_info.value.status_code == 401
 
     async def test_inactive_user_403(self):
@@ -122,9 +110,7 @@ class TestAuthenticateEmail:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserLogin(email="admin@t.com", password=VALID_PASSWORD)
-            )
+            await service.authenticate_user(UserLogin(email="admin@t.com", password=VALID_PASSWORD))
         assert exc_info.value.status_code == 403
 
 
@@ -141,9 +127,7 @@ class TestAuthenticatePhone:
         repo.get_by_phone = AsyncMock(return_value=user)
         service = AuthService(repo)
 
-        result = await service.authenticate_user(
-            UserPhoneLogin(phone_number="+237600000001", password=VALID_PASSWORD)
-        )
+        result = await service.authenticate_user(UserPhoneLogin(phone_number="+237600000001", password=VALID_PASSWORD))
         assert result.role == UserRole.SERVANT
 
     async def test_parent_phone_login_success(self):
@@ -152,9 +136,7 @@ class TestAuthenticatePhone:
         repo.get_by_phone = AsyncMock(return_value=user)
         service = AuthService(repo)
 
-        result = await service.authenticate_user(
-            UserPhoneLogin(phone_number="+237600000002", password=VALID_PASSWORD)
-        )
+        result = await service.authenticate_user(UserPhoneLogin(phone_number="+237600000002", password=VALID_PASSWORD))
         assert result.role == UserRole.PARENT
 
     async def test_admin_phone_login_rejected_403(self):
@@ -165,9 +147,7 @@ class TestAuthenticatePhone:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserPhoneLogin(phone_number="+237600000003", password=VALID_PASSWORD)
-            )
+            await service.authenticate_user(UserPhoneLogin(phone_number="+237600000003", password=VALID_PASSWORD))
         assert exc_info.value.status_code == 403
 
     async def test_aumonier_phone_login_rejected_403(self):
@@ -177,9 +157,7 @@ class TestAuthenticatePhone:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserPhoneLogin(phone_number="+237600000004", password=VALID_PASSWORD)
-            )
+            await service.authenticate_user(UserPhoneLogin(phone_number="+237600000004", password=VALID_PASSWORD))
         assert exc_info.value.status_code == 403
 
     async def test_nonexistent_phone_401(self):
@@ -188,9 +166,7 @@ class TestAuthenticatePhone:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserPhoneLogin(phone_number="+237699999999", password="x")
-            )
+            await service.authenticate_user(UserPhoneLogin(phone_number="+237699999999", password="x"))
         assert exc_info.value.status_code == 401
 
     async def test_wrong_password_phone_401(self):
@@ -200,9 +176,7 @@ class TestAuthenticatePhone:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserPhoneLogin(phone_number="+237600000001", password="WrongPass1")
-            )
+            await service.authenticate_user(UserPhoneLogin(phone_number="+237600000001", password="WrongPass1"))
         assert exc_info.value.status_code == 401
 
     async def test_inactive_phone_user_403(self):
@@ -212,9 +186,7 @@ class TestAuthenticatePhone:
         service = AuthService(repo)
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.authenticate_user(
-                UserPhoneLogin(phone_number="+237600000001", password=VALID_PASSWORD)
-            )
+            await service.authenticate_user(UserPhoneLogin(phone_number="+237600000001", password=VALID_PASSWORD))
         assert exc_info.value.status_code == 403
 
 

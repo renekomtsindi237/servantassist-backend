@@ -124,9 +124,7 @@ class TestSubGroupCRUD:
         assert resp.status_code == 204
 
     @pytest.mark.asyncio
-    async def test_servant_cannot_create_subgroup(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_servant_cannot_create_subgroup(self, client: AsyncClient, servant_user: User):
         resp = await client.post(
             "/api/v1/subgroups/",
             json={"name": "Groupe Non Autorise"},
@@ -295,9 +293,7 @@ class TestSubGroupSelfService:
         assert body["id"] == str(sample_subgroup.id)
 
     @pytest.mark.asyncio
-    async def test_get_my_subgroup_none(
-        self, client: AsyncClient, servant_user_2: User
-    ):
+    async def test_get_my_subgroup_none(self, client: AsyncClient, servant_user_2: User):
         """Un servant sans sous-groupe recoit null."""
         resp = await client.get(
             "/api/v1/subgroups/my",

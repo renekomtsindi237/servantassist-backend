@@ -27,9 +27,7 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("servant_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("amount", sa.Float, nullable=False),
-        sa.Column(
-            "payment_mode", sa.String(20), nullable=False
-        ),  # HEBDOMADAIRE or MENSUEL
+        sa.Column("payment_mode", sa.String(20), nullable=False),  # HEBDOMADAIRE or MENSUEL
         sa.Column("payment_date", sa.DateTime(timezone=True), nullable=False),
         sa.Column("month", sa.Integer, nullable=False),  # 1-12
         sa.Column("year", sa.Integer, nullable=False),

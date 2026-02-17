@@ -109,9 +109,7 @@ def render_forgot_password(
     Retourne (subject, html_body) pour l'email de reinitialisation.
     """
     subject = "Reinitialisation de votre mot de passe — ServantAssist"
-    preview = (
-        f"{user_first_name}, voici votre lien de reinitialisation de mot de passe."
-    )
+    preview = f"{user_first_name}, voici votre lien de reinitialisation de mot de passe."
 
     content = f"""\
               <!-- Icone + titre -->

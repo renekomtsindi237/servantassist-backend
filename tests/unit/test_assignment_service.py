@@ -54,9 +54,7 @@ async def test_create_assignment_success(
     service, mock_assignment_repo, mock_event_repo, mock_user_repo, sample_assignment
 ):
     mock_event_repo.get.return_value = MagicMock()
-    mock_user_repo.get.return_value = User(
-        id=sample_assignment.user_id, role=UserRole.SERVANT, is_active=True
-    )
+    mock_user_repo.get.return_value = User(id=sample_assignment.user_id, role=UserRole.SERVANT, is_active=True)
     mock_assignment_repo.get_by_event_user_role.return_value = []
     mock_assignment_repo.create.return_value = sample_assignment
 
@@ -76,18 +74,14 @@ async def test_create_assignment_success(
         liturgical_role=sample_assignment.liturgical_role,
     )
 
-    result = await service.create_assignment(
-        data=data, assigned_by=sample_assignment.assigned_by
-    )
+    result = await service.create_assignment(data=data, assigned_by=sample_assignment.assigned_by)
 
     assert result.liturgical_role == LiturgicalRole.ACOLYTE
     mock_assignment_repo.create.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_update_my_status_success(
-    service, mock_assignment_repo, sample_assignment
-):
+async def test_update_my_status_success(service, mock_assignment_repo, sample_assignment):
     mock_assignment_repo.get.return_value = sample_assignment
     mock_assignment_repo.update.return_value = sample_assignment
     mock_assignment_repo.enrich_assignment.return_value = {
@@ -102,9 +96,7 @@ async def test_update_my_status_success(
     data = AssignmentStatusUpdate(status=AssignmentStatus.ACCEPTED)
 
     # Signature: update_my_status(assignment_id, data, user_id)
-    await service.update_my_status(
-        sample_assignment.id, data, sample_assignment.user_id
-    )
+    await service.update_my_status(sample_assignment.id, data, sample_assignment.user_id)
 
     mock_assignment_repo.update.assert_called_once()
 

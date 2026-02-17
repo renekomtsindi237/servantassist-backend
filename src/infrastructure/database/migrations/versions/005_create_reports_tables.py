@@ -26,9 +26,7 @@ def upgrade() -> None:
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column("report_date", sa.DateTime(), nullable=False),
         sa.Column("location", sa.String(200), nullable=False),
-        sa.Column(
-            "participants", postgresql.JSON(), nullable=False, server_default="[]"
-        ),
+        sa.Column("participants", postgresql.JSON(), nullable=False, server_default="[]"),
         sa.Column("decisions", sa.Text(), nullable=True),
         sa.Column("action_items", sa.Text(), nullable=True),
         sa.Column("status", sa.String(50), nullable=False, server_default="BROUILLON"),
@@ -85,12 +83,8 @@ def upgrade() -> None:
     )
 
     # Index pour les pièces jointes
-    op.create_index(
-        "ix_report_attachments_report_id", "report_attachments", ["report_id"]
-    )
-    op.create_index(
-        "ix_report_attachments_uploaded_by", "report_attachments", ["uploaded_by"]
-    )
+    op.create_index("ix_report_attachments_report_id", "report_attachments", ["report_id"])
+    op.create_index("ix_report_attachments_uploaded_by", "report_attachments", ["uploaded_by"])
 
 
 def downgrade() -> None:

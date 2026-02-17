@@ -46,9 +46,7 @@ class TestLoginEmail:
         )
         assert resp.status_code == 401
 
-    async def test_servant_email_login_rejected_403(
-        self, client: AsyncClient, servant_user
-    ):
+    async def test_servant_email_login_rejected_403(self, client: AsyncClient, servant_user):
         """Un SERVANT ne peut pas utiliser /login (email)."""
         resp = await client.post(
             "/api/v1/auth/login",
@@ -56,9 +54,7 @@ class TestLoginEmail:
         )
         assert resp.status_code == 403
 
-    async def test_parent_email_login_rejected_403(
-        self, client: AsyncClient, parent_user
-    ):
+    async def test_parent_email_login_rejected_403(self, client: AsyncClient, parent_user):
         """Un PARENT ne peut pas utiliser /login (email)."""
         resp = await client.post(
             "/api/v1/auth/login",
@@ -116,9 +112,7 @@ class TestLoginPhone:
         )
         assert resp.status_code == 401
 
-    async def test_admin_phone_login_rejected_403(
-        self, client: AsyncClient, admin_user
-    ):
+    async def test_admin_phone_login_rejected_403(self, client: AsyncClient, admin_user):
         """L'admin n'a pas de phone_number, mais même s'il en avait, le rôle est vérifié."""
         # On crée un admin avec téléphone pour tester le rejet par rôle
         # Ici, admin_user n'a pas de phone, donc ce sera 401 (non trouvé)
@@ -166,9 +160,7 @@ class TestRegister:
         assert resp.status_code == 201
         assert resp.json()["role"] == "SERVANT"
 
-    async def test_parent_with_invitation_code(
-        self, client: AsyncClient, valid_invitation
-    ):
+    async def test_parent_with_invitation_code(self, client: AsyncClient, valid_invitation):
         resp = await client.post(
             "/api/v1/auth/register",
             json={
@@ -319,9 +311,7 @@ class TestRefreshToken:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.e2e
 class TestPasswordReset:
-    async def test_forgot_password_existing_email_200(
-        self, client: AsyncClient, admin_user
-    ):
+    async def test_forgot_password_existing_email_200(self, client: AsyncClient, admin_user):
         """Retourne toujours 200 (anti-énumération)."""
         resp = await client.post(
             "/api/v1/auth/forgot-password",

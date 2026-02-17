@@ -35,9 +35,7 @@ class ContributionRepository:
 
     async def get(self, contribution_id: UUID) -> Optional[Contribution]:
         """Récupère une contribution par son ID."""
-        result = await self.session.execute(
-            select(Contribution).where(Contribution.id == contribution_id)
-        )
+        result = await self.session.execute(select(Contribution).where(Contribution.id == contribution_id))
         return result.scalar_one_or_none()
 
     async def list(
@@ -99,13 +97,9 @@ class ContributionRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
-    async def get_monthly_contributions(
-        self, month: int, year: int
-    ) -> List[Contribution]:
+    async def get_monthly_contributions(self, month: int, year: int) -> List[Contribution]:
         """Récupère toutes les contributions d'un mois."""
-        query = select(Contribution).where(
-            and_(Contribution.month == month, Contribution.year == year)
-        )
+        query = select(Contribution).where(and_(Contribution.month == month, Contribution.year == year))
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
@@ -113,9 +107,7 @@ class ContributionRepository:
     #  MODIFICATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def update(
-        self, contribution_id: UUID, contribution: Contribution
-    ) -> Optional[Contribution]:
+    async def update(self, contribution_id: UUID, contribution: Contribution) -> Optional[Contribution]:
         """Met à jour une contribution."""
         existing = await self.get(contribution_id)
         if not existing:
@@ -147,9 +139,7 @@ class ContributionRepository:
     #  STATISTIQUES ET RAPPORTS
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_monthly_summary(
-        self, servant_id: UUID, month: int, year: int
-    ) -> MonthlyContributionSummary:
+    async def get_monthly_summary(self, servant_id: UUID, month: int, year: int) -> MonthlyContributionSummary:
         """Génère le résumé mensuel pour un servant."""
         # Récupérer les contributions du mois
         contributions = await self.session.execute(
@@ -164,21 +154,13 @@ class ContributionRepository:
         contributions_list = list(contributions.scalars().all())
 
         # Récupérer le servant
-        servant_result = await self.session.execute(
-            select(User).where(User.id == servant_id)
-        )
+        servant_result = await self.session.execute(select(User).where(User.id == servant_id))
         servant = servant_result.scalar_one_or_none()
-        servant_name = (
-            f"{servant.first_name} {servant.last_name}" if servant else "Inconnu"
-        )
+        servant_name = f"{servant.first_name} {servant.last_name}" if servant else "Inconnu"
 
         # Calculer les montants
         paid_amount = sum(c.amount for c in contributions_list)
-        payment_mode = (
-            contributions_list[0].payment_mode
-            if contributions_list
-            else PaymentMode.MONTHLY
-        )
+        payment_mode = contributions_list[0].payment_mode if contributions_list else PaymentMode.MONTHLY
 
         # Montant attendu selon le mode
         expected_amount = 500 if payment_mode == PaymentMode.MONTHLY else 400
@@ -205,14 +187,10 @@ class ContributionRepository:
 
     async def get_all_servants(self) -> List[User]:
         """Récupère tous les servants."""
-        result = await self.session.execute(
-            select(User).where(User.role == UserRole.SERVANT).order_by(User.last_name)
-        )
+        result = await self.session.execute(select(User).where(User.role == UserRole.SERVANT).order_by(User.last_name))
         return list(result.scalars().all())
 
-    async def calculate_period_stats(
-        self, start_date: datetime, end_date: datetime
-    ) -> dict:
+    async def calculate_period_stats(self, start_date: datetime, end_date: datetime) -> dict:
         """Calcule les statistiques pour une période."""
         # Récupérer tous les servants
         servants = await self.get_all_servants()
@@ -232,21 +210,14 @@ class ContributionRepository:
         total_collected = sum(c.amount for c in contributions)
 
         # Calculer le montant attendu (approximatif basé sur le nombre de mois)
-        months_diff = (
-            (end_date.year - start_date.year) * 12
-            + end_date.month
-            - start_date.month
-            + 1
-        )
+        months_diff = (end_date.year - start_date.year) * 12 + end_date.month - start_date.month + 1
         total_expected = len(servants) * 500 * months_diff  # Approximation
 
         # Compter les servants à jour et en retard
         servants_paid = len(set(c.servant_id for c in contributions))
         servants_late = len(servants) - servants_paid
 
-        collection_rate = (
-            (total_collected / total_expected * 100) if total_expected > 0 else 0
-        )
+        collection_rate = (total_collected / total_expected * 100) if total_expected > 0 else 0
 
         return {
             "total_expected": total_expected,
@@ -263,22 +234,14 @@ class ContributionRepository:
     async def enrich_contribution(self, contribution: Contribution) -> dict:
         """Enrichit une contribution avec les noms."""
         # Récupérer le servant
-        servant_result = await self.session.execute(
-            select(User).where(User.id == contribution.servant_id)
-        )
+        servant_result = await self.session.execute(select(User).where(User.id == contribution.servant_id))
         servant = servant_result.scalar_one_or_none()
-        servant_name = (
-            f"{servant.first_name} {servant.last_name}" if servant else "Inconnu"
-        )
+        servant_name = f"{servant.first_name} {servant.last_name}" if servant else "Inconnu"
 
         # Récupérer l'enregistreur
-        recorder_result = await self.session.execute(
-            select(User).where(User.id == contribution.recorded_by)
-        )
+        recorder_result = await self.session.execute(select(User).where(User.id == contribution.recorded_by))
         recorder = recorder_result.scalar_one_or_none()
-        recorded_by_name = (
-            f"{recorder.first_name} {recorder.last_name}" if recorder else "Inconnu"
-        )
+        recorded_by_name = f"{recorder.first_name} {recorder.last_name}" if recorder else "Inconnu"
 
         return {
             **contribution.model_dump(),

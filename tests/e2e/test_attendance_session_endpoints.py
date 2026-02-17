@@ -13,9 +13,7 @@ from httpx import AsyncClient
 class TestAttendanceSessionEndpoints:
     """Tests des endpoints de sessions d'appel."""
 
-    async def test_create_session_as_censeur(
-        self, client: AsyncClient, censeur_token: str
-    ):
+    async def test_create_session_as_censeur(self, client: AsyncClient, censeur_token: str):
         """Test : Le CENSEUR peut créer une session."""
         response = await client.post(
             "/api/v1/attendance-sessions/",
@@ -32,9 +30,7 @@ class TestAttendanceSessionEndpoints:
         assert data["session_time"] == "07h30"
         assert data["location"] == "Sacristie"
 
-    async def test_create_session_as_servant_forbidden(
-        self, client: AsyncClient, servant_token: str
-    ):
+    async def test_create_session_as_servant_forbidden(self, client: AsyncClient, servant_token: str):
         """Test : Un SERVANT ne peut pas créer de session."""
         response = await client.post(
             "/api/v1/attendance-sessions/",
@@ -58,9 +54,7 @@ class TestAttendanceSessionEndpoints:
         assert "items" in data
         assert "total" in data
 
-    async def test_get_session(
-        self, client: AsyncClient, censeur_token: str, attendance_session_id: str
-    ):
+    async def test_get_session(self, client: AsyncClient, censeur_token: str, attendance_session_id: str):
         """Test : Récupérer une session."""
         response = await client.get(
             f"/api/v1/attendance-sessions/{attendance_session_id}",
@@ -157,9 +151,7 @@ class TestAttendanceSessionEndpoints:
         data = response.json()
         assert data["status"] == "EXCUSED"
 
-    async def test_update_attendance_record(
-        self, client: AsyncClient, censeur_token: str, attendance_record_id: str
-    ):
+    async def test_update_attendance_record(self, client: AsyncClient, censeur_token: str, attendance_record_id: str):
         """Test : Modifier un enregistrement."""
         response = await client.patch(
             f"/api/v1/attendance-sessions/records/{attendance_record_id}",
@@ -174,9 +166,7 @@ class TestAttendanceSessionEndpoints:
         data = response.json()
         assert data["status"] == "LATE"
 
-    async def test_get_servant_stats(
-        self, client: AsyncClient, censeur_token: str, servant_user_id: str
-    ):
+    async def test_get_servant_stats(self, client: AsyncClient, censeur_token: str, servant_user_id: str):
         """Test : Récupérer les statistiques d'un servant."""
         response = await client.get(
             f"/api/v1/attendance-sessions/servants/{servant_user_id}/stats",
@@ -223,9 +213,7 @@ class TestAttendanceSessionEndpoints:
 class TestAttendanceSessionPermissions:
     """Tests des permissions pour les appels."""
 
-    async def test_servant_cannot_create_session(
-        self, client: AsyncClient, servant_token: str
-    ):
+    async def test_servant_cannot_create_session(self, client: AsyncClient, servant_token: str):
         """Test : Un SERVANT ne peut pas créer de session."""
         response = await client.post(
             "/api/v1/attendance-sessions/",
@@ -238,9 +226,7 @@ class TestAttendanceSessionPermissions:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    async def test_servant_can_view_sessions(
-        self, client: AsyncClient, servant_token: str
-    ):
+    async def test_servant_can_view_sessions(self, client: AsyncClient, servant_token: str):
         """Test : Un SERVANT peut consulter les sessions."""
         response = await client.get(
             "/api/v1/attendance-sessions/",
@@ -248,9 +234,7 @@ class TestAttendanceSessionPermissions:
         )
         assert response.status_code == status.HTTP_200_OK
 
-    async def test_servant_can_view_own_stats(
-        self, client: AsyncClient, servant_token: str, servant_user_id: str
-    ):
+    async def test_servant_can_view_own_stats(self, client: AsyncClient, servant_token: str, servant_user_id: str):
         """Test : Un SERVANT peut consulter ses propres stats."""
         response = await client.get(
             f"/api/v1/attendance-sessions/servants/{servant_user_id}/stats",
@@ -268,9 +252,7 @@ class TestAttendanceSessionPermissions:
 class TestAttendanceSessionBusinessRules:
     """Tests des règles métier des appels."""
 
-    async def test_servant_must_exist(
-        self, client: AsyncClient, censeur_token: str, attendance_session_id: str
-    ):
+    async def test_servant_must_exist(self, client: AsyncClient, censeur_token: str, attendance_session_id: str):
         """Test : Le servant doit exister."""
         fake_servant_id = str(uuid4())
         response = await client.post(
@@ -283,9 +265,7 @@ class TestAttendanceSessionBusinessRules:
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    async def test_session_must_exist(
-        self, client: AsyncClient, censeur_token: str, servant_user_id: str
-    ):
+    async def test_session_must_exist(self, client: AsyncClient, censeur_token: str, servant_user_id: str):
         """Test : La session doit exister."""
         fake_session_id = str(uuid4())
         response = await client.post(

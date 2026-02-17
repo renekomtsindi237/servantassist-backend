@@ -47,9 +47,7 @@ class AttendanceSessionService:
     #  SESSIONS
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_session(
-        self, data: AttendanceSessionCreate, conducted_by: UUID
-    ) -> AttendanceSessionResponse:
+    async def create_session(self, data: AttendanceSessionCreate, conducted_by: UUID) -> AttendanceSessionResponse:
         """Crée une nouvelle session d'appel."""
         session = AttendanceSession(
             session_date=data.session_date,
@@ -137,9 +135,7 @@ class AttendanceSessionService:
             )
 
         # Vérifier qu'il n'existe pas déjà un enregistrement pour ce servant dans cette session
-        existing = await self.attendance_repo.get_record_by_session_and_servant(
-            session_id, data.servant_id
-        )
+        existing = await self.attendance_repo.get_record_by_session_and_servant(session_id, data.servant_id)
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -159,9 +155,7 @@ class AttendanceSessionService:
         enriched = await self.attendance_repo.enrich_record(created)
         return AttendanceRecordResponse(**enriched)
 
-    async def update_attendance(
-        self, record_id: UUID, data: AttendanceRecordUpdate
-    ) -> AttendanceRecordResponse:
+    async def update_attendance(self, record_id: UUID, data: AttendanceRecordUpdate) -> AttendanceRecordResponse:
         """Met à jour un enregistrement de présence."""
         record = await self.attendance_repo.get_record(record_id)
         if not record:
@@ -200,14 +194,10 @@ class AttendanceSessionService:
                 detail="Servant introuvable.",
             )
 
-        stats = await self.attendance_repo.calculate_servant_stats(
-            servant_id, start_date, end_date
-        )
+        stats = await self.attendance_repo.calculate_servant_stats(servant_id, start_date, end_date)
         return ServantAttendanceStatsResponse(**stats.model_dump())
 
-    async def generate_report(
-        self, request: AttendanceReportRequest, generated_by: UUID
-    ) -> AttendanceReportResponse:
+    async def generate_report(self, request: AttendanceReportRequest, generated_by: UUID) -> AttendanceReportResponse:
         """Génère un rapport de présence."""
         # Récupérer toutes les sessions de la période
         sessions, _ = await self.attendance_repo.list_sessions(
@@ -229,21 +219,15 @@ class AttendanceSessionService:
         total_attendance_rate = 0
 
         for servant in servants:
-            stats = await self.attendance_repo.calculate_servant_stats(
-                servant.id, request.start_date, request.end_date
-            )
+            stats = await self.attendance_repo.calculate_servant_stats(servant.id, request.start_date, request.end_date)
             servants_stats.append(ServantAttendanceStatsResponse(**stats.model_dump()))
             total_attendance_rate += stats.attendance_rate
 
-        average_attendance_rate = (
-            total_attendance_rate / len(servants) if servants else 0
-        )
+        average_attendance_rate = total_attendance_rate / len(servants) if servants else 0
 
         # Récupérer le générateur
         generator = await self.user_repo.get(generated_by)
-        generated_by_name = (
-            f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
-        )
+        generated_by_name = f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
 
         return AttendanceReportResponse(
             start_date=request.start_date,

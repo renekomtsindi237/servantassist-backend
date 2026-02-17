@@ -44,9 +44,7 @@ class SubGroupService:
     #  SOUS-GROUPES (CRUD)
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_group(
-        self, data: SubGroupCreate, created_by: UUID
-    ) -> SubGroupResponse:
+    async def create_group(self, data: SubGroupCreate, created_by: UUID) -> SubGroupResponse:
         existing = await self.group_repo.get_by_name(data.name)
         if existing:
             raise HTTPException(
@@ -64,9 +62,7 @@ class SubGroupService:
         created = await self.group_repo.create(group)
         return await self._build_group_response(created)
 
-    async def update_group(
-        self, group_id: UUID, data: SubGroupUpdate
-    ) -> SubGroupResponse:
+    async def update_group(self, group_id: UUID, data: SubGroupUpdate) -> SubGroupResponse:
         group = await self.group_repo.get(group_id)
         if not group:
             raise HTTPException(
@@ -140,9 +136,7 @@ class SubGroupService:
     #  MEMBRES
     # ══════════════════════════════════════════════════════════════════
 
-    async def add_member(
-        self, group_id: UUID, data: SubGroupMemberAdd, added_by: UUID
-    ) -> SubGroupMemberResponse:
+    async def add_member(self, group_id: UUID, data: SubGroupMemberAdd, added_by: UUID) -> SubGroupMemberResponse:
         group = await self.group_repo.get(group_id)
         if not group:
             raise HTTPException(
@@ -181,8 +175,7 @@ class SubGroupService:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=(
-                    "Ce servant est deja dans un autre sous-groupe. "
-                    "Retirez-le d'abord de son sous-groupe actuel."
+                    "Ce servant est deja dans un autre sous-groupe. " "Retirez-le d'abord de son sous-groupe actuel."
                 ),
             )
 
@@ -204,9 +197,7 @@ class SubGroupService:
         enriched = await self.group_repo.enrich_member(created)
         return SubGroupMemberResponse(**enriched)
 
-    async def remove_member(
-        self, group_id: UUID, user_id: UUID
-    ) -> SubGroupMemberResponse:
+    async def remove_member(self, group_id: UUID, user_id: UUID) -> SubGroupMemberResponse:
         membership = await self.group_repo.get_membership(group_id, user_id)
         if not membership:
             raise HTTPException(
@@ -239,16 +230,8 @@ class SubGroupService:
 
         # Calcul de l'âge
         today = datetime.now(timezone.utc)
-        birth = (
-            user.birth_date.replace(tzinfo=timezone.utc)
-            if user.birth_date.tzinfo is None
-            else user.birth_date
-        )
-        age = (
-            today.year
-            - birth.year
-            - ((today.month, today.day) < (birth.month, birth.day))
-        )
+        birth = user.birth_date.replace(tzinfo=timezone.utc) if user.birth_date.tzinfo is None else user.birth_date
+        age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
 
         # Déterminer le groupe cible
         target_name = "ASPIRANTS"

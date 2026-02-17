@@ -45,9 +45,7 @@ class ContributionService:
     #  CRÉATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def record_payment(
-        self, data: ContributionCreate, recorded_by: UUID
-    ) -> ContributionResponse:
+    async def record_payment(self, data: ContributionCreate, recorded_by: UUID) -> ContributionResponse:
         """Enregistre un paiement de contribution."""
         # Valider que le servant existe
         servant = await self.user_repo.get(data.servant_id)
@@ -181,9 +179,7 @@ class ContributionService:
                 detail="Servant introuvable.",
             )
 
-        contributions = await self.contribution_repo.get_servant_contributions(
-            servant_id, start_date, end_date
-        )
+        contributions = await self.contribution_repo.get_servant_contributions(servant_id, start_date, end_date)
 
         # Enrichir
         enriched_list = []
@@ -193,18 +189,14 @@ class ContributionService:
 
         return enriched_list
 
-    async def get_monthly_summary(
-        self, month: int, year: int
-    ) -> List[MonthlyContributionSummaryResponse]:
+    async def get_monthly_summary(self, month: int, year: int) -> List[MonthlyContributionSummaryResponse]:
         """Génère le résumé mensuel pour tous les servants."""
         # Récupérer tous les servants
         servants = await self.contribution_repo.get_all_servants()
 
         summaries = []
         for servant in servants:
-            summary = await self.contribution_repo.get_monthly_summary(
-                servant.id, month, year
-            )
+            summary = await self.contribution_repo.get_monthly_summary(servant.id, month, year)
 
             # Enrichir les contributions
             enriched_payments = []
@@ -222,9 +214,7 @@ class ContributionService:
     #  MODIFICATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def update_payment(
-        self, contribution_id: UUID, data: ContributionUpdate
-    ) -> ContributionResponse:
+    async def update_payment(self, contribution_id: UUID, data: ContributionUpdate) -> ContributionResponse:
         """Met à jour une contribution."""
         contribution = await self.contribution_repo.get(contribution_id)
         if not contribution:
@@ -274,9 +264,7 @@ class ContributionService:
     ) -> FinancialReportResponse:
         """Génère un rapport financier complet."""
         # Calculer les statistiques de la période
-        stats = await self.contribution_repo.calculate_period_stats(
-            request.start_date, request.end_date
-        )
+        stats = await self.contribution_repo.calculate_period_stats(request.start_date, request.end_date)
 
         # Récupérer les résumés mensuels
         # Pour simplifier, on prend le mois de début et de fin
@@ -291,18 +279,12 @@ class ContributionService:
         current_month = start_month
         current_year = start_year
 
-        while (current_year < end_year) or (
-            current_year == end_year and current_month <= end_month
-        ):
-            monthly_summaries = await self.get_monthly_summary(
-                current_month, current_year
-            )
+        while (current_year < end_year) or (current_year == end_year and current_month <= end_month):
+            monthly_summaries = await self.get_monthly_summary(current_month, current_year)
 
             # Filtrer par servants si spécifié
             if request.servant_ids:
-                monthly_summaries = [
-                    s for s in monthly_summaries if s.servant_id in request.servant_ids
-                ]
+                monthly_summaries = [s for s in monthly_summaries if s.servant_id in request.servant_ids]
 
             all_summaries.extend(monthly_summaries)
 
@@ -314,9 +296,7 @@ class ContributionService:
 
         # Récupérer le générateur
         generator = await self.user_repo.get(generated_by)
-        generated_by_name = (
-            f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
-        )
+        generated_by_name = f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
 
         return FinancialReportResponse(
             start_date=request.start_date,
@@ -345,20 +325,13 @@ class ContributionService:
             )
 
         # Récupérer les contributions
-        contributions = await self.contribution_repo.get_servant_contributions(
-            servant_id, start_date, end_date
-        )
+        contributions = await self.contribution_repo.get_servant_contributions(servant_id, start_date, end_date)
 
         # Calculer les statistiques
         total_paid = sum(c.amount for c in contributions)
 
         # Calculer le montant attendu
-        months_diff = (
-            (end_date.year - start_date.year) * 12
-            + end_date.month
-            - start_date.month
-            + 1
-        )
+        months_diff = (end_date.year - start_date.year) * 12 + end_date.month - start_date.month + 1
         total_expected = 500 * months_diff  # Approximation
 
         payment_rate = (total_paid / total_expected * 100) if total_expected > 0 else 0
@@ -367,9 +340,7 @@ class ContributionService:
         months_paid = len(set((c.month, c.year) for c in contributions))
         months_late = months_diff - months_paid
 
-        last_payment_date = (
-            max(c.payment_date for c in contributions) if contributions else None
-        )
+        last_payment_date = max(c.payment_date for c in contributions) if contributions else None
 
         return ServantContributionStats(
             servant_id=servant_id,
@@ -407,9 +378,7 @@ class ContributionService:
             summary = await self.contribution_repo.get_monthly_summary(servant_id, m, y)
             if summary.status == PaymentStatus.LATE:
                 consecutive_missing += 1
-                max_consecutive_missing = max(
-                    max_consecutive_missing, consecutive_missing
-                )
+                max_consecutive_missing = max(max_consecutive_missing, consecutive_missing)
             else:
                 consecutive_missing = 0  # On reset car on veut du consécutif
 

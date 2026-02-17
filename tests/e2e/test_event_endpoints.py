@@ -26,9 +26,7 @@ from tests.conftest import VALID_PASSWORD, make_auth_header
 class TestCreateEvent:
     """Creation d'evenements par l'aumonier et l'admin."""
 
-    async def test_aumonier_creates_event(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_aumonier_creates_event(self, client: AsyncClient, aumonier_user: User):
         """L'aumonier peut creer un evenement."""
         resp = await client.post(
             "/api/v1/events/",
@@ -67,9 +65,7 @@ class TestCreateEvent:
         assert resp.json()["event_type"] == "CAMP_SPIRITUEL"
         assert resp.json()["status"] == "PUBLIE"
 
-    async def test_create_event_with_participants(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_create_event_with_participants(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         """Creer un evenement avec participants en une seule requete."""
         resp = await client.post(
             "/api/v1/events/",
@@ -91,9 +87,7 @@ class TestCreateEvent:
         assert body["participants"][0]["participant_role"] == "THURIFER"
         assert body["participants"][0]["user_first_name"] == "Servant"
 
-    async def test_servant_cannot_create_event(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_servant_cannot_create_event(self, client: AsyncClient, servant_user: User):
         """Un servant ne peut pas creer d'evenement."""
         resp = await client.post(
             "/api/v1/events/",
@@ -107,9 +101,7 @@ class TestCreateEvent:
         )
         assert resp.status_code == 403
 
-    async def test_parent_cannot_create_event(
-        self, client: AsyncClient, parent_user: User
-    ):
+    async def test_parent_cannot_create_event(self, client: AsyncClient, parent_user: User):
         """Un parent ne peut pas creer d'evenement."""
         resp = await client.post(
             "/api/v1/events/",
@@ -123,9 +115,7 @@ class TestCreateEvent:
         )
         assert resp.status_code == 403
 
-    async def test_end_before_start_rejected(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_end_before_start_rejected(self, client: AsyncClient, aumonier_user: User):
         """Date de fin avant date de debut -> 422."""
         resp = await client.post(
             "/api/v1/events/",
@@ -139,9 +129,7 @@ class TestCreateEvent:
         )
         assert resp.status_code == 422
 
-    async def test_all_event_types_accepted(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_all_event_types_accepted(self, client: AsyncClient, aumonier_user: User):
         """Tous les types d'evenements sont acceptes."""
         types = [
             "MESSE_DOMINICALE",
@@ -181,9 +169,7 @@ class TestCreateEvent:
 class TestReadEvents:
     """Lecture et filtrage des evenements."""
 
-    async def test_list_events_authenticated(
-        self, client: AsyncClient, servant_user: User, sample_event: Event
-    ):
+    async def test_list_events_authenticated(self, client: AsyncClient, servant_user: User, sample_event: Event):
         """Tout utilisateur authentifie peut lister les evenements."""
         resp = await client.get(
             "/api/v1/events/",
@@ -194,9 +180,7 @@ class TestReadEvents:
         assert body["total"] >= 1
         assert len(body["items"]) >= 1
 
-    async def test_get_event_detail(
-        self, client: AsyncClient, servant_user: User, sample_event: Event
-    ):
+    async def test_get_event_detail(self, client: AsyncClient, servant_user: User, sample_event: Event):
         """Detail d'un evenement avec participants."""
         resp = await client.get(
             f"/api/v1/events/{sample_event.id}",
@@ -228,9 +212,7 @@ class TestReadEvents:
 class TestUpdateEvent:
     """Modification d'evenements."""
 
-    async def test_aumonier_updates_event(
-        self, client: AsyncClient, aumonier_user: User, sample_event: Event
-    ):
+    async def test_aumonier_updates_event(self, client: AsyncClient, aumonier_user: User, sample_event: Event):
         """L'aumonier peut modifier un evenement."""
         resp = await client.patch(
             f"/api/v1/events/{sample_event.id}",
@@ -243,9 +225,7 @@ class TestUpdateEvent:
         assert body["status"] == "EN_COURS"
         assert body["updated_by"] == str(aumonier_user.id)
 
-    async def test_servant_cannot_update_event(
-        self, client: AsyncClient, servant_user: User, sample_event: Event
-    ):
+    async def test_servant_cannot_update_event(self, client: AsyncClient, servant_user: User, sample_event: Event):
         """Un servant ne peut pas modifier un evenement."""
         resp = await client.patch(
             f"/api/v1/events/{sample_event.id}",
@@ -262,9 +242,7 @@ class TestUpdateEvent:
 class TestDeleteEvent:
     """Suppression d'evenements."""
 
-    async def test_aumonier_deletes_event(
-        self, client: AsyncClient, aumonier_user: User, sample_event: Event
-    ):
+    async def test_aumonier_deletes_event(self, client: AsyncClient, aumonier_user: User, sample_event: Event):
         """L'aumonier peut supprimer un evenement."""
         resp = await client.delete(
             f"/api/v1/events/{sample_event.id}",
@@ -279,9 +257,7 @@ class TestDeleteEvent:
         )
         assert resp2.status_code == 404
 
-    async def test_servant_cannot_delete_event(
-        self, client: AsyncClient, servant_user: User, sample_event: Event
-    ):
+    async def test_servant_cannot_delete_event(self, client: AsyncClient, servant_user: User, sample_event: Event):
         """Un servant ne peut pas supprimer un evenement."""
         resp = await client.delete(
             f"/api/v1/events/{sample_event.id}",
@@ -411,9 +387,7 @@ class TestParticipants:
         )
         assert resp.status_code == 204
 
-    async def test_servant_cannot_add_participant(
-        self, client: AsyncClient, servant_user: User, sample_event: Event
-    ):
+    async def test_servant_cannot_add_participant(self, client: AsyncClient, servant_user: User, sample_event: Event):
         """Un servant ne peut pas ajouter de participant."""
         resp = await client.post(
             f"/api/v1/events/{sample_event.id}/participants",
@@ -474,9 +448,7 @@ class TestMyParticipation:
         assert resp.status_code == 200
         assert resp.json()["status"] == "DECLINE"
 
-    async def test_non_participant_cannot_update(
-        self, client: AsyncClient, servant_user: User, sample_event: Event
-    ):
+    async def test_non_participant_cannot_update(self, client: AsyncClient, servant_user: User, sample_event: Event):
         """Un non-participant ne peut pas confirmer/decliner."""
         resp = await client.patch(
             f"/api/v1/events/{sample_event.id}/my-participation?new_status=CONFIRME",

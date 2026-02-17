@@ -94,9 +94,7 @@ async def change_my_password(
 
 @router.post("/me/photo", response_model=UserProfileResponse)
 async def upload_my_photo(
-    file: Annotated[
-        UploadFile, File(description="Photo de profil (JPEG, PNG ou WebP, max 5 Mo)")
-    ],
+    file: Annotated[UploadFile, File(description="Photo de profil (JPEG, PNG ou WebP, max 5 Mo)")],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
@@ -173,9 +171,7 @@ async def list_users(
     current_user: Annotated[User, Depends(get_current_admin_user)],
     role: Optional[UserRole] = Query(None, description="Filtrer par role"),
     is_active: Optional[bool] = Query(None, description="Filtrer par statut actif"),
-    search: Optional[str] = Query(
-        None, max_length=100, description="Recherche par nom ou email"
-    ),
+    search: Optional[str] = Query(None, max_length=100, description="Recherche par nom ou email"),
     page: int = Query(1, ge=1, description="Numero de page"),
     page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
 ):

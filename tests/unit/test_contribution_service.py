@@ -386,9 +386,7 @@ class TestGenerateFinancialReport:
         )
 
         # Act
-        result = await contribution_service.generate_financial_report(
-            request, sample_econome.id
-        )
+        result = await contribution_service.generate_financial_report(request, sample_econome.id)
 
         # Assert
         assert result.total_expected == 10000.0
@@ -414,9 +412,7 @@ class TestGetServantStats:
         """Test : Calculer les statistiques d'un servant."""
         # Arrange
         mock_user_repo.get.return_value = sample_servant
-        mock_contribution_repo.get_servant_contributions.return_value = [
-            sample_contribution
-        ]
+        mock_contribution_repo.get_servant_contributions.return_value = [sample_contribution]
 
         # Act
         result = await contribution_service.get_servant_stats(

@@ -53,9 +53,7 @@ router = APIRouter()
 # ══════════════════════════════════════════════════════════════════
 
 
-def get_sport_culture_service(
-    db: Annotated[AsyncSession, Depends(get_db_session)]
-) -> SportCultureService:
+def get_sport_culture_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> SportCultureService:
     """Dépendance pour obtenir le service sport/culture."""
     event_repo = SportCultureEventRepository(db)
     participation_repo = EventParticipationRepository(db)
@@ -101,9 +99,7 @@ async def create_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(
-        event.id
-    )
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -142,9 +138,7 @@ async def list_events(
     enriched_events = []
     for event in events:
         participants_count = await service.participation_repo.count_by_event(event.id)
-        confirmed_count = await service.participation_repo.count_confirmed_by_event(
-            event.id
-        )
+        confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
         event_dict = event.model_dump()
         event_dict["participants_count"] = participants_count
@@ -181,9 +175,7 @@ async def get_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(
-        event.id
-    )
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -229,9 +221,7 @@ async def update_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(
-        event.id
-    )
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -278,9 +268,7 @@ async def get_upcoming_events(
     enriched_events = []
     for event in events:
         participants_count = await service.participation_repo.count_by_event(event.id)
-        confirmed_count = await service.participation_repo.count_confirmed_by_event(
-            event.id
-        )
+        confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
         event_dict = event.model_dump()
         event_dict["participants_count"] = participants_count

@@ -171,11 +171,7 @@ class InMemoryBruteForceProtection:
 
     def cleanup(self, max_age: int = 3600) -> None:
         now = time.monotonic()
-        to_delete = [
-            k
-            for k, v in self._attempts.items()
-            if now - v.last_attempt > max_age and v.locked_until < now
-        ]
+        to_delete = [k for k, v in self._attempts.items() if now - v.last_attempt > max_age and v.locked_until < now]
         for k in to_delete:
             del self._attempts[k]
 
@@ -204,9 +200,7 @@ class BruteForceProtection:
             self._use_redis = True
             logger.info("Brute-force protection: backend Redis active")
         else:
-            logger.warning(
-                "Brute-force protection: Redis non disponible, fallback in-memory"
-            )
+            logger.warning("Brute-force protection: Redis non disponible, fallback in-memory")
 
     async def check_locked(self, identifier: str) -> Tuple[bool, Optional[int]]:
         if self._use_redis and self._redis_backend:

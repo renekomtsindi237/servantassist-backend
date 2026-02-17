@@ -42,12 +42,8 @@ def upgrade() -> None:
         sa.Column("phone_number", sa.String(length=20), nullable=True),
         sa.Column("profile_photo_url", sa.String(length=500), nullable=True),
         sa.Column("hashed_password", sa.String(length=255), nullable=False),
-        sa.Column(
-            "created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()
-        ),
-        sa.Column(
-            "updated_at", sa.DateTime(), nullable=False, server_default=sa.func.now()
-        ),
+        sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
+        sa.Column("updated_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
         sa.Column("created_by", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("invited_by", postgresql.UUID(as_uuid=True), nullable=True),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
@@ -57,9 +53,7 @@ def upgrade() -> None:
 
     # Créer les index
     op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
-    op.create_index(
-        op.f("ix_users_phone_number"), "users", ["phone_number"], unique=False
-    )
+    op.create_index(op.f("ix_users_phone_number"), "users", ["phone_number"], unique=False)
     op.create_index(op.f("ix_users_is_active"), "users", ["is_active"], unique=False)
 
 

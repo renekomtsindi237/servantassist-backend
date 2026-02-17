@@ -43,9 +43,7 @@ def mock_team_repo():
 
 @pytest.fixture
 def service(mock_event_repo, mock_participation_repo, mock_result_repo, mock_team_repo):
-    return SportCultureService(
-        mock_event_repo, mock_participation_repo, mock_result_repo, mock_team_repo
-    )
+    return SportCultureService(mock_event_repo, mock_participation_repo, mock_result_repo, mock_team_repo)
 
 
 @pytest.fixture
@@ -90,9 +88,7 @@ async def test_create_event(service, mock_event_repo, sample_event):
 
 
 @pytest.mark.asyncio
-async def test_register_participant_success(
-    service, mock_event_repo, mock_participation_repo, sample_event
-):
+async def test_register_participant_success(service, mock_event_repo, mock_participation_repo, sample_event):
     servant_id = uuid4()
     mock_event_repo.get_by_id.return_value = sample_event
     mock_participation_repo.get_by_event_and_servant.return_value = None

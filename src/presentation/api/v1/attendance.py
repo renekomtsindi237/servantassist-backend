@@ -137,9 +137,7 @@ async def get_my_stats(
     **Accessible a :** Tout utilisateur authentifie.
     """
     service = _get_service(session)
-    return await service.get_user_stats(
-        current_user.id, start_date=start_date, end_date=end_date
-    )
+    return await service.get_user_stats(current_user.id, start_date=start_date, end_date=end_date)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -195,9 +193,7 @@ async def get_user_stats(
     **Accessible a :** Aumonier, Admin.
     """
     service = _get_service(session)
-    return await service.get_user_stats(
-        user_id, start_date=start_date, end_date=end_date
-    )
+    return await service.get_user_stats(user_id, start_date=start_date, end_date=end_date)
 
 
 @router.get("/{attendance_id}", response_model=AttendanceResponse)

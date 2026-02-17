@@ -122,10 +122,7 @@ class StorageService:
             )
 
         await asyncio.to_thread(_sync_upload)
-        public_url = (
-            f"{self._settings.CLOUDFLARE_R2_PUBLIC_URL.rstrip('/')}"
-            f"/{bucket}/{object_key}"
-        )
+        public_url = f"{self._settings.CLOUDFLARE_R2_PUBLIC_URL.rstrip('/')}" f"/{bucket}/{object_key}"
         logger.info(
             "Fichier uploade vers R2 | bucket={bucket} | key={key} | url={url}",
             bucket=bucket,
@@ -196,17 +193,13 @@ class StorageService:
         # Validation taille
         if len(file_data) > MAX_PROFILE_PHOTO_SIZE:
             raise ValueError(
-                f"La photo depasse la taille maximale autorisee "
-                f"({MAX_PROFILE_PHOTO_SIZE // (1024 * 1024)} Mo)"
+                f"La photo depasse la taille maximale autorisee " f"({MAX_PROFILE_PHOTO_SIZE // (1024 * 1024)} Mo)"
             )
 
         # Validation type
         if content_type not in ALLOWED_CONTENT_TYPES:
             allowed = ", ".join(ALLOWED_CONTENT_TYPES.keys())
-            raise ValueError(
-                f"Type de fichier non autorise : {content_type}. "
-                f"Types acceptes : {allowed}"
-            )
+            raise ValueError(f"Type de fichier non autorise : {content_type}. " f"Types acceptes : {allowed}")
 
         # Generer un nom unique
         ext = ALLOWED_CONTENT_TYPES[content_type]
@@ -225,9 +218,7 @@ class StorageService:
 
         # Upload reel R2 (dans le bucket profile) ou local
         if self._is_r2_configured:
-            return await self._upload_to_r2(
-                file_data, object_key, content_type, bucket=self._profile_bucket
-            )
+            return await self._upload_to_r2(file_data, object_key, content_type, bucket=self._profile_bucket)
         else:
             return await self._upload_local(file_data, object_key)
 

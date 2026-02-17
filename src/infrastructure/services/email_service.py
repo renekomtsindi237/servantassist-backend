@@ -124,9 +124,7 @@ class EmailService:
             print(f"  EMAIL (non envoye — mode {self._settings.APP_ENV})")
             print(f"  To      : {to_email}")
             print(f"  Subject : {subject}")
-            print(
-                f"  SMTP    : {'configure' if self._is_smtp_configured else 'NON configure'}"
-            )
+            print(f"  SMTP    : {'configure' if self._is_smtp_configured else 'NON configure'}")
             print(f"{'='*70}\n")
 
     # ── Methode d'envoi principale ───────────────────────────────────────
@@ -154,8 +152,7 @@ class EmailService:
         # SMTP non configure : fallback log
         if not self._is_smtp_configured:
             logger.warning(
-                "SMTP non configure — email non envoye | to={to} | "
-                "Configurez SMTP_USER et SMTP_PASSWORD dans .env",
+                "SMTP non configure — email non envoye | to={to} | " "Configurez SMTP_USER et SMTP_PASSWORD dans .env",
                 to=to_email,
             )
             self._log_email(to_email, subject, html_body)

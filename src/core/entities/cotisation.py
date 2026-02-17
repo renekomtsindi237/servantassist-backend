@@ -75,9 +75,7 @@ class CotisationPeriod(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str = Field(max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
-    cotisation_type: CotisationType = Field(
-        default=CotisationType.ORDINAIRE, index=True
-    )
+    cotisation_type: CotisationType = Field(default=CotisationType.ORDINAIRE, index=True)
     period_type: PeriodType = Field(default=PeriodType.MENSUEL)
     amount_expected: float = Field(ge=0)
     # Periode

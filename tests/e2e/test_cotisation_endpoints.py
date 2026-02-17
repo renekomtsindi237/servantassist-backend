@@ -28,9 +28,7 @@ class TestCotisationPeriods:
     """Tests CRUD des periodes de cotisation."""
 
     @pytest.mark.asyncio
-    async def test_create_period_success(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_create_period_success(self, client: AsyncClient, aumonier_user: User):
         resp = await client.post(
             "/api/v1/cotisations/periods",
             json={
@@ -51,9 +49,7 @@ class TestCotisationPeriods:
         assert body["is_active"] is True
 
     @pytest.mark.asyncio
-    async def test_create_period_invalid_dates(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_create_period_invalid_dates(self, client: AsyncClient, aumonier_user: User):
         resp = await client.post(
             "/api/v1/cotisations/periods",
             json={
@@ -127,9 +123,7 @@ class TestCotisationPeriods:
         assert resp.status_code == 204
 
     @pytest.mark.asyncio
-    async def test_servant_cannot_create_period(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_servant_cannot_create_period(self, client: AsyncClient, servant_user: User):
         resp = await client.post(
             "/api/v1/cotisations/periods",
             json={

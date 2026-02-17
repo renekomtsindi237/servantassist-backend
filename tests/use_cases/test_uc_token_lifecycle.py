@@ -28,9 +28,7 @@ settings = get_settings()
 class TestTokenRefreshFlow:
     """Parcours : login → refresh → accès avec nouveau token."""
 
-    async def test_full_token_refresh_cycle(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_full_token_refresh_cycle(self, client: AsyncClient, admin_user: User):
         # ── Étape 1 : Login admin ────────────────────────────────────
         login_resp = await client.post(
             "/api/v1/auth/login",
@@ -82,9 +80,7 @@ class TestTokenRefreshFlow:
         )
         assert resp.status_code == 401
 
-    async def test_access_token_used_as_refresh_rejected(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_access_token_used_as_refresh_rejected(self, client: AsyncClient, admin_user: User):
         """Utiliser un access token au lieu d'un refresh → 401."""
         access_token = make_access_token(admin_user)
         resp = await client.post(
@@ -93,9 +89,7 @@ class TestTokenRefreshFlow:
         )
         assert resp.status_code == 401
 
-    async def test_expired_refresh_token_rejected(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_expired_refresh_token_rejected(self, client: AsyncClient, admin_user: User):
         """Un refresh token expiré → 401."""
         expired_refresh = SecurityUtils.create_refresh_token(
             subject=admin_user.email,
@@ -113,9 +107,7 @@ class TestTokenRefreshFlow:
 class TestExpiredAccessToken:
     """Access token expiré → accès refusé aux endpoints protégés."""
 
-    async def test_expired_token_denied_on_admin_endpoint(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_expired_token_denied_on_admin_endpoint(self, client: AsyncClient, admin_user: User):
         expired_token = make_access_token(admin_user, expires=timedelta(seconds=-1))
         headers = {"Authorization": f"Bearer {expired_token}"}
 

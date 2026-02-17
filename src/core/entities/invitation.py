@@ -30,33 +30,23 @@ class InvitationCode(SQLModel, table=True):
     __tablename__ = "invitation_codes"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    code: str = Field(
-        unique=True, index=True
-    )  # Unique invitation code (e.g., "INV-ABC123XYZ")
-    role: str = Field(
-        default="PARENT"
-    )  # Role that this invitation allows (PARENT, AUMÔNIER)
+    code: str = Field(unique=True, index=True)  # Unique invitation code (e.g., "INV-ABC123XYZ")
+    role: str = Field(default="PARENT")  # Role that this invitation allows (PARENT, AUMÔNIER)
 
     # Who can use this code
     email: Optional[str] = Field(default=None)  # Email if pre-assigned
-    phone_number: Optional[str] = Field(
-        default=None
-    )  # Phone number for WhatsApp delivery
+    phone_number: Optional[str] = Field(default=None)  # Phone number for WhatsApp delivery
 
     # Status tracking
     status: InvitationStatus = Field(default=InvitationStatus.PENDING)
 
     # Audit trail
-    created_by: UUID = Field(
-        foreign_key="users.id"
-    )  # Admin who created this invitation
+    created_by: UUID = Field(foreign_key="users.id")  # Admin who created this invitation
     created_at: datetime = Field(default_factory=utc_now)
     # No automatic expiration - admin controls lifespan via revocation
 
     # Usage tracking
-    used_by: Optional[UUID] = Field(
-        default=None, foreign_key="users.id"
-    )  # Who accepted this invitation
+    used_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # Who accepted this invitation
     used_at: Optional[datetime] = Field(default=None)
 
     # Metadata

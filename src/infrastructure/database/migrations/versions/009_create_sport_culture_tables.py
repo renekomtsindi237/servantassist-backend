@@ -33,9 +33,7 @@ def upgrade() -> None:
         sa.Column("location", sa.String(length=200), nullable=False),
         sa.Column("max_participants", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("cost", sa.Float(), nullable=True),
-        sa.Column(
-            "status", sa.String(length=50), nullable=False, server_default="PLANIFIE"
-        ),
+        sa.Column("status", sa.String(length=50), nullable=False, server_default="PLANIFIE"),
         sa.Column("registration_deadline", sa.DateTime(), nullable=True),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("photos", sa.JSON(), nullable=False, server_default="[]"),
@@ -60,23 +58,15 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
-        sa.CheckConstraint(
-            "max_participants >= 0", name="check_max_participants_positive"
-        ),
+        sa.CheckConstraint("max_participants >= 0", name="check_max_participants_positive"),
         sa.CheckConstraint("cost >= 0", name="check_cost_positive"),
     )
 
     # Index pour améliorer les performances
-    op.create_index(
-        "idx_sport_culture_events_type", "sport_culture_events", ["event_type"]
-    )
-    op.create_index(
-        "idx_sport_culture_events_status", "sport_culture_events", ["status"]
-    )
+    op.create_index("idx_sport_culture_events_type", "sport_culture_events", ["event_type"])
+    op.create_index("idx_sport_culture_events_status", "sport_culture_events", ["status"])
     op.create_index("idx_sport_culture_events_date", "sport_culture_events", ["date"])
-    op.create_index(
-        "idx_sport_culture_events_created_by", "sport_culture_events", ["created_by"]
-    )
+    op.create_index("idx_sport_culture_events_created_by", "sport_culture_events", ["created_by"])
 
     # ── Table event_participations ────────────────────────────────────
     op.create_table(
@@ -84,9 +74,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("event_id", sa.UUID(), nullable=False),
         sa.Column("servant_id", sa.UUID(), nullable=False),
-        sa.Column(
-            "status", sa.String(length=50), nullable=False, server_default="INSCRIT"
-        ),
+        sa.Column("status", sa.String(length=50), nullable=False, server_default="INSCRIT"),
         sa.Column(
             "registration_date",
             sa.DateTime(),
@@ -94,9 +82,7 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column("attendance_marked_at", sa.DateTime(), nullable=True),
-        sa.Column(
-            "payment_status", sa.Boolean(), nullable=False, server_default="false"
-        ),
+        sa.Column("payment_status", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column("payment_date", sa.DateTime(), nullable=True),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("registered_by", sa.UUID(), nullable=False),
@@ -113,9 +99,7 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.ForeignKeyConstraint(
-            ["event_id"], ["sport_culture_events.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["event_id"], ["sport_culture_events.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["servant_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["registered_by"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["marked_by"], ["users.id"], ondelete="SET NULL"),
@@ -124,15 +108,9 @@ def upgrade() -> None:
     )
 
     # Index pour améliorer les performances
-    op.create_index(
-        "idx_event_participations_event", "event_participations", ["event_id"]
-    )
-    op.create_index(
-        "idx_event_participations_servant", "event_participations", ["servant_id"]
-    )
-    op.create_index(
-        "idx_event_participations_status", "event_participations", ["status"]
-    )
+    op.create_index("idx_event_participations_event", "event_participations", ["event_id"])
+    op.create_index("idx_event_participations_servant", "event_participations", ["servant_id"])
+    op.create_index("idx_event_participations_status", "event_participations", ["status"])
 
     # ── Table event_results ───────────────────────────────────────────
     op.create_table(
@@ -154,9 +132,7 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.ForeignKeyConstraint(
-            ["event_id"], ["sport_culture_events.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["event_id"], ["sport_culture_events.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["recorded_by"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.CheckConstraint("score >= 0", name="check_score_positive"),
@@ -183,9 +159,7 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.ForeignKeyConstraint(
-            ["event_id"], ["sport_culture_events.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["event_id"], ["sport_culture_events.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["captain_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),

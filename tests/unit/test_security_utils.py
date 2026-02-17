@@ -58,9 +58,7 @@ class TestAccessToken:
             role="ADMIN",
             expires_delta=timedelta(minutes=30),
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["sub"] == "admin@test.com"
         assert payload["role"] == "ADMIN"
 
@@ -70,9 +68,7 @@ class TestAccessToken:
             role="ADMIN",
             expires_delta=timedelta(minutes=30),
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert "exp" in payload
 
     def test_does_not_contain_type_field(self):
@@ -81,17 +77,13 @@ class TestAccessToken:
             subject="admin@test.com",
             role="ADMIN",
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert "type" not in payload
 
     def test_contains_jti(self):
         """L'access token contient un JTI unique."""
         token = SecurityUtils.create_access_token(subject="u@t.com", role="ADMIN")
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert "jti" in payload
         assert isinstance(payload["jti"], str)
         assert len(payload["jti"]) == 32
@@ -99,9 +91,7 @@ class TestAccessToken:
     def test_contains_iat_and_iss(self):
         """L'access token contient iat et iss."""
         token = SecurityUtils.create_access_token(subject="u@t.com", role="ADMIN")
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert "iat" in payload
         assert payload["iss"] == settings.APP_NAME
 
@@ -111,9 +101,7 @@ class TestAccessToken:
             role="SERVANT",
             expires_delta=timedelta(minutes=5),
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["sub"] == "user@test.com"
 
     def test_default_expiration_no_delta(self):
@@ -122,17 +110,13 @@ class TestAccessToken:
             subject="user@test.com",
             role="SERVANT",
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["sub"] == "user@test.com"
 
     def test_all_roles_accepted(self):
         for role in ("ADMIN", "AUMÔNIER", "SERVANT", "PARENT"):
             token = SecurityUtils.create_access_token(subject="u@t.com", role=role)
-            payload = jwt.decode(
-                token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-            )
+            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
             assert payload["role"] == role
 
 
@@ -146,9 +130,7 @@ class TestRefreshToken:
             subject="admin@test.com",
             role="ADMIN",
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["type"] == "refresh"
 
     def test_contains_role(self):
@@ -156,9 +138,7 @@ class TestRefreshToken:
             subject="admin@test.com",
             role="ADMIN",
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["role"] == "ADMIN"
 
     def test_contains_sub_and_exp(self):
@@ -166,9 +146,7 @@ class TestRefreshToken:
             subject="user@test.com",
             role="SERVANT",
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["sub"] == "user@test.com"
         assert "exp" in payload
 
@@ -178,9 +156,7 @@ class TestRefreshToken:
             role="PARENT",
             expires_delta=timedelta(days=1),
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["type"] == "refresh"
 
 
@@ -191,24 +167,18 @@ class TestRefreshToken:
 class TestResetToken:
     def test_contains_type_reset(self):
         token = SecurityUtils.create_reset_token(subject="user@test.com")
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["type"] == "reset"
 
     def test_contains_sub(self):
         token = SecurityUtils.create_reset_token(subject="user@test.com")
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["sub"] == "user@test.com"
 
     def test_does_not_contain_role(self):
         """Le reset token ne contient pas de rôle — il sert uniquement au reset."""
         token = SecurityUtils.create_reset_token(subject="user@test.com")
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert "role" not in payload
 
     def test_custom_expiration(self):
@@ -216,9 +186,7 @@ class TestResetToken:
             subject="user@test.com",
             expires_delta=timedelta(minutes=5),
         )
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         assert payload["sub"] == "user@test.com"
 
 
@@ -244,9 +212,7 @@ class TestTokenDecodingErrors:
             expires_delta=timedelta(seconds=-1),
         )
         with pytest.raises(Exception):
-            jwt.decode(
-                token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-            )
+            jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
 
     def test_garbage_token_fails(self):
         with pytest.raises(Exception):

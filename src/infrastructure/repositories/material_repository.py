@@ -37,9 +37,7 @@ class MaterialItemRepository:
 
     async def get_by_id(self, item_id: UUID) -> Optional[MaterialItem]:
         """Récupère un article par son ID."""
-        result = await self.session.execute(
-            select(MaterialItem).where(MaterialItem.id == item_id)
-        )
+        result = await self.session.execute(select(MaterialItem).where(MaterialItem.id == item_id))
         return result.scalar_one_or_none()
 
     async def list_items(
@@ -59,10 +57,7 @@ class MaterialItemRepository:
         if condition:
             query = query.where(MaterialItem.condition == condition)
         if search:
-            query = query.where(
-                MaterialItem.name.ilike(f"%{search}%")
-                | MaterialItem.description.ilike(f"%{search}%")
-            )
+            query = query.where(MaterialItem.name.ilike(f"%{search}%") | MaterialItem.description.ilike(f"%{search}%"))
 
         # Compter le total
         count_query = select(func.count()).select_from(query.subquery())
@@ -101,11 +96,7 @@ class MaterialItemRepository:
         result = await self.session.execute(
             select(MaterialItem).where(
                 (MaterialItem.next_maintenance_date <= now)
-                | (
-                    MaterialItem.condition.in_(
-                        [MaterialCondition.A_NETTOYER, MaterialCondition.A_REPARER]
-                    )
-                )
+                | (MaterialItem.condition.in_([MaterialCondition.A_NETTOYER, MaterialCondition.A_REPARER]))
             )
         )
         return list(result.scalars().all())
@@ -126,9 +117,7 @@ class CleaningTaskRepository:
 
     async def get_by_id(self, task_id: UUID) -> Optional[CleaningTask]:
         """Récupère une tâche par son ID."""
-        result = await self.session.execute(
-            select(CleaningTask).where(CleaningTask.id == task_id)
-        )
+        result = await self.session.execute(select(CleaningTask).where(CleaningTask.id == task_id))
         return result.scalar_one_or_none()
 
     async def list_tasks(
@@ -198,9 +187,7 @@ class TaskAssignmentRepository:
         await self.session.refresh(assignment)
         return assignment
 
-    async def create_batch(
-        self, assignments: List[TaskAssignment]
-    ) -> List[TaskAssignment]:
+    async def create_batch(self, assignments: List[TaskAssignment]) -> List[TaskAssignment]:
         """Crée plusieurs assignations en batch."""
         for assignment in assignments:
             self.session.add(assignment)
@@ -211,9 +198,7 @@ class TaskAssignmentRepository:
 
     async def get_by_task(self, task_id: UUID) -> List[TaskAssignment]:
         """Récupère les assignations d'une tâche."""
-        result = await self.session.execute(
-            select(TaskAssignment).where(TaskAssignment.task_id == task_id)
-        )
+        result = await self.session.execute(select(TaskAssignment).where(TaskAssignment.task_id == task_id))
         return list(result.scalars().all())
 
     async def get_by_servant(
@@ -240,9 +225,7 @@ class TaskAssignmentRepository:
 
     async def delete(self, assignment_id: UUID) -> bool:
         """Supprime une assignation."""
-        result = await self.session.execute(
-            select(TaskAssignment).where(TaskAssignment.id == assignment_id)
-        )
+        result = await self.session.execute(select(TaskAssignment).where(TaskAssignment.id == assignment_id))
         assignment = result.scalar_one_or_none()
         if not assignment:
             return False
@@ -254,9 +237,7 @@ class TaskAssignmentRepository:
     async def enrich_assignment(self, assignment: TaskAssignment) -> TaskAssignment:
         """Enrichit une assignation avec les noms."""
         # Récupérer le nom du servant
-        servant_result = await self.session.execute(
-            select(User).where(User.id == assignment.servant_id)
-        )
+        servant_result = await self.session.execute(select(User).where(User.id == assignment.servant_id))
         servant = servant_result.scalar_one_or_none()
         if servant:
             assignment.servant_name = f"{servant.first_name} {servant.last_name}"
@@ -279,9 +260,7 @@ class AubeTaskRepository:
 
     async def get_by_id(self, task_id: UUID) -> Optional[AubeTask]:
         """Récupère une tâche par son ID."""
-        result = await self.session.execute(
-            select(AubeTask).where(AubeTask.id == task_id)
-        )
+        result = await self.session.execute(select(AubeTask).where(AubeTask.id == task_id))
         return result.scalar_one_or_none()
 
     async def list_tasks(

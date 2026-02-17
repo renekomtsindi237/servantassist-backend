@@ -16,9 +16,7 @@ class WhatsAppService:
         settings = get_settings()
         self.account_sid = settings.TWILIO_ACCOUNT_SID
         self.auth_token = settings.TWILIO_AUTH_TOKEN
-        self.whatsapp_from = (
-            settings.TWILIO_WHATSAPP_FROM
-        )  # e.g., "whatsapp:+237xxxxxxxxx"
+        self.whatsapp_from = settings.TWILIO_WHATSAPP_FROM  # e.g., "whatsapp:+237xxxxxxxxx"
 
         # Only initialize Twilio if credentials are provided
         if self.account_sid and self.auth_token:
@@ -29,13 +27,9 @@ class WhatsAppService:
         else:
             self.client = None
             self.enabled = False
-            logger.warning(
-                "WhatsApp service not configured - messages will not be sent"
-            )
+            logger.warning("WhatsApp service not configured - messages will not be sent")
 
-    async def send_invitation_code(
-        self, phone_number: str, code: str, parent_name: str = "Parent"
-    ) -> bool:
+    async def send_invitation_code(self, phone_number: str, code: str, parent_name: str = "Parent") -> bool:
         """
         Send invitation code via WhatsApp
 
@@ -66,13 +60,9 @@ class WhatsAppService:
             )
 
             # Send via Twilio
-            message = self.client.messages.create(
-                from_=self.whatsapp_from, to=whatsapp_to, body=message_body
-            )
+            message = self.client.messages.create(from_=self.whatsapp_from, to=whatsapp_to, body=message_body)
 
-            logger.info(
-                f"WhatsApp message sent successfully to {phone_number} (SID: {message.sid})"
-            )
+            logger.info(f"WhatsApp message sent successfully to {phone_number} (SID: {message.sid})")
             return True
 
         except Exception as e:
@@ -98,13 +88,10 @@ class WhatsAppService:
             whatsapp_to = f"whatsapp:{phone_number}"
 
             message_body = (
-                f"Votre code de vérification ServantAssist: {otp_code}\n\n"
-                f"Ce code expire dans 10 minutes."
+                f"Votre code de vérification ServantAssist: {otp_code}\n\n" f"Ce code expire dans 10 minutes."
             )
 
-            message = self.client.messages.create(
-                from_=self.whatsapp_from, to=whatsapp_to, body=message_body
-            )
+            message = self.client.messages.create(from_=self.whatsapp_from, to=whatsapp_to, body=message_body)
 
             logger.info(f"WhatsApp OTP sent to {phone_number} (SID: {message.sid})")
             return True
@@ -113,9 +100,7 @@ class WhatsAppService:
             logger.error(f"Failed to send WhatsApp OTP to {phone_number}: {str(e)}")
             return False
 
-    async def send_admin_notification(
-        self, phone_number: str, admin_name: str, message_text: str
-    ) -> bool:
+    async def send_admin_notification(self, phone_number: str, admin_name: str, message_text: str) -> bool:
         """
         Send admin notification via WhatsApp
 
@@ -133,17 +118,11 @@ class WhatsAppService:
         try:
             whatsapp_to = f"whatsapp:{phone_number}"
 
-            message = self.client.messages.create(
-                from_=self.whatsapp_from, to=whatsapp_to, body=message_text
-            )
+            message = self.client.messages.create(from_=self.whatsapp_from, to=whatsapp_to, body=message_text)
 
-            logger.info(
-                f"WhatsApp notification sent to {phone_number} (SID: {message.sid})"
-            )
+            logger.info(f"WhatsApp notification sent to {phone_number} (SID: {message.sid})")
             return True
 
         except Exception as e:
-            logger.error(
-                f"Failed to send WhatsApp notification to {phone_number}: {str(e)}"
-            )
+            logger.error(f"Failed to send WhatsApp notification to {phone_number}: {str(e)}")
             return False

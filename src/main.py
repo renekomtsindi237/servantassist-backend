@@ -119,20 +119,12 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(activities.router, prefix="/api/v1/events", tags=["Events"])
-app.include_router(
-    communication.router, prefix="/api/v1/communication", tags=["Communication"]
-)
-app.include_router(
-    assignments.router, prefix="/api/v1/assignments", tags=["Assignments"]
-)
-app.include_router(
-    responsables.router, prefix="/api/v1/responsables", tags=["Responsables"]
-)
+app.include_router(communication.router, prefix="/api/v1/communication", tags=["Communication"])
+app.include_router(assignments.router, prefix="/api/v1/assignments", tags=["Assignments"])
+app.include_router(responsables.router, prefix="/api/v1/responsables", tags=["Responsables"])
 app.include_router(poste.router, prefix="/api/v1/poste", tags=["Postes (Dynamic)"])
 app.include_router(discipline.router, prefix="/api/v1/discipline", tags=["Discipline"])
-app.include_router(
-    cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"]
-)
+app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
 app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
 app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
 app.include_router(
@@ -140,9 +132,7 @@ app.include_router(
     prefix="/api/v1/attendance-sessions",
     tags=["Attendance Sessions"],
 )
-app.include_router(
-    contributions.router, prefix="/api/v1/contributions", tags=["Contributions"]
-)
+app.include_router(contributions.router, prefix="/api/v1/contributions", tags=["Contributions"])
 app.include_router(
     financial_entries.router,
     prefix="/api/v1/financial-entries",
@@ -150,16 +140,10 @@ app.include_router(
 )
 app.include_router(material.router, prefix="/api/v1/material", tags=["Material"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
-app.include_router(
-    sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"]
-)
-app.include_router(
-    sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"]
-)
+app.include_router(sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"])
+app.include_router(sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"])
 app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])
-app.include_router(
-    weekly_schedule.router, prefix="/api/v1/weekly-schedule", tags=["Weekly Schedule"]
-)
+app.include_router(weekly_schedule.router, prefix="/api/v1/weekly-schedule", tags=["Weekly Schedule"])
 
 
 @app.get("/")

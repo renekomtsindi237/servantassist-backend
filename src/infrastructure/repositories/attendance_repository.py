@@ -69,11 +69,7 @@ class AttendanceRepository:
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = (
-            stmt.offset(offset)
-            .limit(page_size)
-            .order_by(Attendance.attendance_date.desc())
-        )
+        stmt = stmt.offset(offset).limit(page_size).order_by(Attendance.attendance_date.desc())
         result = await self.session.exec(stmt)
         return result.all(), total
 
@@ -102,9 +98,7 @@ class AttendanceRepository:
     # ── Enrichissement ─────────────────────────────────────────────────
 
     async def enrich_attendance(self, attendance: Attendance) -> Dict:
-        user = (
-            await self.session.exec(select(User).where(User.id == attendance.user_id))
-        ).first()
+        user = (await self.session.exec(select(User).where(User.id == attendance.user_id))).first()
 
         return {
             "id": attendance.id,

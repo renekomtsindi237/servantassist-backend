@@ -59,9 +59,7 @@ def _get_service(session: AsyncSession) -> AssignmentService:
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-@router.post(
-    "/", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
 async def create_assignment(
     data: AssignmentCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -148,18 +146,10 @@ async def list_assignments(
     current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
     event_id: Optional[UUID] = Query(None, description="Filtrer par evenement"),
     user_id: Optional[UUID] = Query(None, description="Filtrer par servant"),
-    assignment_status: Optional[AssignmentStatus] = Query(
-        None, alias="status", description="Filtrer par statut"
-    ),
-    liturgical_role: Optional[LiturgicalRole] = Query(
-        None, description="Filtrer par role liturgique"
-    ),
-    start_date: Optional[datetime] = Query(
-        None, description="Evenements a partir de cette date"
-    ),
-    end_date: Optional[datetime] = Query(
-        None, description="Evenements jusqu'a cette date"
-    ),
+    assignment_status: Optional[AssignmentStatus] = Query(None, alias="status", description="Filtrer par statut"),
+    liturgical_role: Optional[LiturgicalRole] = Query(None, description="Filtrer par role liturgique"),
+    start_date: Optional[datetime] = Query(None, description="Evenements a partir de cette date"),
+    end_date: Optional[datetime] = Query(None, description="Evenements jusqu'a cette date"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -259,9 +249,7 @@ async def update_assignment(
     **Accessible a :** Admin, Aumonier.
     """
     service = _get_service(session)
-    return await service.update_assignment(
-        assignment_id, data, updated_by=current_user.id
-    )
+    return await service.update_assignment(assignment_id, data, updated_by=current_user.id)
 
 
 @router.patch(
@@ -280,9 +268,7 @@ async def mark_presence(
     **Accessible a :** Admin, Aumonier.
     """
     service = _get_service(session)
-    return await service.mark_presence(
-        assignment_id, present=present, marked_by=current_user.id
-    )
+    return await service.mark_presence(assignment_id, present=present, marked_by=current_user.id)
 
 
 @router.patch(

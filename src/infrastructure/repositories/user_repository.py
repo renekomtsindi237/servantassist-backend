@@ -83,9 +83,7 @@ class UserRepository(IRepository[User]):
 
         # Pagination
         offset = (page - 1) * page_size
-        statement = (
-            statement.offset(offset).limit(page_size).order_by(User.created_at.desc())
-        )
+        statement = statement.offset(offset).limit(page_size).order_by(User.created_at.desc())
 
         result = await self.session.exec(statement)
         users = result.all()
@@ -129,9 +127,7 @@ class UserRepository(IRepository[User]):
         result = await self.session.exec(statement)
         return result.first() is not None
 
-    async def phone_exists(
-        self, phone_number: str, exclude_id: Optional[UUID] = None
-    ) -> bool:
+    async def phone_exists(self, phone_number: str, exclude_id: Optional[UUID] = None) -> bool:
         """Verifie si un numero de telephone est deja utilise."""
         statement = select(User).where(User.phone_number == phone_number)
         if exclude_id:

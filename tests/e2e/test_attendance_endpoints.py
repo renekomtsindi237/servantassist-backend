@@ -29,9 +29,7 @@ class TestRecordAttendance:
     """Tests pour l'enregistrement de presence individuelle."""
 
     @pytest.mark.asyncio
-    async def test_record_present(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_record_present(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         resp = await client.post(
             "/api/v1/attendance/",
             json={
@@ -49,9 +47,7 @@ class TestRecordAttendance:
         assert body["attendance_type"] == "REUNION_ORDINAIRE"
 
     @pytest.mark.asyncio
-    async def test_record_absent(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_record_absent(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         resp = await client.post(
             "/api/v1/attendance/",
             json={
@@ -66,9 +62,7 @@ class TestRecordAttendance:
         assert resp.json()["status"] == "ABSENT"
 
     @pytest.mark.asyncio
-    async def test_record_duplicate_rejected(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_record_duplicate_rejected(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         payload = {
             "user_id": str(servant_user.id),
             "attendance_type": "FORMATION",
@@ -164,9 +158,7 @@ class TestUpdateAttendance:
     """Tests de modification (justification d'absence)."""
 
     @pytest.mark.asyncio
-    async def test_justify_absence(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_justify_absence(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         # Enregistrer une absence
         create_resp = await client.post(
             "/api/v1/attendance/",

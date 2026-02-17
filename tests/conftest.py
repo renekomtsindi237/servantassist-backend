@@ -134,63 +134,39 @@ def create_test_app() -> FastAPI:
     test_app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
     test_app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
     test_app.include_router(activities.router, prefix="/api/v1/events", tags=["Events"])
-    test_app.include_router(
-        assignments.router, prefix="/api/v1/assignments", tags=["Assignments"]
-    )
-    test_app.include_router(
-        responsables.router, prefix="/api/v1/responsables", tags=["Responsables"]
-    )
-    test_app.include_router(
-        poste.router, prefix="/api/v1/poste", tags=["Poste Actions"]
-    )
-    test_app.include_router(
-        discipline.router, prefix="/api/v1/discipline", tags=["Discipline"]
-    )
-    test_app.include_router(
-        cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"]
-    )
-    test_app.include_router(
-        attendance.router, prefix="/api/v1/attendance", tags=["Attendance"]
-    )
-    test_app.include_router(
-        subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"]
-    )
+    test_app.include_router(assignments.router, prefix="/api/v1/assignments", tags=["Assignments"])
+    test_app.include_router(responsables.router, prefix="/api/v1/responsables", tags=["Responsables"])
+    test_app.include_router(poste.router, prefix="/api/v1/poste", tags=["Poste Actions"])
+    test_app.include_router(discipline.router, prefix="/api/v1/discipline", tags=["Discipline"])
+    test_app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
+    test_app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
+    test_app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
     test_app.include_router(
         attendance_sessions.router,
         prefix="/api/v1/attendance-sessions",
         tags=["Attendance Sessions"],
     )
-    test_app.include_router(
-        contributions.router, prefix="/api/v1/contributions", tags=["Contributions"]
-    )
+    test_app.include_router(contributions.router, prefix="/api/v1/contributions", tags=["Contributions"])
     test_app.include_router(
         financial_entries.router,
         prefix="/api/v1/financial-entries",
         tags=["Financial Entries"],
     )
-    test_app.include_router(
-        material.router, prefix="/api/v1/material", tags=["Material"]
-    )
+    test_app.include_router(material.router, prefix="/api/v1/material", tags=["Material"])
     test_app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
-    test_app.include_router(
-        sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"]
-    )
+    test_app.include_router(sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"])
     test_app.include_router(
         sunday_schedule.router,
         prefix="/api/v1/sunday-schedule",
         tags=["Sunday Schedule"],
     )
-    test_app.include_router(
-        training.router, prefix="/api/v1/training", tags=["Training"]
-    )
+    test_app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])
     test_app.include_router(
         weekly_schedule.router,
         prefix="/api/v1/weekly-schedule",
         tags=["Weekly Schedule"],
     )
-    test_app.include_router(
-        communication.router, prefix="/api/v1/communication", tags=["Communication"]
-    )
+    test_app.include_router(communication.router, prefix="/api/v1/communication", tags=["Communication"])
     return test_app
 
 
@@ -226,9 +202,7 @@ async def app(db_engine) -> FastAPI:
 
     async def _override():
         """Crée une nouvelle session pour chaque requête (évite les conflits concurrents)."""
-        factory = sessionmaker(
-            bind=db_engine, class_=AsyncSession, expire_on_commit=False
-        )
+        factory = sessionmaker(bind=db_engine, class_=AsyncSession, expire_on_commit=False)
         async with factory() as session:
             yield session
 
@@ -428,9 +402,7 @@ async def secretaire_token(secretaire_user: User) -> str:
 
 
 @pytest_asyncio.fixture()
-async def secretaire_adjoint_user(
-    db_session: AsyncSession, aumonier_user: User
-) -> User:
+async def secretaire_adjoint_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with SECRETAIRE_ADJOINT nomination."""
     user = User(
         id=uuid4(),
@@ -622,9 +594,7 @@ async def intendant_token(intendant_user: User) -> str:
 
 
 @pytest_asyncio.fixture()
-async def charge_sport_culture_user(
-    db_session: AsyncSession, aumonier_user: User
-) -> User:
+async def charge_sport_culture_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with CHARGE_SPORT_CULTURE nomination."""
     user = User(
         id=uuid4(),
@@ -662,9 +632,7 @@ def make_auth_header(user: User) -> dict:
 
 # ── Fixtures invitations ─────────────────────────────────────────────────
 @pytest_asyncio.fixture()
-async def valid_invitation(
-    db_session: AsyncSession, admin_user: User
-) -> InvitationCode:
+async def valid_invitation(db_session: AsyncSession, admin_user: User) -> InvitationCode:
     invitation = InvitationCode(
         id=uuid4(),
         code="INV-TESTCODE123",
@@ -679,9 +647,7 @@ async def valid_invitation(
 
 
 @pytest_asyncio.fixture()
-async def email_locked_invitation(
-    db_session: AsyncSession, admin_user: User
-) -> InvitationCode:
+async def email_locked_invitation(db_session: AsyncSession, admin_user: User) -> InvitationCode:
     invitation = InvitationCode(
         id=uuid4(),
         code="INV-EMAILLOCKED",

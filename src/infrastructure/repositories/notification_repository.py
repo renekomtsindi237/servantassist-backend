@@ -32,9 +32,7 @@ class NotificationRepository:
         await self.session.refresh(notification)
         return notification
 
-    async def create_many(
-        self, notifications: list[Notification]
-    ) -> list[Notification]:
+    async def create_many(self, notifications: list[Notification]) -> list[Notification]:
         """Insere un lot de notifications (broadcast)."""
         for n in notifications:
             self.session.add(n)
@@ -70,11 +68,7 @@ class NotificationRepository:
         if channel:
             stmt = stmt.where(Notification.channel == channel)
 
-        stmt = (
-            stmt.order_by(col(Notification.created_at).desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        stmt = stmt.order_by(col(Notification.created_at).desc()).offset(offset).limit(limit)
         result = await self.session.exec(stmt)
         return list(result.all())
 
@@ -84,11 +78,7 @@ class NotificationRepository:
         *,
         status: Optional[NotificationStatus] = None,
     ) -> int:
-        stmt = (
-            select(func.count())
-            .select_from(Notification)
-            .where(Notification.recipient_id == user_id)
-        )
+        stmt = select(func.count()).select_from(Notification).where(Notification.recipient_id == user_id)
         if status:
             stmt = stmt.where(Notification.status == status)
         result = await self.session.exec(stmt)
@@ -135,11 +125,7 @@ class NotificationRepository:
         if broadcast_id:
             stmt = stmt.where(Notification.broadcast_id == broadcast_id)
 
-        stmt = (
-            stmt.order_by(col(Notification.created_at).desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        stmt = stmt.order_by(col(Notification.created_at).desc()).offset(offset).limit(limit)
         result = await self.session.exec(stmt)
         return list(result.all())
 
@@ -188,11 +174,7 @@ class NotificationRepository:
         now = datetime.now(timezone.utc)
         for nid in notification_ids:
             notification = await self.get_by_id(nid)
-            if (
-                notification
-                and notification.recipient_id == user_id
-                and notification.status != NotificationStatus.READ
-            ):
+            if notification and notification.recipient_id == user_id and notification.status != NotificationStatus.READ:
                 notification.status = NotificationStatus.READ
                 notification.read_at = now
                 notification.updated_at = now
@@ -231,9 +213,7 @@ class NotificationRepository:
         """Enrichit une notification avec le nom de l'envoyeur."""
         data = notification.model_dump()
         if notification.sent_by:
-            stmt = select(User.first_name, User.last_name).where(
-                User.id == notification.sent_by
-            )
+            stmt = select(User.first_name, User.last_name).where(User.id == notification.sent_by)
             result = await self.session.exec(stmt)
             row = result.first()
             if row:
@@ -253,9 +233,7 @@ class NotificationPreferenceRepository:
         self.session = session
 
     async def get_by_user(self, user_id: UUID) -> list[NotificationPreference]:
-        stmt = select(NotificationPreference).where(
-            NotificationPreference.user_id == user_id
-        )
+        stmt = select(NotificationPreference).where(NotificationPreference.user_id == user_id)
         result = await self.session.exec(stmt)
         return list(result.all())
 
@@ -287,9 +265,7 @@ class NotificationPreferenceRepository:
                 user_id=user_id,
                 notification_type=notification_type,
                 email_enabled=email_enabled if email_enabled is not None else False,
-                whatsapp_enabled=whatsapp_enabled
-                if whatsapp_enabled is not None
-                else False,
+                whatsapp_enabled=whatsapp_enabled if whatsapp_enabled is not None else False,
                 in_app_enabled=in_app_enabled if in_app_enabled is not None else True,
             )
             self.session.add(pref)

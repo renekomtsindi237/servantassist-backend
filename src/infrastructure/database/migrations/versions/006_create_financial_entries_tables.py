@@ -70,15 +70,9 @@ def upgrade() -> None:
         "financial_entries",
         ["verification_status"],
     )
-    op.create_index(
-        "ix_financial_entries_recorded_by", "financial_entries", ["recorded_by"]
-    )
-    op.create_index(
-        "ix_financial_entries_verified_by", "financial_entries", ["verified_by"]
-    )
-    op.create_index(
-        "ix_financial_entries_created_at", "financial_entries", ["created_at"]
-    )
+    op.create_index("ix_financial_entries_recorded_by", "financial_entries", ["recorded_by"])
+    op.create_index("ix_financial_entries_verified_by", "financial_entries", ["verified_by"])
+    op.create_index("ix_financial_entries_created_at", "financial_entries", ["created_at"])
 
     # Table discrepancies
     op.create_table(
@@ -99,9 +93,7 @@ def upgrade() -> None:
         sa.Column("resolved", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column("resolution_notes", sa.Text(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(
-            ["entry_id"], ["financial_entries.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["entry_id"], ["financial_entries.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["detected_by"], ["users.id"], ondelete="CASCADE"),
     )
 
@@ -122,9 +114,7 @@ def downgrade() -> None:
     op.drop_index("ix_financial_entries_created_at", table_name="financial_entries")
     op.drop_index("ix_financial_entries_verified_by", table_name="financial_entries")
     op.drop_index("ix_financial_entries_recorded_by", table_name="financial_entries")
-    op.drop_index(
-        "ix_financial_entries_verification_status", table_name="financial_entries"
-    )
+    op.drop_index("ix_financial_entries_verification_status", table_name="financial_entries")
     op.drop_index("ix_financial_entries_source", table_name="financial_entries")
     op.drop_index("ix_financial_entries_category", table_name="financial_entries")
     op.drop_index("ix_financial_entries_date", table_name="financial_entries")

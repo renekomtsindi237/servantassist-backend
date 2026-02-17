@@ -28,9 +28,7 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("quantity", sa.Integer(), nullable=False),
         sa.Column("size", sa.String(length=50), nullable=True),
-        sa.Column(
-            "condition", sa.String(length=50), nullable=False, server_default="BON"
-        ),
+        sa.Column("condition", sa.String(length=50), nullable=False, server_default="BON"),
         sa.Column("location", sa.String(length=200), nullable=False),
         sa.Column("purchase_date", sa.DateTime(), nullable=True),
         sa.Column("last_maintenance_date", sa.DateTime(), nullable=True),
@@ -71,9 +69,7 @@ def upgrade() -> None:
         sa.Column("scheduled_time", sa.String(length=10), nullable=False),
         sa.Column("location", sa.String(length=200), nullable=False),
         sa.Column("items", sa.JSON(), nullable=False, server_default="[]"),
-        sa.Column(
-            "status", sa.String(length=50), nullable=False, server_default="PLANIFIEE"
-        ),
+        sa.Column("status", sa.String(length=50), nullable=False, server_default="PLANIFIEE"),
         sa.Column("completed_at", sa.DateTime(), nullable=True),
         sa.Column("validated_at", sa.DateTime(), nullable=True),
         sa.Column("validated_by", sa.UUID(), nullable=True),
@@ -141,9 +137,7 @@ def upgrade() -> None:
         sa.Column("location", sa.String(length=200), nullable=False),
         sa.Column("aube_count", sa.Integer(), nullable=False),
         sa.Column("aube_sizes", sa.JSON(), nullable=False, server_default="[]"),
-        sa.Column(
-            "status", sa.String(length=50), nullable=False, server_default="PLANIFIEE"
-        ),
+        sa.Column("status", sa.String(length=50), nullable=False, server_default="PLANIFIEE"),
         sa.Column("completed_at", sa.DateTime(), nullable=True),
         sa.Column("validated_at", sa.DateTime(), nullable=True),
         sa.Column("validated_by", sa.UUID(), nullable=True),
@@ -206,12 +200,8 @@ def upgrade() -> None:
 
     # Index pour améliorer les performances
     op.create_index("idx_maintenance_history_item", "maintenance_history", ["item_id"])
-    op.create_index(
-        "idx_maintenance_history_date", "maintenance_history", ["performed_date"]
-    )
-    op.create_index(
-        "idx_maintenance_history_performed_by", "maintenance_history", ["performed_by"]
-    )
+    op.create_index("idx_maintenance_history_date", "maintenance_history", ["performed_date"])
+    op.create_index("idx_maintenance_history_performed_by", "maintenance_history", ["performed_by"])
 
 
 def downgrade() -> None:

@@ -45,9 +45,7 @@ class EventService:
     #  CRUD Evenements
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_event(
-        self, event_data: EventCreate, created_by: UUID
-    ) -> EventDetailResponse:
+    async def create_event(self, event_data: EventCreate, created_by: UUID) -> EventDetailResponse:
         """
         Cree un evenement avec participants optionnels.
         """
@@ -74,9 +72,7 @@ class EventService:
 
         return await self._build_event_detail(created_event.id)
 
-    async def update_event(
-        self, event_id: UUID, event_data: EventUpdate, updated_by: UUID
-    ) -> EventDetailResponse:
+    async def update_event(self, event_id: UUID, event_data: EventUpdate, updated_by: UUID) -> EventDetailResponse:
         """Met a jour un evenement existant (modification partielle)."""
         event = await self.event_repository.get(event_id)
         if not event:
@@ -234,9 +230,7 @@ class EventService:
                 detail="Evenement introuvable.",
             )
 
-        return await self._add_participant_internal(
-            event_id, participant_data, added_by
-        )
+        return await self._add_participant_internal(event_id, participant_data, added_by)
 
     async def _add_participant_internal(
         self,
@@ -255,9 +249,7 @@ class EventService:
                 )
 
         # Verifier doublon
-        existing = await self.event_repository.get_participant_by_event_and_user(
-            event_id, participant_data.user_id
-        )
+        existing = await self.event_repository.get_participant_by_event_and_user(event_id, participant_data.user_id)
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -367,9 +359,7 @@ class EventService:
         new_status: ParticipantStatus,
     ) -> ParticipantResponse:
         """Permet a un participant de confirmer/decliner sa participation."""
-        participant = await self.event_repository.get_participant_by_event_and_user(
-            event_id, user_id
-        )
+        participant = await self.event_repository.get_participant_by_event_and_user(event_id, user_id)
         if not participant:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

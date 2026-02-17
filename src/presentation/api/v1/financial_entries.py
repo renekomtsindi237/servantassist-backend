@@ -285,9 +285,7 @@ async def generate_audit_report(
     )
 
     # Récupérer les résumés par catégorie via le service (utilise la session existante)
-    summaries_data = await service.get_summary_by_category(
-        data.start_date, data.end_date
-    )
+    summaries_data = await service.get_summary_by_category(data.start_date, data.end_date)
     summaries = [FinancialSummaryResponse(**s) for s in summaries_data]
 
     return AuditReportResponse(

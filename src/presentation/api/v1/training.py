@@ -53,17 +53,13 @@ router = APIRouter()
 # ══════════════════════════════════════════════════════════════════
 
 
-def get_training_service(
-    db: Annotated[AsyncSession, Depends(get_db_session)]
-) -> TrainingService:
+def get_training_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> TrainingService:
     """Dépendance pour obtenir le service de formation."""
     session_repo = TrainingSessionRepository(db)
     participation_repo = TrainingParticipationRepository(db)
     material_repo = TrainingMaterialRepository(db)
     session_material_repo = SessionMaterialRepository(db)
-    return TrainingService(
-        session_repo, participation_repo, material_repo, session_material_repo
-    )
+    return TrainingService(session_repo, participation_repo, material_repo, session_material_repo)
 
 
 # ══════════════════════════════════════════════════════════════════

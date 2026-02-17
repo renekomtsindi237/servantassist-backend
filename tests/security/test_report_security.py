@@ -96,9 +96,7 @@ async def test_unauthenticated_cannot_access(client, sample_report):
 
 
 @pytest.mark.asyncio
-async def test_non_secretaire_cannot_see_draft_reports(
-    client, servant_token, db_session
-):
+async def test_non_secretaire_cannot_see_draft_reports(client, servant_token, db_session):
     """Test que les non-secrétaires ne voient pas les brouillons."""
     from src.core.entities.report import Report, ReportStatus, ReportType
 
@@ -362,9 +360,7 @@ async def test_token_expiration(client, secretaire_user):
 
 
 @pytest.mark.asyncio
-async def test_secretaire_adjoint_has_same_permissions(
-    client, db_session, aumonier_user
-):
+async def test_secretaire_adjoint_has_same_permissions(client, db_session, aumonier_user):
     """Test que le SECRETAIRE_ADJOINT a les mêmes permissions."""
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole

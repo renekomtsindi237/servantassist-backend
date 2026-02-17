@@ -131,15 +131,9 @@ async def create_template(
 async def list_templates(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_charge_classement_semaine)],
-    status_filter: Optional[ScheduleStatus] = Query(
-        None, alias="status", description="Filtrer par statut"
-    ),
-    start_date: Optional[datetime] = Query(
-        None, description="Modèles à partir de cette date"
-    ),
-    end_date: Optional[datetime] = Query(
-        None, description="Modèles jusqu'à cette date"
-    ),
+    status_filter: Optional[ScheduleStatus] = Query(None, alias="status", description="Filtrer par statut"),
+    start_date: Optional[datetime] = Query(None, description="Modèles à partir de cette date"),
+    end_date: Optional[datetime] = Query(None, description="Modèles jusqu'à cette date"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):

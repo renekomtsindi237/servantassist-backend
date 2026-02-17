@@ -16,9 +16,7 @@ from src.core.entities.user import UserRole
 class TestContributionEndpoints:
     """Tests des endpoints de contributions."""
 
-    async def test_record_payment_as_econome(
-        self, client: AsyncClient, econome_token: str, servant_user_id: str
-    ):
+    async def test_record_payment_as_econome(self, client: AsyncClient, econome_token: str, servant_user_id: str):
         """Test : L'ECONOME peut enregistrer un paiement."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -40,9 +38,7 @@ class TestContributionEndpoints:
         assert data["month"] == 2
         assert data["year"] == 2026
 
-    async def test_record_weekly_payment(
-        self, client: AsyncClient, econome_token: str, servant_user_id: str
-    ):
+    async def test_record_weekly_payment(self, client: AsyncClient, econome_token: str, servant_user_id: str):
         """Test : Enregistrer un paiement hebdomadaire."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -152,9 +148,7 @@ class TestContributionEndpoints:
         assert "total" in data
         assert "page" in data
 
-    async def test_list_contributions_with_filters(
-        self, client: AsyncClient, econome_token: str
-    ):
+    async def test_list_contributions_with_filters(self, client: AsyncClient, econome_token: str):
         """Test : Lister avec filtres."""
         response = await client.get(
             "/api/v1/contributions/?month=2&year=2026&payment_mode=MENSUEL",
@@ -164,9 +158,7 @@ class TestContributionEndpoints:
             print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
 
-    async def test_get_contribution(
-        self, client: AsyncClient, econome_token: str, contribution_id: str
-    ):
+    async def test_get_contribution(self, client: AsyncClient, econome_token: str, contribution_id: str):
         """Test : Récupérer une contribution."""
         response = await client.get(
             f"/api/v1/contributions/{contribution_id}",
@@ -178,9 +170,7 @@ class TestContributionEndpoints:
         data = response.json()
         assert data["id"] == contribution_id
 
-    async def test_get_contribution_not_found(
-        self, client: AsyncClient, econome_token: str
-    ):
+    async def test_get_contribution_not_found(self, client: AsyncClient, econome_token: str):
         """Test : Contribution introuvable."""
         fake_id = str(uuid4())
         response = await client.get(
@@ -189,9 +179,7 @@ class TestContributionEndpoints:
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    async def test_update_contribution(
-        self, client: AsyncClient, econome_token: str, contribution_id: str
-    ):
+    async def test_update_contribution(self, client: AsyncClient, econome_token: str, contribution_id: str):
         """Test : Modifier une contribution."""
         response = await client.patch(
             f"/api/v1/contributions/{contribution_id}",
@@ -204,9 +192,7 @@ class TestContributionEndpoints:
         data = response.json()
         assert data["notes"] == "Note modifiée"
 
-    async def test_delete_contribution(
-        self, client: AsyncClient, econome_token: str, contribution_id: str
-    ):
+    async def test_delete_contribution(self, client: AsyncClient, econome_token: str, contribution_id: str):
         """Test : Supprimer une contribution."""
         response = await client.delete(
             f"/api/v1/contributions/{contribution_id}",
@@ -214,9 +200,7 @@ class TestContributionEndpoints:
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    async def test_get_servant_contributions(
-        self, client: AsyncClient, econome_token: str, servant_user_id: str
-    ):
+    async def test_get_servant_contributions(self, client: AsyncClient, econome_token: str, servant_user_id: str):
         """Test : Récupérer les contributions d'un servant."""
         response = await client.get(
             f"/api/v1/contributions/servant/{servant_user_id}",
@@ -228,9 +212,7 @@ class TestContributionEndpoints:
         data = response.json()
         assert isinstance(data, list)
 
-    async def test_get_servant_stats(
-        self, client: AsyncClient, econome_token: str, servant_user_id: str
-    ):
+    async def test_get_servant_stats(self, client: AsyncClient, econome_token: str, servant_user_id: str):
         """Test : Récupérer les statistiques d'un servant."""
         start_date = datetime(2026, 1, 1, tzinfo=timezone.utc).isoformat()
         end_date = datetime(2026, 12, 31, tzinfo=timezone.utc).isoformat()
@@ -259,9 +241,7 @@ class TestContributionEndpoints:
         data = response.json()
         assert isinstance(data, list)
 
-    async def test_generate_financial_report(
-        self, client: AsyncClient, econome_token: str
-    ):
+    async def test_generate_financial_report(self, client: AsyncClient, econome_token: str):
         """Test : Générer un rapport financier."""
         response = await client.post(
             "/api/v1/contributions/report",
@@ -305,9 +285,7 @@ class TestContributionEndpoints:
 class TestContributionPermissions:
     """Tests des permissions pour les contributions."""
 
-    async def test_admin_can_manage_contributions(
-        self, client: AsyncClient, admin_token: str, servant_user_id: str
-    ):
+    async def test_admin_can_manage_contributions(self, client: AsyncClient, admin_token: str, servant_user_id: str):
         """Test : L'ADMIN peut gérer les contributions."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -400,9 +378,7 @@ class TestContributionBusinessRules:
         )
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    async def test_monthly_payment_no_week_number(
-        self, client: AsyncClient, econome_token: str, servant_user_id: str
-    ):
+    async def test_monthly_payment_no_week_number(self, client: AsyncClient, econome_token: str, servant_user_id: str):
         """Test : Paiement mensuel ne doit pas avoir week_number."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -419,9 +395,7 @@ class TestContributionBusinessRules:
         )
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    async def test_amount_must_be_positive(
-        self, client: AsyncClient, econome_token: str, servant_user_id: str
-    ):
+    async def test_amount_must_be_positive(self, client: AsyncClient, econome_token: str, servant_user_id: str):
         """Test : Le montant doit être positif."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -437,9 +411,7 @@ class TestContributionBusinessRules:
         )
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    async def test_month_must_be_valid(
-        self, client: AsyncClient, econome_token: str, servant_user_id: str
-    ):
+    async def test_month_must_be_valid(self, client: AsyncClient, econome_token: str, servant_user_id: str):
         """Test : Le mois doit être entre 1 et 12."""
         response = await client.post(
             "/api/v1/contributions/",

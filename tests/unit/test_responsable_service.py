@@ -39,9 +39,7 @@ def mock_council_repo():
 
 @pytest.fixture
 def service(mock_nomination_repo, mock_action_repo, mock_user_repo, mock_council_repo):
-    return ResponsableService(
-        mock_nomination_repo, mock_action_repo, mock_user_repo, mock_council_repo
-    )
+    return ResponsableService(mock_nomination_repo, mock_action_repo, mock_user_repo, mock_council_repo)
 
 
 @pytest.mark.asyncio
@@ -52,10 +50,7 @@ async def test_create_council_meeting_success(service, mock_council_repo):
         agenda="Election du nouveau secretaire",
     )
     mock_council_repo.create_meeting.return_value = CouncilMeeting(
-        id=uuid4(),
-        **data.model_dump(),
-        created_by=uuid4(),
-        created_at=datetime.now(timezone.utc)
+        id=uuid4(), **data.model_dump(), created_by=uuid4(), created_at=datetime.now(timezone.utc)
     )
 
     result = await service.create_council_meeting(data, uuid4())
@@ -64,9 +59,7 @@ async def test_create_council_meeting_success(service, mock_council_repo):
 
 
 @pytest.mark.asyncio
-async def test_monitor_council_attendance_destitution(
-    service, mock_council_repo, mock_nomination_repo
-):
+async def test_monitor_council_attendance_destitution(service, mock_council_repo, mock_nomination_repo):
     responsable_id = uuid4()
     # Mock 3 consecutive absences
     mock_council_repo.get_responsable_attendances.return_value = [

@@ -39,9 +39,7 @@ class Report(SQLModel, table=True):
     content: str
     report_date: datetime
     location: str
-    participants: list[str] = Field(
-        default_factory=list, sa_column=Column(JSON)
-    )  # Liste des noms
+    participants: list[str] = Field(default_factory=list, sa_column=Column(JSON))  # Liste des noms
     decisions: Optional[str] = None
     action_items: Optional[str] = None
     status: ReportStatus = ReportStatus.DRAFT

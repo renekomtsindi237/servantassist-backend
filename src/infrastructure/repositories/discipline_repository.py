@@ -57,11 +57,7 @@ class DisciplineCaseRepository:
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = (
-            stmt.offset(offset)
-            .limit(page_size)
-            .order_by(DisciplineCase.created_at.desc())
-        )
+        stmt = stmt.offset(offset).limit(page_size).order_by(DisciplineCase.created_at.desc())
         result = await self.session.exec(stmt)
         return result.all(), total
 

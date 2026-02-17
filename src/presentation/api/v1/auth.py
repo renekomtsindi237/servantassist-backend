@@ -34,8 +34,7 @@ async def _check_brute_force(identifier: str) -> None:
     if is_locked:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Account temporarily locked due to too many failed attempts. "
-            f"Try again in {remaining} seconds.",
+            detail=f"Account temporarily locked due to too many failed attempts. " f"Try again in {remaining} seconds.",
             headers={"Retry-After": str(remaining)},
         )
 
@@ -116,9 +115,7 @@ async def login_with_phone(
     return await auth_service.create_tokens(user)
 
 
-@router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_data: UserCreateWithInvite,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -195,7 +192,5 @@ async def reset_password(
     auth_service = AuthService(user_repo)
     email_service = EmailService()
 
-    await auth_service.reset_password(
-        request.token, request.new_password, email_service
-    )
+    await auth_service.reset_password(request.token, request.new_password, email_service)
     return {"message": "Password has been reset successfully."}

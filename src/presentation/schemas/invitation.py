@@ -14,12 +14,8 @@ class InvitationCodeCreate(BaseModel):
     """Request to create invitation code"""
 
     role: str = Field(default="PARENT", description="PARENT or AUMÔNIER")
-    email: Optional[str] = Field(
-        default=None, description="Optional: specific email allowed to use"
-    )
-    phone_number: Optional[str] = Field(
-        default=None, description="Optional: phone number for WhatsApp delivery"
-    )
+    email: Optional[str] = Field(default=None, description="Optional: specific email allowed to use")
+    phone_number: Optional[str] = Field(default=None, description="Optional: phone number for WhatsApp delivery")
     notes: Optional[str] = None
 
 

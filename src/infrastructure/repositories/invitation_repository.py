@@ -49,9 +49,7 @@ class InvitationCodeRepository:
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def update(
-        self, invitation_id: UUID, invitation_code: InvitationCode
-    ) -> InvitationCode:
+    async def update(self, invitation_id: UUID, invitation_code: InvitationCode) -> InvitationCode:
         """Update an invitation code"""
         await self.session.merge(invitation_code)
         await self.session.commit()

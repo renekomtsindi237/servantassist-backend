@@ -37,21 +37,13 @@ class AssignmentRepository(IRepository[Assignment]):
 
     async def list_by_user(self, user_id: UUID) -> List[Assignment]:
         """Toutes les affectations d'un servant."""
-        statement = (
-            select(Assignment)
-            .where(Assignment.user_id == user_id)
-            .order_by(Assignment.created_at.desc())
-        )
+        statement = select(Assignment).where(Assignment.user_id == user_id).order_by(Assignment.created_at.desc())
         result = await self.session.exec(statement)
         return result.all()
 
     async def list_by_event(self, event_id: UUID) -> List[Assignment]:
         """Toutes les affectations d'un evenement."""
-        statement = (
-            select(Assignment)
-            .where(Assignment.event_id == event_id)
-            .order_by(Assignment.created_at)
-        )
+        statement = select(Assignment).where(Assignment.event_id == event_id).order_by(Assignment.created_at)
         result = await self.session.exec(statement)
         return result.all()
 
@@ -98,20 +90,14 @@ class AssignmentRepository(IRepository[Assignment]):
 
         # Pagination
         offset = (page - 1) * page_size
-        statement = (
-            statement.offset(offset)
-            .limit(page_size)
-            .order_by(Assignment.created_at.desc())
-        )
+        statement = statement.offset(offset).limit(page_size).order_by(Assignment.created_at.desc())
 
         result = await self.session.exec(statement)
         assignments = result.all()
 
         return assignments, total
 
-    async def get_by_event_and_user(
-        self, event_id: UUID, user_id: UUID
-    ) -> Optional[Assignment]:
+    async def get_by_event_and_user(self, event_id: UUID, user_id: UUID) -> Optional[Assignment]:
         """Verifie si un servant est deja affecte a un evenement."""
         stmt = select(Assignment).where(
             Assignment.event_id == event_id,
@@ -121,9 +107,7 @@ class AssignmentRepository(IRepository[Assignment]):
         result = await self.session.exec(stmt)
         return result.first()
 
-    async def get_by_event_user_role(
-        self, event_id: UUID, user_id: UUID, role: LiturgicalRole
-    ) -> Optional[Assignment]:
+    async def get_by_event_user_role(self, event_id: UUID, user_id: UUID, role: LiturgicalRole) -> Optional[Assignment]:
         """Verifie si un servant est deja affecte avec le meme role."""
         stmt = select(Assignment).where(
             Assignment.event_id == event_id,
@@ -178,11 +162,7 @@ class AssignmentRepository(IRepository[Assignment]):
 
     async def list_by_event_with_cancelled(self, event_id: UUID) -> List[Assignment]:
         """Toutes les affectations d'un evenement, y compris annulees."""
-        statement = (
-            select(Assignment)
-            .where(Assignment.event_id == event_id)
-            .order_by(Assignment.created_at)
-        )
+        statement = select(Assignment).where(Assignment.event_id == event_id).order_by(Assignment.created_at)
         result = await self.session.exec(statement)
         return result.all()
 

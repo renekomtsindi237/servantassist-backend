@@ -94,9 +94,7 @@ class CleaningTask(SQLModel, table=True):
     scheduled_date: datetime
     scheduled_time: str  # Format HH:MM
     location: str = Field(min_length=1, max_length=200)
-    items: List[str] = Field(
-        default_factory=list, sa_column=Column(JSON)
-    )  # Liste des noms d'articles
+    items: List[str] = Field(default_factory=list, sa_column=Column(JSON))  # Liste des noms d'articles
     status: TaskStatus = TaskStatus.PLANIFIEE
     completed_at: Optional[datetime] = None
     validated_at: Optional[datetime] = None

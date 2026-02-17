@@ -111,9 +111,7 @@ class DisciplineCase(SQLModel, table=True):
     offense_date: datetime = Field(default_factory=utc_now)
     severity: SanctionSeverity = Field(default=SanctionSeverity.MINEUR)
     # Statut du dossier
-    status: DisciplineCaseStatus = Field(
-        default=DisciplineCaseStatus.SIGNALE, index=True
-    )
+    status: DisciplineCaseStatus = Field(default=DisciplineCaseStatus.SIGNALE, index=True)
     # Convocation
     convocation_date: Optional[datetime] = Field(default=None)
     convocation_notes: Optional[str] = Field(default=None, max_length=1000)

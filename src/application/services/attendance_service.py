@@ -44,9 +44,7 @@ class AttendanceService:
     #  ENREGISTREMENT INDIVIDUEL
     # ══════════════════════════════════════════════════════════════════
 
-    async def record_attendance(
-        self, data: AttendanceCreate, recorded_by: UUID
-    ) -> AttendanceResponse:
+    async def record_attendance(self, data: AttendanceCreate, recorded_by: UUID) -> AttendanceResponse:
         user = await self.user_repo.get(data.user_id)
         if not user:
             raise HTTPException(
@@ -83,9 +81,7 @@ class AttendanceService:
     #  ENREGISTREMENT PAR LOT (APPEL NOMINAL)
     # ══════════════════════════════════════════════════════════════════
 
-    async def record_batch(
-        self, data: AttendanceBatchCreate, recorded_by: UUID
-    ) -> AttendanceBatchResponse:
+    async def record_batch(self, data: AttendanceBatchCreate, recorded_by: UUID) -> AttendanceBatchResponse:
         created_list: List[AttendanceResponse] = []
         errors: List[str] = []
 
@@ -100,9 +96,7 @@ class AttendanceService:
                     entry.user_id, data.attendance_date, data.attendance_type
                 )
                 if existing:
-                    errors.append(
-                        f"{user.first_name} {user.last_name} : deja enregistre."
-                    )
+                    errors.append(f"{user.first_name} {user.last_name} : deja enregistre.")
                     continue
 
                 attendance = Attendance(
@@ -113,9 +107,7 @@ class AttendanceService:
                     title=data.title,
                     status=entry.status,
                     justification=entry.justification,
-                    justified_at=(
-                        datetime.now(timezone.utc) if entry.justification else None
-                    ),
+                    justified_at=(datetime.now(timezone.utc) if entry.justification else None),
                     recorded_by=recorded_by,
                 )
                 created = await self.attendance_repo.create(attendance)
@@ -136,9 +128,7 @@ class AttendanceService:
     #  MODIFIER / JUSTIFIER UNE ABSENCE
     # ══════════════════════════════════════════════════════════════════
 
-    async def update_attendance(
-        self, attendance_id: UUID, data: AttendanceUpdate
-    ) -> AttendanceResponse:
+    async def update_attendance(self, attendance_id: UUID, data: AttendanceUpdate) -> AttendanceResponse:
         attendance = await self.attendance_repo.get(attendance_id)
         if not attendance:
             raise HTTPException(
@@ -224,9 +214,7 @@ class AttendanceService:
                 detail="Utilisateur introuvable.",
             )
 
-        counts = await self.attendance_repo.get_user_stats(
-            user_id, start_date=start_date, end_date=end_date
-        )
+        counts = await self.attendance_repo.get_user_stats(user_id, start_date=start_date, end_date=end_date)
         total = sum(counts.values())
         presents = counts.get(AttendanceStatus.PRESENT.value, 0)
         taux = (presents / total * 100) if total > 0 else 0

@@ -58,18 +58,14 @@ router = APIRouter()
 # ══════════════════════════════════════════════════════════════════
 
 
-def get_material_service(
-    db: Annotated[AsyncSession, Depends(get_db_session)]
-) -> MaterialService:
+def get_material_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> MaterialService:
     """Dépendance pour obtenir le service de matériel."""
     item_repo = MaterialItemRepository(db)
     cleaning_task_repo = CleaningTaskRepository(db)
     assignment_repo = TaskAssignmentRepository(db)
     aube_task_repo = AubeTaskRepository(db)
     maintenance_repo = MaintenanceHistoryRepository(db)
-    return MaterialService(
-        item_repo, cleaning_task_repo, assignment_repo, aube_task_repo, maintenance_repo
-    )
+    return MaterialService(item_repo, cleaning_task_repo, assignment_repo, aube_task_repo, maintenance_repo)
 
 
 # ══════════════════════════════════════════════════════════════════

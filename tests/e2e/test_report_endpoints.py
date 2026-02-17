@@ -74,9 +74,7 @@ async def test_create_report_unauthorized(client, servant_token):
 
 
 @pytest.mark.asyncio
-async def test_list_reports_published_only(
-    client, secretaire_token, servant_token, db_session
-):
+async def test_list_reports_published_only(client, secretaire_token, servant_token, db_session):
     """Test que les non-secrétaires ne voient que les rapports publiés."""
     from src.core.entities.report import Report, ReportStatus, ReportType
 
