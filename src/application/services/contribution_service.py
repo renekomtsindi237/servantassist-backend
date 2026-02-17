@@ -14,16 +14,9 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from src.core.entities.contribution import (
-    Contribution,
-    FinancialReport,
-    MonthlyContributionSummary,
-    PaymentMode,
-)
+from src.core.entities.contribution import Contribution, FinancialReport, MonthlyContributionSummary, PaymentMode
 from src.core.entities.user import UserRole
-from src.infrastructure.repositories.contribution_repository import (
-    ContributionRepository,
-)
+from src.infrastructure.repositories.contribution_repository import ContributionRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.schemas.contribution import (
     ContributionCreate,
@@ -126,9 +119,7 @@ class ContributionService:
     #  LECTURE
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_contribution(
-        self, contribution_id: UUID
-    ) -> ContributionResponse:
+    async def get_contribution(self, contribution_id: UUID) -> ContributionResponse:
         """Récupère une contribution par son ID."""
         contribution = await self.contribution_repo.get(contribution_id)
         if not contribution:
@@ -324,9 +315,7 @@ class ContributionService:
         # Récupérer le générateur
         generator = await self.user_repo.get(generated_by)
         generated_by_name = (
-            f"{generator.first_name} {generator.last_name}"
-            if generator
-            else "Inconnu"
+            f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
         )
 
         return FinancialReportResponse(
@@ -402,31 +391,33 @@ class ContributionService:
         now = datetime.utcnow()
         current_month = now.month
         current_year = now.year
-        
+
         # On remonte sur les 6 derniers mois
         consecutive_missing = 0
         max_consecutive_missing = 0
-        
+
         for i in range(1, 7):
             m = current_month - i
             y = current_year
             if m <= 0:
                 m += 12
                 y -= 1
-            
+
             # Vérifier si payé pour ce mois
             summary = await self.contribution_repo.get_monthly_summary(servant_id, m, y)
             if summary.status == PaymentStatus.LATE:
                 consecutive_missing += 1
-                max_consecutive_missing = max(max_consecutive_missing, consecutive_missing)
+                max_consecutive_missing = max(
+                    max_consecutive_missing, consecutive_missing
+                )
             else:
-                consecutive_missing = 0 # On reset car on veut du consécutif
+                consecutive_missing = 0  # On reset car on veut du consécutif
 
         status = {
             "servant_id": servant_id,
             "consecutive_missing_months": max_consecutive_missing,
             "needs_parent_convocation": max_consecutive_missing >= 2,
             "flagged_for_radiation": max_consecutive_missing >= 6,
-            "checked_at": now
+            "checked_at": now,
         }
         return status

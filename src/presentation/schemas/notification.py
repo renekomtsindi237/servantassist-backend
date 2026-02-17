@@ -14,13 +14,14 @@ from src.core.entities.notification import (
     NotificationType,
 )
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Envoi de notification individuelle
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class NotificationSend(BaseModel):
     """Schema pour envoyer une notification a un seul destinataire."""
+
     recipient_id: UUID
     notification_type: NotificationType = NotificationType.GENERAL
     channel: NotificationChannel = NotificationChannel.IN_APP
@@ -35,6 +36,7 @@ class NotificationSend(BaseModel):
 #  Broadcast (envoi a un groupe)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class NotificationBroadcast(BaseModel):
     """
     Schema pour envoyer une notification a plusieurs destinataires.
@@ -46,6 +48,7 @@ class NotificationBroadcast(BaseModel):
     - ``responsables`` : tous les servants avec une nomination active
     - ``subgroup:<id>`` : membres d'un sous-groupe
     """
+
     target: str = Field(max_length=200)
     notification_type: NotificationType = NotificationType.GENERAL
     channel: NotificationChannel = NotificationChannel.IN_APP
@@ -60,8 +63,10 @@ class NotificationBroadcast(BaseModel):
 #  Reponse
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class NotificationResponse(BaseModel):
     """Representation d'une notification dans les reponses API."""
+
     id: UUID
     recipient_id: UUID
     notification_type: NotificationType
@@ -87,6 +92,7 @@ class NotificationResponse(BaseModel):
 
 class BroadcastResponse(BaseModel):
     """Reponse apres un broadcast."""
+
     broadcast_id: UUID
     total_sent: int
     total_failed: int
@@ -98,8 +104,10 @@ class BroadcastResponse(BaseModel):
 #  Marquage comme lu
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class NotificationMarkRead(BaseModel):
     """Schema pour marquer des notifications comme lues."""
+
     notification_ids: list[UUID] = Field(min_length=1, max_length=100)
 
 
@@ -107,8 +115,10 @@ class NotificationMarkRead(BaseModel):
 #  Preferences
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class NotificationPreferenceUpdate(BaseModel):
     """Schema pour mettre a jour les preferences de notification."""
+
     notification_type: NotificationType
     email_enabled: Optional[bool] = None
     whatsapp_enabled: Optional[bool] = None
@@ -117,6 +127,7 @@ class NotificationPreferenceUpdate(BaseModel):
 
 class NotificationPreferenceResponse(BaseModel):
     """Preference de notification d'un utilisateur pour un type donne."""
+
     notification_type: NotificationType
     email_enabled: bool
     whatsapp_enabled: bool
@@ -130,9 +141,10 @@ class NotificationPreferenceResponse(BaseModel):
 #  Statistiques
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class NotificationStatsResponse(BaseModel):
     """Statistiques de notifications pour un utilisateur."""
+
     total: int = 0
     unread: int = 0
     by_type: dict[str, int] = {}
-

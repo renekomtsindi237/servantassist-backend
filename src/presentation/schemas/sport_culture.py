@@ -7,14 +7,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.sport_culture import (
-    EventType, EventStatus, SportType, ParticipationStatus, ResultType
-)
+from src.core.entities.sport_culture import EventStatus, EventType, ParticipationStatus, ResultType, SportType
 
 
 # ── Schémas de création - Événements ─────────────────────────────
 class SportCultureEventCreate(BaseModel):
     """Schéma pour créer un événement."""
+
     title: str = Field(min_length=1, max_length=200)
     description: str = Field(min_length=1)
     event_type: EventType
@@ -32,6 +31,7 @@ class SportCultureEventCreate(BaseModel):
 
 class SportCultureEventUpdate(BaseModel):
     """Schéma pour modifier un événement."""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, min_length=1)
     event_type: Optional[EventType] = None
@@ -49,6 +49,7 @@ class SportCultureEventUpdate(BaseModel):
 
 class SportCultureEventResponse(BaseModel):
     """Schéma de réponse pour un événement."""
+
     id: UUID
     title: str
     description: str
@@ -78,6 +79,7 @@ class SportCultureEventResponse(BaseModel):
 
 class SportCultureEventListResponse(BaseModel):
     """Schéma de réponse pour une liste d'événements."""
+
     items: List[SportCultureEventResponse]
     total: int
     skip: int
@@ -87,30 +89,35 @@ class SportCultureEventListResponse(BaseModel):
 # ── Schémas de création - Participations ─────────────────────────
 class EventParticipationCreate(BaseModel):
     """Schéma pour inscrire un participant."""
+
     servant_id: UUID
     notes: Optional[str] = None
 
 
 class EventParticipationBatchCreate(BaseModel):
     """Schéma pour inscrire plusieurs participants."""
+
     servant_ids: List[UUID] = Field(min_length=1)
     notes: Optional[str] = None
 
 
 class EventParticipationMarkAttendance(BaseModel):
     """Schéma pour marquer la présence."""
+
     status: ParticipationStatus
     notes: Optional[str] = None
 
 
 class EventParticipationMarkPayment(BaseModel):
     """Schéma pour marquer le paiement."""
+
     payment_status: bool
     notes: Optional[str] = None
 
 
 class EventParticipationResponse(BaseModel):
     """Schéma de réponse pour une participation."""
+
     id: UUID
     event_id: UUID
     servant_id: UUID
@@ -132,6 +139,7 @@ class EventParticipationResponse(BaseModel):
 
 class EventParticipationListResponse(BaseModel):
     """Schéma de réponse pour une liste de participations."""
+
     items: List[EventParticipationResponse]
     total: int
 
@@ -139,6 +147,7 @@ class EventParticipationListResponse(BaseModel):
 # ── Schémas de création - Résultats ──────────────────────────────
 class EventResultCreate(BaseModel):
     """Schéma pour créer un résultat."""
+
     result_type: ResultType
     team_name: Optional[str] = None
     score: Optional[int] = Field(None, ge=0)
@@ -151,6 +160,7 @@ class EventResultCreate(BaseModel):
 
 class EventResultResponse(BaseModel):
     """Schéma de réponse pour un résultat."""
+
     id: UUID
     event_id: UUID
     result_type: ResultType
@@ -171,6 +181,7 @@ class EventResultResponse(BaseModel):
 # ── Schémas de création - Équipes ────────────────────────────────
 class EventTeamCreate(BaseModel):
     """Schéma pour créer une équipe."""
+
     team_name: str = Field(min_length=1, max_length=100)
     captain_id: UUID
     members: List[UUID] = Field(default_factory=list)
@@ -178,6 +189,7 @@ class EventTeamCreate(BaseModel):
 
 class EventTeamUpdate(BaseModel):
     """Schéma pour modifier une équipe."""
+
     team_name: Optional[str] = Field(None, min_length=1, max_length=100)
     captain_id: Optional[UUID] = None
     members: Optional[List[UUID]] = None
@@ -185,6 +197,7 @@ class EventTeamUpdate(BaseModel):
 
 class EventTeamResponse(BaseModel):
     """Schéma de réponse pour une équipe."""
+
     id: UUID
     event_id: UUID
     team_name: str
@@ -203,6 +216,7 @@ class EventTeamResponse(BaseModel):
 # ── Schémas pour rapports ────────────────────────────────────────
 class SportCultureReportRequest(BaseModel):
     """Schéma pour demander un rapport."""
+
     start_date: datetime
     end_date: datetime
     event_type: Optional[EventType] = None
@@ -210,6 +224,7 @@ class SportCultureReportRequest(BaseModel):
 
 class SportCultureReportResponse(BaseModel):
     """Schéma de réponse pour un rapport."""
+
     id: UUID
     start_date: datetime
     end_date: datetime
@@ -232,6 +247,7 @@ class SportCultureReportResponse(BaseModel):
 # ── Schémas pour statistiques ────────────────────────────────────
 class SportCultureStatsResponse(BaseModel):
     """Schéma de réponse pour les statistiques."""
+
     total_events: int
     events_by_type: dict
     events_by_status: dict
@@ -243,6 +259,7 @@ class SportCultureStatsResponse(BaseModel):
 
 class ServantParticipationStatsResponse(BaseModel):
     """Schéma de réponse pour les statistiques d'un servant."""
+
     servant_id: UUID
     total_participations: int
     events_attended: int

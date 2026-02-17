@@ -1,9 +1,10 @@
 """
 Tests de sécurité pour le module CENSEUR - Appels.
 """
-import pytest
 from datetime import datetime
 from uuid import uuid4
+
+import pytest
 
 
 @pytest.mark.asyncio
@@ -20,7 +21,7 @@ async def test_only_censeur_can_create_session(client, servant_token, admin_toke
         },
     )
     assert response.status_code == 403
-    
+
     # Admin ne peut pas non plus (permissions exclusives)
     response = await client.post(
         "/api/v1/attendance-sessions/",
@@ -76,11 +77,11 @@ async def test_unauthenticated_cannot_access(client, sample_attendance_session):
         },
     )
     assert response.status_code == 401
-    
+
     # Liste sessions
     response = await client.get("/api/v1/attendance-sessions/")
     assert response.status_code == 401
-    
+
     # Détail session
     response = await client.get(
         f"/api/v1/attendance-sessions/{sample_attendance_session.id}"
@@ -103,7 +104,7 @@ async def test_cannot_mark_duplicate_attendance(
         },
     )
     assert response.status_code == 201
-    
+
     # Deuxième marquage (devrait échouer)
     response = await client.post(
         f"/api/v1/attendance-sessions/{sample_attendance_session.id}/records",
@@ -117,15 +118,13 @@ async def test_cannot_mark_duplicate_attendance(
 
 
 @pytest.mark.asyncio
-async def test_cannot_access_other_censeur_sessions(
-    client, db_session, aumonier_user
-):
+async def test_cannot_access_other_censeur_sessions(client, db_session, aumonier_user):
     """Test isolation des sessions entre censeurs."""
+    from src.core.entities.attendance_session import AttendanceSession
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole
     from src.infrastructure.security.utils import SecurityUtils
-    from src.core.entities.attendance_session import AttendanceSession
-    
+
     # Créer deux censeurs
     censeur1 = User(
         id=uuid4(),
@@ -138,7 +137,7 @@ async def test_cannot_access_other_censeur_sessions(
         phone_number="+237600000021",
     )
     db_session.add(censeur1)
-    
+
     censeur2 = User(
         id=uuid4(),
         email="censeur2@test.com",
@@ -151,7 +150,7 @@ async def test_cannot_access_other_censeur_sessions(
     )
     db_session.add(censeur2)
     await db_session.commit()
-    
+
     # Nominations
     nom1 = Nomination(
         id=uuid4(),
@@ -170,7 +169,7 @@ async def test_cannot_access_other_censeur_sessions(
     db_session.add(nom1)
     db_session.add(nom2)
     await db_session.commit()
-    
+
     # Session créée par censeur1
     session = AttendanceSession(
         id=uuid4(),
@@ -181,11 +180,12 @@ async def test_cannot_access_other_censeur_sessions(
     )
     db_session.add(session)
     await db_session.commit()
-    
+
     # Censeur2 peut voir la session (lecture publique)
     from tests.conftest import make_access_token
+
     censeur2_token = make_access_token(censeur2)
-    
+
     response = await client.get(
         f"/api/v1/attendance-sessions/{session.id}",
         headers={"Authorization": f"Bearer {censeur2_token}"},
@@ -207,7 +207,7 @@ async def test_sql_injection_protection(client, censeur_token):
     )
     # Devrait réussir (texte échappé)
     assert response.status_code == 201
-    
+
     # Vérifier que la table existe toujours
     response = await client.get(
         "/api/v1/attendance-sessions/",
@@ -228,7 +228,7 @@ async def test_xss_protection(client, censeur_token):
         },
     )
     assert response.status_code == 201
-    
+
     data = response.json()
     # Le script devrait être échappé ou supprimé
     assert "<script>" not in data.get("notes", "")
@@ -243,7 +243,7 @@ async def test_invalid_uuid_protection(client, censeur_token):
         headers={"Authorization": f"Bearer {censeur_token}"},
     )
     assert response.status_code == 422
-    
+
     # UUID invalide pour servant
     response = await client.post(
         f"/api/v1/attendance-sessions/{uuid4()}/records",
@@ -267,7 +267,7 @@ async def test_rate_limiting(client, censeur_token):
             headers={"Authorization": f"Bearer {censeur_token}"},
         )
         responses.append(response)
-    
+
     # Au moins une devrait être limitée (429)
     status_codes = [r.status_code for r in responses]
     # Note: Dépend de la configuration du rate limiter
@@ -310,7 +310,7 @@ async def test_cannot_modify_past_sessions(
 ):
     """Test qu'on ne peut pas modifier des sessions trop anciennes."""
     from src.core.entities.attendance_session import AttendanceSession
-    
+
     # Créer une session vieille de 6 mois
     old_session = AttendanceSession(
         id=uuid4(),
@@ -321,7 +321,7 @@ async def test_cannot_modify_past_sessions(
     )
     db_session.add(old_session)
     await db_session.commit()
-    
+
     # Tenter de marquer présence
     response = await client.post(
         f"/api/v1/attendance-sessions/{old_session.id}/records",
@@ -340,11 +340,12 @@ async def test_cannot_modify_past_sessions(
 async def test_token_expiration(client, censeur_user):
     """Test que les tokens expirés sont rejetés."""
     from datetime import timedelta
+
     from tests.conftest import make_access_token
-    
+
     # Token expiré
     expired_token = make_access_token(censeur_user, expires=timedelta(seconds=-1))
-    
+
     response = await client.get(
         "/api/v1/attendance-sessions/",
         headers={"Authorization": f"Bearer {expired_token}"},
@@ -353,15 +354,13 @@ async def test_token_expiration(client, censeur_user):
 
 
 @pytest.mark.asyncio
-async def test_censeur_adjoint_has_same_permissions(
-    client, db_session, aumonier_user
-):
+async def test_censeur_adjoint_has_same_permissions(client, db_session, aumonier_user):
     """Test que le CENSEUR_ADJOINT a les mêmes permissions."""
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole
     from src.infrastructure.security.utils import SecurityUtils
     from tests.conftest import make_access_token
-    
+
     # Créer un censeur adjoint
     censeur_adj = User(
         id=uuid4(),
@@ -375,7 +374,7 @@ async def test_censeur_adjoint_has_same_permissions(
     )
     db_session.add(censeur_adj)
     await db_session.commit()
-    
+
     # Nomination
     nomination = Nomination(
         id=uuid4(),
@@ -386,9 +385,9 @@ async def test_censeur_adjoint_has_same_permissions(
     )
     db_session.add(nomination)
     await db_session.commit()
-    
+
     censeur_adj_token = make_access_token(censeur_adj)
-    
+
     # Devrait pouvoir créer une session
     response = await client.post(
         "/api/v1/attendance-sessions/",

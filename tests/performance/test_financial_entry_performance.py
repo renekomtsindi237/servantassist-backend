@@ -1,17 +1,18 @@
 """
 Tests de performance pour le module COMMISSAIRE - Audit financier.
 """
-import pytest
+import time
 from datetime import datetime
 from uuid import uuid4
-import time
+
+import pytest
 
 
 @pytest.mark.asyncio
 async def test_create_entry_performance(client, commissaire_token):
     """Test performance création d'entrée."""
     start_time = time.time()
-    
+
     response = await client.post(
         "/api/v1/financial-entries/",
         headers={"Authorization": f"Bearer {commissaire_token}"},
@@ -23,9 +24,9 @@ async def test_create_entry_performance(client, commissaire_token):
             "description": "Test performance",
         },
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 201
     assert elapsed < 1.0
 
@@ -33,8 +34,8 @@ async def test_create_entry_performance(client, commissaire_token):
 @pytest.mark.asyncio
 async def test_list_entries_performance(client, commissaire_token, db_session):
     """Test performance liste des entrées."""
-    from src.core.entities.financial_entry import FinancialEntry, EntryCategory, EntrySource, VerificationStatus
-    
+    from src.core.entities.financial_entry import EntryCategory, EntrySource, FinancialEntry, VerificationStatus
+
     # Créer 100 entrées
     for i in range(100):
         entry = FinancialEntry(
@@ -48,18 +49,18 @@ async def test_list_entries_performance(client, commissaire_token, db_session):
             verification_status=VerificationStatus.PENDING,
         )
         db_session.add(entry)
-    
+
     await db_session.commit()
-    
+
     start_time = time.time()
-    
+
     response = await client.get(
         "/api/v1/financial-entries/?limit=100",
         headers={"Authorization": f"Bearer {commissaire_token}"},
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 2.0
 
@@ -68,7 +69,7 @@ async def test_list_entries_performance(client, commissaire_token, db_session):
 async def test_generate_audit_report_performance(client, commissaire_token):
     """Test performance génération de rapport."""
     start_time = time.time()
-    
+
     response = await client.post(
         "/api/v1/financial-entries/audit/report",
         headers={"Authorization": f"Bearer {commissaire_token}"},
@@ -77,8 +78,8 @@ async def test_generate_audit_report_performance(client, commissaire_token):
             "end_date": "2026-02-28T23:59:59",
         },
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 3.0

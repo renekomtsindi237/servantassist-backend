@@ -74,29 +74,45 @@ class TestUserCreatePassword:
     def test_too_short(self):
         with pytest.raises(ValidationError, match="8 characters"):
             UserCreate(
-                email="u@t.com", password="Tp1", first_name="A", last_name="B",
-                phone_number="+237600000001", role=UserRole.SERVANT,
+                email="u@t.com",
+                password="Tp1",
+                first_name="A",
+                last_name="B",
+                phone_number="+237600000001",
+                role=UserRole.SERVANT,
             )
 
     def test_no_uppercase(self):
         with pytest.raises(ValidationError, match="uppercase"):
             UserCreate(
-                email="u@t.com", password="testpass1", first_name="A", last_name="B",
-                phone_number="+237600000001", role=UserRole.SERVANT,
+                email="u@t.com",
+                password="testpass1",
+                first_name="A",
+                last_name="B",
+                phone_number="+237600000001",
+                role=UserRole.SERVANT,
             )
 
     def test_no_lowercase(self):
         with pytest.raises(ValidationError, match="lowercase"):
             UserCreate(
-                email="u@t.com", password="TESTPASS1", first_name="A", last_name="B",
-                phone_number="+237600000001", role=UserRole.SERVANT,
+                email="u@t.com",
+                password="TESTPASS1",
+                first_name="A",
+                last_name="B",
+                phone_number="+237600000001",
+                role=UserRole.SERVANT,
             )
 
     def test_no_digit(self):
         with pytest.raises(ValidationError, match="digit"):
             UserCreate(
-                email="u@t.com", password="TestPasss", first_name="A", last_name="B",
-                phone_number="+237600000001", role=UserRole.SERVANT,
+                email="u@t.com",
+                password="TestPasss",
+                first_name="A",
+                last_name="B",
+                phone_number="+237600000001",
+                role=UserRole.SERVANT,
             )
 
 
@@ -116,8 +132,10 @@ class TestUserCreatePhone:
     def test_servant_without_phone_passes_schema(self):
         """Le schéma ne bloque pas (limité par l'ordre Pydantic v2)."""
         user = UserCreate(
-            email="u@t.com", password="TestPass1",
-            first_name="A", last_name="B",
+            email="u@t.com",
+            password="TestPass1",
+            first_name="A",
+            last_name="B",
             role=UserRole.SERVANT,
         )
         assert user.phone_number is None
@@ -125,8 +143,10 @@ class TestUserCreatePhone:
     def test_parent_without_phone_passes_schema(self):
         """Le schéma ne bloque pas — la validation est faite côté service."""
         user = UserCreate(
-            email="u@t.com", password="TestPass1",
-            first_name="A", last_name="B",
+            email="u@t.com",
+            password="TestPass1",
+            first_name="A",
+            last_name="B",
             role=UserRole.PARENT,
         )
         assert user.phone_number is None
@@ -134,8 +154,10 @@ class TestUserCreatePhone:
     def test_invalid_phone_format_passes_schema(self):
         """Même constat — role pas encore disponible lors de la validation phone."""
         user = UserCreate(
-            email="u@t.com", password="TestPass1",
-            first_name="A", last_name="B",
+            email="u@t.com",
+            password="TestPass1",
+            first_name="A",
+            last_name="B",
             phone_number="0600000001",
             role=UserRole.SERVANT,
         )
@@ -144,16 +166,20 @@ class TestUserCreatePhone:
     def test_admin_no_phone_required(self):
         """L'admin n'a pas besoin de téléphone."""
         user = UserCreate(
-            email="admin@t.com", password="TestPass1",
-            first_name="A", last_name="B",
+            email="admin@t.com",
+            password="TestPass1",
+            first_name="A",
+            last_name="B",
             role=UserRole.ADMIN,
         )
         assert user.phone_number is None
 
     def test_valid_phone_format(self):
         user = UserCreate(
-            email="u@t.com", password="TestPass1",
-            first_name="A", last_name="B",
+            email="u@t.com",
+            password="TestPass1",
+            first_name="A",
+            last_name="B",
             phone_number="+237699887766",
             role=UserRole.SERVANT,
         )
@@ -167,8 +193,10 @@ class TestUserCreatePhone:
 class TestUserCreateWithInvite:
     def test_servant_without_invitation(self):
         user = UserCreateWithInvite(
-            email="u@t.com", password="TestPass1",
-            first_name="A", last_name="B",
+            email="u@t.com",
+            password="TestPass1",
+            first_name="A",
+            last_name="B",
             phone_number="+237600000001",
             role=UserRole.SERVANT,
         )
@@ -176,8 +204,10 @@ class TestUserCreateWithInvite:
 
     def test_parent_with_invitation(self):
         user = UserCreateWithInvite(
-            email="u@t.com", password="TestPass1",
-            first_name="A", last_name="B",
+            email="u@t.com",
+            password="TestPass1",
+            first_name="A",
+            last_name="B",
             phone_number="+237600000001",
             role=UserRole.PARENT,
             invitation_code="INV-ABC123",
@@ -186,8 +216,10 @@ class TestUserCreateWithInvite:
 
     def test_default_role_is_servant(self):
         user = UserCreateWithInvite(
-            email="u@t.com", password="TestPass1",
-            first_name="A", last_name="B",
+            email="u@t.com",
+            password="TestPass1",
+            first_name="A",
+            last_name="B",
             phone_number="+237600000001",
         )
         assert user.role == UserRole.SERVANT
@@ -245,4 +277,3 @@ class TestOtherSchemas:
     def test_reset_password_request(self):
         r = ResetPasswordRequest(token="tok", new_password="pwd")
         assert r.token == "tok"
-

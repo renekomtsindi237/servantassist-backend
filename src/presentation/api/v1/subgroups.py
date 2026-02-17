@@ -29,10 +29,7 @@ from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.subgroup_repository import SubGroupRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    get_current_admin_or_aumonier,
-)
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
 from src.presentation.schemas.subgroup import (
     SubGroupCreate,
     SubGroupMemberAdd,
@@ -46,6 +43,7 @@ router = APIRouter()
 
 def _get_service(session: AsyncSession) -> SubGroupService:
     from src.infrastructure.repositories.training_repository import TrainingParticipationRepository
+
     return SubGroupService(
         group_repo=SubGroupRepository(session),
         user_repo=UserRepository(session),
@@ -56,6 +54,7 @@ def _get_service(session: AsyncSession) -> SubGroupService:
 # ═══════════════════════════════════════════════════════════════════════════
 #  SELF-SERVICE (AVANT les routes parametrees)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.get("/my", response_model=Optional[SubGroupResponse])
 async def get_my_subgroup(
@@ -74,6 +73,7 @@ async def get_my_subgroup(
 # ═══════════════════════════════════════════════════════════════════════════
 #  CRUD SOUS-GROUPES
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.post(
     "/",
@@ -98,7 +98,9 @@ async def create_subgroup(
 async def list_subgroups(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
-    active_only: bool = Query(True, description="Afficher uniquement les sous-groupes actifs"),
+    active_only: bool = Query(
+        True, description="Afficher uniquement les sous-groupes actifs"
+    ),
 ):
     """
     Lister les sous-groupes.
@@ -159,6 +161,7 @@ async def delete_subgroup(
 #  GESTION DES MEMBRES
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @router.post(
     "/{group_id}/members",
     response_model=SubGroupMemberResponse,
@@ -217,4 +220,3 @@ async def reclassify_servant(
     """Reclassifie un servant selon le RI."""
     service = _get_service(session)
     return await service.reclassify_servant(user_id)
-

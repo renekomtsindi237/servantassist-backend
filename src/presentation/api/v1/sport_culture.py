@@ -12,28 +12,37 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.entities.sport_culture import (
-    EventType, EventStatus, SportType, ParticipationStatus, ResultType
-)
+from src.application.services.sport_culture_service import SportCultureService
+from src.core.entities.sport_culture import EventStatus, EventType, ParticipationStatus, ResultType, SportType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.sport_culture_repository import (
-    SportCultureEventRepository, EventParticipationRepository,
-    EventResultRepository, EventTeamRepository
+    EventParticipationRepository,
+    EventResultRepository,
+    EventTeamRepository,
+    SportCultureEventRepository,
 )
-from src.application.services.sport_culture_service import SportCultureService
-from src.presentation.dependencies.auth_deps import (
-    get_current_user, require_charge_sport_culture
-)
+from src.presentation.dependencies.auth_deps import get_current_user, require_charge_sport_culture
 from src.presentation.schemas.sport_culture import (
-    SportCultureEventCreate, SportCultureEventUpdate, SportCultureEventResponse,
-    SportCultureEventListResponse, EventParticipationCreate,
-    EventParticipationBatchCreate, EventParticipationMarkAttendance,
-    EventParticipationMarkPayment, EventParticipationResponse,
-    EventParticipationListResponse, EventResultCreate, EventResultResponse,
-    EventTeamCreate, EventTeamUpdate, EventTeamResponse,
-    SportCultureReportRequest, SportCultureReportResponse,
-    SportCultureStatsResponse, ServantParticipationStatsResponse
+    EventParticipationBatchCreate,
+    EventParticipationCreate,
+    EventParticipationListResponse,
+    EventParticipationMarkAttendance,
+    EventParticipationMarkPayment,
+    EventParticipationResponse,
+    EventResultCreate,
+    EventResultResponse,
+    EventTeamCreate,
+    EventTeamResponse,
+    EventTeamUpdate,
+    ServantParticipationStatsResponse,
+    SportCultureEventCreate,
+    SportCultureEventListResponse,
+    SportCultureEventResponse,
+    SportCultureEventUpdate,
+    SportCultureReportRequest,
+    SportCultureReportResponse,
+    SportCultureStatsResponse,
 )
 
 router = APIRouter()
@@ -52,9 +61,7 @@ def get_sport_culture_service(
     participation_repo = EventParticipationRepository(db)
     result_repo = EventResultRepository(db)
     team_repo = EventTeamRepository(db)
-    return SportCultureService(
-        event_repo, participation_repo, result_repo, team_repo
-    )
+    return SportCultureService(event_repo, participation_repo, result_repo, team_repo)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -91,15 +98,17 @@ async def create_event(
         broadcast_notification=data.broadcast_notification,
         created_by=current_user.id,
     )
-    
+
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
-    
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(
+        event.id
+    )
+
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
     event_dict["confirmed_count"] = confirmed_count
-    
+
     return SportCultureEventResponse(**event_dict)
 
 
@@ -128,19 +137,21 @@ async def list_events(
         start_date=start_date,
         end_date=end_date,
     )
-    
+
     # Enrichir avec les compteurs
     enriched_events = []
     for event in events:
         participants_count = await service.participation_repo.count_by_event(event.id)
-        confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
-        
+        confirmed_count = await service.participation_repo.count_confirmed_by_event(
+            event.id
+        )
+
         event_dict = event.model_dump()
         event_dict["participants_count"] = participants_count
         event_dict["confirmed_count"] = confirmed_count
-        
+
         enriched_events.append(SportCultureEventResponse(**event_dict))
-    
+
     return SportCultureEventListResponse(
         items=enriched_events,
         total=total,
@@ -167,15 +178,17 @@ async def get_event(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Event not found",
         )
-    
+
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
-    
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(
+        event.id
+    )
+
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
     event_dict["confirmed_count"] = confirmed_count
-    
+
     return SportCultureEventResponse(**event_dict)
 
 
@@ -213,15 +226,17 @@ async def update_event(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Event not found",
         )
-    
+
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
-    
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(
+        event.id
+    )
+
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
     event_dict["confirmed_count"] = confirmed_count
-    
+
     return SportCultureEventResponse(**event_dict)
 
 
@@ -258,19 +273,21 @@ async def get_upcoming_events(
 ):
     """Récupère les événements à venir."""
     events = await service.get_upcoming_events(limit)
-    
+
     # Enrichir avec les compteurs
     enriched_events = []
     for event in events:
         participants_count = await service.participation_repo.count_by_event(event.id)
-        confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
-        
+        confirmed_count = await service.participation_repo.count_confirmed_by_event(
+            event.id
+        )
+
         event_dict = event.model_dump()
         event_dict["participants_count"] = participants_count
         event_dict["confirmed_count"] = confirmed_count
-        
+
         enriched_events.append(SportCultureEventResponse(**event_dict))
-    
+
     return SportCultureEventListResponse(
         items=enriched_events,
         total=len(enriched_events),
@@ -470,7 +487,6 @@ async def get_servant_stats(
         end_date=end_date,
     )
     return ServantParticipationStatsResponse(**stats)
-
 
 
 # ══════════════════════════════════════════════════════════════════

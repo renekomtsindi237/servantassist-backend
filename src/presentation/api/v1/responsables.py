@@ -22,10 +22,7 @@ from src.application.services.responsable_service import ResponsableService
 from src.core.entities.responsable import PosteResponsable
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.responsable_repository import (
-    NominationRepository,
-    PosteActionRepository,
-)
+from src.infrastructure.repositories.responsable_repository import NominationRepository, PosteActionRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
@@ -34,13 +31,13 @@ from src.presentation.dependencies.auth_deps import (
     require_delegue_or_sg,
 )
 from src.presentation.schemas.responsable import (
+    CouncilAttendanceRecordList,
+    CouncilMeetingCreate,
+    CouncilMeetingResponse,
     NominationCreate,
     NominationResponse,
     PosteDetailResponse,
     PosteListResponse,
-    CouncilMeetingCreate,
-    CouncilMeetingResponse,
-    CouncilAttendanceRecordList,
 )
 
 router = APIRouter()
@@ -49,6 +46,7 @@ router = APIRouter()
 # ── Helpers ──────────────────────────────────────────────────────────────
 def _get_service(session: AsyncSession) -> ResponsableService:
     from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
+
     return ResponsableService(
         nomination_repo=NominationRepository(session),
         action_repo=PosteActionRepository(session),
@@ -60,6 +58,7 @@ def _get_service(session: AsyncSession) -> ResponsableService:
 # ═══════════════════════════════════════════════════════════════════════════
 #  NOMINATIONS — Aumonier / Admin
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.post(
     "/nominations",
@@ -152,6 +151,7 @@ async def list_active_nominations(
 #  REFERENCE DES POSTES
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @router.get("/postes", response_model=PosteListResponse)
 async def list_postes(
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -184,6 +184,7 @@ async def get_poste_detail(
 # ═══════════════════════════════════════════════════════════════════════════
 #  CONSEIL DES RESPONSABLES (Art 12, 15)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.post(
     "/council-meetings",
@@ -233,4 +234,3 @@ async def monitor_responsable_attendance(
     """Lance le contrôle d'assiduité et destitution automatique."""
     service = _get_service(session)
     return await service.monitor_council_attendance(responsable_id)
-

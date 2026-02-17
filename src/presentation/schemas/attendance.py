@@ -9,13 +9,14 @@ from pydantic import BaseModel, Field
 
 from src.core.entities.attendance import AttendanceStatus, AttendanceType
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enregistrement de presence
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class AttendanceCreate(BaseModel):
     """Enregistrer une presence individuelle."""
+
     user_id: UUID
     attendance_type: AttendanceType
     attendance_date: datetime
@@ -27,6 +28,7 @@ class AttendanceCreate(BaseModel):
 
 class AttendanceBatchItem(BaseModel):
     """Element d'un enregistrement par lot (appel nominal)."""
+
     user_id: UUID
     status: AttendanceStatus = AttendanceStatus.PRESENT
     justification: Optional[str] = Field(None, max_length=1000)
@@ -34,6 +36,7 @@ class AttendanceBatchItem(BaseModel):
 
 class AttendanceBatchCreate(BaseModel):
     """Enregistrer la presence de plusieurs servants en une fois (appel)."""
+
     attendance_type: AttendanceType
     attendance_date: datetime
     title: Optional[str] = Field(None, max_length=200)
@@ -43,12 +46,14 @@ class AttendanceBatchCreate(BaseModel):
 
 class AttendanceUpdate(BaseModel):
     """Modifier un enregistrement de presence."""
+
     status: Optional[AttendanceStatus] = None
     justification: Optional[str] = Field(None, max_length=1000)
 
 
 class AttendanceResponse(BaseModel):
     """Reponse pour un enregistrement de presence."""
+
     id: UUID
     user_id: UUID
     event_id: Optional[UUID] = None
@@ -71,6 +76,7 @@ class AttendanceResponse(BaseModel):
 
 class AttendanceBatchResponse(BaseModel):
     """Reponse pour un enregistrement par lot."""
+
     created: List[AttendanceResponse]
     errors: List[str] = []
     total_created: int = 0
@@ -79,6 +85,7 @@ class AttendanceBatchResponse(BaseModel):
 
 class AttendanceStatsResponse(BaseModel):
     """Statistiques de presence d'un servant."""
+
     user_id: UUID
     user_first_name: Optional[str] = None
     user_last_name: Optional[str] = None
@@ -89,4 +96,3 @@ class AttendanceStatsResponse(BaseModel):
     retards: int = 0
     excuses: int = 0
     taux_presence: float = 0  # Pourcentage
-

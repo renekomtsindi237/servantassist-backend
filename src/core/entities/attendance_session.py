@@ -14,6 +14,7 @@ from sqlmodel import Field, SQLModel
 
 class AttendanceStatus(str, Enum):
     """Statut de présence lors d'un appel."""
+
     PRESENT = "PRESENT"
     ABSENT = "ABSENT"
     LATE = "LATE"
@@ -24,6 +25,7 @@ class AttendanceSession(SQLModel, table=True):
     """
     Session d'appel hebdomadaire.
     """
+
     __tablename__ = "attendance_sessions"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -40,6 +42,7 @@ class AttendanceRecord(SQLModel, table=True):
     """
     Enregistrement de présence d'un servant lors d'une session.
     """
+
     __tablename__ = "attendance_records"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -56,7 +59,7 @@ class AttendanceRecord(SQLModel, table=True):
 class ServantAttendanceStats(BaseModel):
     """
     Statistiques de présence d'un servant.
-    
+
     Attributes:
         servant_id: ID du servant
         servant_name: Nom complet
@@ -68,6 +71,7 @@ class ServantAttendanceStats(BaseModel):
         attendance_rate: Taux de présence (%)
         consecutive_absences: Absences consécutives
     """
+
     servant_id: UUID
     servant_name: str
     total_sessions: int
@@ -85,7 +89,7 @@ class ServantAttendanceStats(BaseModel):
 class AttendanceReport(BaseModel):
     """
     Rapport de présence pour une période.
-    
+
     Attributes:
         start_date: Date de début
         end_date: Date de fin
@@ -97,6 +101,7 @@ class AttendanceReport(BaseModel):
         generated_at: Date de génération
         watermark_logo: Logo en filigrane
     """
+
     start_date: datetime
     end_date: datetime
     total_sessions: int

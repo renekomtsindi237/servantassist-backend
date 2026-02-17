@@ -1,39 +1,35 @@
-from src.core.entities.user import User, UserRole
-from src.core.entities.event import Event, EventType, EventParticipant, EventStatus
 from src.core.entities.assignment import Assignment, AssignmentStatus, LiturgicalRole
-from src.core.entities.responsable import (
-    Nomination,
-    PosteAction,
-    PosteResponsable,
-    NominationStatus,
-    ActionCategory,
-    ActionStatus,
+from src.core.entities.attendance import Attendance, AttendanceStatus, AttendanceType
+from src.core.entities.cotisation import (
+    CotisationPeriod,
+    CotisationStatus,
+    CotisationType,
+    MemberCotisation,
+    PeriodType,
 )
 from src.core.entities.discipline import (
     DisciplineCase,
     DisciplineCaseStatus,
-    SanctionType,
-    SanctionSeverity,
     OffenseCategory,
+    SanctionSeverity,
+    SanctionType,
 )
-from src.core.entities.cotisation import (
-    CotisationPeriod,
-    MemberCotisation,
-    CotisationType,
-    CotisationStatus,
-    PeriodType,
-)
-from src.core.entities.attendance import (
-    Attendance,
-    AttendanceType,
-    AttendanceStatus,
-)
-from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.event import Event, EventParticipant, EventStatus, EventType
 from src.core.entities.notification import (
     Notification,
-    NotificationPreference,
-    NotificationType,
     NotificationChannel,
-    NotificationStatus,
+    NotificationPreference,
     NotificationPriority,
+    NotificationStatus,
+    NotificationType,
 )
+from src.core.entities.responsable import (
+    ActionCategory,
+    ActionStatus,
+    Nomination,
+    NominationStatus,
+    PosteAction,
+    PosteResponsable,
+)
+from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.user import User, UserRole

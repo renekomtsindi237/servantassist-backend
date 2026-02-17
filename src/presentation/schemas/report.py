@@ -7,12 +7,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.report import ReportType, ReportStatus
+from src.core.entities.report import ReportStatus, ReportType
 
 
 # ── Schémas de création ──────────────────────────────────────────────────
 class ReportCreate(BaseModel):
     """Schéma pour créer un rapport."""
+
     type: ReportType
     title: str = Field(..., min_length=1, max_length=200)
     content: str = Field(..., min_length=1)
@@ -25,6 +26,7 @@ class ReportCreate(BaseModel):
 
 class ReportUpdate(BaseModel):
     """Schéma pour modifier un rapport."""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     content: Optional[str] = Field(None, min_length=1)
     report_date: Optional[datetime] = None
@@ -36,12 +38,14 @@ class ReportUpdate(BaseModel):
 
 class ReportPublish(BaseModel):
     """Schéma pour publier un rapport."""
+
     publish: bool = True
 
 
 # ── Schémas de réponse ───────────────────────────────────────────────────
 class ReportResponse(BaseModel):
     """Schéma de réponse pour un rapport."""
+
     id: UUID
     type: ReportType
     title: str
@@ -64,6 +68,7 @@ class ReportResponse(BaseModel):
 
 class ReportListResponse(BaseModel):
     """Schéma de réponse pour une liste de rapports."""
+
     items: List[ReportResponse]
     total: int
     skip: int
@@ -73,6 +78,7 @@ class ReportListResponse(BaseModel):
 # ── Schémas pour pièces jointes ──────────────────────────────────────────
 class AttachmentCreate(BaseModel):
     """Schéma pour ajouter une pièce jointe."""
+
     filename: str = Field(..., min_length=1, max_length=255)
     file_url: str = Field(..., min_length=1)
     file_type: str = Field(..., min_length=1, max_length=100)
@@ -81,6 +87,7 @@ class AttachmentCreate(BaseModel):
 
 class AttachmentResponse(BaseModel):
     """Schéma de réponse pour une pièce jointe."""
+
     id: UUID
     report_id: UUID
     filename: str
@@ -97,12 +104,14 @@ class AttachmentResponse(BaseModel):
 # ── Schémas pour export ──────────────────────────────────────────────────
 class ReportExportRequest(BaseModel):
     """Schéma pour demander l'export d'un rapport."""
+
     format: str = Field(default="pdf", pattern="^(pdf|docx)$")
     include_attachments: bool = False
 
 
 class ReportExportResponse(BaseModel):
     """Schéma de réponse pour l'export d'un rapport."""
+
     report_id: UUID
     export_url: str
     format: str

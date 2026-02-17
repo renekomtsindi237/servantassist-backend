@@ -2,15 +2,11 @@
 Service pour la gestion des rapports (SECRETAIRE).
 """
 from datetime import datetime
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
-from src.core.entities.report import (
-    Report, ReportAttachment, ReportType, ReportStatus
-)
-from src.infrastructure.repositories.report_repository import (
-    ReportRepository, AttachmentRepository
-)
+from src.core.entities.report import Report, ReportAttachment, ReportStatus, ReportType
+from src.infrastructure.repositories.report_repository import AttachmentRepository, ReportRepository
 from src.infrastructure.security.utils import SecurityUtils
 
 

@@ -12,12 +12,12 @@
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
 import pytest
-from jose import jwt
 from httpx import AsyncClient
+from jose import jwt
 
-from tests.conftest import make_auth_header, VALID_PASSWORD
 from src.core.entities.user import User
 from src.infrastructure.config.settings import get_settings
+from tests.conftest import VALID_PASSWORD, make_auth_header
 
 settings = get_settings()
 
@@ -136,4 +136,3 @@ class TestNonAdminCannotCreateAumonier:
         )
         assert resp.status_code == 403
         assert "publiquement" in resp.json()["detail"].lower()
-

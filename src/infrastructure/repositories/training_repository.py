@@ -9,9 +9,15 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.entities.training import (
-    TrainingSession, TrainingParticipation, TrainingMaterial,
-    SessionMaterial, TrainingLevel, TrainingStatus, MaterialType,
-    ParticipationStatus, TrainingStats
+    MaterialType,
+    ParticipationStatus,
+    SessionMaterial,
+    TrainingLevel,
+    TrainingMaterial,
+    TrainingParticipation,
+    TrainingSession,
+    TrainingStats,
+    TrainingStatus,
 )
 from src.core.entities.user import User, UserRole
 
@@ -99,9 +105,7 @@ class TrainingSessionRepository:
         limit: int = 50,
     ) -> Tuple[List[TrainingSession], int]:
         """Récupère les sessions créées par un utilisateur."""
-        query = select(TrainingSession).where(
-            TrainingSession.created_by == user_id
-        )
+        query = select(TrainingSession).where(TrainingSession.created_by == user_id)
 
         # Compter le total
         count_query = select(func.count()).select_from(query.subquery())
@@ -117,7 +121,9 @@ class TrainingSessionRepository:
 
         return sessions, total
 
-    async def enrich_session(self, training_session: TrainingSession) -> TrainingSession:
+    async def enrich_session(
+        self, training_session: TrainingSession
+    ) -> TrainingSession:
         """Enrichit une session avec les noms."""
         # Récupérer le nom du formateur
         trainer_result = await self.session.execute(
@@ -144,7 +150,9 @@ class TrainingParticipationRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, participation: TrainingParticipation) -> TrainingParticipation:
+    async def create(
+        self, participation: TrainingParticipation
+    ) -> TrainingParticipation:
         """Crée une nouvelle participation."""
         self.session.add(participation)
         await self.session.commit()
@@ -162,10 +170,14 @@ class TrainingParticipationRepository:
             await self.session.refresh(participation)
         return participations
 
-    async def get_by_id(self, participation_id: UUID) -> Optional[TrainingParticipation]:
+    async def get_by_id(
+        self, participation_id: UUID
+    ) -> Optional[TrainingParticipation]:
         """Récupère une participation par son ID."""
         result = await self.session.execute(
-            select(TrainingParticipation).where(TrainingParticipation.id == participation_id)
+            select(TrainingParticipation).where(
+                TrainingParticipation.id == participation_id
+            )
         )
         return result.scalar_one_or_none()
 
@@ -183,9 +195,7 @@ class TrainingParticipationRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_by_session(
-        self, session_id: UUID
-    ) -> List[TrainingParticipation]:
+    async def list_by_session(self, session_id: UUID) -> List[TrainingParticipation]:
         """Liste les participations d'une session."""
         result = await self.session.execute(
             select(TrainingParticipation)
@@ -204,7 +214,9 @@ class TrainingParticipationRepository:
         # Joindre avec les sessions pour filtrer par date
         query = (
             select(TrainingParticipation)
-            .join(TrainingSession, TrainingParticipation.session_id == TrainingSession.id)
+            .join(
+                TrainingSession, TrainingParticipation.session_id == TrainingSession.id
+            )
             .where(TrainingParticipation.servant_id == servant_id)
         )
 
@@ -218,7 +230,9 @@ class TrainingParticipationRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
-    async def update(self, participation: TrainingParticipation) -> TrainingParticipation:
+    async def update(
+        self, participation: TrainingParticipation
+    ) -> TrainingParticipation:
         """Met à jour une participation."""
         participation.updated_at = datetime.utcnow()
         await self.session.commit()
@@ -258,7 +272,8 @@ class TrainingParticipationRepository:
             1 for p in participations if p.status == ParticipationStatus.PRESENT
         )
         absent_sessions = sum(
-            1 for p in participations
+            1
+            for p in participations
             if p.status in [ParticipationStatus.ABSENT, ParticipationStatus.EXCUSE]
         )
 
@@ -267,7 +282,9 @@ class TrainingParticipationRepository:
         )
 
         # Calculer la note moyenne
-        scores = [p.evaluation_score for p in participations if p.evaluation_score is not None]
+        scores = [
+            p.evaluation_score for p in participations if p.evaluation_score is not None
+        ]
         average_score = sum(scores) / len(scores) if scores else None
 
         # Compter les certificats

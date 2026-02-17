@@ -7,20 +7,16 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.discipline import (
-    DisciplineCaseStatus,
-    OffenseCategory,
-    SanctionSeverity,
-    SanctionType,
-)
-
+from src.core.entities.discipline import DisciplineCaseStatus, OffenseCategory, SanctionSeverity, SanctionType
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Dossiers disciplinaires
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class DisciplineCaseCreate(BaseModel):
     """Ouvrir un dossier disciplinaire."""
+
     accused_user_id: UUID
     offense_category: OffenseCategory
     offense_description: str = Field(..., min_length=10, max_length=2000)
@@ -30,12 +26,14 @@ class DisciplineCaseCreate(BaseModel):
 
 class DisciplineConvocation(BaseModel):
     """Convoquer un servant au conseil de discipline."""
+
     convocation_date: datetime
     convocation_notes: Optional[str] = Field(None, max_length=1000)
 
 
 class DisciplineVerdict(BaseModel):
     """Rendre un verdict dans un dossier disciplinaire."""
+
     sanction_type: SanctionType
     verdict_notes: Optional[str] = Field(None, max_length=2000)
     suspension_days: Optional[int] = Field(None, ge=1, le=365)
@@ -43,6 +41,7 @@ class DisciplineVerdict(BaseModel):
 
 class DisciplineCaseUpdate(BaseModel):
     """Mise a jour d'un dossier (notes, gravite)."""
+
     offense_description: Optional[str] = Field(None, max_length=2000)
     severity: Optional[SanctionSeverity] = None
     status: Optional[DisciplineCaseStatus] = None
@@ -50,6 +49,7 @@ class DisciplineCaseUpdate(BaseModel):
 
 class DisciplineCaseResponse(BaseModel):
     """Reponse complete d'un dossier disciplinaire."""
+
     id: UUID
     accused_user_id: UUID
     reported_by: UUID
@@ -86,10 +86,10 @@ class DisciplineCaseResponse(BaseModel):
 
 class DisciplineStatsResponse(BaseModel):
     """Statistiques disciplinaires d'un servant."""
+
     user_id: UUID
     total_cases: int = 0
     avertissements_verbaux: int = 0
     avertissements_ecrits: int = 0
     suspensions: int = 0
     cases_en_cours: int = 0
-

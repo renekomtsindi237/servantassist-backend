@@ -13,7 +13,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select, col
+from sqlmodel import col, select
 
 from src.core.entities.notification import (
     Notification,
@@ -24,15 +24,15 @@ from src.core.entities.notification import (
 )
 from src.core.entities.user import User, UserRole
 from src.infrastructure.repositories.notification_repository import (
-    NotificationRepository,
     NotificationPreferenceRepository,
+    NotificationRepository,
 )
 from src.infrastructure.services.email_service import EmailService
 from src.infrastructure.services.email_templates import (
-    render_general_notification,
+    render_absence_parent_notification,
     render_assignment_notification,
     render_event_reminder,
-    render_absence_parent_notification,
+    render_general_notification,
 )
 from src.infrastructure.services.whatsapp_service import WhatsAppService
 
@@ -220,6 +220,7 @@ class NotificationService:
             )
         elif target_lower == "responsables":
             from src.core.entities.responsable import Nomination, NominationStatus
+
             stmt = (
                 select(User)
                 .join(Nomination, Nomination.user_id == User.id)
@@ -230,6 +231,7 @@ class NotificationService:
             )
         elif target_lower.startswith("subgroup:"):
             from src.core.entities.subgroup import SubGroupMember
+
             sg_id = target_lower.split(":", 1)[1]
             stmt = (
                 select(User)
@@ -343,12 +345,14 @@ class NotificationService:
             if nt in pref_map:
                 result.append(pref_map[nt].model_dump())
             else:
-                result.append({
-                    "notification_type": nt,
-                    "email_enabled": False,
-                    "whatsapp_enabled": False,
-                    "in_app_enabled": True,
-                })
+                result.append(
+                    {
+                        "notification_type": nt,
+                        "email_enabled": False,
+                        "whatsapp_enabled": False,
+                        "in_app_enabled": True,
+                    }
+                )
         return result
 
     async def update_preference(
@@ -369,4 +373,3 @@ class NotificationService:
             in_app_enabled=in_app_enabled,
         )
         return pref.model_dump()
-

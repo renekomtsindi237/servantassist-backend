@@ -30,9 +30,7 @@ from src.application.services.sunday_schedule_service import SundayScheduleServi
 from src.core.entities.sunday_schedule import SundayScheduleStatus
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.sunday_schedule_repository import (
-    SundayScheduleRepository,
-)
+from src.infrastructure.repositories.sunday_schedule_repository import SundayScheduleRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
@@ -248,9 +246,7 @@ async def update_template(
     **Accessible à :** CHARGE_CLASSEMENT_DIMANCHE, Admin, Aumônier.
     """
     service = _get_service(session)
-    return await service.update_template(
-        template_id, data, updated_by=current_user.id
-    )
+    return await service.update_template(template_id, data, updated_by=current_user.id)
 
 
 @router.patch(
@@ -372,11 +368,13 @@ async def add_assignment_to_mass(
     Permet d'assigner un servant à un poste liturgique en utilisant soit :
     - ``servant_id`` : ID d'un servant existant dans le système
     - ``servant_name`` : Nom libre pour un servant pas encore enregistré
-    
+
     Une messe peut avoir plusieurs assignations pour différents postes.
     """
     service = _get_service(session)
-    return await service.add_assignment_to_mass(mass_id, data, assigned_by=current_user.id)
+    return await service.add_assignment_to_mass(
+        mass_id, data, assigned_by=current_user.id
+    )
 
 
 @router.delete("/assignments/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -453,7 +451,7 @@ async def get_modification_history(
     - Quoi (description de l'action)
     - Où (adresse IP si disponible)
     - Valeurs avant/après
-    
+
     Les censeurs ont accès pour leurs besoins disciplinaires.
     """
     service = _get_service(session)

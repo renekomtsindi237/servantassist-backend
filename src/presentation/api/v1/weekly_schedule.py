@@ -29,13 +29,8 @@ from src.core.entities.user import User
 from src.core.entities.weekly_schedule import ScheduleStatus
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.infrastructure.repositories.weekly_schedule_repository import (
-    WeeklyScheduleRepository,
-)
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    get_current_charge_classement_semaine,
-)
+from src.infrastructure.repositories.weekly_schedule_repository import WeeklyScheduleRepository
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_charge_classement_semaine
 from src.presentation.schemas.user import PaginatedResponse
 from src.presentation.schemas.weekly_schedule import (
     SlotServantCreate,
@@ -185,9 +180,7 @@ async def update_template(
     **Accessible à :** CHARGE_CLASSEMENT_SEMAINE, Admin, Aumônier.
     """
     service = _get_service(session)
-    return await service.update_template(
-        template_id, data, updated_by=current_user.id
-    )
+    return await service.update_template(template_id, data, updated_by=current_user.id)
 
 
 @router.patch(
@@ -309,7 +302,7 @@ async def add_servant_to_slot(
     Permet d'assigner un servant à un créneau en utilisant soit :
     - ``servant_id`` : ID d'un servant existant dans le système
     - ``servant_name`` : Nom libre pour un servant pas encore enregistré
-    
+
     Un créneau peut avoir plusieurs servants assignés.
     """
     service = _get_service(session)

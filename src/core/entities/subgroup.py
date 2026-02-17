@@ -17,10 +17,10 @@ from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Table : Sous-groupes
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class SubGroup(SQLModel, table=True):
     """
@@ -29,6 +29,7 @@ class SubGroup(SQLModel, table=True):
     Exemples : Groupe A, Groupe B, Equipe 1, Equipe 2, etc.
     Utilise pour organiser les tours de service aux messes.
     """
+
     __tablename__ = "sub_groups"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -48,12 +49,14 @@ class SubGroup(SQLModel, table=True):
 #  Table de liaison : Membres des sous-groupes
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class SubGroupMember(SQLModel, table=True):
     """
     Appartenance d'un servant a un sous-groupe.
 
     Un servant peut appartenir a un seul sous-groupe actif a la fois.
     """
+
     __tablename__ = "sub_group_members"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -64,4 +67,3 @@ class SubGroupMember(SQLModel, table=True):
     added_by: UUID = Field(foreign_key="users.id")
     joined_at: datetime = Field(default_factory=utc_now)
     left_at: Optional[datetime] = Field(default=None)
-

@@ -12,23 +12,23 @@ Couvre :
 - Interdiction d'acces aux non-responsables
 - Validation des categories par poste
 """
-import pytest
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
-from tests.conftest import VALID_PASSWORD, make_auth_header
+from src.core.entities.event import Event, EventStatus, EventType
 from src.core.entities.responsable import (
+    ActionCategory,
+    ActionStatus,
     Nomination,
     NominationStatus,
     PosteAction,
     PosteResponsable,
-    ActionCategory,
-    ActionStatus,
 )
-from src.core.entities.event import Event, EventType, EventStatus
 from src.core.entities.user import User, UserRole
+from tests.conftest import VALID_PASSWORD, make_auth_header
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -218,13 +218,22 @@ class TestNominations:
     ):
         """Tous les postes de l'enum sont acceptes."""
         postes = [
-            "CONSEILLER", "DELEGUE", "VICE_DELEGUE",
-            "SECRETAIRE_GENERAL", "SECRETAIRE_GENERAL_ADJOINT",
-            "CENSEUR", "CENSEUR_ADJOINT", "ECONOME",
-            "COMMISSAIRE_AUX_COMPTES", "CHARGE_LITURGIE",
-            "CHARGE_LITURGIE_ADJOINT", "CEREMONIAIRE",
-            "CHARGE_CLASSEMENT_DIMANCHE", "CHARGE_CLASSEMENT_SEMAINE",
-            "INTENDANT", "CHARGE_SPORT_CULTURE",
+            "CONSEILLER",
+            "DELEGUE",
+            "VICE_DELEGUE",
+            "SECRETAIRE_GENERAL",
+            "SECRETAIRE_GENERAL_ADJOINT",
+            "CENSEUR",
+            "CENSEUR_ADJOINT",
+            "ECONOME",
+            "COMMISSAIRE_AUX_COMPTES",
+            "CHARGE_LITURGIE",
+            "CHARGE_LITURGIE_ADJOINT",
+            "CEREMONIAIRE",
+            "CHARGE_CLASSEMENT_DIMANCHE",
+            "CHARGE_CLASSEMENT_SEMAINE",
+            "INTENDANT",
+            "CHARGE_SPORT_CULTURE",
         ]
         # Just verify the first one works (others would conflict)
         resp = await client.post(
@@ -600,14 +609,22 @@ class TestPosteActionCreate:
     ):
         """Tous les slugs sont valides (dashboard accessible par aumonier)."""
         slugs = [
-            "conseiller", "delegue", "vice-delegue",
-            "secretariat", "secretariat-adjoint",
-            "censeur", "censeur-adjoint",
-            "economat", "finances",
-            "liturgie", "liturgie-adjoint",
+            "conseiller",
+            "delegue",
+            "vice-delegue",
+            "secretariat",
+            "secretariat-adjoint",
+            "censeur",
+            "censeur-adjoint",
+            "economat",
+            "finances",
+            "liturgie",
+            "liturgie-adjoint",
             "ceremoniaire",
-            "classement-dimanche", "classement-semaine",
-            "intendance", "sport-culture",
+            "classement-dimanche",
+            "classement-semaine",
+            "intendance",
+            "sport-culture",
         ]
         for slug in slugs:
             resp = await client.get(
@@ -955,4 +972,3 @@ class TestResponsableWorkflow:
         )
         assert resp.status_code == 201
         assert resp.json()["user_first_name"] == "Pierre"
-

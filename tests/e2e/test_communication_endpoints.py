@@ -12,15 +12,14 @@ Couvre :
 - Historique admin
 - Controle d'acces (RBAC)
 """
-import pytest
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header
-from src.core.entities.user import User
 from src.core.entities.notification import Notification, NotificationPreference
-
+from src.core.entities.user import User
+from tests.conftest import make_auth_header
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  ENVOI INDIVIDUEL
@@ -416,9 +415,7 @@ class TestNotificationStats:
     """Tests pour les statistiques de notifications."""
 
     @pytest.mark.asyncio
-    async def test_get_stats_empty(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_get_stats_empty(self, client: AsyncClient, servant_user: User):
         resp = await client.get(
             "/api/v1/communication/me/stats",
             headers=make_auth_header(servant_user),
@@ -475,9 +472,7 @@ class TestNotificationPreferences:
             assert "in_app_enabled" in pref
 
     @pytest.mark.asyncio
-    async def test_update_preference(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_update_preference(self, client: AsyncClient, servant_user: User):
         resp = await client.put(
             "/api/v1/communication/me/preferences",
             json={
@@ -689,4 +684,3 @@ class TestNotificationWorkflow:
         assert history_resp.status_code == 200
         hist_ids = [n["id"] for n in history_resp.json()["items"]]
         assert notif_id in hist_ids
-

@@ -75,7 +75,9 @@ class UserService:
         L'ancien mot de passe est requis pour verification.
         """
         # Verifier l'ancien mot de passe
-        if not SecurityUtils.verify_password(data.current_password, user.hashed_password):
+        if not SecurityUtils.verify_password(
+            data.current_password, user.hashed_password
+        ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Le mot de passe actuel est incorrect.",

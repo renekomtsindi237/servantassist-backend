@@ -21,10 +21,16 @@ class UserBase(SQLModel):
     last_name: str
     role: UserRole = Field(default=UserRole.SERVANT)
     is_active: bool = Field(default=True)
-    phone_number: Optional[str] = Field(default=None, index=True)  # Indexed for PARENT/SERVANT login
+    phone_number: Optional[str] = Field(
+        default=None, index=True
+    )  # Indexed for PARENT/SERVANT login
     profile_photo_url: Optional[str] = Field(default=None)  # URL de la photo de profil
-    birth_date: Optional[datetime] = Field(default=None)   # Pour les règles d'âge (Art 19, 26)
-    baptism_date: Optional[datetime] = Field(default=None) # Art 19 : être chrétien baptisé
+    birth_date: Optional[datetime] = Field(
+        default=None
+    )  # Pour les règles d'âge (Art 19, 26)
+    baptism_date: Optional[datetime] = Field(
+        default=None
+    )  # Art 19 : être chrétien baptisé
 
 
 class User(UserBase, table=True):
@@ -34,5 +40,9 @@ class User(UserBase, table=True):
     hashed_password: str
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
-    created_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # Admin who created this user
-    invited_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # For PARENT: who sent invitation
+    created_by: Optional[UUID] = Field(
+        default=None, foreign_key="users.id"
+    )  # Admin who created this user
+    invited_by: Optional[UUID] = Field(
+        default=None, foreign_key="users.id"
+    )  # For PARENT: who sent invitation

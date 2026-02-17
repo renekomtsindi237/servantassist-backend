@@ -7,12 +7,13 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlmodel import Field, SQLModel, JSON
 from sqlalchemy import Column
+from sqlmodel import JSON, Field, SQLModel
 
 
 class TrainingLevel(str, Enum):
     """Niveau de formation."""
+
     DEBUTANT = "DEBUTANT"  # Nouveaux servants
     INTERMEDIAIRE = "INTERMEDIAIRE"  # Servants confirmés
     AVANCE = "AVANCE"  # Servants expérimentés
@@ -21,6 +22,7 @@ class TrainingLevel(str, Enum):
 
 class TrainingStatus(str, Enum):
     """Statut de la session de formation."""
+
     PLANIFIEE = "PLANIFIEE"  # Session planifiée
     EN_COURS = "EN_COURS"  # Session en cours
     TERMINEE = "TERMINEE"  # Session terminée
@@ -29,6 +31,7 @@ class TrainingStatus(str, Enum):
 
 class MaterialType(str, Enum):
     """Type de matériel pédagogique."""
+
     DOCUMENT = "DOCUMENT"  # Document PDF, Word, etc.
     VIDEO = "VIDEO"  # Vidéo de démonstration
     QUIZ = "QUIZ"  # Quiz d'évaluation
@@ -38,6 +41,7 @@ class MaterialType(str, Enum):
 
 class ParticipationStatus(str, Enum):
     """Statut de participation."""
+
     INSCRIT = "INSCRIT"  # Inscrit à la session
     PRESENT = "PRESENT"  # Présent à la session
     ABSENT = "ABSENT"  # Absent à la session
@@ -48,6 +52,7 @@ class TrainingSession(SQLModel, table=True):
     """
     Session de formation liturgique.
     """
+
     __tablename__ = "training_sessions"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -76,6 +81,7 @@ class TrainingParticipation(SQLModel, table=True):
     """
     Participation d'un servant à une session de formation.
     """
+
     __tablename__ = "training_participations"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -100,6 +106,7 @@ class TrainingMaterial(SQLModel, table=True):
     """
     Matériel pédagogique pour les formations.
     """
+
     __tablename__ = "training_materials"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -124,6 +131,7 @@ class SessionMaterial(SQLModel, table=True):
     """
     Association entre une session et un matériel.
     """
+
     __tablename__ = "training_session_materials"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -137,7 +145,7 @@ class SessionMaterial(SQLModel, table=True):
 class TrainingStats(BaseModel):
     """
     Statistiques de formation d'un servant.
-    
+
     Attributes:
         servant_id: ID du servant
         servant_name: Nom du servant
@@ -149,6 +157,7 @@ class TrainingStats(BaseModel):
         certificates_earned: Nombre de certificats obtenus
         last_training_date: Date de la dernière formation
     """
+
     servant_id: UUID
     servant_name: str
     total_sessions: int
@@ -166,7 +175,7 @@ class TrainingStats(BaseModel):
 class TrainingReport(BaseModel):
     """
     Rapport de formation.
-    
+
     Attributes:
         id: Identifiant unique
         start_date: Date de début de la période
@@ -183,6 +192,7 @@ class TrainingReport(BaseModel):
         watermark_logo: Logo en filigrane
         generated_at: Date de génération
     """
+
     id: UUID = Field(default_factory=uuid4)
     start_date: datetime
     end_date: datetime

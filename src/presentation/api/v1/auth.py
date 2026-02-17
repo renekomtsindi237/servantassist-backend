@@ -1,25 +1,25 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.auth_service import AuthService
 from src.core.entities.user import UserRole
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.repositories.invitation_repository import InvitationCodeRepository
+from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.security.brute_force import brute_force_guard
 from src.presentation.schemas.auth import (
+    ForgotPasswordRequest,
+    RefreshTokenRequest,
+    ResetPasswordRequest,
     Token,
-    UserLogin,
-    UserPhoneLogin,
     UserCreate,
     UserCreateWithInvite,
+    UserLogin,
+    UserPhoneLogin,
     UserResponse,
-    RefreshTokenRequest,
-    ForgotPasswordRequest,
-    ResetPasswordRequest,
 )
 
 router = APIRouter()
@@ -116,7 +116,9 @@ async def login_with_phone(
     return await auth_service.create_tokens(user)
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register_user(
     user_data: UserCreateWithInvite,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -193,5 +195,7 @@ async def reset_password(
     auth_service = AuthService(user_repo)
     email_service = EmailService()
 
-    await auth_service.reset_password(request.token, request.new_password, email_service)
+    await auth_service.reset_password(
+        request.token, request.new_password, email_service
+    )
     return {"message": "Password has been reset successfully."}

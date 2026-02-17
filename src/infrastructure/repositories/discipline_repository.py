@@ -6,8 +6,8 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import func
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.core.entities.discipline import (
     DisciplineCase,
@@ -83,10 +83,12 @@ class DisciplineCaseRepository:
             stmt = select(func.count()).where(
                 DisciplineCase.accused_user_id == user_id,
                 DisciplineCase.sanction_type == st,
-                DisciplineCase.status.in_([
-                    DisciplineCaseStatus.VERDICT_RENDU,
-                    DisciplineCaseStatus.EXECUTE,
-                ]),
+                DisciplineCase.status.in_(
+                    [
+                        DisciplineCaseStatus.VERDICT_RENDU,
+                        DisciplineCaseStatus.EXECUTE,
+                    ]
+                ),
             )
             result = await self.session.exec(stmt)
             counts[st.value] = result.one()
@@ -174,4 +176,3 @@ class DisciplineCaseRepository:
             await self.session.commit()
             return True
         return False
-

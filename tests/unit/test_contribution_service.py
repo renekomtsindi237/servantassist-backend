@@ -1,25 +1,17 @@
 """
 Tests unitaires pour le service de contributions (ECONOME).
 """
-import pytest
 from datetime import datetime, timezone
-from uuid import uuid4
 from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
 
+import pytest
 from fastapi import HTTPException
 
 from src.application.services.contribution_service import ContributionService
-from src.core.entities.contribution import (
-    Contribution,
-    PaymentMode,
-    PaymentStatus,
-)
+from src.core.entities.contribution import Contribution, PaymentMode, PaymentStatus
 from src.core.entities.user import User, UserRole
-from src.presentation.schemas.contribution import (
-    ContributionCreate,
-    ContributionUpdate,
-    FinancialReportRequest,
-)
+from src.presentation.schemas.contribution import ContributionCreate, ContributionUpdate, FinancialReportRequest
 
 
 @pytest.fixture

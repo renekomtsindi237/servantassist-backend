@@ -12,8 +12,8 @@
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
 import pytest
-from jose import jwt
 from httpx import AsyncClient
+from jose import jwt
 
 from src.infrastructure.config.settings import get_settings
 
@@ -134,4 +134,3 @@ class TestServantRegistrationAndLogin:
         resp2 = await client.post("/api/v1/auth/register", json=data2)
         assert resp2.status_code == 400
         assert "phone" in resp2.json()["detail"].lower()
-

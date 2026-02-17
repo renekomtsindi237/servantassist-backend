@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.event_service import EventService
@@ -32,10 +32,7 @@ from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.event_repository import EventRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    get_current_admin_or_aumonier,
-)
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
 from src.presentation.schemas.event import (
     EventCreate,
     EventDetailResponse,
@@ -68,10 +65,14 @@ async def list_events(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
     event_type: Optional[EventType] = Query(None, description="Filtrer par type"),
-    event_status: Optional[EventStatus] = Query(None, alias="status", description="Filtrer par statut"),
+    event_status: Optional[EventStatus] = Query(
+        None, alias="status", description="Filtrer par statut"
+    ),
     start_date: Optional[datetime] = Query(None, description="Date de debut minimum"),
     end_date: Optional[datetime] = Query(None, description="Date de debut maximum"),
-    search: Optional[str] = Query(None, max_length=100, description="Recherche par titre ou lieu"),
+    search: Optional[str] = Query(
+        None, max_length=100, description="Recherche par titre ou lieu"
+    ),
     page: int = Query(1, ge=1, description="Numero de page"),
     page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
 ):
@@ -121,7 +122,9 @@ async def get_event(
     return await service.get_event(event_id)
 
 
-@router.post("/", response_model=EventDetailResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=EventDetailResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_event(
     event_data: EventCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],

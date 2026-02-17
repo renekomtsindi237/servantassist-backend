@@ -7,12 +7,13 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlmodel import Field, SQLModel, JSON
 from sqlalchemy import Column
+from sqlmodel import JSON, Field, SQLModel
 
 
 class EventType(str, Enum):
     """Type d'événement."""
+
     JOURNEE_SPORTIVE = "JOURNEE_SPORTIVE"  # Journée sportive mensuelle
     TOURNOI = "TOURNOI"  # Tournoi sportif
     MATCH = "MATCH"  # Match amical
@@ -24,6 +25,7 @@ class EventType(str, Enum):
 
 class EventStatus(str, Enum):
     """Statut de l'événement."""
+
     PLANIFIE = "PLANIFIE"  # Événement planifié
     OUVERT = "OUVERT"  # Inscriptions ouvertes
     COMPLET = "COMPLET"  # Inscriptions complètes
@@ -34,6 +36,7 @@ class EventStatus(str, Enum):
 
 class SportType(str, Enum):
     """Type de sport."""
+
     FOOTBALL = "FOOTBALL"
     BASKETBALL = "BASKETBALL"
     VOLLEYBALL = "VOLLEYBALL"
@@ -46,6 +49,7 @@ class SportType(str, Enum):
 
 class ParticipationStatus(str, Enum):
     """Statut de participation."""
+
     INSCRIT = "INSCRIT"  # Inscrit
     CONFIRME = "CONFIRME"  # Présence confirmée
     PRESENT = "PRESENT"  # Présent
@@ -55,6 +59,7 @@ class ParticipationStatus(str, Enum):
 
 class ResultType(str, Enum):
     """Type de résultat."""
+
     VICTOIRE = "VICTOIRE"
     DEFAITE = "DEFAITE"
     NUL = "NUL"
@@ -66,6 +71,7 @@ class SportCultureEvent(SQLModel, table=True):
     """
     Événement sportif ou culturel.
     """
+
     __tablename__ = "sport_culture_events"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -93,6 +99,7 @@ class EventParticipation(SQLModel, table=True):
     """
     Participation à un événement.
     """
+
     __tablename__ = "sport_culture_participations"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -115,6 +122,7 @@ class EventResult(SQLModel, table=True):
     """
     Résultat d'un événement sportif.
     """
+
     __tablename__ = "sport_culture_results"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -135,6 +143,7 @@ class EventTeam(SQLModel, table=True):
     """
     Équipe pour un événement sportif.
     """
+
     __tablename__ = "sport_culture_teams"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -142,8 +151,12 @@ class EventTeam(SQLModel, table=True):
     team_name: str = Field(min_length=1, max_length=100)
     captain_id: UUID = Field(foreign_key="users.id")
     captain_name: Optional[str] = None  # Enrichi
-    members: List[str] = Field(default_factory=list, sa_column=Column(JSON))  # Changed to List[str] for JSON serialization
-    members_names: List[str] = Field(default_factory=list, sa_column=Column(JSON))  # Enrichi
+    members: List[str] = Field(
+        default_factory=list, sa_column=Column(JSON)
+    )  # Changed to List[str] for JSON serialization
+    members_names: List[str] = Field(
+        default_factory=list, sa_column=Column(JSON)
+    )  # Enrichi
     created_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -151,7 +164,7 @@ class EventTeam(SQLModel, table=True):
 class SportCultureReport(BaseModel):
     """
     Rapport d'activités sportives et culturelles.
-    
+
     Attributes:
         id: Identifiant unique
         start_date: Date de début de la période
@@ -168,6 +181,7 @@ class SportCultureReport(BaseModel):
         watermark_logo: Logo en filigrane
         generated_at: Date de génération
     """
+
     id: UUID = Field(default_factory=uuid4)
     start_date: datetime
     end_date: datetime

@@ -8,19 +8,19 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import func, or_
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.core.entities.event import Event
 from src.core.entities.responsable import (
+    POSTE_MISSIONS,
+    POSTE_TO_SLUG,
     ActionCategory,
     ActionStatus,
     Nomination,
     NominationStatus,
     PosteAction,
     PosteResponsable,
-    POSTE_MISSIONS,
-    POSTE_TO_SLUG,
 )
 from src.core.entities.user import User
 
@@ -38,7 +38,9 @@ class NominationRepository:
         result = await self.session.exec(stmt)
         return result.first()
 
-    async def get_active_by_poste(self, poste: PosteResponsable) -> Optional[Nomination]:
+    async def get_active_by_poste(
+        self, poste: PosteResponsable
+    ) -> Optional[Nomination]:
         """Retourne la nomination active pour un poste donne (ou None)."""
         stmt = select(Nomination).where(
             Nomination.poste == poste,
@@ -178,7 +180,9 @@ class PosteActionRepository:
         total = count_result.one()
 
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        stmt = (
+            stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        )
 
         result = await self.session.exec(stmt)
         return result.all(), total
@@ -209,7 +213,9 @@ class PosteActionRepository:
 
         # Paginer et trier
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        stmt = (
+            stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        )
 
         result = await self.session.exec(stmt)
         items = result.all()
@@ -235,7 +241,7 @@ class PosteActionRepository:
     ) -> Dict:
         """Liste les actions visibles pour un utilisateur (ses actions + actions publiées)."""
         from sqlalchemy import or_
-        
+
         stmt = select(PosteAction).where(
             or_(
                 PosteAction.created_by == user_id,
@@ -257,7 +263,9 @@ class PosteActionRepository:
 
         # Paginer et trier
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        stmt = (
+            stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        )
 
         result = await self.session.exec(stmt)
         items = result.all()
@@ -399,11 +407,11 @@ class PosteActionRepository:
         action = await self.get(action_id)
         if not action:
             return None
-        
+
         for key, value in data.items():
             if hasattr(action, key) and value is not None:
                 setattr(action, key, value)
-        
+
         action.updated_at = datetime.now(timezone.utc)
         self.session.add(action)
         await self.session.commit()
@@ -419,4 +427,3 @@ class PosteActionRepository:
             await self.session.commit()
             return True
         return False
-

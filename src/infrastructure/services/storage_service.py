@@ -24,7 +24,6 @@ from loguru import logger
 
 from src.infrastructure.config.settings import get_settings
 
-
 # Taille max de la photo de profil (5 Mo)
 MAX_PROFILE_PHOTO_SIZE = 5 * 1024 * 1024
 ALLOWED_CONTENT_TYPES = {
@@ -162,9 +161,7 @@ class StorageService:
         filepath = LOCAL_UPLOAD_DIR / object_key.split("/")[-1]
         filepath.write_bytes(file_data)
         url = f"/uploads/profile_photos/{filepath.name}"
-        logger.info(
-            "Fichier sauvegarde localement | path={path}", path=str(filepath)
-        )
+        logger.info("Fichier sauvegarde localement | path={path}", path=str(filepath))
         return url
 
     async def _delete_local(self, object_key: str) -> None:
@@ -173,9 +170,7 @@ class StorageService:
         filepath = LOCAL_UPLOAD_DIR / filename
         if filepath.exists():
             filepath.unlink()
-            logger.info(
-                "Fichier local supprime | path={path}", path=str(filepath)
-            )
+            logger.info("Fichier local supprime | path={path}", path=str(filepath))
 
     # ── API publique ─────────────────────────────────────────────────────
 
@@ -247,9 +242,7 @@ class StorageService:
 
         # Mode test
         if self._is_testing:
-            logger.info(
-                "Suppression simulee (testing) | url={url}", url=photo_url
-            )
+            logger.info("Suppression simulee (testing) | url={url}", url=photo_url)
             return
 
         # URL R2 : extraire bucket + object_key

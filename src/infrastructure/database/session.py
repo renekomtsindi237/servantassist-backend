@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional, Any
+from typing import Any, AsyncGenerator, Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 
 from src.infrastructure.config.settings import get_settings
@@ -56,9 +56,10 @@ class DatabaseSessionManager:
 # Assuming DATABASE_URL might be provided or constructed.
 # For AsyncPG we need postgresql+asyncpg://...
 
+
 def get_db_url():
     if settings.DATABASE_URL:
-         return settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+        return settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
     return f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 
 

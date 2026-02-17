@@ -9,9 +9,15 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.entities.material import (
-    MaterialItem, CleaningTask, TaskAssignment, AubeTask,
-    MaintenanceHistory, MaterialCategory, MaterialCondition,
-    TaskType, TaskStatus
+    AubeTask,
+    CleaningTask,
+    MaintenanceHistory,
+    MaterialCategory,
+    MaterialCondition,
+    MaterialItem,
+    TaskAssignment,
+    TaskStatus,
+    TaskType,
 )
 from src.core.entities.user import User, UserRole
 
@@ -95,10 +101,11 @@ class MaterialItemRepository:
         result = await self.session.execute(
             select(MaterialItem).where(
                 (MaterialItem.next_maintenance_date <= now)
-                | (MaterialItem.condition.in_([
-                    MaterialCondition.A_NETTOYER,
-                    MaterialCondition.A_REPARER
-                ]))
+                | (
+                    MaterialItem.condition.in_(
+                        [MaterialCondition.A_NETTOYER, MaterialCondition.A_REPARER]
+                    )
+                )
             )
         )
         return list(result.scalars().all())
@@ -244,9 +251,7 @@ class TaskAssignmentRepository:
         await self.session.commit()
         return True
 
-    async def enrich_assignment(
-        self, assignment: TaskAssignment
-    ) -> TaskAssignment:
+    async def enrich_assignment(self, assignment: TaskAssignment) -> TaskAssignment:
         """Enrichit une assignation avec les noms."""
         # Récupérer le nom du servant
         servant_result = await self.session.execute(

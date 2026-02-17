@@ -9,7 +9,6 @@ from httpx import AsyncClient
 
 from tests.conftest import VALID_PASSWORD, make_auth_header
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  TEMPS DE RÉPONSE — ENDPOINTS INDIVIDUELS
 # ═══════════════════════════════════════════════════════════════════════════
@@ -26,21 +25,24 @@ class TestResponseTime:
         )
         elapsed_ms = (time.perf_counter() - start) * 1000
         assert resp.status_code == 200
-        assert elapsed_ms < MAX_RESPONSE_TIME_MS, (
-            f"Login email trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
-        )
+        assert (
+            elapsed_ms < MAX_RESPONSE_TIME_MS
+        ), f"Login email trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
     async def test_login_phone_response_time(self, client: AsyncClient, servant_user):
         start = time.perf_counter()
         resp = await client.post(
             "/api/v1/auth/login/phone",
-            json={"phone_number": servant_user.phone_number, "password": VALID_PASSWORD},
+            json={
+                "phone_number": servant_user.phone_number,
+                "password": VALID_PASSWORD,
+            },
         )
         elapsed_ms = (time.perf_counter() - start) * 1000
         assert resp.status_code == 200
-        assert elapsed_ms < MAX_RESPONSE_TIME_MS, (
-            f"Login phone trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
-        )
+        assert (
+            elapsed_ms < MAX_RESPONSE_TIME_MS
+        ), f"Login phone trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
     async def test_register_response_time(self, client: AsyncClient):
         start = time.perf_counter()
@@ -57,9 +59,9 @@ class TestResponseTime:
         )
         elapsed_ms = (time.perf_counter() - start) * 1000
         assert resp.status_code == 201
-        assert elapsed_ms < MAX_RESPONSE_TIME_MS, (
-            f"Register trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
-        )
+        assert (
+            elapsed_ms < MAX_RESPONSE_TIME_MS
+        ), f"Register trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
     async def test_refresh_token_response_time(self, client: AsyncClient, admin_user):
         # Obtenir un refresh token
@@ -76,9 +78,9 @@ class TestResponseTime:
         )
         elapsed_ms = (time.perf_counter() - start) * 1000
         assert resp.status_code == 200
-        assert elapsed_ms < MAX_RESPONSE_TIME_MS, (
-            f"Refresh trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
-        )
+        assert (
+            elapsed_ms < MAX_RESPONSE_TIME_MS
+        ), f"Refresh trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
     async def test_admin_list_invitations_response_time(
         self, client: AsyncClient, admin_user, valid_invitation
@@ -90,9 +92,9 @@ class TestResponseTime:
         )
         elapsed_ms = (time.perf_counter() - start) * 1000
         assert resp.status_code == 200
-        assert elapsed_ms < MAX_RESPONSE_TIME_MS, (
-            f"List invitations trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
-        )
+        assert (
+            elapsed_ms < MAX_RESPONSE_TIME_MS
+        ), f"List invitations trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -115,13 +117,13 @@ class TestConcurrentLoad:
         total_ms = (time.perf_counter() - start) * 1000
 
         success = [r for r in results if r.status_code == 200]
-        assert len(success) == CONCURRENT, (
-            f"Seulement {len(success)}/{CONCURRENT} logins réussis"
-        )
+        assert (
+            len(success) == CONCURRENT
+        ), f"Seulement {len(success)}/{CONCURRENT} logins réussis"
         avg_ms = total_ms / CONCURRENT
-        assert avg_ms < MAX_RESPONSE_TIME_MS, (
-            f"Moyenne par login concurrent : {avg_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
-        )
+        assert (
+            avg_ms < MAX_RESPONSE_TIME_MS
+        ), f"Moyenne par login concurrent : {avg_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
     async def test_sequential_registrations_throughput(self, client: AsyncClient):
         """10 inscriptions séquentielles — mesure le débit.
@@ -145,13 +147,15 @@ class TestConcurrentLoad:
                     "role": "SERVANT",
                 },
             )
-            assert resp.status_code == 201, f"Registration {i} failed: {resp.status_code}"
+            assert (
+                resp.status_code == 201
+            ), f"Registration {i} failed: {resp.status_code}"
 
         total_ms = (time.perf_counter() - start) * 1000
         avg_ms = total_ms / COUNT
-        assert avg_ms < MAX_RESPONSE_TIME_MS, (
-            f"Moyenne par inscription : {avg_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
-        )
+        assert (
+            avg_ms < MAX_RESPONSE_TIME_MS
+        ), f"Moyenne par inscription : {avg_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
     async def test_concurrent_token_refresh(self, client: AsyncClient, admin_user):
         """10 refresh simultanés avec le même refresh token."""
@@ -185,7 +189,9 @@ class TestConcurrentLoad:
 
         results = await asyncio.gather(*[_bad_login(i) for i in range(CONCURRENT)])
         errors_401 = [r for r in results if r.status_code == 401]
-        assert len(errors_401) == CONCURRENT, "Tous les logins échoués doivent retourner 401"
+        assert (
+            len(errors_401) == CONCURRENT
+        ), "Tous les logins échoués doivent retourner 401"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -208,4 +214,3 @@ class TestThroughput:
 
         # Au minimum 3 logins en 2s (conservateur pour env de test async)
         assert count >= 3, f"Seulement {count} logins en 2s — trop lent"
-

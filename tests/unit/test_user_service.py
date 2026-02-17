@@ -1,10 +1,10 @@
 """
 Tests unitaires — UserService (profil, mot de passe, admin).
 """
-import pytest
-import pytest_asyncio
 from uuid import uuid4
 
+import pytest
+import pytest_asyncio
 from fastapi import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -130,19 +130,25 @@ class TestChangePassword:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestListUsers:
-    async def test_list_returns_all_users(self, db_session, admin_user, servant_user, parent_user):
+    async def test_list_returns_all_users(
+        self, db_session, admin_user, servant_user, parent_user
+    ):
         service = _make_service(db_session)
         result = await service.list_users(page=1, page_size=50)
         assert result.total >= 3
         assert len(result.items) >= 3
 
-    async def test_filter_by_role(self, db_session, admin_user, servant_user, parent_user):
+    async def test_filter_by_role(
+        self, db_session, admin_user, servant_user, parent_user
+    ):
         service = _make_service(db_session)
         result = await service.list_users(role=UserRole.SERVANT)
         for u in result.items:
             assert u.role == UserRole.SERVANT
 
-    async def test_filter_by_active(self, db_session, admin_user, servant_user, inactive_user):
+    async def test_filter_by_active(
+        self, db_session, admin_user, servant_user, inactive_user
+    ):
         service = _make_service(db_session)
         result = await service.list_users(is_active=False)
         for u in result.items:
@@ -191,7 +197,9 @@ class TestAdminUpdateUser:
         )
         assert updated.email == "newemail@test.com"
 
-    async def test_admin_email_conflict(self, db_session, admin_user, servant_user, parent_user):
+    async def test_admin_email_conflict(
+        self, db_session, admin_user, servant_user, parent_user
+    ):
         service = _make_service(db_session)
         with pytest.raises(HTTPException) as exc:
             await service.admin_update_user(
@@ -230,7 +238,9 @@ class TestActivateDeactivate:
         result = await service.deactivate_user(servant_user.id, admin_user)
         assert result.is_active is False
 
-    async def test_deactivate_already_inactive(self, db_session, admin_user, inactive_user):
+    async def test_deactivate_already_inactive(
+        self, db_session, admin_user, inactive_user
+    ):
         service = _make_service(db_session)
         with pytest.raises(HTTPException) as exc:
             await service.deactivate_user(inactive_user.id, admin_user)
@@ -286,7 +296,9 @@ class TestDeleteUser:
             await service.delete_user(admin_user.id, admin_user)
         assert exc.value.status_code == 400
 
-    async def test_delete_last_admin_rejected(self, db_session, admin_user, servant_user):
+    async def test_delete_last_admin_rejected(
+        self, db_session, admin_user, servant_user
+    ):
         """Le dernier admin ne peut pas etre supprime."""
         # Creer un second admin pour le test
         service = _make_service(db_session)
@@ -300,4 +312,3 @@ class TestDeleteUser:
         with pytest.raises(HTTPException) as exc:
             await service.delete_user(uuid4(), admin_user)
         assert exc.value.status_code == 404
-

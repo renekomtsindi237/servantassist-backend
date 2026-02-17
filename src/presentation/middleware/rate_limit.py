@@ -39,6 +39,7 @@ _DEFAULT_LIMIT: Tuple[int, int] = (60, 60)  # 60 req/min
 #  Backend In-Memory
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class _InMemoryTokenBucket:
     """Compteur par IP avec fenetre glissante (fallback in-memory)."""
 
@@ -66,8 +67,7 @@ class _InMemoryTokenBucket:
     def cleanup(self, max_age: int = 300):
         now = time.monotonic()
         keys_to_delete = [
-            k for k, v in self._store.items()
-            if not v or now - v[-1] > max_age
+            k for k, v in self._store.items() if not v or now - v[-1] > max_age
         ]
         for k in keys_to_delete:
             del self._store[k]
@@ -77,6 +77,7 @@ class _InMemoryTokenBucket:
 #  Backend Redis
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class _RedisTokenBucket:
     """Rate limiter avec Redis comme backend (fenetre glissante avec sorted sets)."""
 
@@ -85,9 +86,12 @@ class _RedisTokenBucket:
     def __init__(self, redis_client):
         self._redis = redis_client
 
-    async def is_allowed(self, key: str, max_requests: int, window: int) -> Tuple[bool, int]:
+    async def is_allowed(
+        self, key: str, max_requests: int, window: int
+    ) -> Tuple[bool, int]:
         """Verifie si la requete est autorisee via Redis sorted set."""
         import time as _time
+
         now = _time.time()
         redis_key = f"{self._PREFIX}{key}"
 
@@ -115,6 +119,7 @@ class _RedisTokenBucket:
 #  Facade
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class RateLimiter:
     """
     Rate limiter qui utilise Redis si disponible, sinon fallback in-memory.
@@ -134,7 +139,9 @@ class RateLimiter:
         else:
             logger.warning("Rate limiter: Redis non disponible, fallback in-memory")
 
-    async def is_allowed(self, key: str, max_requests: int, window: int) -> Tuple[bool, int]:
+    async def is_allowed(
+        self, key: str, max_requests: int, window: int
+    ) -> Tuple[bool, int]:
         if self._use_redis and self._redis_backend:
             return await self._redis_backend.is_allowed(key, max_requests, window)
         return self._memory_backend.is_allowed(key, max_requests, window)
@@ -147,6 +154,7 @@ rate_limiter = RateLimiter()
 # ═══════════════════════════════════════════════════════════════════════════
 #  Middleware
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Applique le rate limiting par IP sur les endpoints sensibles."""

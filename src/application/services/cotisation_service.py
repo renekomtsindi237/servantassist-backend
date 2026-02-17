@@ -14,17 +14,9 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from src.core.entities.cotisation import (
-    CotisationPeriod,
-    CotisationStatus,
-    CotisationType,
-    MemberCotisation,
-)
+from src.core.entities.cotisation import CotisationPeriod, CotisationStatus, CotisationType, MemberCotisation
 from src.core.entities.user import UserRole
-from src.infrastructure.repositories.cotisation_repository import (
-    CotisationPeriodRepository,
-    MemberCotisationRepository,
-)
+from src.infrastructure.repositories.cotisation_repository import CotisationPeriodRepository, MemberCotisationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.schemas.cotisation import (
     CotisationBilanResponse,
@@ -250,9 +242,7 @@ class CotisationService:
         enriched = await self.payment_repo.enrich_cotisations(payments)
         return [MemberCotisationResponse(**e) for e in enriched]
 
-    async def get_user_payments(
-        self, user_id: UUID
-    ) -> List[MemberCotisationResponse]:
+    async def get_user_payments(self, user_id: UUID) -> List[MemberCotisationResponse]:
         payments = await self.payment_repo.list_by_user(user_id)
         enriched = await self.payment_repo.enrich_cotisations(payments)
         return [MemberCotisationResponse(**e) for e in enriched]
@@ -284,4 +274,3 @@ class CotisationService:
             total_remaining=total_remaining,
             taux_recouvrement=round(taux, 1),
         )
-

@@ -18,17 +18,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.entities.notification import (
-    NotificationChannel,
-    NotificationStatus,
-    NotificationType,
-)
+from src.application.services.notification_service import NotificationService
+from src.core.entities.notification import NotificationChannel, NotificationStatus, NotificationType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    get_current_admin_or_aumonier,
-)
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
 from src.presentation.schemas.notification import (
     BroadcastResponse,
     NotificationBroadcast,
@@ -39,7 +33,6 @@ from src.presentation.schemas.notification import (
     NotificationSend,
     NotificationStatsResponse,
 )
-from src.application.services.notification_service import NotificationService
 
 router = APIRouter()
 
@@ -51,6 +44,7 @@ def _get_service(session: AsyncSession) -> NotificationService:
 # ══════════════════════════════════════════════════════════════════════════
 #  Admin / Aumonier : envoi
 # ══════════════════════════════════════════════════════════════════════════
+
 
 @router.post(
     "/notify",
@@ -120,6 +114,7 @@ async def broadcast_notification(
 #  Self-service : notifications de l'utilisateur connecte
 # ══════════════════════════════════════════════════════════════════════════
 
+
 @router.get(
     "/me",
     response_model=list[NotificationResponse],
@@ -177,6 +172,7 @@ async def mark_notifications_read(
 #  Preferences de notification
 # ══════════════════════════════════════════════════════════════════════════
 
+
 @router.get(
     "/me/preferences",
     response_model=list[NotificationPreferenceResponse],
@@ -216,6 +212,7 @@ async def update_my_preference(
 #  Detail d'une notification (APRES les routes statiques /me/*)
 # ══════════════════════════════════════════════════════════════════════════
 
+
 @router.get(
     "/me/{notification_id}",
     response_model=NotificationResponse,
@@ -240,6 +237,7 @@ async def get_my_notification(
 # ══════════════════════════════════════════════════════════════════════════
 #  Historique admin
 # ══════════════════════════════════════════════════════════════════════════
+
 
 @router.get(
     "/history",

@@ -17,27 +17,27 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
+from src.core.entities.council_meeting import CouncilAttendance, CouncilAttendanceStatus, CouncilMeeting
 from src.core.entities.responsable import (
+    POSTE_ALLOWED_CATEGORIES,
+    POSTE_MISSIONS,
+    POSTE_TO_SLUG,
+    SLUG_TO_POSTE,
     ActionCategory,
     ActionStatus,
     Nomination,
     NominationStatus,
     PosteAction,
     PosteResponsable,
-    POSTE_ALLOWED_CATEGORIES,
-    POSTE_MISSIONS,
-    POSTE_TO_SLUG,
-    SLUG_TO_POSTE,
 )
 from src.core.entities.user import User, UserRole
-from src.infrastructure.repositories.responsable_repository import (
-    NominationRepository,
-    PosteActionRepository,
-)
-from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
-from src.core.entities.council_meeting import CouncilAttendanceStatus
+from src.infrastructure.repositories.responsable_repository import NominationRepository, PosteActionRepository
+from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.schemas.responsable import (
+    CouncilAttendanceRecordList,
+    CouncilMeetingCreate,
+    CouncilMeetingResponse,
     NominationCreate,
     NominationResponse,
     PosteActionCreate,
@@ -46,11 +46,7 @@ from src.presentation.schemas.responsable import (
     PosteDashboardResponse,
     PosteDetailResponse,
     PosteListResponse,
-    CouncilMeetingCreate,
-    CouncilMeetingResponse,
-    CouncilAttendanceRecordList,
 )
-from src.core.entities.council_meeting import CouncilMeeting, CouncilAttendance
 from src.presentation.schemas.user import PaginatedResponse
 
 
@@ -114,7 +110,9 @@ class ResponsableService:
             )
 
         # Verifier que le servant n'occupe pas deja un poste
-        existing_nominations = await self.nomination_repo.get_active_by_user(data.user_id)
+        existing_nominations = await self.nomination_repo.get_active_by_user(
+            data.user_id
+        )
         if existing_nominations:
             postes_occupes = ", ".join(n.poste.value for n in existing_nominations)
             raise HTTPException(
@@ -135,9 +133,7 @@ class ResponsableService:
         enriched = await self.nomination_repo.enrich_nomination(created)
         return NominationResponse(**enriched)
 
-    async def revoke(
-        self, nomination_id: UUID, revoked_by: UUID
-    ) -> NominationResponse:
+    async def revoke(self, nomination_id: UUID, revoked_by: UUID) -> NominationResponse:
         """Revoquer une nomination (l'aumonier retire le poste)."""
         nomination = await self.nomination_repo.get(nomination_id)
         if not nomination:
@@ -204,15 +200,17 @@ class ResponsableService:
                 enriched = await self.nomination_repo.enrich_nomination(nomination)
                 titulaire = NominationResponse(**enriched)
 
-            postes.append(PosteDetailResponse(
-                poste=poste,
-                slug=slug,
-                titre=missions_data.get("titre", poste.value),
-                description=missions_data.get("description", ""),
-                missions=missions_data.get("missions", []),
-                categories_autorisees=categories,
-                titulaire=titulaire,
-            ))
+            postes.append(
+                PosteDetailResponse(
+                    poste=poste,
+                    slug=slug,
+                    titre=missions_data.get("titre", poste.value),
+                    description=missions_data.get("description", ""),
+                    missions=missions_data.get("missions", []),
+                    categories_autorisees=categories,
+                    titulaire=titulaire,
+                )
+            )
 
         return PosteListResponse(
             postes=postes,
@@ -313,8 +311,11 @@ class ResponsableService:
     ) -> PaginatedResponse[PosteActionResponse]:
         """Liste paginee des actions d'un poste."""
         actions, total = await self.action_repo.list_by_poste(
-            poste, category=category, status=action_status,
-            page=page, page_size=page_size,
+            poste,
+            category=category,
+            status=action_status,
+            page=page,
+            page_size=page_size,
         )
         total_pages = math.ceil(total / page_size) if total > 0 else 1
 
@@ -364,21 +365,21 @@ class ResponsableService:
         # Preparer les donnees a mettre a jour
         update_dict = {}
         if data.title is not None:
-            update_dict['title'] = data.title
+            update_dict["title"] = data.title
         if data.content is not None:
-            update_dict['content'] = data.content
+            update_dict["content"] = data.content
         if data.target_user_id is not None:
-            update_dict['target_user_id'] = data.target_user_id
+            update_dict["target_user_id"] = data.target_user_id
         if data.target_event_id is not None:
-            update_dict['target_event_id'] = data.target_event_id
+            update_dict["target_event_id"] = data.target_event_id
         if data.amount is not None:
-            update_dict['amount'] = data.amount
+            update_dict["amount"] = data.amount
         if data.action_date is not None:
-            update_dict['action_date'] = data.action_date
+            update_dict["action_date"] = data.action_date
         if data.status is not None:
-            update_dict['status'] = data.status
+            update_dict["status"] = data.status
         if data.extra_data is not None:
-            update_dict['extra_data'] = data.extra_data
+            update_dict["extra_data"] = data.extra_data
 
         # Appeler le repository avec l'ID et le dictionnaire
         updated = await self.action_repo.update(action_id, update_dict)
@@ -432,25 +433,41 @@ class ResponsableService:
         Vérifie l'assiduité d'un responsable au conseil (Art 15).
         Si 3 absences consécutives -> Destitution.
         """
-        attendances = await self.council_repo.get_responsable_attendances(responsable_id, limit=3)
-        
-        if len(attendances) < 3:
-            return {"responsable_id": responsable_id, "destituted": False, "reason": "Not enough data"}
+        attendances = await self.council_repo.get_responsable_attendances(
+            responsable_id, limit=3
+        )
 
-        is_consecutive_absent = all(a.status == CouncilAttendanceStatus.ABSENT for a in attendances)
-        
+        if len(attendances) < 3:
+            return {
+                "responsable_id": responsable_id,
+                "destituted": False,
+                "reason": "Not enough data",
+            }
+
+        is_consecutive_absent = all(
+            a.status == CouncilAttendanceStatus.ABSENT for a in attendances
+        )
+
         if is_consecutive_absent:
             # Révoquer toutes les nominations actives
-            active_nominations = await self.nomination_repo.get_active_by_user(responsable_id)
+            active_nominations = await self.nomination_repo.get_active_by_user(
+                responsable_id
+            )
             for nom in active_nominations:
                 nom.status = NominationStatus.REVOQUEE
                 nom.revoked_at = datetime.now(timezone.utc)
-                nom.revoked_by = UUID("00000000-0000-0000-0000-000000000000") # System ID (Délégué d'office)
+                nom.revoked_by = UUID(
+                    "00000000-0000-0000-0000-000000000000"
+                )  # System ID (Délégué d'office)
                 nom.notes = "Destitution automatique pour 3 absences consécutives au conseil (Art 15)"
                 await self.nomination_repo.update(nom)
-            
-            return {"responsable_id": responsable_id, "destituted": True, "reason": "3 consecutive absences"}
-        
+
+            return {
+                "responsable_id": responsable_id,
+                "destituted": True,
+                "reason": "3 consecutive absences",
+            }
+
         return {"responsable_id": responsable_id, "destituted": False}
 
     async def create_council_meeting(
@@ -476,7 +493,11 @@ class ResponsableService:
 
         results = []
         for att in data.attendances:
-            status = CouncilAttendanceStatus.PRESENT if att.is_present else CouncilAttendanceStatus.ABSENT
+            status = (
+                CouncilAttendanceStatus.PRESENT
+                if att.is_present
+                else CouncilAttendanceStatus.ABSENT
+            )
             attendance = CouncilAttendance(
                 meeting_id=meeting_id,
                 responsable_id=att.responsable_id,
@@ -485,6 +506,5 @@ class ResponsableService:
             )
             await self.council_repo.save_attendance(attendance)
             results.append({"responsable_id": att.responsable_id, "status": status})
-        
-        return results
 
+        return results

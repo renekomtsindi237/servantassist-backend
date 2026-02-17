@@ -6,14 +6,10 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import func
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
-from src.core.entities.attendance import (
-    Attendance,
-    AttendanceStatus,
-    AttendanceType,
-)
+from src.core.entities.attendance import Attendance, AttendanceStatus, AttendanceType
 from src.core.entities.user import User
 
 
@@ -107,9 +103,7 @@ class AttendanceRepository:
 
     async def enrich_attendance(self, attendance: Attendance) -> Dict:
         user = (
-            await self.session.exec(
-                select(User).where(User.id == attendance.user_id)
-            )
+            await self.session.exec(select(User).where(User.id == attendance.user_id))
         ).first()
 
         return {
@@ -153,4 +147,3 @@ class AttendanceRepository:
             await self.session.commit()
             return True
         return False
-

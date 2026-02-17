@@ -9,8 +9,8 @@ from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import func, or_
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.core.entities.event import Event, EventParticipant, EventStatus, EventType
 from src.core.entities.user import User
@@ -79,7 +79,9 @@ class EventRepository(IRepository[Event]):
 
         # Pagination
         offset = (page - 1) * page_size
-        statement = statement.offset(offset).limit(page_size).order_by(Event.start_time.desc())
+        statement = (
+            statement.offset(offset).limit(page_size).order_by(Event.start_time.desc())
+        )
 
         result = await self.session.exec(statement)
         events = result.all()
@@ -129,9 +131,11 @@ class EventRepository(IRepository[Event]):
         Recupere les participants avec les infos utilisateur.
         Retourne une liste de dictionnaires enrichis.
         """
-        stmt = select(EventParticipant).where(
-            EventParticipant.event_id == event_id
-        ).order_by(EventParticipant.created_at)
+        stmt = (
+            select(EventParticipant)
+            .where(EventParticipant.event_id == event_id)
+            .order_by(EventParticipant.created_at)
+        )
         result = await self.session.exec(stmt)
         participants = result.all()
 
@@ -142,21 +146,23 @@ class EventRepository(IRepository[Event]):
             user_result = await self.session.exec(user_stmt)
             user = user_result.first()
 
-            enriched.append({
-                "id": p.id,
-                "event_id": p.event_id,
-                "user_id": p.user_id,
-                "participant_role": p.participant_role,
-                "status": p.status,
-                "notes": p.notes,
-                "added_by": p.added_by,
-                "user_first_name": user.first_name if user else None,
-                "user_last_name": user.last_name if user else None,
-                "user_email": user.email if user else None,
-                "user_phone": user.phone_number if user else None,
-                "created_at": p.created_at,
-                "updated_at": p.updated_at,
-            })
+            enriched.append(
+                {
+                    "id": p.id,
+                    "event_id": p.event_id,
+                    "user_id": p.user_id,
+                    "participant_role": p.participant_role,
+                    "status": p.status,
+                    "notes": p.notes,
+                    "added_by": p.added_by,
+                    "user_first_name": user.first_name if user else None,
+                    "user_last_name": user.last_name if user else None,
+                    "user_email": user.email if user else None,
+                    "user_phone": user.phone_number if user else None,
+                    "created_at": p.created_at,
+                    "updated_at": p.updated_at,
+                }
+            )
 
         return enriched
 
@@ -215,6 +221,8 @@ class EventRepository(IRepository[Event]):
         if not event_ids:
             return []
 
-        events_stmt = select(Event).where(Event.id.in_(event_ids)).order_by(Event.start_time)
+        events_stmt = (
+            select(Event).where(Event.id.in_(event_ids)).order_by(Event.start_time)
+        )
         events_result = await self.session.exec(events_stmt)
         return events_result.all()

@@ -12,6 +12,7 @@ from sqlmodel import Field, SQLModel
 
 class EntryCategory(str, Enum):
     """Catégorie d'entrée financière."""
+
     CONTRIBUTION = "CONTRIBUTION"  # Contributions des servants
     DONATION = "DON"  # Dons
     EVENT = "EVENEMENT"  # Revenus d'événements
@@ -21,6 +22,7 @@ class EntryCategory(str, Enum):
 
 class EntrySource(str, Enum):
     """Source de l'entrée financière."""
+
     SERVANT = "SERVANT"  # Contribution d'un servant
     EXTERNAL = "EXTERNE"  # Source externe
     EVENT = "EVENEMENT"  # Événement organisé
@@ -30,6 +32,7 @@ class EntrySource(str, Enum):
 
 class VerificationStatus(str, Enum):
     """Statut de vérification."""
+
     PENDING = "EN_ATTENTE"  # En attente de vérification
     VERIFIED = "VERIFIE"  # Vérifié par le commissaire
     REJECTED = "REJETE"  # Rejeté (anomalie détectée)
@@ -39,6 +42,7 @@ class FinancialEntry(SQLModel, table=True):
     """
     Entrée financière pour l'audit.
     """
+
     __tablename__ = "financial_entries"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -61,7 +65,7 @@ class FinancialEntry(SQLModel, table=True):
 class AuditReport(BaseModel):
     """
     Rapport d'audit financier.
-    
+
     Attributes:
         id: Identifiant unique
         start_date: Date de début de la période
@@ -77,6 +81,7 @@ class AuditReport(BaseModel):
         watermark_logo: Logo en filigrane
         generated_at: Date de génération
     """
+
     id: UUID = Field(default_factory=uuid4)
     start_date: datetime
     end_date: datetime
@@ -98,7 +103,7 @@ class AuditReport(BaseModel):
 class FinancialSummary(BaseModel):
     """
     Résumé financier par catégorie.
-    
+
     Attributes:
         category: Catégorie
         total_amount: Montant total
@@ -106,6 +111,7 @@ class FinancialSummary(BaseModel):
         verified_amount: Montant vérifié
         pending_amount: Montant en attente
     """
+
     category: EntryCategory
     total_amount: float
     entry_count: int
@@ -120,6 +126,7 @@ class Discrepancy(SQLModel, table=True):
     """
     Écart ou anomalie détectée.
     """
+
     __tablename__ = "financial_discrepancies"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)

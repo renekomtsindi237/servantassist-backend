@@ -13,13 +13,14 @@ from pydantic import BaseModel, Field
 from src.core.entities.assignment import AssignmentStatus, LiturgicalRole
 from src.core.entities.event import EventType
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Creation
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class AssignmentCreate(BaseModel):
     """Schema de creation d'une affectation liturgique."""
+
     event_id: UUID
     user_id: UUID
     liturgical_role: LiturgicalRole = LiturgicalRole.SERVANT_GENERAL
@@ -28,6 +29,7 @@ class AssignmentCreate(BaseModel):
 
 class AssignmentBatchItem(BaseModel):
     """Un element d'une creation par lot."""
+
     user_id: UUID
     liturgical_role: LiturgicalRole = LiturgicalRole.SERVANT_GENERAL
     notes: Optional[str] = Field(None, max_length=500)
@@ -35,6 +37,7 @@ class AssignmentBatchItem(BaseModel):
 
 class AssignmentBatchCreate(BaseModel):
     """Schema pour creer plusieurs affectations en une seule requete."""
+
     event_id: UUID
     assignments: List[AssignmentBatchItem] = Field(
         ..., min_length=1, description="Au moins une affectation"
@@ -45,8 +48,10 @@ class AssignmentBatchCreate(BaseModel):
 #  Modification
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class AssignmentUpdate(BaseModel):
     """Modification partielle d'une affectation (PATCH) — Aumonier/Admin."""
+
     liturgical_role: Optional[LiturgicalRole] = None
     status: Optional[AssignmentStatus] = None
     notes: Optional[str] = Field(None, max_length=500)
@@ -54,17 +59,18 @@ class AssignmentUpdate(BaseModel):
 
 class AssignmentStatusUpdate(BaseModel):
     """Mise a jour du statut par le servant lui-meme (self-service)."""
-    status: AssignmentStatus = Field(
-        ..., description="ACCEPTED ou DECLINED uniquement"
-    )
+
+    status: AssignmentStatus = Field(..., description="ACCEPTED ou DECLINED uniquement")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Reponses
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class AssignmentResponse(BaseModel):
     """Reponse pour une affectation avec infos utilisateur et evenement."""
+
     id: UUID
     event_id: UUID
     user_id: UUID
@@ -92,6 +98,7 @@ class AssignmentResponse(BaseModel):
 
 class AssignmentBatchResponse(BaseModel):
     """Reponse pour une creation par lot."""
+
     created: List[AssignmentResponse]
     errors: List[str] = []
     total_created: int = 0

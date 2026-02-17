@@ -9,16 +9,21 @@ Couvre :
 - Permissions (authentification requise)
 """
 import io
+
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header
 from src.core.entities.user import User
+from tests.conftest import make_auth_header
 
 
 def _make_fake_image(content_type: str = "image/jpeg", size: int = 1024) -> tuple:
     """Cree un faux fichier image pour les tests."""
-    ext_map = {"image/jpeg": "test.jpg", "image/png": "test.png", "image/webp": "test.webp"}
+    ext_map = {
+        "image/jpeg": "test.jpg",
+        "image/png": "test.png",
+        "image/webp": "test.webp",
+    }
     filename = ext_map.get(content_type, "test.bin")
     # Cree un contenu minimal (pas une vraie image mais suffit pour le test de service)
     data = b"\xff\xd8\xff" + b"\x00" * (size - 3)  # JPEG magic bytes
@@ -29,9 +34,7 @@ def _make_fake_image(content_type: str = "image/jpeg", size: int = 1024) -> tupl
 class TestProfilePhotoUpload:
     """Upload de photo de profil."""
 
-    async def test_upload_photo_success(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_upload_photo_success(self, client: AsyncClient, servant_user: User):
         """Upload reussi d'une photo JPEG."""
         filename, data, ct = _make_fake_image("image/jpeg", 2048)
         resp = await client.post(
@@ -148,13 +151,10 @@ class TestProfilePhotoDelete:
         )
         assert profile.json()["profile_photo_url"] is None
 
-    async def test_delete_no_photo_404(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_delete_no_photo_404(self, client: AsyncClient, servant_user: User):
         """Suppression sans photo existante -> 404."""
         resp = await client.delete(
             "/api/v1/users/me/photo",
             headers=make_auth_header(servant_user),
         )
         assert resp.status_code == 404
-

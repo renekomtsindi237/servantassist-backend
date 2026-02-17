@@ -1,15 +1,14 @@
 """
 Tests unitaires pour le service de gestion des rapports (SECRETAIRE).
 """
-import pytest
 from datetime import datetime
-from uuid import uuid4
 from unittest.mock import AsyncMock
+from uuid import uuid4
+
+import pytest
 
 from src.application.services.report_service import ReportService
-from src.core.entities.report import (
-    Report, ReportAttachment, ReportType, ReportStatus
-)
+from src.core.entities.report import Report, ReportAttachment, ReportStatus, ReportType
 
 
 @pytest.fixture
@@ -52,7 +51,7 @@ async def test_create_report_meeting(service, mock_report_repo):
     """Test création d'un rapport de réunion."""
     report_id = uuid4()
     created_by = uuid4()
-    
+
     mock_report_repo.create.return_value = Report(
         id=report_id,
         type=ReportType.MEETING,
@@ -64,7 +63,7 @@ async def test_create_report_meeting(service, mock_report_repo):
         status=ReportStatus.DRAFT,
         created_by=created_by,
     )
-    
+
     result = await service.create_report(
         type=ReportType.MEETING,
         title="Réunion test",
@@ -74,7 +73,7 @@ async def test_create_report_meeting(service, mock_report_repo):
         created_by=created_by,
         participants=["Jean"],
     )
-    
+
     assert result.type == ReportType.MEETING
     assert result.status == ReportStatus.DRAFT
     mock_report_repo.create.assert_called_once()
@@ -85,7 +84,7 @@ async def test_create_report_activity(service, mock_report_repo):
     """Test création d'un rapport d'activité."""
     report_id = uuid4()
     created_by = uuid4()
-    
+
     mock_report_repo.create.return_value = Report(
         id=report_id,
         type=ReportType.ACTIVITY,
@@ -97,7 +96,7 @@ async def test_create_report_activity(service, mock_report_repo):
         status=ReportStatus.DRAFT,
         created_by=created_by,
     )
-    
+
     result = await service.create_report(
         type=ReportType.ACTIVITY,
         title="Sortie",
@@ -106,7 +105,7 @@ async def test_create_report_activity(service, mock_report_repo):
         location="Sanctuaire",
         created_by=created_by,
     )
-    
+
     assert result.type == ReportType.ACTIVITY
 
 
@@ -115,7 +114,7 @@ async def test_create_report_with_decisions(service, mock_report_repo):
     """Test création avec décisions et actions."""
     report_id = uuid4()
     created_by = uuid4()
-    
+
     mock_report_repo.create.return_value = Report(
         id=report_id,
         type=ReportType.MEETING,
@@ -129,7 +128,7 @@ async def test_create_report_with_decisions(service, mock_report_repo):
         status=ReportStatus.DRAFT,
         created_by=created_by,
     )
-    
+
     result = await service.create_report(
         type=ReportType.MEETING,
         title="Réunion",
@@ -140,7 +139,7 @@ async def test_create_report_with_decisions(service, mock_report_repo):
         decisions="Décision importante",
         action_items="Action à mener",
     )
-    
+
     assert result.decisions == "Décision importante"
     assert result.action_items == "Action à mener"
 
@@ -150,9 +149,9 @@ async def test_create_report_with_decisions(service, mock_report_repo):
 async def test_get_report_success(service, mock_report_repo, sample_report):
     """Test récupération d'un rapport."""
     mock_report_repo.get_by_id.return_value = sample_report
-    
+
     result = await service.get_report(sample_report.id)
-    
+
     assert result.id == sample_report.id
     mock_report_repo.get_by_id.assert_called_once_with(sample_report.id)
 
@@ -161,9 +160,9 @@ async def test_get_report_success(service, mock_report_repo, sample_report):
 async def test_get_report_not_found(service, mock_report_repo):
     """Test récupération d'un rapport inexistant."""
     mock_report_repo.get_by_id.return_value = None
-    
+
     result = await service.get_report(uuid4())
-    
+
     assert result is None
 
 
@@ -185,11 +184,11 @@ async def test_list_reports(service, mock_report_repo):
         )
         for i in range(5)
     ]
-    
+
     mock_report_repo.list_reports.return_value = (reports, 5)
-    
+
     result, total = await service.list_reports(skip=0, limit=10)
-    
+
     assert len(result) == 5
     assert total == 5
 
@@ -198,14 +197,14 @@ async def test_list_reports(service, mock_report_repo):
 async def test_list_reports_with_filters(service, mock_report_repo):
     """Test liste avec filtres."""
     mock_report_repo.list_reports.return_value = ([], 0)
-    
+
     await service.list_reports(
         report_type=ReportType.MEETING,
         status=ReportStatus.PUBLISHED,
         start_date=datetime(2026, 2, 1),
         end_date=datetime(2026, 2, 28),
     )
-    
+
     mock_report_repo.list_reports.assert_called_once()
 
 
@@ -215,13 +214,13 @@ async def test_update_report_success(service, mock_report_repo, sample_report):
     """Test modification d'un rapport."""
     mock_report_repo.get_by_id.return_value = sample_report
     mock_report_repo.update.return_value = sample_report
-    
+
     result = await service.update_report(
         report_id=sample_report.id,
         title="Nouveau titre",
         content="Nouveau contenu",
     )
-    
+
     assert result.title == "Nouveau titre"
     assert result.content == "Nouveau contenu"
 
@@ -241,9 +240,9 @@ async def test_update_published_report_fails(service, mock_report_repo):
         created_by=uuid4(),
         published_at=datetime.utcnow(),
     )
-    
+
     mock_report_repo.get_by_id.return_value = published_report
-    
+
     with pytest.raises(ValueError, match="brouillon"):
         await service.update_report(
             report_id=published_report.id,
@@ -255,12 +254,12 @@ async def test_update_published_report_fails(service, mock_report_repo):
 async def test_update_report_not_found(service, mock_report_repo):
     """Test modification d'un rapport inexistant."""
     mock_report_repo.get_by_id.return_value = None
-    
+
     result = await service.update_report(
         report_id=uuid4(),
         title="Nouveau titre",
     )
-    
+
     assert result is None
 
 
@@ -270,9 +269,9 @@ async def test_delete_report_success(service, mock_report_repo, sample_report):
     """Test suppression d'un rapport."""
     mock_report_repo.get_by_id.return_value = sample_report
     mock_report_repo.delete.return_value = True
-    
+
     result = await service.delete_report(sample_report.id)
-    
+
     assert result is True
 
 
@@ -291,9 +290,9 @@ async def test_delete_published_report_fails(service, mock_report_repo):
         created_by=uuid4(),
         published_at=datetime.utcnow(),
     )
-    
+
     mock_report_repo.get_by_id.return_value = published_report
-    
+
     with pytest.raises(ValueError, match="brouillon"):
         await service.delete_report(published_report.id)
 
@@ -305,12 +304,12 @@ async def test_publish_report_success(service, mock_report_repo, sample_report):
     published_report = sample_report.model_copy()
     published_report.status = ReportStatus.PUBLISHED
     published_report.published_at = datetime.utcnow()
-    
+
     mock_report_repo.get_by_id.return_value = sample_report
     mock_report_repo.publish.return_value = published_report
-    
+
     result = await service.publish_report(sample_report.id)
-    
+
     assert result.status == ReportStatus.PUBLISHED
     assert result.published_at is not None
 
@@ -330,9 +329,9 @@ async def test_publish_already_published_fails(service, mock_report_repo):
         created_by=uuid4(),
         published_at=datetime.utcnow(),
     )
-    
+
     mock_report_repo.get_by_id.return_value = published_report
-    
+
     with pytest.raises(ValueError, match="brouillon"):
         await service.publish_report(published_report.id)
 
@@ -353,15 +352,15 @@ async def test_archive_report_success(service, mock_report_repo):
         created_by=uuid4(),
         published_at=datetime.utcnow(),
     )
-    
+
     archived_report = published_report.model_copy()
     archived_report.status = ReportStatus.ARCHIVED
-    
+
     mock_report_repo.get_by_id.return_value = published_report
     mock_report_repo.archive.return_value = archived_report
-    
+
     result = await service.archive_report(published_report.id)
-    
+
     assert result.status == ReportStatus.ARCHIVED
 
 
@@ -369,14 +368,16 @@ async def test_archive_report_success(service, mock_report_repo):
 async def test_archive_draft_fails(service, mock_report_repo, sample_report):
     """Test qu'on ne peut pas archiver un brouillon."""
     mock_report_repo.get_by_id.return_value = sample_report
-    
+
     with pytest.raises(ValueError, match="publié"):
         await service.archive_report(sample_report.id)
 
 
 # ── Tests pièces jointes ──────────────────────────────────────────────────
 @pytest.mark.asyncio
-async def test_add_attachment_success(service, mock_report_repo, mock_attachment_repo, sample_report):
+async def test_add_attachment_success(
+    service, mock_report_repo, mock_attachment_repo, sample_report
+):
     """Test ajout d'une pièce jointe."""
     attachment = ReportAttachment(
         id=uuid4(),
@@ -387,10 +388,10 @@ async def test_add_attachment_success(service, mock_report_repo, mock_attachment
         file_size=1024,
         uploaded_by=uuid4(),
     )
-    
+
     mock_report_repo.get_by_id.return_value = sample_report
     mock_attachment_repo.create.return_value = attachment
-    
+
     result = await service.add_attachment(
         report_id=sample_report.id,
         filename="test.pdf",
@@ -399,7 +400,7 @@ async def test_add_attachment_success(service, mock_report_repo, mock_attachment
         file_size=1024,
         uploaded_by=uuid4(),
     )
-    
+
     assert result.filename == "test.pdf"
 
 
@@ -418,9 +419,9 @@ async def test_add_attachment_to_published_fails(service, mock_report_repo):
         created_by=uuid4(),
         published_at=datetime.utcnow(),
     )
-    
+
     mock_report_repo.get_by_id.return_value = published_report
-    
+
     with pytest.raises(ValueError, match="brouillon"):
         await service.add_attachment(
             report_id=published_report.id,
@@ -448,16 +449,18 @@ async def test_get_attachments(service, mock_attachment_repo):
         )
         for i in range(3)
     ]
-    
+
     mock_attachment_repo.get_by_report.return_value = attachments
-    
+
     result = await service.get_attachments(report_id)
-    
+
     assert len(result) == 3
 
 
 @pytest.mark.asyncio
-async def test_delete_attachment_success(service, mock_report_repo, mock_attachment_repo, sample_report):
+async def test_delete_attachment_success(
+    service, mock_report_repo, mock_attachment_repo, sample_report
+):
     """Test suppression d'une pièce jointe."""
     attachment = ReportAttachment(
         id=uuid4(),
@@ -468,18 +471,20 @@ async def test_delete_attachment_success(service, mock_report_repo, mock_attachm
         file_size=1024,
         uploaded_by=uuid4(),
     )
-    
+
     mock_attachment_repo.get_by_id.return_value = attachment
     mock_report_repo.get_by_id.return_value = sample_report
     mock_attachment_repo.delete.return_value = True
-    
+
     result = await service.delete_attachment(attachment.id)
-    
+
     assert result is True
 
 
 @pytest.mark.asyncio
-async def test_delete_attachment_from_published_fails(service, mock_report_repo, mock_attachment_repo):
+async def test_delete_attachment_from_published_fails(
+    service, mock_report_repo, mock_attachment_repo
+):
     """Test qu'on ne peut pas supprimer une pièce jointe d'un rapport publié."""
     published_report = Report(
         id=uuid4(),
@@ -493,7 +498,7 @@ async def test_delete_attachment_from_published_fails(service, mock_report_repo,
         created_by=uuid4(),
         published_at=datetime.utcnow(),
     )
-    
+
     attachment = ReportAttachment(
         id=uuid4(),
         report_id=published_report.id,
@@ -503,10 +508,10 @@ async def test_delete_attachment_from_published_fails(service, mock_report_repo,
         file_size=1024,
         uploaded_by=uuid4(),
     )
-    
+
     mock_attachment_repo.get_by_id.return_value = attachment
     mock_report_repo.get_by_id.return_value = published_report
-    
+
     with pytest.raises(ValueError, match="brouillon"):
         await service.delete_attachment(attachment.id)
 
@@ -530,11 +535,11 @@ async def test_get_my_reports(service, mock_report_repo):
         )
         for i in range(3)
     ]
-    
+
     mock_report_repo.get_by_created_by.return_value = (reports, 3)
-    
+
     result, total = await service.get_my_reports(user_id)
-    
+
     assert len(result) == 3
     assert total == 3
     assert all(r.created_by == user_id for r in result)

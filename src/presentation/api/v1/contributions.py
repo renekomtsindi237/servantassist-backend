@@ -5,20 +5,15 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Path, status
+from fastapi import APIRouter, Depends, Path, Query, status
 
 from src.application.services.contribution_service import ContributionService
 from src.core.entities.contribution import PaymentMode
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.contribution_repository import (
-    ContributionRepository,
-)
+from src.infrastructure.repositories.contribution_repository import ContributionRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import (
-    get_current_user,
-    require_econome_or_admin,
-)
+from src.presentation.dependencies.auth_deps import get_current_user, require_econome_or_admin
 from src.presentation.schemas.contribution import (
     ContributionCreate,
     ContributionResponse,
@@ -216,6 +211,8 @@ async def generate_financial_report(
 ):
     """Génère un rapport financier complet."""
     return await service.generate_financial_report(request, current_user.id)
+
+
 @router.get(
     "/servant/{servant_id}/compliance",
     response_model=dict,

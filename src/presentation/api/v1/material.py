@@ -12,29 +12,42 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.entities.material import (
-    MaterialCategory, MaterialCondition, TaskType, TaskStatus
-)
+from src.application.services.material_service import MaterialService
+from src.core.entities.material import MaterialCategory, MaterialCondition, TaskStatus, TaskType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.material_repository import (
-    MaterialItemRepository, CleaningTaskRepository,
-    TaskAssignmentRepository, AubeTaskRepository,
-    MaintenanceHistoryRepository
+    AubeTaskRepository,
+    CleaningTaskRepository,
+    MaintenanceHistoryRepository,
+    MaterialItemRepository,
+    TaskAssignmentRepository,
 )
-from src.application.services.material_service import MaterialService
-from src.presentation.dependencies.auth_deps import (
-    get_current_user, require_intendant
-)
+from src.presentation.dependencies.auth_deps import get_current_user, require_intendant
 from src.presentation.schemas.material import (
-    MaterialItemCreate, MaterialItemUpdate, MaterialItemResponse,
-    MaterialItemListResponse, CleaningTaskCreate, CleaningTaskUpdate,
-    CleaningTaskComplete, CleaningTaskValidate, CleaningTaskResponse,
-    CleaningTaskListResponse, TaskAssignmentCreate, TaskAssignmentBatchCreate,
-    TaskAssignmentResponse, AubeTaskCreate, AubeTaskUpdate,
-    AubeTaskComplete, AubeTaskResponse, AubeTaskListResponse,
-    MaintenanceHistoryCreate, MaintenanceHistoryResponse,
-    MaterialReportRequest, MaterialReportResponse, MaterialStatsResponse
+    AubeTaskComplete,
+    AubeTaskCreate,
+    AubeTaskListResponse,
+    AubeTaskResponse,
+    AubeTaskUpdate,
+    CleaningTaskComplete,
+    CleaningTaskCreate,
+    CleaningTaskListResponse,
+    CleaningTaskResponse,
+    CleaningTaskUpdate,
+    CleaningTaskValidate,
+    MaintenanceHistoryCreate,
+    MaintenanceHistoryResponse,
+    MaterialItemCreate,
+    MaterialItemListResponse,
+    MaterialItemResponse,
+    MaterialItemUpdate,
+    MaterialReportRequest,
+    MaterialReportResponse,
+    MaterialStatsResponse,
+    TaskAssignmentBatchCreate,
+    TaskAssignmentCreate,
+    TaskAssignmentResponse,
 )
 
 router = APIRouter()
@@ -55,8 +68,7 @@ def get_material_service(
     aube_task_repo = AubeTaskRepository(db)
     maintenance_repo = MaintenanceHistoryRepository(db)
     return MaterialService(
-        item_repo, cleaning_task_repo, assignment_repo,
-        aube_task_repo, maintenance_repo
+        item_repo, cleaning_task_repo, assignment_repo, aube_task_repo, maintenance_repo
     )
 
 
@@ -279,7 +291,7 @@ async def list_cleaning_tasks(
         start_date=start_date,
         end_date=end_date,
     )
-    
+
     # Enrichir avec les assignations
     enriched_tasks = []
     for task in tasks:
@@ -294,7 +306,7 @@ async def list_cleaning_tasks(
             for a in assignments
         ]
         enriched_tasks.append(CleaningTaskResponse(**task_dict))
-    
+
     return CleaningTaskListResponse(
         items=enriched_tasks,
         total=total,
@@ -321,7 +333,7 @@ async def get_cleaning_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cleaning task not found",
         )
-    
+
     # Enrichir avec les assignations
     assignments = await service.get_task_assignments(task.id)
     task_dict = task.model_dump()
@@ -333,7 +345,7 @@ async def get_cleaning_task(
         }
         for a in assignments
     ]
-    
+
     return CleaningTaskResponse(**task_dict)
 
 
@@ -367,7 +379,7 @@ async def update_cleaning_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cleaning task not found",
         )
-    
+
     # Enrichir avec les assignations
     assignments = await service.get_task_assignments(task.id)
     task_dict = task.model_dump()
@@ -379,7 +391,7 @@ async def update_cleaning_task(
         }
         for a in assignments
     ]
-    
+
     return CleaningTaskResponse(**task_dict)
 
 
@@ -406,7 +418,7 @@ async def complete_cleaning_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cleaning task not found",
         )
-    
+
     # Enrichir avec les assignations
     assignments = await service.get_task_assignments(task.id)
     task_dict = task.model_dump()
@@ -418,7 +430,7 @@ async def complete_cleaning_task(
         }
         for a in assignments
     ]
-    
+
     return CleaningTaskResponse(**task_dict)
 
 
@@ -445,7 +457,7 @@ async def validate_cleaning_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cleaning task not found",
         )
-    
+
     # Enrichir avec les assignations
     assignments = await service.get_task_assignments(task.id)
     task_dict = task.model_dump()
@@ -457,7 +469,7 @@ async def validate_cleaning_task(
         }
         for a in assignments
     ]
-    
+
     return CleaningTaskResponse(**task_dict)
 
 

@@ -9,16 +9,15 @@ Couvre :
 - Self-service (mes cotisations)
 - Controle d'acces (RBAC)
 """
-import pytest
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header
 from src.core.entities.cotisation import CotisationPeriod, MemberCotisation
 from src.core.entities.user import User
-
+from tests.conftest import make_auth_header
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  PERIODES
@@ -294,4 +293,3 @@ class TestCotisationBilan:
         assert "total_expected" in body
         assert "total_collected" in body
         assert "taux_recouvrement" in body
-

@@ -15,8 +15,8 @@
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header, VALID_PASSWORD
 from src.core.entities.user import User
+from tests.conftest import VALID_PASSWORD, make_auth_header
 
 
 @pytest.mark.asyncio
@@ -34,7 +34,9 @@ class TestParentInvitationFlow:
             json={"role": "PARENT", "notes": "Test invitation"},
             headers=admin_headers,
         )
-        assert inv_resp.status_code == 201, f"Invitation creation failed: {inv_resp.text}"
+        assert (
+            inv_resp.status_code == 201
+        ), f"Invitation creation failed: {inv_resp.text}"
 
         invitation = inv_resp.json()
         assert invitation["role"] == "PARENT"
@@ -63,7 +65,9 @@ class TestParentInvitationFlow:
             "invitation_code": code,
         }
         reg_resp = await client.post("/api/v1/auth/register", json=parent_data)
-        assert reg_resp.status_code == 201, f"Parent registration failed: {reg_resp.text}"
+        assert (
+            reg_resp.status_code == 201
+        ), f"Parent registration failed: {reg_resp.text}"
 
         parent = reg_resp.json()
         assert parent["role"] == "PARENT"
@@ -179,4 +183,3 @@ class TestEmailLockedInvitation:
         resp = await client.post("/api/v1/auth/register", json=data)
         assert resp.status_code == 201
         assert resp.json()["email"] == "correct@test.com"
-

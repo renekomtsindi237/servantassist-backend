@@ -7,14 +7,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.training import (
-    TrainingLevel, TrainingStatus, MaterialType, ParticipationStatus
-)
+from src.core.entities.training import MaterialType, ParticipationStatus, TrainingLevel, TrainingStatus
 
 
 # ── Schémas de création - Sessions ───────────────────────────────────
 class TrainingSessionCreate(BaseModel):
     """Schéma pour créer une session de formation."""
+
     title: str = Field(min_length=1, max_length=200)
     description: str = Field(min_length=1)
     objectives: Optional[str] = None
@@ -32,6 +31,7 @@ class TrainingSessionCreate(BaseModel):
 
 class TrainingSessionUpdate(BaseModel):
     """Schéma pour modifier une session."""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, min_length=1)
     objectives: Optional[str] = None
@@ -50,6 +50,7 @@ class TrainingSessionUpdate(BaseModel):
 
 class TrainingSessionResponse(BaseModel):
     """Schéma de réponse pour une session."""
+
     id: UUID
     title: str
     description: str
@@ -77,6 +78,7 @@ class TrainingSessionResponse(BaseModel):
 
 class TrainingSessionListResponse(BaseModel):
     """Schéma de réponse pour une liste de sessions."""
+
     items: List[TrainingSessionResponse]
     total: int
     skip: int
@@ -86,24 +88,28 @@ class TrainingSessionListResponse(BaseModel):
 # ── Schémas de création - Participations ─────────────────────────────
 class TrainingParticipationCreate(BaseModel):
     """Schéma pour inscrire un servant."""
+
     servant_id: UUID
     notes: Optional[str] = None
 
 
 class TrainingParticipationBatchCreate(BaseModel):
     """Schéma pour inscrire plusieurs servants."""
+
     servant_ids: List[UUID] = Field(min_length=1)
     notes: Optional[str] = None
 
 
 class TrainingParticipationMarkAttendance(BaseModel):
     """Schéma pour marquer la présence."""
+
     status: ParticipationStatus
     notes: Optional[str] = None
 
 
 class TrainingParticipationEvaluate(BaseModel):
     """Schéma pour évaluer un participant."""
+
     evaluation_score: int = Field(ge=0, le=100)
     evaluation_comments: Optional[str] = None
     certificate_issued: bool = False
@@ -111,6 +117,7 @@ class TrainingParticipationEvaluate(BaseModel):
 
 class TrainingParticipationResponse(BaseModel):
     """Schéma de réponse pour une participation."""
+
     id: UUID
     session_id: UUID
     servant_id: UUID
@@ -134,6 +141,7 @@ class TrainingParticipationResponse(BaseModel):
 
 class TrainingParticipationListResponse(BaseModel):
     """Schéma de réponse pour une liste de participations."""
+
     items: List[TrainingParticipationResponse]
     total: int
 
@@ -141,6 +149,7 @@ class TrainingParticipationListResponse(BaseModel):
 # ── Schémas de création - Matériels ──────────────────────────────────
 class TrainingMaterialCreate(BaseModel):
     """Schéma pour créer un matériel."""
+
     title: str = Field(min_length=1, max_length=200)
     description: str = Field(min_length=1)
     type: MaterialType
@@ -155,6 +164,7 @@ class TrainingMaterialCreate(BaseModel):
 
 class TrainingMaterialUpdate(BaseModel):
     """Schéma pour modifier un matériel."""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, min_length=1)
     type: Optional[MaterialType] = None
@@ -166,6 +176,7 @@ class TrainingMaterialUpdate(BaseModel):
 
 class TrainingMaterialResponse(BaseModel):
     """Schéma de réponse pour un matériel."""
+
     id: UUID
     title: str
     description: str
@@ -189,6 +200,7 @@ class TrainingMaterialResponse(BaseModel):
 
 class TrainingMaterialListResponse(BaseModel):
     """Schéma de réponse pour une liste de matériels."""
+
     items: List[TrainingMaterialResponse]
     total: int
     skip: int
@@ -198,6 +210,7 @@ class TrainingMaterialListResponse(BaseModel):
 # ── Schémas pour statistiques ────────────────────────────────────────
 class TrainingStatsResponse(BaseModel):
     """Schéma de réponse pour les statistiques d'un servant."""
+
     servant_id: UUID
     servant_name: str
     total_sessions: int
@@ -214,6 +227,7 @@ class TrainingStatsResponse(BaseModel):
 
 class TrainingReportRequest(BaseModel):
     """Schéma pour demander un rapport de formation."""
+
     start_date: datetime
     end_date: datetime
     level: Optional[TrainingLevel] = None
@@ -222,6 +236,7 @@ class TrainingReportRequest(BaseModel):
 
 class TrainingReportResponse(BaseModel):
     """Schéma de réponse pour un rapport de formation."""
+
     id: UUID
     start_date: datetime
     end_date: datetime
@@ -244,6 +259,7 @@ class TrainingReportResponse(BaseModel):
 # ── Schémas pour association session-matériel ────────────────────────
 class SessionMaterialAdd(BaseModel):
     """Schéma pour ajouter un matériel à une session."""
+
     material_id: UUID
     order: int = 0
     is_required: bool = False
@@ -251,6 +267,7 @@ class SessionMaterialAdd(BaseModel):
 
 class SessionMaterialResponse(BaseModel):
     """Schéma de réponse pour un matériel de session."""
+
     id: UUID
     session_id: UUID
     material_id: UUID

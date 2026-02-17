@@ -13,8 +13,8 @@
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header, VALID_PASSWORD
 from src.core.entities.user import User
+from tests.conftest import VALID_PASSWORD, make_auth_header
 
 
 @pytest.mark.asyncio
@@ -129,4 +129,3 @@ class TestSelfRegistrationRestriction:
             },
         )
         assert resp.status_code == 403
-

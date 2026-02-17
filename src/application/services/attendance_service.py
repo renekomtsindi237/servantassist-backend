@@ -14,11 +14,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from src.core.entities.attendance import (
-    Attendance,
-    AttendanceStatus,
-    AttendanceType,
-)
+from src.core.entities.attendance import Attendance, AttendanceStatus, AttendanceType
 from src.core.entities.user import UserRole
 from src.infrastructure.repositories.attendance_repository import AttendanceRepository
 from src.infrastructure.repositories.user_repository import UserRepository
@@ -247,4 +243,3 @@ class AttendanceService:
             excuses=counts.get(AttendanceStatus.EXCUSE.value, 0),
             taux_presence=round(taux, 1),
         )
-

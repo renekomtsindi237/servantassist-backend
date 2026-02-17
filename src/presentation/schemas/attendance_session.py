@@ -1,28 +1,29 @@
 """
 Schémas Pydantic pour le module de gestion des appels (CENSEUR).
 """
+import html
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
-import html
 
 from pydantic import BaseModel, Field, field_validator
 
 from src.core.entities.attendance_session import AttendanceStatus
 
-
 # ══════════════════════════════════════════════════════════════════
 #  CRÉATION
 # ══════════════════════════════════════════════════════════════════
 
+
 class AttendanceSessionCreate(BaseModel):
     """Schéma pour créer une session d'appel."""
+
     session_date: datetime = Field(description="Date de la session (samedi)")
     session_time: str = Field(default="07h30", description="Heure de la session")
     location: str = Field(default="Sacristie", description="Lieu de l'appel")
     notes: Optional[str] = None
 
-    @field_validator('notes', mode='before')
+    @field_validator("notes", mode="before")
     @classmethod
     def sanitize_notes(cls, v):
         """Échappe les caractères HTML/JS dans les notes pour prévenir les XSS."""
@@ -35,12 +36,13 @@ class AttendanceSessionCreate(BaseModel):
 
 class AttendanceRecordCreate(BaseModel):
     """Schéma pour marquer la présence d'un servant."""
+
     servant_id: UUID
     status: AttendanceStatus
     arrival_time: Optional[str] = None
     notes: Optional[str] = None
 
-    @field_validator('notes', mode='before')
+    @field_validator("notes", mode="before")
     @classmethod
     def sanitize_notes(cls, v):
         """Échappe les caractères HTML/JS dans les notes pour prévenir les XSS."""
@@ -53,11 +55,12 @@ class AttendanceRecordCreate(BaseModel):
 
 class AttendanceRecordUpdate(BaseModel):
     """Schéma pour modifier un enregistrement de présence."""
+
     status: Optional[AttendanceStatus] = None
     arrival_time: Optional[str] = None
     notes: Optional[str] = None
 
-    @field_validator('notes', mode='before')
+    @field_validator("notes", mode="before")
     @classmethod
     def sanitize_notes(cls, v):
         """Échappe les caractères HTML/JS dans les notes pour prévenir les XSS."""
@@ -72,8 +75,10 @@ class AttendanceRecordUpdate(BaseModel):
 #  RÉPONSES
 # ══════════════════════════════════════════════════════════════════
 
+
 class AttendanceRecordResponse(BaseModel):
     """Schéma de réponse pour un enregistrement de présence."""
+
     id: UUID
     session_id: UUID
     servant_id: UUID
@@ -92,6 +97,7 @@ class AttendanceRecordResponse(BaseModel):
 
 class AttendanceSessionResponse(BaseModel):
     """Schéma de réponse pour une session d'appel."""
+
     id: UUID
     session_date: datetime
     session_time: str
@@ -116,8 +122,10 @@ class AttendanceSessionResponse(BaseModel):
 #  STATISTIQUES
 # ══════════════════════════════════════════════════════════════════
 
+
 class ServantAttendanceStatsResponse(BaseModel):
     """Schéma de réponse pour les statistiques de présence d'un servant."""
+
     servant_id: UUID
     servant_name: str
     total_sessions: int
@@ -134,6 +142,7 @@ class ServantAttendanceStatsResponse(BaseModel):
 
 class AttendanceReportRequest(BaseModel):
     """Paramètres pour générer un rapport de présence."""
+
     start_date: datetime
     end_date: datetime
     servant_ids: Optional[list[UUID]] = None  # Filtrer par servants spécifiques
@@ -141,6 +150,7 @@ class AttendanceReportRequest(BaseModel):
 
 class AttendanceReportResponse(BaseModel):
     """Schéma de réponse pour un rapport de présence."""
+
     start_date: datetime
     end_date: datetime
     total_sessions: int
@@ -160,8 +170,10 @@ class AttendanceReportResponse(BaseModel):
 #  LISTE DES SERVANTS
 # ══════════════════════════════════════════════════════════════════
 
+
 class ServantListItem(BaseModel):
     """Item de la liste des servants pour l'appel."""
+
     id: UUID
     first_name: str
     last_name: str

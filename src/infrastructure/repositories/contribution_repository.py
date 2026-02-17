@@ -8,12 +8,7 @@ from uuid import UUID
 from sqlalchemy import and_, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.entities.contribution import (
-    Contribution,
-    MonthlyContributionSummary,
-    PaymentMode,
-    PaymentStatus,
-)
+from src.core.entities.contribution import Contribution, MonthlyContributionSummary, PaymentMode, PaymentStatus
 from src.core.entities.user import User, UserRole
 
 

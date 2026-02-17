@@ -8,15 +8,14 @@ Couvre :
 - Self-service (mon sous-groupe)
 - Controle d'acces (RBAC)
 """
-import pytest
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header
 from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.user import User
-
+from tests.conftest import make_auth_header
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  CRUD SOUS-GROUPES
@@ -27,9 +26,7 @@ class TestSubGroupCRUD:
     """Tests CRUD des sous-groupes."""
 
     @pytest.mark.asyncio
-    async def test_create_subgroup(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_create_subgroup(self, client: AsyncClient, aumonier_user: User):
         resp = await client.post(
             "/api/v1/subgroups/",
             json={
@@ -308,4 +305,3 @@ class TestSubGroupSelfService:
         )
         assert resp.status_code == 200
         assert resp.json() is None
-

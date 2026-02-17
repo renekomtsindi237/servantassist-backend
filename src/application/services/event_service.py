@@ -16,13 +16,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from src.core.entities.event import (
-    Event,
-    EventParticipant,
-    EventStatus,
-    EventType,
-    ParticipantStatus,
-)
+from src.core.entities.event import Event, EventParticipant, EventStatus, EventType, ParticipantStatus
 from src.core.entities.user import User
 from src.infrastructure.repositories.event_repository import EventRepository
 from src.infrastructure.repositories.user_repository import UserRepository
@@ -156,21 +150,23 @@ class EventService:
         items = []
         for e in events:
             count = await self.event_repository.get_participant_count(e.id)
-            items.append(EventResponse(
-                id=e.id,
-                title=e.title,
-                description=e.description,
-                start_time=e.start_time,
-                end_time=e.end_time,
-                location=e.location,
-                event_type=e.event_type,
-                status=e.status,
-                created_by=e.created_by,
-                updated_by=e.updated_by,
-                created_at=e.created_at,
-                updated_at=e.updated_at,
-                participant_count=count,
-            ))
+            items.append(
+                EventResponse(
+                    id=e.id,
+                    title=e.title,
+                    description=e.description,
+                    start_time=e.start_time,
+                    end_time=e.end_time,
+                    location=e.location,
+                    event_type=e.event_type,
+                    status=e.status,
+                    created_by=e.created_by,
+                    updated_by=e.updated_by,
+                    created_at=e.created_at,
+                    updated_at=e.updated_at,
+                    participant_count=count,
+                )
+            )
 
         return PaginatedResponse(
             items=items,
@@ -201,21 +197,23 @@ class EventService:
         items = []
         for e in events:
             count = await self.event_repository.get_participant_count(e.id)
-            items.append(EventResponse(
-                id=e.id,
-                title=e.title,
-                description=e.description,
-                start_time=e.start_time,
-                end_time=e.end_time,
-                location=e.location,
-                event_type=e.event_type,
-                status=e.status,
-                created_by=e.created_by,
-                updated_by=e.updated_by,
-                created_at=e.created_at,
-                updated_at=e.updated_at,
-                participant_count=count,
-            ))
+            items.append(
+                EventResponse(
+                    id=e.id,
+                    title=e.title,
+                    description=e.description,
+                    start_time=e.start_time,
+                    end_time=e.end_time,
+                    location=e.location,
+                    event_type=e.event_type,
+                    status=e.status,
+                    created_by=e.created_by,
+                    updated_by=e.updated_by,
+                    created_at=e.created_at,
+                    updated_at=e.updated_at,
+                    participant_count=count,
+                )
+            )
         return items
 
     # ══════════════════════════════════════════════════════════════════
@@ -236,7 +234,9 @@ class EventService:
                 detail="Evenement introuvable.",
             )
 
-        return await self._add_participant_internal(event_id, participant_data, added_by)
+        return await self._add_participant_internal(
+            event_id, participant_data, added_by
+        )
 
     async def _add_participant_internal(
         self,
@@ -339,9 +339,7 @@ class EventService:
             updated_at=updated.updated_at,
         )
 
-    async def remove_participant(
-        self, event_id: UUID, participant_id: UUID
-    ) -> None:
+    async def remove_participant(self, event_id: UUID, participant_id: UUID) -> None:
         """Retire un participant d'un evenement."""
         participant = await self.event_repository.get_participant(participant_id)
         if not participant or participant.event_id != event_id:
@@ -351,9 +349,7 @@ class EventService:
             )
         await self.event_repository.remove_participant(participant_id)
 
-    async def get_event_participants(
-        self, event_id: UUID
-    ) -> List[ParticipantResponse]:
+    async def get_event_participants(self, event_id: UUID) -> List[ParticipantResponse]:
         """Recupere la liste des participants d'un evenement."""
         event = await self.event_repository.get(event_id)
         if not event:

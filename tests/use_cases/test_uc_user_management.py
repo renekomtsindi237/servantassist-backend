@@ -16,7 +16,9 @@ from tests.conftest import VALID_PASSWORD, make_auth_header
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.use_cases
 class TestServantProfileManagement:
-    async def test_full_profile_update_flow(self, client: AsyncClient, servant_user: User):
+    async def test_full_profile_update_flow(
+        self, client: AsyncClient, servant_user: User
+    ):
         headers = make_auth_header(servant_user)
 
         # 1. Consulter le profil
@@ -126,24 +128,18 @@ class TestDeleteGuardrails:
         headers = make_auth_header(admin_user)
 
         # Supprimer un servant
-        resp = await client.delete(
-            f"/api/v1/users/{servant_user.id}", headers=headers
-        )
+        resp = await client.delete(f"/api/v1/users/{servant_user.id}", headers=headers)
         assert resp.status_code == 204
 
         # Verifier qu'il n'apparait plus
-        resp = await client.get(
-            f"/api/v1/users/{servant_user.id}", headers=headers
-        )
+        resp = await client.get(f"/api/v1/users/{servant_user.id}", headers=headers)
         assert resp.status_code == 404
 
-    async def test_admin_cannot_delete_himself(
-        self, client: AsyncClient, admin_user
-    ):
+    async def test_admin_cannot_delete_himself(self, client: AsyncClient, admin_user):
         headers = make_auth_header(admin_user)
-        resp = await client.delete(
-            f"/api/v1/users/{admin_user.id}", headers=headers
-        )
+        resp = await client.delete(f"/api/v1/users/{admin_user.id}", headers=headers)
         assert resp.status_code == 400
-        assert "propre" in resp.json()["detail"].lower() or "supprimer" in resp.json()["detail"].lower()
-
+        assert (
+            "propre" in resp.json()["detail"].lower()
+            or "supprimer" in resp.json()["detail"].lower()
+        )

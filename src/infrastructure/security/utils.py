@@ -8,9 +8,9 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 
+import nh3
 from jose import jwt
 from passlib.context import CryptContext
-import nh3
 
 from src.infrastructure.config.settings import get_settings
 
@@ -42,9 +42,7 @@ class SecurityUtils:
         if expires_delta:
             expire = now + expires_delta
         else:
-            expire = now + timedelta(
-                minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
-            )
+            expire = now + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
 
         to_encode: dict = {
             "exp": expire,
@@ -69,9 +67,7 @@ class SecurityUtils:
         if expires_delta:
             expire = now + expires_delta
         else:
-            expire = now + timedelta(
-                days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS
-            )
+            expire = now + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
 
         to_encode: dict = {
             "exp": expire,

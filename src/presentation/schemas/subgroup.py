@@ -7,13 +7,14 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Sous-groupes
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class SubGroupCreate(BaseModel):
     """Creer un sous-groupe."""
+
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=500)
     service_schedule: Optional[str] = Field(None, max_length=500)
@@ -22,6 +23,7 @@ class SubGroupCreate(BaseModel):
 
 class SubGroupUpdate(BaseModel):
     """Modifier un sous-groupe."""
+
     name: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = Field(None, max_length=500)
     service_schedule: Optional[str] = Field(None, max_length=500)
@@ -31,11 +33,13 @@ class SubGroupUpdate(BaseModel):
 
 class SubGroupMemberAdd(BaseModel):
     """Ajouter un servant a un sous-groupe."""
+
     user_id: UUID
 
 
 class SubGroupMemberResponse(BaseModel):
     """Info d'un membre de sous-groupe."""
+
     id: UUID
     user_id: UUID
     sub_group_id: UUID
@@ -54,6 +58,7 @@ class SubGroupMemberResponse(BaseModel):
 
 class SubGroupResponse(BaseModel):
     """Reponse pour un sous-groupe."""
+
     id: UUID
     name: str
     description: Optional[str] = None
@@ -69,4 +74,3 @@ class SubGroupResponse(BaseModel):
 
     class Config:
         from_attributes = True
-

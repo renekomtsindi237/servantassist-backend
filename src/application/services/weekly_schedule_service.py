@@ -24,9 +24,7 @@ from src.core.entities.weekly_schedule import (
     WeeklyScheduleTemplate,
 )
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.infrastructure.repositories.weekly_schedule_repository import (
-    WeeklyScheduleRepository,
-)
+from src.infrastructure.repositories.weekly_schedule_repository import WeeklyScheduleRepository
 from src.presentation.schemas.user import PaginatedResponse
 from src.presentation.schemas.weekly_schedule import (
     SlotServantCreate,
@@ -43,33 +41,31 @@ from src.presentation.schemas.weekly_schedule import (
 def parse_mass_time(mass_time: str) -> tuple[int, int]:
     """
     Parse une heure de messe (ex: "06h15", "12h00", "18h00") en heures et minutes.
-    
+
     Returns:
         tuple[int, int]: (heures, minutes)
     """
     # Format attendu : "06h15", "12h00", "18h00", etc.
-    parts = mass_time.lower().replace('h', ':').split(':')
+    parts = mass_time.lower().replace("h", ":").split(":")
     hours = int(parts[0])
     minutes = int(parts[1]) if len(parts) > 1 else 0
     return hours, minutes
 
 
 def is_within_mass_window(
-    slot_date: datetime,
-    mass_time: str,
-    current_time: Optional[datetime] = None
+    slot_date: datetime, mass_time: str, current_time: Optional[datetime] = None
 ) -> bool:
     """
     Vérifie si l'heure actuelle est dans la fenêtre de modification autorisée.
-    
+
     Fenêtre : 1 heure avant la messe → 1 heure après la fin de la messe.
     Durée estimée d'une messe : 1 heure.
-    
+
     Args:
         slot_date: Date du créneau (jour de la semaine)
         mass_time: Heure de la messe (ex: "06h15", "12h00", "18h00" ou enum "MATIN", "MIDI", "SOIR")
         current_time: Heure actuelle (None = maintenant)
-    
+
     Returns:
         bool: True si dans la fenêtre autorisée
     """
@@ -81,7 +77,7 @@ def is_within_mass_window(
     time_str = mass_time
     if hasattr(mass_time, "value"):
         time_str = mass_time.value
-    
+
     time_upper = str(time_str).upper()
     if time_upper == "MATIN":
         time_str = "06h15"
@@ -89,22 +85,17 @@ def is_within_mass_window(
         time_str = "12h00"
     elif time_upper == "SOIR":
         time_str = "18h00"
-    
+
     # Parser l'heure de la messe
     hours, minutes = parse_mass_time(time_str)
-    
+
     # Créer le datetime de début de la messe
-    mass_start = slot_date.replace(
-        hour=hours,
-        minute=minutes,
-        second=0,
-        microsecond=0
-    )
-    
+    mass_start = slot_date.replace(hour=hours, minute=minutes, second=0, microsecond=0)
+
     # Fenêtre : 1h avant → 2h après le début (1h de messe + 1h après)
     window_start = mass_start - timedelta(hours=1)
     window_end = mass_start + timedelta(hours=2)
-    
+
     return window_start <= current_time <= window_end
 
 
@@ -190,9 +181,7 @@ class WeeklyScheduleService:
     #  LECTURE
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_template(
-        self, template_id: UUID
-    ) -> WeeklyScheduleTemplateResponse:
+    async def get_template(self, template_id: UUID) -> WeeklyScheduleTemplateResponse:
         """Récupère un modèle par son ID avec tous ses créneaux."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -416,7 +405,7 @@ class WeeklyScheduleService:
         # Le slot.day est un enum (LUNDI, MARDI, etc.)
         # On doit trouver le jour correspondant dans la période start_date -> end_date
         from src.core.entities.weekly_schedule import WeekDay
-        
+
         # Mapping des jours
         day_mapping = {
             WeekDay.LUNDI: 0,
@@ -426,18 +415,18 @@ class WeeklyScheduleService:
             WeekDay.VENDREDI: 4,
             WeekDay.SAMEDI: 5,
         }
-        
+
         # Trouver le jour dans la période
         target_weekday = day_mapping[slot.day]
         current_date = template.start_date
         slot_date = None
-        
+
         while current_date <= template.end_date:
             if current_date.weekday() == target_weekday:
                 slot_date = current_date
                 break
             current_date += timedelta(days=1)
-        
+
         if not slot_date:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -476,9 +465,7 @@ class WeeklyScheduleService:
         enriched = await self.schedule_repo.enrich_assignment(created)
         return SlotServantResponse(**enriched)
 
-    async def remove_servant_from_slot(
-        self, assignment_id: UUID
-    ) -> None:
+    async def remove_servant_from_slot(self, assignment_id: UUID) -> None:
         """Retire un servant d'un créneau."""
         assignment = await self.schedule_repo.get_assignment(assignment_id)
         if not assignment:
@@ -494,7 +481,7 @@ class WeeklyScheduleService:
             if template:
                 # Calculer la date du créneau
                 from src.core.entities.weekly_schedule import WeekDay
-                
+
                 day_mapping = {
                     WeekDay.LUNDI: 0,
                     WeekDay.MARDI: 1,
@@ -503,17 +490,17 @@ class WeeklyScheduleService:
                     WeekDay.VENDREDI: 4,
                     WeekDay.SAMEDI: 5,
                 }
-                
+
                 target_weekday = day_mapping[slot.day]
                 current_date = template.start_date
                 slot_date = None
-                
+
                 while current_date <= template.end_date:
                     if current_date.weekday() == target_weekday:
                         slot_date = current_date
                         break
                     current_date += timedelta(days=1)
-                
+
                 if slot_date:
                     # Validation temporelle stricte : 1h avant → 1h après la messe
                     if not is_within_mass_window(slot_date, slot.mass_time):

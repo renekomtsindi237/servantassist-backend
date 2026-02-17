@@ -27,7 +27,9 @@ class AttendanceSessionRepository:
     #  SESSIONS - CRÉATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_session(self, session_data: AttendanceSession) -> AttendanceSession:
+    async def create_session(
+        self, session_data: AttendanceSession
+    ) -> AttendanceSession:
         """Crée une nouvelle session d'appel."""
         self.session.add(session_data)
         await self.session.commit()
@@ -124,9 +126,7 @@ class AttendanceSessionRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_session_records(
-        self, session_id: UUID
-    ) -> List[AttendanceRecord]:
+    async def get_session_records(self, session_id: UUID) -> List[AttendanceRecord]:
         """Récupère tous les enregistrements d'une session."""
         result = await self.session.execute(
             select(AttendanceRecord)

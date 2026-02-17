@@ -8,13 +8,22 @@ from uuid import UUID, uuid4
 from fastapi import HTTPException, status
 
 from src.core.entities.training import (
-    TrainingSession, TrainingParticipation, TrainingMaterial,
-    SessionMaterial, TrainingLevel, TrainingStatus, MaterialType,
-    ParticipationStatus, TrainingStats, TrainingReport
+    MaterialType,
+    ParticipationStatus,
+    SessionMaterial,
+    TrainingLevel,
+    TrainingMaterial,
+    TrainingParticipation,
+    TrainingReport,
+    TrainingSession,
+    TrainingStats,
+    TrainingStatus,
 )
 from src.infrastructure.repositories.training_repository import (
-    TrainingSessionRepository, TrainingParticipationRepository,
-    TrainingMaterialRepository, SessionMaterialRepository
+    SessionMaterialRepository,
+    TrainingMaterialRepository,
+    TrainingParticipationRepository,
+    TrainingSessionRepository,
 )
 
 
@@ -533,9 +542,7 @@ class TrainingService:
         """Récupère les matériels d'une session."""
         return await self.session_material_repo.get_by_session(session_id)
 
-    async def remove_material_from_session(
-        self, session_material_id: UUID
-    ) -> bool:
+    async def remove_material_from_session(self, session_material_id: UUID) -> bool:
         """Retire un matériel d'une session."""
         return await self.session_material_repo.delete(session_material_id)
 

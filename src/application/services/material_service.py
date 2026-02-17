@@ -8,14 +8,23 @@ from uuid import UUID, uuid4
 from fastapi import HTTPException, status
 
 from src.core.entities.material import (
-    MaterialItem, CleaningTask, TaskAssignment, AubeTask,
-    MaintenanceHistory, MaterialReport, MaterialCategory,
-    MaterialCondition, TaskType, TaskStatus
+    AubeTask,
+    CleaningTask,
+    MaintenanceHistory,
+    MaterialCategory,
+    MaterialCondition,
+    MaterialItem,
+    MaterialReport,
+    TaskAssignment,
+    TaskStatus,
+    TaskType,
 )
 from src.infrastructure.repositories.material_repository import (
-    MaterialItemRepository, CleaningTaskRepository,
-    TaskAssignmentRepository, AubeTaskRepository,
-    MaintenanceHistoryRepository
+    AubeTaskRepository,
+    CleaningTaskRepository,
+    MaintenanceHistoryRepository,
+    MaterialItemRepository,
+    TaskAssignmentRepository,
 )
 
 
@@ -632,12 +641,12 @@ class MaterialService:
 
         total_tasks = len(cleaning_tasks) + len(aube_tasks)
         completed_tasks = sum(
-            1 for t in cleaning_tasks + aube_tasks
+            1
+            for t in cleaning_tasks + aube_tasks
             if t.status in [TaskStatus.TERMINEE, TaskStatus.VALIDEE]
         )
         pending_tasks = sum(
-            1 for t in cleaning_tasks + aube_tasks
-            if t.status == TaskStatus.PLANIFIEE
+            1 for t in cleaning_tasks + aube_tasks if t.status == TaskStatus.PLANIFIEE
         )
 
         # Coût total de maintenance
@@ -648,12 +657,14 @@ class MaterialService:
         # Articles nécessitant attention
         items_needing_attention = []
         for item in await self.item_repo.get_items_needing_maintenance():
-            items_needing_attention.append({
-                "id": str(item.id),
-                "name": item.name,
-                "condition": item.condition.value,
-                "reason": self._get_attention_reason(item),
-            })
+            items_needing_attention.append(
+                {
+                    "id": str(item.id),
+                    "name": item.name,
+                    "condition": item.condition.value,
+                    "reason": self._get_attention_reason(item),
+                }
+            )
 
         return MaterialReport(
             id=uuid4(),
@@ -678,7 +689,10 @@ class MaterialService:
             return "À réparer"
         elif item.condition == MaterialCondition.HORS_SERVICE:
             return "Hors service"
-        elif item.next_maintenance_date and item.next_maintenance_date <= datetime.utcnow():
+        elif (
+            item.next_maintenance_date
+            and item.next_maintenance_date <= datetime.utcnow()
+        ):
             return "Maintenance prévue dépassée"
         return "Nécessite attention"
 
@@ -705,19 +719,17 @@ class MaterialService:
         )
 
         # Récupérer toutes les tâches
-        cleaning_tasks, _ = await self.cleaning_task_repo.list_tasks(
-            skip=0, limit=1000
-        )
+        cleaning_tasks, _ = await self.cleaning_task_repo.list_tasks(skip=0, limit=1000)
         aube_tasks, _ = await self.aube_task_repo.list_tasks(skip=0, limit=1000)
 
         total_tasks = len(cleaning_tasks) + len(aube_tasks)
         completed_tasks = sum(
-            1 for t in cleaning_tasks + aube_tasks
+            1
+            for t in cleaning_tasks + aube_tasks
             if t.status in [TaskStatus.TERMINEE, TaskStatus.VALIDEE]
         )
         pending_tasks = sum(
-            1 for t in cleaning_tasks + aube_tasks
-            if t.status == TaskStatus.PLANIFIEE
+            1 for t in cleaning_tasks + aube_tasks if t.status == TaskStatus.PLANIFIEE
         )
 
         completion_rate = (

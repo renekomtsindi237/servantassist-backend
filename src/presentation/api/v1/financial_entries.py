@@ -5,33 +5,28 @@ from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.financial_entry_service import FinancialEntryService
 from src.core.entities.financial_entry import EntryCategory, EntrySource, VerificationStatus
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.financial_entry_repository import (
-    FinancialEntryRepository, DiscrepancyRepository
-)
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    require_commissaire,
-)
+from src.infrastructure.repositories.financial_entry_repository import DiscrepancyRepository, FinancialEntryRepository
+from src.presentation.dependencies.auth_deps import get_current_active_user, require_commissaire
 from src.presentation.schemas.financial_entry import (
-    FinancialEntryCreate,
-    FinancialEntryUpdate,
-    FinancialEntryVerify,
-    FinancialEntryResponse,
-    FinancialEntryListResponse,
     AuditReportRequest,
     AuditReportResponse,
-    FinancialStatsResponse,
-    FinancialSummaryResponse,
     DiscrepancyCreate,
     DiscrepancyResolve,
     DiscrepancyResponse,
+    FinancialEntryCreate,
+    FinancialEntryListResponse,
+    FinancialEntryResponse,
+    FinancialEntryUpdate,
+    FinancialEntryVerify,
+    FinancialStatsResponse,
+    FinancialSummaryResponse,
 )
 
 router = APIRouter()
@@ -99,7 +94,7 @@ async def list_entries(
         start_date=start_date,
         end_date=end_date,
     )
-    
+
     return FinancialEntryListResponse(
         items=entries,
         total=total,
@@ -152,15 +147,15 @@ async def update_entry(
             reference=data.reference,
             description=data.description,
         )
-        
+
         if not entry:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Entrée financière introuvable",
             )
-        
+
         return entry
-    
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -214,13 +209,13 @@ async def verify_entry(
         status=data.verification_status,
         notes=data.notes,
     )
-    
+
     if not entry:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Entrée financière introuvable",
         )
-    
+
     return entry
 
 
@@ -243,7 +238,7 @@ async def get_my_entries(
         skip=skip,
         limit=limit,
     )
-    
+
     return FinancialEntryListResponse(
         items=entries,
         total=total,
@@ -288,13 +283,13 @@ async def generate_audit_report(
         end_date=data.end_date,
         generated_by=current_user.id,
     )
-    
+
     # Récupérer les résumés par catégorie via le service (utilise la session existante)
     summaries_data = await service.get_summary_by_category(
         data.start_date, data.end_date
     )
     summaries = [FinancialSummaryResponse(**s) for s in summaries_data]
-    
+
     return AuditReportResponse(
         **report.model_dump(),
         summaries=summaries,
@@ -324,13 +319,13 @@ async def create_discrepancy(
         expected_amount=data.expected_amount,
         actual_amount=data.actual_amount,
     )
-    
+
     if not discrepancy:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Entrée financière introuvable",
         )
-    
+
     return discrepancy
 
 
@@ -382,13 +377,13 @@ async def resolve_discrepancy(
         discrepancy_id=discrepancy_id,
         resolution_notes=data.resolution_notes,
     )
-    
+
     if not discrepancy:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Écart introuvable",
         )
-    
+
     return discrepancy
 
 

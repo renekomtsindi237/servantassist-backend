@@ -1,9 +1,10 @@
 """
 Tests E2E pour le module COMMISSAIRE_AUX_COMPTES - Audit financier.
 """
-import pytest
 from datetime import datetime
 from uuid import uuid4
+
+import pytest
 
 
 @pytest.mark.asyncio
@@ -21,7 +22,7 @@ async def test_create_entry_success(client, commissaire_token):
             "description": "Contributions du mois de février",
         },
     )
-    
+
     assert response.status_code == 201
     data = response.json()
     assert data["amount"] == 5000.0
@@ -43,7 +44,7 @@ async def test_create_entry_unauthorized(client, servant_token):
             "description": "Test",
         },
     )
-    
+
     assert response.status_code == 403
 
 
@@ -54,7 +55,7 @@ async def test_list_entries(client, commissaire_token, sample_financial_entry):
         "/api/v1/financial-entries/",
         headers={"Authorization": f"Bearer {commissaire_token}"},
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["total"] >= 1
@@ -67,7 +68,7 @@ async def test_get_entry_detail(client, commissaire_token, sample_financial_entr
         f"/api/v1/financial-entries/{sample_financial_entry.id}",
         headers={"Authorization": f"Bearer {commissaire_token}"},
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == str(sample_financial_entry.id)
@@ -81,7 +82,7 @@ async def test_update_entry(client, commissaire_token, sample_financial_entry):
         headers={"Authorization": f"Bearer {commissaire_token}"},
         json={"amount": 5500.0, "description": "Montant corrigé"},
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["amount"] == 5500.0
@@ -98,7 +99,7 @@ async def test_verify_entry(client, commissaire_token, sample_financial_entry):
             "notes": "Montant vérifié et conforme",
         },
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["verification_status"] == "VERIFIE"
@@ -115,7 +116,7 @@ async def test_get_statistics(client, commissaire_token):
             "end_date": "2026-02-28T23:59:59",
         },
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "total_amount" in data
@@ -135,7 +136,7 @@ async def test_generate_audit_report(client, commissaire_token):
             "include_recommendations": True,
         },
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "total_entries" in data
@@ -156,7 +157,7 @@ async def test_create_discrepancy(client, commissaire_token, sample_financial_en
             "actual_amount": 5000.0,
         },
     )
-    
+
     assert response.status_code == 201
 
 
@@ -171,7 +172,7 @@ async def test_resolve_discrepancy(client, commissaire_token, sample_discrepancy
             "resolution_notes": "Écart résolu après vérification",
         },
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["resolved"] is True
@@ -184,7 +185,7 @@ async def test_filter_by_category(client, commissaire_token):
         "/api/v1/financial-entries/?category=CONTRIBUTION",
         headers={"Authorization": f"Bearer {commissaire_token}"},
     )
-    
+
     assert response.status_code == 200
 
 
@@ -195,5 +196,5 @@ async def test_filter_by_verification_status(client, commissaire_token):
         "/api/v1/financial-entries/?verification_status=EN_ATTENTE",
         headers={"Authorization": f"Bearer {commissaire_token}"},
     )
-    
+
     assert response.status_code == 200

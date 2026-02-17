@@ -20,18 +20,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.responsable_service import ResponsableService
-from src.core.entities.responsable import (
-    ActionCategory,
-    ActionStatus,
-    PosteResponsable,
-    SLUG_TO_POSTE,
-)
+from src.core.entities.responsable import SLUG_TO_POSTE, ActionCategory, ActionStatus, PosteResponsable
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.responsable_repository import (
-    NominationRepository,
-    PosteActionRepository,
-)
+from src.infrastructure.repositories.responsable_repository import NominationRepository, PosteActionRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import get_current_active_user
 from src.presentation.schemas.responsable import (
@@ -48,6 +40,7 @@ router = APIRouter()
 # ── Helpers ──────────────────────────────────────────────────────────────
 def _get_service(session: AsyncSession) -> ResponsableService:
     from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
+
     return ResponsableService(
         nomination_repo=NominationRepository(session),
         action_repo=PosteActionRepository(session),
@@ -123,6 +116,7 @@ async def _verify_write_access(
 #  TABLEAU DE BORD
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @router.get("/{slug}/dashboard", response_model=PosteDashboardResponse)
 async def get_poste_dashboard(
     slug: str,
@@ -145,6 +139,7 @@ async def get_poste_dashboard(
 # ═══════════════════════════════════════════════════════════════════════════
 #  ACTIONS — CRUD
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.post(
     "/{slug}/actions",
@@ -178,7 +173,9 @@ async def list_actions(
     slug: str,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
-    category: Optional[ActionCategory] = Query(None, description="Filtrer par categorie"),
+    category: Optional[ActionCategory] = Query(
+        None, description="Filtrer par categorie"
+    ),
     action_status: Optional[ActionStatus] = Query(
         None, alias="status", description="Filtrer par statut"
     ),
@@ -258,4 +255,3 @@ async def delete_action(
     await _verify_write_access(session, current_user, poste)
     service = _get_service(session)
     await service.delete_action(action_id, deleted_by=current_user.id)
-

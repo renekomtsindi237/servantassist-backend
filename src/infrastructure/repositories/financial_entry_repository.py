@@ -5,11 +5,15 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.entities.financial_entry import (
-    FinancialEntry, Discrepancy, EntryCategory, EntrySource, VerificationStatus
+    Discrepancy,
+    EntryCategory,
+    EntrySource,
+    FinancialEntry,
+    VerificationStatus,
 )
 
 
@@ -153,26 +157,21 @@ class FinancialEntryRepository:
         """Calcule les statistiques pour une période."""
         # Total
         total_query = select(
-            func.count(FinancialEntry.id),
-            func.sum(FinancialEntry.amount)
+            func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)
         ).where(
-            and_(
-                FinancialEntry.date >= start_date,
-                FinancialEntry.date <= end_date
-            )
+            and_(FinancialEntry.date >= start_date, FinancialEntry.date <= end_date)
         )
         total_result = await self.session.execute(total_query)
         total_count, total_amount = total_result.one()
 
         # Vérifiées
         verified_query = select(
-            func.count(FinancialEntry.id),
-            func.sum(FinancialEntry.amount)
+            func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)
         ).where(
             and_(
                 FinancialEntry.date >= start_date,
                 FinancialEntry.date <= end_date,
-                FinancialEntry.verification_status == VerificationStatus.VERIFIED
+                FinancialEntry.verification_status == VerificationStatus.VERIFIED,
             )
         )
         verified_result = await self.session.execute(verified_query)
@@ -180,13 +179,12 @@ class FinancialEntryRepository:
 
         # En attente
         pending_query = select(
-            func.count(FinancialEntry.id),
-            func.sum(FinancialEntry.amount)
+            func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)
         ).where(
             and_(
                 FinancialEntry.date >= start_date,
                 FinancialEntry.date <= end_date,
-                FinancialEntry.verification_status == VerificationStatus.PENDING
+                FinancialEntry.verification_status == VerificationStatus.PENDING,
             )
         )
         pending_result = await self.session.execute(pending_query)
@@ -194,13 +192,12 @@ class FinancialEntryRepository:
 
         # Rejetées
         rejected_query = select(
-            func.count(FinancialEntry.id),
-            func.sum(FinancialEntry.amount)
+            func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)
         ).where(
             and_(
                 FinancialEntry.date >= start_date,
                 FinancialEntry.date <= end_date,
-                FinancialEntry.verification_status == VerificationStatus.REJECTED
+                FinancialEntry.verification_status == VerificationStatus.REJECTED,
             )
         )
         rejected_result = await self.session.execute(rejected_query)
@@ -225,18 +222,15 @@ class FinancialEntryRepository:
         """Résumé par catégorie."""
         # Récupération de toutes les entrées de la période
         query = select(FinancialEntry).where(
-            and_(
-                FinancialEntry.date >= start_date,
-                FinancialEntry.date <= end_date
-            )
+            and_(FinancialEntry.date >= start_date, FinancialEntry.date <= end_date)
         )
-        
+
         result = await self.session.execute(query)
         entries = result.scalars().all()
-        
+
         # Agrégation en Python
         summary_map = {}
-        
+
         for entry in entries:
             category = entry.category
             if category not in summary_map:
@@ -247,16 +241,16 @@ class FinancialEntryRepository:
                     "verified_amount": 0.0,
                     "pending_amount": 0.0,
                 }
-            
+
             stats = summary_map[category]
             stats["entry_count"] += 1
             stats["total_amount"] += entry.amount
-            
+
             if entry.verification_status == VerificationStatus.VERIFIED:
                 stats["verified_amount"] += entry.amount
             elif entry.verification_status == VerificationStatus.PENDING:
                 stats["pending_amount"] += entry.amount
-        
+
         return list(summary_map.values())
 
 

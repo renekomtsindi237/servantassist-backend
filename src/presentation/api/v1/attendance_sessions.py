@@ -10,15 +10,9 @@ from fastapi import APIRouter, Depends, Query, status
 from src.application.services.attendance_session_service import AttendanceSessionService
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.attendance_session_repository import (
-    AttendanceSessionRepository,
-)
+from src.infrastructure.repositories.attendance_session_repository import AttendanceSessionRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import (
-    get_current_user,
-    require_censeur,
-    require_censeur_strict,
-)
+from src.presentation.dependencies.auth_deps import get_current_user, require_censeur, require_censeur_strict
 from src.presentation.schemas.attendance_session import (
     AttendanceRecordCreate,
     AttendanceRecordResponse,

@@ -1,10 +1,10 @@
 """
 Tests end-to-end pour les endpoints de contributions (ECONOME).
 """
-import pytest
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import pytest
 from fastapi import status
 from httpx import AsyncClient
 
@@ -138,15 +138,14 @@ class TestContributionEndpoints:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    async def test_list_contributions(
-        self, client: AsyncClient, econome_token: str
-    ):
+    async def test_list_contributions(self, client: AsyncClient, econome_token: str):
         """Test : Lister les contributions."""
         response = await client.get(
             "/api/v1/contributions/",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert "items" in data
@@ -161,7 +160,8 @@ class TestContributionEndpoints:
             "/api/v1/contributions/?month=2&year=2026&payment_mode=MENSUEL",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
 
     async def test_get_contribution(
@@ -172,7 +172,8 @@ class TestContributionEndpoints:
             f"/api/v1/contributions/{contribution_id}",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["id"] == contribution_id
@@ -197,7 +198,8 @@ class TestContributionEndpoints:
             headers={"Authorization": f"Bearer {econome_token}"},
             json={"notes": "Note modifiée"},
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["notes"] == "Note modifiée"
@@ -220,7 +222,8 @@ class TestContributionEndpoints:
             f"/api/v1/contributions/servant/{servant_user_id}",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
@@ -231,7 +234,7 @@ class TestContributionEndpoints:
         """Test : Récupérer les statistiques d'un servant."""
         start_date = datetime(2026, 1, 1, tzinfo=timezone.utc).isoformat()
         end_date = datetime(2026, 12, 31, tzinfo=timezone.utc).isoformat()
-        
+
         response = await client.get(
             f"/api/v1/contributions/servant/{servant_user_id}/stats",
             headers={"Authorization": f"Bearer {econome_token}"},
@@ -244,15 +247,14 @@ class TestContributionEndpoints:
         assert "total_paid" in data
         assert "payment_rate" in data
 
-    async def test_get_monthly_summary(
-        self, client: AsyncClient, econome_token: str
-    ):
+    async def test_get_monthly_summary(self, client: AsyncClient, econome_token: str):
         """Test : Récupérer le résumé mensuel."""
         response = await client.get(
             "/api/v1/contributions/summary/2/2026",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
@@ -269,7 +271,8 @@ class TestContributionEndpoints:
                 "end_date": datetime(2026, 12, 31, tzinfo=timezone.utc).isoformat(),
             },
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert "total_expected" in data
@@ -293,7 +296,8 @@ class TestContributionEndpoints:
                 "servant_ids": [servant_user_id],
             },
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -345,7 +349,8 @@ class TestContributionPermissions:
             f"/api/v1/contributions/servant/{servant_user_id}",
             headers={"Authorization": f"Bearer {servant_token}"},
         )
-        if response.status_code != 200: print(f"ERROR: {response.json()}")
+        if response.status_code != 200:
+            print(f"ERROR: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
 
     async def test_servant_cannot_create_contribution(
@@ -366,9 +371,7 @@ class TestContributionPermissions:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    async def test_unauthenticated_cannot_access(
-        self, client: AsyncClient
-    ):
+    async def test_unauthenticated_cannot_access(self, client: AsyncClient):
         """Test : Accès non authentifié refusé."""
         response = await client.get("/api/v1/contributions/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -452,9 +455,7 @@ class TestContributionBusinessRules:
         )
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    async def test_servant_must_exist(
-        self, client: AsyncClient, econome_token: str
-    ):
+    async def test_servant_must_exist(self, client: AsyncClient, econome_token: str):
         """Test : Le servant doit exister."""
         fake_servant_id = str(uuid4())
         response = await client.post(

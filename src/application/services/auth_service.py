@@ -6,23 +6,29 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 
 from src.core.entities.user import User, UserRole
-from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.repositories.invitation_repository import InvitationCodeRepository
+from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.security.utils import SecurityUtils
-from src.presentation.schemas.auth import UserCreate, UserLogin, UserPhoneLogin, Token
+from src.presentation.schemas.auth import Token, UserCreate, UserLogin, UserPhoneLogin
 
 
 class AuthService:
-    def __init__(self, user_repository: UserRepository, invitation_repository: Optional[InvitationCodeRepository] = None):
+    def __init__(
+        self,
+        user_repository: UserRepository,
+        invitation_repository: Optional[InvitationCodeRepository] = None,
+    ):
         self.user_repository = user_repository
         self.invitation_repository = invitation_repository
 
-    async def authenticate_user(self, login_data: Union[UserLogin, UserPhoneLogin]) -> User:
+    async def authenticate_user(
+        self, login_data: Union[UserLogin, UserPhoneLogin]
+    ) -> User:
         """
         Authenticate user based on role:
         - ADMIN/AUMÔNIER: Email login ONLY (via UserLogin)
         - PARENT/SERVANT: Phone login ONLY (via UserPhoneLogin)
-        
+
         Raises 403 if a user tries the wrong login method for their role.
         """
         if isinstance(login_data, UserLogin):
@@ -73,7 +79,12 @@ class AuthService:
 
         return user
 
-    async def register_user(self, user_create: UserCreate, invitation_code: Optional[str] = None, admin_id: Optional[UUID] = None) -> User:
+    async def register_user(
+        self,
+        user_create: UserCreate,
+        invitation_code: Optional[str] = None,
+        admin_id: Optional[UUID] = None,
+    ) -> User:
         """
         Register a new user with role-based validation
 
@@ -91,8 +102,13 @@ class AuthService:
             )
 
         # Check phone uniqueness for PARENT/SERVANT
-        if user_create.role in [UserRole.PARENT, UserRole.SERVANT] and user_create.phone_number:
-            existing_by_phone = await self.user_repository.get_by_phone(user_create.phone_number)
+        if (
+            user_create.role in [UserRole.PARENT, UserRole.SERVANT]
+            and user_create.phone_number
+        ):
+            existing_by_phone = await self.user_repository.get_by_phone(
+                user_create.phone_number
+            )
             if existing_by_phone:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -120,7 +136,9 @@ class AuthService:
                         detail="Invitation system not available",
                     )
 
-                invitation = await self.invitation_repository.get_by_code(invitation_code)
+                invitation = await self.invitation_repository.get_by_code(
+                    invitation_code
+                )
                 if not invitation:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
@@ -135,7 +153,10 @@ class AuthService:
                     )
 
                 # If phone-specific invitation, verify match
-                if invitation.phone_number and invitation.phone_number != user_create.phone_number:
+                if (
+                    invitation.phone_number
+                    and invitation.phone_number != user_create.phone_number
+                ):
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="This invitation code is not valid for this phone number",
@@ -193,8 +214,14 @@ class AuthService:
         created_user = await self.user_repository.create(db_user)
 
         # Mark invitation as used if applicable
-        if user_create.role == UserRole.PARENT and invitation_code and self.invitation_repository:
-            await self.invitation_repository.mark_as_used(invitation_code, created_user.id)
+        if (
+            user_create.role == UserRole.PARENT
+            and invitation_code
+            and self.invitation_repository
+        ):
+            await self.invitation_repository.mark_as_used(
+                invitation_code, created_user.id
+            )
 
         return created_user
 
@@ -210,10 +237,13 @@ class AuthService:
             subject=user.email,
             role=user.role.value,
         )
-        return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
+        return Token(
+            access_token=access_token, refresh_token=refresh_token, token_type="bearer"
+        )
 
     async def refresh_token(self, refresh_token: str) -> Token:
-        from jose import jwt, JWTError
+        from jose import JWTError, jwt
+
         from src.infrastructure.config.settings import get_settings
 
         settings = get_settings()
@@ -225,7 +255,9 @@ class AuthService:
         )
         try:
             payload = jwt.decode(
-                refresh_token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+                refresh_token,
+                settings.JWT_SECRET_KEY,
+                algorithms=[settings.JWT_ALGORITHM],
             )
             email: str = payload.get("sub")
             token_type: str = payload.get("type")
@@ -253,8 +285,11 @@ class AuthService:
             user_first_name=user.first_name or "Utilisateur",
         )
 
-    async def reset_password(self, token: str, new_password: str, email_service=None) -> None:
-        from jose import jwt, JWTError
+    async def reset_password(
+        self, token: str, new_password: str, email_service=None
+    ) -> None:
+        from jose import JWTError, jwt
+
         from src.infrastructure.config.settings import get_settings
 
         settings = get_settings()

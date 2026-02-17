@@ -10,20 +10,16 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.responsable import (
-    ActionCategory,
-    ActionStatus,
-    NominationStatus,
-    PosteResponsable,
-)
-
+from src.core.entities.responsable import ActionCategory, ActionStatus, NominationStatus, PosteResponsable
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Nominations
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class NominationCreate(BaseModel):
     """Schema pour nommer un servant a un poste de responsable."""
+
     user_id: UUID
     poste: PosteResponsable
     notes: Optional[str] = Field(None, max_length=500)
@@ -31,6 +27,7 @@ class NominationCreate(BaseModel):
 
 class NominationResponse(BaseModel):
     """Reponse pour une nomination avec infos utilisateur."""
+
     id: UUID
     user_id: UUID
     poste: PosteResponsable
@@ -54,6 +51,7 @@ class NominationResponse(BaseModel):
 
 class PosteDetailResponse(BaseModel):
     """Detail d'un poste avec son titulaire et ses missions."""
+
     poste: PosteResponsable
     slug: str
     titre: str
@@ -65,6 +63,7 @@ class PosteDetailResponse(BaseModel):
 
 class PosteListResponse(BaseModel):
     """Liste de tous les postes avec statut d'occupation."""
+
     postes: List[PosteDetailResponse]
     total_postes: int
     postes_pourvus: int
@@ -75,8 +74,10 @@ class PosteListResponse(BaseModel):
 #  Actions de poste
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class PosteActionCreate(BaseModel):
     """Schema pour creer une action de responsable."""
+
     category: ActionCategory
     title: str = Field(..., min_length=1, max_length=300)
     content: Optional[str] = Field(default=None, max_length=5000)
@@ -90,6 +91,7 @@ class PosteActionCreate(BaseModel):
 
 class PosteActionUpdate(BaseModel):
     """Modification partielle d'une action de responsable."""
+
     title: Optional[str] = Field(default=None, min_length=1, max_length=300)
     content: Optional[str] = Field(default=None, max_length=5000)
     target_user_id: Optional[UUID] = None
@@ -102,11 +104,13 @@ class PosteActionUpdate(BaseModel):
 
 class PosteActionPublish(BaseModel):
     """Schema pour publier une action."""
+
     pass  # Pas de paramètres requis
 
 
 class PosteActionResponse(BaseModel):
     """Reponse pour une action de responsable."""
+
     id: UUID
     poste: PosteResponsable
     category: ActionCategory
@@ -133,6 +137,7 @@ class PosteActionResponse(BaseModel):
 
 class PosteActionListResponse(BaseModel):
     """Liste des actions avec pagination."""
+
     items: List[PosteActionResponse]
     total: int
     page: int
@@ -151,6 +156,7 @@ class PosteActionListResponse(BaseModel):
 
 class PosteDashboardResponse(BaseModel):
     """Tableau de bord d'un poste de responsable."""
+
     poste: PosteResponsable
     slug: str
     titre: str
@@ -168,8 +174,10 @@ class PosteDashboardResponse(BaseModel):
 #  Conseil des Responsables
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class CouncilMeetingCreate(BaseModel):
     """Schema pour creer une reunion du conseil."""
+
     meeting_date: datetime
     location: str = Field(..., max_length=200)
     agenda: Optional[str] = Field(None, max_length=1000)
@@ -177,6 +185,7 @@ class CouncilMeetingCreate(BaseModel):
 
 class CouncilAttendanceRecord(BaseModel):
     """Schema pour enregistrer une presence au conseil."""
+
     responsable_id: UUID
     is_present: bool = True
     excuse: Optional[str] = Field(None, max_length=500)
@@ -184,11 +193,13 @@ class CouncilAttendanceRecord(BaseModel):
 
 class CouncilAttendanceRecordList(BaseModel):
     """Liste des presences a enregistrer."""
+
     attendances: List[CouncilAttendanceRecord]
 
 
 class CouncilMeetingResponse(BaseModel):
     """Reponse pour une reunion du conseil."""
+
     id: UUID
     meeting_date: datetime
     location: str
@@ -198,4 +209,3 @@ class CouncilMeetingResponse(BaseModel):
 
     class Config:
         from_attributes = True
-

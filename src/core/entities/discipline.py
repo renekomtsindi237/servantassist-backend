@@ -20,43 +20,47 @@ from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enums
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class SanctionType(str, Enum):
     """Types de sanctions prevus par le reglement interieur."""
-    AUCUNE = "AUCUNE"                                      # Classe sans suite
-    AVERTISSEMENT_VERBAL = "AVERTISSEMENT_VERBAL"          # 1er manquement
-    AVERTISSEMENT_ECRIT = "AVERTISSEMENT_ECRIT"            # 2eme manquement
-    SUSPENSION_TEMPORAIRE = "SUSPENSION_TEMPORAIRE"        # Manquement grave / recidive
-    EXCLUSION_DEFINITIVE = "EXCLUSION_DEFINITIVE"          # Faute tres grave
-    LETTRE_EXCUSE = "LETTRE_EXCUSE"                        # Article 44
-    CORVEE_INTENSIVE = "CORVEE_INTENSIVE"                  # Article 43
-    RECYCLAGE_SERVICE = "RECYCLAGE_SERVICE"                # Article 46
+
+    AUCUNE = "AUCUNE"  # Classe sans suite
+    AVERTISSEMENT_VERBAL = "AVERTISSEMENT_VERBAL"  # 1er manquement
+    AVERTISSEMENT_ECRIT = "AVERTISSEMENT_ECRIT"  # 2eme manquement
+    SUSPENSION_TEMPORAIRE = "SUSPENSION_TEMPORAIRE"  # Manquement grave / recidive
+    EXCLUSION_DEFINITIVE = "EXCLUSION_DEFINITIVE"  # Faute tres grave
+    LETTRE_EXCUSE = "LETTRE_EXCUSE"  # Article 44
+    CORVEE_INTENSIVE = "CORVEE_INTENSIVE"  # Article 43
+    RECYCLAGE_SERVICE = "RECYCLAGE_SERVICE"  # Article 46
 
 
 class SanctionSeverity(str, Enum):
     """Gravite de la faute."""
-    MINEUR = "MINEUR"          # Retard, oubli materiel
-    MOYEN = "MOYEN"            # Absence non justifiee, manque de discipline
-    GRAVE = "GRAVE"            # Insubordination, vol, violence verbale
+
+    MINEUR = "MINEUR"  # Retard, oubli materiel
+    MOYEN = "MOYEN"  # Absence non justifiee, manque de discipline
+    GRAVE = "GRAVE"  # Insubordination, vol, violence verbale
     TRES_GRAVE = "TRES_GRAVE"  # Violence physique, comportement immoral
 
 
 class DisciplineCaseStatus(str, Enum):
     """Statut d'un dossier disciplinaire."""
-    SIGNALE = "SIGNALE"              # Faute signalee
-    CONVOQUE = "CONVOQUE"            # Servant convoque au conseil de discipline
-    EN_AUDIENCE = "EN_AUDIENCE"      # Audience en cours
+
+    SIGNALE = "SIGNALE"  # Faute signalee
+    CONVOQUE = "CONVOQUE"  # Servant convoque au conseil de discipline
+    EN_AUDIENCE = "EN_AUDIENCE"  # Audience en cours
     VERDICT_RENDU = "VERDICT_RENDU"  # Verdict prononce
-    EXECUTE = "EXECUTE"              # Sanction appliquee
-    CLASSE = "CLASSE"                # Classe sans suite
+    EXECUTE = "EXECUTE"  # Sanction appliquee
+    CLASSE = "CLASSE"  # Classe sans suite
 
 
 class OffenseCategory(str, Enum):
     """Categories de fautes prevues par le reglement interieur."""
+
     ABSENCE_NON_JUSTIFIEE = "ABSENCE_NON_JUSTIFIEE"
     RETARD_REPETE = "RETARD_REPETE"
     INSUBORDINATION = "INSUBORDINATION"
@@ -81,6 +85,7 @@ class OffenseCategory(str, Enum):
 #  Table : Dossiers disciplinaires
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class DisciplineCase(SQLModel, table=True):
     """
     Dossier disciplinaire ouvert a l'encontre d'un servant.
@@ -92,6 +97,7 @@ class DisciplineCase(SQLModel, table=True):
     Le conseil de discipline est compose du Delegue, du Vice-Delegue, du Censeur
     et du Censeur adjoint, sous la supervision de l'Aumonier.
     """
+
     __tablename__ = "discipline_cases"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -156,4 +162,3 @@ SEVERITY_RECOMMENDED_SANCTION: dict[SanctionSeverity, SanctionType] = {
     SanctionSeverity.GRAVE: SanctionType.SUSPENSION_TEMPORAIRE,
     SanctionSeverity.TRES_GRAVE: SanctionType.EXCLUSION_DEFINITIVE,
 }
-

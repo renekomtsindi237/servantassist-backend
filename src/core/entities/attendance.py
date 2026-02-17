@@ -20,37 +20,40 @@ from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enums
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class AttendanceType(str, Enum):
     """Type de presence attendue."""
-    REUNION_ORDINAIRE = "REUNION_ORDINAIRE"      # Reunion hebdomadaire
-    MESSE_CLASSEMENT = "MESSE_CLASSEMENT"        # Messe ou le servant est classe
-    MESSE_VOLONTAIRE = "MESSE_VOLONTAIRE"        # Messe sans classement
-    RECOLLECTION = "RECOLLECTION"                # Recollection mensuelle
-    CAMP = "CAMP"                                # Camp spirituel
-    FORMATION = "FORMATION"                      # Formation / enseignement
-    REPETITION = "REPETITION"                    # Repetition de ceremonie
-    ACTIVITE = "ACTIVITE"                        # Activite sportive/culturelle
-    CONSEIL = "CONSEIL"                          # Conseil des responsables
+
+    REUNION_ORDINAIRE = "REUNION_ORDINAIRE"  # Reunion hebdomadaire
+    MESSE_CLASSEMENT = "MESSE_CLASSEMENT"  # Messe ou le servant est classe
+    MESSE_VOLONTAIRE = "MESSE_VOLONTAIRE"  # Messe sans classement
+    RECOLLECTION = "RECOLLECTION"  # Recollection mensuelle
+    CAMP = "CAMP"  # Camp spirituel
+    FORMATION = "FORMATION"  # Formation / enseignement
+    REPETITION = "REPETITION"  # Repetition de ceremonie
+    ACTIVITE = "ACTIVITE"  # Activite sportive/culturelle
+    CONSEIL = "CONSEIL"  # Conseil des responsables
     AUTRE = "AUTRE"
 
 
 class AttendanceStatus(str, Enum):
     """Statut de presence d'un servant."""
+
     PRESENT = "PRESENT"
     ABSENT = "ABSENT"
     ABSENT_JUSTIFIE = "ABSENT_JUSTIFIE"
     EN_RETARD = "EN_RETARD"
-    EXCUSE = "EXCUSE"                            # Excuse acceptee a l'avance
+    EXCUSE = "EXCUSE"  # Excuse acceptee a l'avance
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Table : Presences
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class Attendance(SQLModel, table=True):
     """
@@ -62,6 +65,7 @@ class Attendance(SQLModel, table=True):
     La justification d'absence doit etre fournie dans les 48h suivant
     l'absence, conformement au reglement interieur.
     """
+
     __tablename__ = "attendances"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -82,4 +86,3 @@ class Attendance(SQLModel, table=True):
     # Metadata
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
-

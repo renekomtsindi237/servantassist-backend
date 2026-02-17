@@ -7,19 +7,16 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.cotisation import (
-    CotisationStatus,
-    CotisationType,
-    PeriodType,
-)
-
+from src.core.entities.cotisation import CotisationStatus, CotisationType, PeriodType
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Periodes de cotisation
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class CotisationPeriodCreate(BaseModel):
     """Creer une periode de cotisation."""
+
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     cotisation_type: CotisationType = CotisationType.ORDINAIRE
@@ -32,6 +29,7 @@ class CotisationPeriodCreate(BaseModel):
 
 class CotisationPeriodUpdate(BaseModel):
     """Modifier une periode de cotisation."""
+
     title: Optional[str] = Field(None, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     amount_expected: Optional[float] = Field(None, ge=0)
@@ -41,6 +39,7 @@ class CotisationPeriodUpdate(BaseModel):
 
 class CotisationPeriodResponse(BaseModel):
     """Reponse pour une periode de cotisation."""
+
     id: UUID
     title: str
     description: Optional[str] = None
@@ -68,8 +67,10 @@ class CotisationPeriodResponse(BaseModel):
 #  Paiements individuels
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class MemberCotisationCreate(BaseModel):
     """Enregistrer un paiement de cotisation."""
+
     period_id: UUID
     user_id: UUID
     amount_paid: float = Field(..., ge=0)
@@ -79,6 +80,7 @@ class MemberCotisationCreate(BaseModel):
 
 class MemberCotisationUpdate(BaseModel):
     """Modifier un paiement."""
+
     amount_paid: Optional[float] = Field(None, ge=0)
     status: Optional[CotisationStatus] = None
     payment_method: Optional[str] = Field(None, max_length=100)
@@ -87,6 +89,7 @@ class MemberCotisationUpdate(BaseModel):
 
 class MemberCotisationResponse(BaseModel):
     """Reponse pour un paiement de cotisation."""
+
     id: UUID
     period_id: UUID
     user_id: UUID
@@ -110,10 +113,10 @@ class MemberCotisationResponse(BaseModel):
 
 class CotisationBilanResponse(BaseModel):
     """Bilan financier d'une periode."""
+
     period: CotisationPeriodResponse
     payments: List[MemberCotisationResponse]
     total_expected: float
     total_collected: float
     total_remaining: float
     taux_recouvrement: float  # Pourcentage
-

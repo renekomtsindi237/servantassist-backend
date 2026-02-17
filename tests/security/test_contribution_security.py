@@ -1,10 +1,10 @@
 """
 Tests de sécurité pour le module de contributions (ECONOME).
 """
-import pytest
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
 
@@ -17,12 +17,12 @@ class TestContributionSecurity:
     ):
         """Test : Protection contre l'injection SQL dans les filtres."""
         malicious_input = "1' OR '1'='1"
-        
+
         response = await client.get(
             f"/api/v1/contributions/?month={malicious_input}",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        
+
         # Doit retourner une erreur de validation, pas une erreur SQL
         assert response.status_code == 422
 
@@ -31,7 +31,7 @@ class TestContributionSecurity:
     ):
         """Test : Protection contre XSS dans le champ notes."""
         xss_payload = "<script>alert('XSS')</script>"
-        
+
         response = await client.post(
             "/api/v1/contributions/",
             headers={"Authorization": f"Bearer {econome_token}"},
@@ -45,22 +45,18 @@ class TestContributionSecurity:
                 "notes": xss_payload,
             },
         )
-        
+
         assert response.status_code == 201
         data = response.json()
         # Le payload doit être stocké tel quel (échappement côté frontend)
         assert data["notes"] == xss_payload
 
-    async def test_unauthorized_access_without_token(
-        self, client: AsyncClient
-    ):
+    async def test_unauthorized_access_without_token(self, client: AsyncClient):
         """Test : Accès non autorisé sans token."""
         response = await client.get("/api/v1/contributions/")
         assert response.status_code == 401
 
-    async def test_unauthorized_access_with_invalid_token(
-        self, client: AsyncClient
-    ):
+    async def test_unauthorized_access_with_invalid_token(self, client: AsyncClient):
         """Test : Accès non autorisé avec token invalide."""
         response = await client.get(
             "/api/v1/contributions/",
@@ -91,7 +87,7 @@ class TestContributionSecurity:
     ):
         """Test : Un servant ne peut pas créer de contributions."""
         other_servant_id = str(uuid4())
-        
+
         response = await client.post(
             "/api/v1/contributions/",
             headers={"Authorization": f"Bearer {servant_token}"},
@@ -104,7 +100,7 @@ class TestContributionSecurity:
                 "year": 2026,
             },
         )
-        
+
         assert response.status_code == 403
 
     async def test_negative_amount_rejected(
@@ -179,12 +175,10 @@ class TestContributionSecurity:
         )
         assert response.status_code == 422
 
-    async def test_uuid_validation(
-        self, client: AsyncClient, econome_token: str
-    ):
+    async def test_uuid_validation(self, client: AsyncClient, econome_token: str):
         """Test : Validation des UUID."""
         invalid_uuid = "not-a-valid-uuid"
-        
+
         response = await client.post(
             "/api/v1/contributions/",
             headers={"Authorization": f"Bearer {econome_token}"},
@@ -211,7 +205,7 @@ class TestContributionSecurity:
                 headers={"Authorization": f"Bearer {econome_token}"},
             )
             responses.append(response)
-        
+
         # Au moins une requête devrait être rate-limitée (429)
         status_codes = [r.status_code for r in responses]
         # Note: Ceci dépend de la configuration du rate limiter
@@ -224,12 +218,12 @@ class TestContributionSecurity:
     ):
         """Test : Pas de fuite de données sensibles dans les erreurs."""
         fake_id = str(uuid4())
-        
+
         response = await client.get(
             f"/api/v1/contributions/{fake_id}",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        
+
         assert response.status_code == 404
         data = response.json()
         # Le message d'erreur ne doit pas contenir d'informations sensibles
@@ -302,7 +296,7 @@ class TestContributionInputValidation:
     ):
         """Test : Gestion des notes très longues."""
         very_long_notes = "A" * 10000  # 10000 caractères
-        
+
         response = await client.post(
             "/api/v1/contributions/",
             headers={"Authorization": f"Bearer {econome_token}"},
@@ -316,6 +310,6 @@ class TestContributionInputValidation:
                 "notes": very_long_notes,
             },
         )
-        
+
         # Doit soit accepter (201) soit rejeter proprement (422)
         assert response.status_code in [201, 422]

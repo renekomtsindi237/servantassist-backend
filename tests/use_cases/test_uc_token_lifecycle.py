@@ -10,15 +10,16 @@
 ║    5. Refresh token invalide → rejeté (401)                           ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
-import pytest
 from datetime import timedelta
-from jose import jwt
-from httpx import AsyncClient
 
-from tests.conftest import make_access_token, VALID_PASSWORD
+import pytest
+from httpx import AsyncClient
+from jose import jwt
+
 from src.core.entities.user import User
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.utils import SecurityUtils
+from tests.conftest import VALID_PASSWORD, make_access_token
 
 settings = get_settings()
 
@@ -120,4 +121,3 @@ class TestExpiredAccessToken:
 
         resp = await client.get("/api/v1/admin/invitations", headers=headers)
         assert resp.status_code == 401
-

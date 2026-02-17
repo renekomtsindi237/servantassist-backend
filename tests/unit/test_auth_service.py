@@ -1,11 +1,11 @@
 """
 Tests unitaires — AuthService (logique métier, repositories mockés).
 """
-import pytest
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+import pytest
 from fastapi import HTTPException
 
 from src.application.services.auth_service import AuthService
@@ -18,7 +18,12 @@ VALID_PASSWORD = "TestPass1"
 HASHED = SecurityUtils.get_password_hash(VALID_PASSWORD)
 
 
-def _make_user(role: UserRole, email: str = "u@t.com", phone: str = "+237600000001", active: bool = True) -> User:
+def _make_user(
+    role: UserRole,
+    email: str = "u@t.com",
+    phone: str = "+237600000001",
+    active: bool = True,
+) -> User:
     return User(
         id=uuid4(),
         email=email,
@@ -228,9 +233,12 @@ class TestRegisterServant:
 
         result = await service.register_user(
             UserCreate(
-                email="new@t.com", password=VALID_PASSWORD,
-                first_name="A", last_name="B",
-                phone_number="+237600000010", role=UserRole.SERVANT,
+                email="new@t.com",
+                password=VALID_PASSWORD,
+                first_name="A",
+                last_name="B",
+                phone_number="+237600000010",
+                role=UserRole.SERVANT,
             )
         )
         assert result.role == UserRole.SERVANT
@@ -243,9 +251,12 @@ class TestRegisterServant:
         with pytest.raises(HTTPException) as exc_info:
             await service.register_user(
                 UserCreate(
-                    email="u@t.com", password=VALID_PASSWORD,
-                    first_name="A", last_name="B",
-                    phone_number="+237600000010", role=UserRole.SERVANT,
+                    email="u@t.com",
+                    password=VALID_PASSWORD,
+                    first_name="A",
+                    last_name="B",
+                    phone_number="+237600000010",
+                    role=UserRole.SERVANT,
                 )
             )
         assert exc_info.value.status_code == 400
@@ -259,9 +270,12 @@ class TestRegisterServant:
         with pytest.raises(HTTPException) as exc_info:
             await service.register_user(
                 UserCreate(
-                    email="new@t.com", password=VALID_PASSWORD,
-                    first_name="A", last_name="B",
-                    phone_number="+237600000001", role=UserRole.SERVANT,
+                    email="new@t.com",
+                    password=VALID_PASSWORD,
+                    first_name="A",
+                    last_name="B",
+                    phone_number="+237600000001",
+                    role=UserRole.SERVANT,
                 )
             )
         assert exc_info.value.status_code == 400
@@ -290,9 +304,12 @@ class TestRegisterParent:
         service = AuthService(repo, inv_repo)
         result = await service.register_user(
             UserCreate(
-                email="parent@t.com", password=VALID_PASSWORD,
-                first_name="A", last_name="B",
-                phone_number="+237600000020", role=UserRole.PARENT,
+                email="parent@t.com",
+                password=VALID_PASSWORD,
+                first_name="A",
+                last_name="B",
+                phone_number="+237600000020",
+                role=UserRole.PARENT,
             ),
             invitation_code="INV-VALID",
         )
@@ -308,9 +325,12 @@ class TestRegisterParent:
         with pytest.raises(HTTPException) as exc_info:
             await service.register_user(
                 UserCreate(
-                    email="p@t.com", password=VALID_PASSWORD,
-                    first_name="A", last_name="B",
-                    phone_number="+237600000020", role=UserRole.PARENT,
+                    email="p@t.com",
+                    password=VALID_PASSWORD,
+                    first_name="A",
+                    last_name="B",
+                    phone_number="+237600000020",
+                    role=UserRole.PARENT,
                 ),
                 invitation_code=None,
             )
@@ -328,9 +348,12 @@ class TestRegisterParent:
         with pytest.raises(HTTPException) as exc_info:
             await service.register_user(
                 UserCreate(
-                    email="p@t.com", password=VALID_PASSWORD,
-                    first_name="A", last_name="B",
-                    phone_number="+237600000020", role=UserRole.PARENT,
+                    email="p@t.com",
+                    password=VALID_PASSWORD,
+                    first_name="A",
+                    last_name="B",
+                    phone_number="+237600000020",
+                    role=UserRole.PARENT,
                 ),
                 invitation_code="INV-INVALID",
             )
@@ -352,9 +375,12 @@ class TestRegisterParent:
         with pytest.raises(HTTPException) as exc_info:
             await service.register_user(
                 UserCreate(
-                    email="wrong@t.com", password=VALID_PASSWORD,
-                    first_name="A", last_name="B",
-                    phone_number="+237600000020", role=UserRole.PARENT,
+                    email="wrong@t.com",
+                    password=VALID_PASSWORD,
+                    first_name="A",
+                    last_name="B",
+                    phone_number="+237600000020",
+                    role=UserRole.PARENT,
                 ),
                 invitation_code="INV-LOCKED",
             )
@@ -376,9 +402,12 @@ class TestRegisterParent:
         with pytest.raises(HTTPException) as exc_info:
             await service.register_user(
                 UserCreate(
-                    email="p@t.com", password=VALID_PASSWORD,
-                    first_name="A", last_name="B",
-                    phone_number="+237600000020", role=UserRole.PARENT,
+                    email="p@t.com",
+                    password=VALID_PASSWORD,
+                    first_name="A",
+                    last_name="B",
+                    phone_number="+237600000020",
+                    role=UserRole.PARENT,
                 ),
                 invitation_code="INV-PHONELOCKED",
             )
@@ -395,9 +424,12 @@ class TestRegisterParent:
         service = AuthService(repo)
         result = await service.register_user(
             UserCreate(
-                email="p@t.com", password=VALID_PASSWORD,
-                first_name="A", last_name="B",
-                phone_number="+237600000020", role=UserRole.PARENT,
+                email="p@t.com",
+                password=VALID_PASSWORD,
+                first_name="A",
+                last_name="B",
+                phone_number="+237600000020",
+                role=UserRole.PARENT,
             ),
             invitation_code=None,
             admin_id=uuid4(),
@@ -418,8 +450,10 @@ class TestRegisterRestricted:
         with pytest.raises(HTTPException) as exc_info:
             await service.register_user(
                 UserCreate(
-                    email="admin@t.com", password=VALID_PASSWORD,
-                    first_name="A", last_name="B",
+                    email="admin@t.com",
+                    password=VALID_PASSWORD,
+                    first_name="A",
+                    last_name="B",
                     role=UserRole.ADMIN,
                 ),
                 admin_id=None,
@@ -434,8 +468,10 @@ class TestRegisterRestricted:
         with pytest.raises(HTTPException) as exc_info:
             await service.register_user(
                 UserCreate(
-                    email="aum@t.com", password=VALID_PASSWORD,
-                    first_name="A", last_name="B",
+                    email="aum@t.com",
+                    password=VALID_PASSWORD,
+                    first_name="A",
+                    last_name="B",
                     role=UserRole.AUMÔNIER,
                 ),
                 admin_id=None,
@@ -460,7 +496,9 @@ class TestCreateTokens:
 
     async def test_access_token_contains_role(self):
         from jose import jwt as jose_jwt
+
         from src.infrastructure.config.settings import get_settings
+
         settings = get_settings()
 
         user = _make_user(UserRole.SERVANT)
@@ -469,7 +507,8 @@ class TestCreateTokens:
 
         token = await service.create_tokens(user)
         payload = jose_jwt.decode(
-            token.access_token, settings.JWT_SECRET_KEY,
+            token.access_token,
+            settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
         assert payload["role"] == "SERVANT"
@@ -477,7 +516,9 @@ class TestCreateTokens:
 
     async def test_refresh_token_contains_role_and_type(self):
         from jose import jwt as jose_jwt
+
         from src.infrastructure.config.settings import get_settings
+
         settings = get_settings()
 
         user = _make_user(UserRole.PARENT)
@@ -486,9 +527,9 @@ class TestCreateTokens:
 
         token = await service.create_tokens(user)
         payload = jose_jwt.decode(
-            token.refresh_token, settings.JWT_SECRET_KEY,
+            token.refresh_token,
+            settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
         assert payload["role"] == "PARENT"
         assert payload["type"] == "refresh"
-

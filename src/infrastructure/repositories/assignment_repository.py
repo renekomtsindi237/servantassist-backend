@@ -10,8 +10,8 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import func, or_
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.core.entities.assignment import Assignment, AssignmentStatus, LiturgicalRole
 from src.core.entities.event import Event
@@ -99,7 +99,9 @@ class AssignmentRepository(IRepository[Assignment]):
         # Pagination
         offset = (page - 1) * page_size
         statement = (
-            statement.offset(offset).limit(page_size).order_by(Assignment.created_at.desc())
+            statement.offset(offset)
+            .limit(page_size)
+            .order_by(Assignment.created_at.desc())
         )
 
         result = await self.session.exec(statement)
@@ -152,7 +154,8 @@ class AssignmentRepository(IRepository[Assignment]):
 
     async def get_upcoming_for_user(self, user_id: UUID) -> List[Assignment]:
         """Affectations a venir d'un servant (evenements futurs)."""
-        from datetime import datetime as dt, timezone
+        from datetime import datetime as dt
+        from datetime import timezone
 
         now = dt.now(timezone.utc)
         stmt = (
@@ -160,10 +163,12 @@ class AssignmentRepository(IRepository[Assignment]):
             .join(Event, Assignment.event_id == Event.id)
             .where(
                 Assignment.user_id == user_id,
-                Assignment.status.in_([
-                    AssignmentStatus.PENDING,
-                    AssignmentStatus.ACCEPTED,
-                ]),
+                Assignment.status.in_(
+                    [
+                        AssignmentStatus.PENDING,
+                        AssignmentStatus.ACCEPTED,
+                    ]
+                ),
                 Event.start_time >= now,
             )
             .order_by(Event.start_time)

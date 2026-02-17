@@ -7,12 +7,13 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlmodel import Field, SQLModel, Relationship, JSON
 from sqlalchemy import Column
+from sqlmodel import JSON, Field, Relationship, SQLModel
 
 
 class MaterialCategory(str, Enum):
     """Catégorie de matériel."""
+
     AUBE = "AUBE"  # Aubes des servants
     ENCENSOIR = "ENCENSOIR"  # Encensoirs
     CIERGE = "CIERGE"  # Cierges et bougies
@@ -27,6 +28,7 @@ class MaterialCategory(str, Enum):
 
 class MaterialCondition(str, Enum):
     """État du matériel."""
+
     BON = "BON"  # Bon état
     A_NETTOYER = "A_NETTOYER"  # À nettoyer
     A_REPARER = "A_REPARER"  # À réparer
@@ -35,6 +37,7 @@ class MaterialCondition(str, Enum):
 
 class TaskType(str, Enum):
     """Type de tâche."""
+
     NETTOYAGE = "NETTOYAGE"  # Nettoyage du matériel
     LAVAGE = "LAVAGE"  # Lavage des aubes
     REPASSAGE = "REPASSAGE"  # Repassage des aubes
@@ -44,6 +47,7 @@ class TaskType(str, Enum):
 
 class TaskStatus(str, Enum):
     """Statut de la tâche."""
+
     PLANIFIEE = "PLANIFIEE"  # Tâche planifiée
     EN_COURS = "EN_COURS"  # En cours
     TERMINEE = "TERMINEE"  # Terminée
@@ -55,6 +59,7 @@ class MaterialItem(SQLModel, table=True):
     """
     Article de matériel liturgique.
     """
+
     __tablename__ = "material_items"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -79,6 +84,7 @@ class CleaningTask(SQLModel, table=True):
     """
     Tâche de nettoyage du matériel.
     """
+
     __tablename__ = "cleaning_tasks"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -88,7 +94,9 @@ class CleaningTask(SQLModel, table=True):
     scheduled_date: datetime
     scheduled_time: str  # Format HH:MM
     location: str = Field(min_length=1, max_length=200)
-    items: List[str] = Field(default_factory=list, sa_column=Column(JSON))  # Liste des noms d'articles
+    items: List[str] = Field(
+        default_factory=list, sa_column=Column(JSON)
+    )  # Liste des noms d'articles
     status: TaskStatus = TaskStatus.PLANIFIEE
     completed_at: Optional[datetime] = None
     validated_at: Optional[datetime] = None
@@ -105,6 +113,7 @@ class TaskAssignment(SQLModel, table=True):
     """
     Assignation d'un servant à une tâche.
     """
+
     __tablename__ = "task_assignments"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -121,6 +130,7 @@ class AubeTask(SQLModel, table=True):
     """
     Tâche de lavage/repassage des aubes.
     """
+
     __tablename__ = "aube_tasks"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -148,6 +158,7 @@ class MaintenanceHistory(SQLModel, table=True):
     """
     Historique de maintenance d'un article.
     """
+
     __tablename__ = "maintenance_history"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -164,7 +175,7 @@ class MaintenanceHistory(SQLModel, table=True):
 class MaterialReport(BaseModel):
     """
     Rapport de gestion du matériel.
-    
+
     Attributes:
         id: Identifiant unique
         start_date: Date de début de la période
@@ -181,6 +192,7 @@ class MaterialReport(BaseModel):
         watermark_logo: Logo en filigrane
         generated_at: Date de génération
     """
+
     id: UUID = Field(default_factory=uuid4)
     start_date: datetime
     end_date: datetime

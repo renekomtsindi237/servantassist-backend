@@ -13,6 +13,7 @@ class CouncilMeeting(SQLModel, table=True):
     """
     Réunion du conseil des responsables (dernier samedi du mois).
     """
+
     __tablename__ = "council_meetings"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -33,6 +34,7 @@ class CouncilAttendance(SQLModel, table=True):
     """
     Présence d'un responsable à une réunion du conseil.
     """
+
     __tablename__ = "council_attendances"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)

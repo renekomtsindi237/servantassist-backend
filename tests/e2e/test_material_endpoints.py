@@ -7,8 +7,7 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 
-from src.core.entities.material import MaterialCategory, MaterialCondition, TaskType, TaskStatus
-
+from src.core.entities.material import MaterialCategory, MaterialCondition, TaskStatus, TaskType
 
 # ══════════════════════════════════════════════════════════════════
 #  TESTS - ARTICLES DE MATÉRIEL
@@ -254,7 +253,7 @@ async def test_validate_cleaning_task(
         json={},
         headers={"Authorization": f"Bearer {servant_token}"},
     )
-    
+
     # Puis valider
     response = await client.post(
         f"/api/v1/material/cleaning-tasks/{sample_cleaning_task.id}/validate",
@@ -472,7 +471,7 @@ async def test_validate_aube_task(
         json={},
         headers={"Authorization": f"Bearer {servant_token}"},
     )
-    
+
     # Puis valider
     response = await client.post(
         f"/api/v1/material/aube-tasks/{sample_aube_task.id}/validate",

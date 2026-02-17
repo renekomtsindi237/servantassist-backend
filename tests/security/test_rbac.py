@@ -18,22 +18,43 @@ class TestAdminEndpointsRBAC:
     ADMIN_ENDPOINTS = [
         ("POST", "/api/v1/admin/invitations", {"role": "PARENT"}),
         ("GET", "/api/v1/admin/invitations", None),
-        ("POST", "/api/v1/admin/users/parent", {
-            "email": "rbac@test.com", "password": "TestPass1",
-            "first_name": "A", "last_name": "B", "phone_number": "+237600000090",
-        }),
-        ("POST", "/api/v1/admin/users/aum%C3%B4nier", {
-            "email": "rbac2@test.com", "password": "TestPass1",
-            "first_name": "A", "last_name": "B",
-        }),
-        ("POST", "/api/v1/admin/users/admin", {
-            "email": "rbac3@test.com", "password": "TestPass1",
-            "first_name": "A", "last_name": "B",
-        }),
+        (
+            "POST",
+            "/api/v1/admin/users/parent",
+            {
+                "email": "rbac@test.com",
+                "password": "TestPass1",
+                "first_name": "A",
+                "last_name": "B",
+                "phone_number": "+237600000090",
+            },
+        ),
+        (
+            "POST",
+            "/api/v1/admin/users/aum%C3%B4nier",
+            {
+                "email": "rbac2@test.com",
+                "password": "TestPass1",
+                "first_name": "A",
+                "last_name": "B",
+            },
+        ),
+        (
+            "POST",
+            "/api/v1/admin/users/admin",
+            {
+                "email": "rbac3@test.com",
+                "password": "TestPass1",
+                "first_name": "A",
+                "last_name": "B",
+            },
+        ),
     ]
 
     @pytest.mark.parametrize("method,url,body", ADMIN_ENDPOINTS)
-    async def test_servant_rejected(self, client: AsyncClient, servant_user, method, url, body):
+    async def test_servant_rejected(
+        self, client: AsyncClient, servant_user, method, url, body
+    ):
         headers = make_auth_header(servant_user)
         if method == "GET":
             resp = await client.get(url, headers=headers)
@@ -42,7 +63,9 @@ class TestAdminEndpointsRBAC:
         assert resp.status_code == 403, f"SERVANT should be 403 on {method} {url}"
 
     @pytest.mark.parametrize("method,url,body", ADMIN_ENDPOINTS)
-    async def test_parent_rejected(self, client: AsyncClient, parent_user, method, url, body):
+    async def test_parent_rejected(
+        self, client: AsyncClient, parent_user, method, url, body
+    ):
         headers = make_auth_header(parent_user)
         if method == "GET":
             resp = await client.get(url, headers=headers)
@@ -51,7 +74,9 @@ class TestAdminEndpointsRBAC:
         assert resp.status_code == 403, f"PARENT should be 403 on {method} {url}"
 
     @pytest.mark.parametrize("method,url,body", ADMIN_ENDPOINTS)
-    async def test_aumonier_rejected(self, client: AsyncClient, aumonier_user, method, url, body):
+    async def test_aumonier_rejected(
+        self, client: AsyncClient, aumonier_user, method, url, body
+    ):
         headers = make_auth_header(aumonier_user)
         if method == "GET":
             resp = await client.get(url, headers=headers)
@@ -60,7 +85,9 @@ class TestAdminEndpointsRBAC:
         assert resp.status_code == 403, f"AUMÔNIER should be 403 on {method} {url}"
 
     @pytest.mark.parametrize("method,url,body", ADMIN_ENDPOINTS)
-    async def test_unauthenticated_rejected(self, client: AsyncClient, method, url, body):
+    async def test_unauthenticated_rejected(
+        self, client: AsyncClient, method, url, body
+    ):
         if method == "GET":
             resp = await client.get(url)
         else:
@@ -84,14 +111,18 @@ class TestLoginMethodEnforcement:
         # 401 car pas de phone_number en BDD, mais si trouvé → 403
         assert resp.status_code in (401, 403)
 
-    async def test_servant_cannot_use_email_login(self, client: AsyncClient, servant_user):
+    async def test_servant_cannot_use_email_login(
+        self, client: AsyncClient, servant_user
+    ):
         resp = await client.post(
             "/api/v1/auth/login",
             data={"username": servant_user.email, "password": VALID_PASSWORD},
         )
         assert resp.status_code == 403
 
-    async def test_parent_cannot_use_email_login(self, client: AsyncClient, parent_user):
+    async def test_parent_cannot_use_email_login(
+        self, client: AsyncClient, parent_user
+    ):
         resp = await client.post(
             "/api/v1/auth/login",
             data={"username": parent_user.email, "password": VALID_PASSWORD},
@@ -146,4 +177,3 @@ class TestSelfRegistrationRestrictions:
             },
         )
         assert resp.status_code == 422
-

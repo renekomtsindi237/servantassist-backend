@@ -4,10 +4,10 @@ Repository pour le Conseil des Responsables.
 from typing import List, Optional
 from uuid import UUID
 
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
-from src.core.entities.council_meeting import CouncilMeeting, CouncilAttendance
+from src.core.entities.council_meeting import CouncilAttendance, CouncilMeeting
 
 
 class CouncilMeetingRepository:
@@ -29,7 +29,9 @@ class CouncilMeetingRepository:
         await self.session.refresh(attendance)
         return attendance
 
-    async def get_responsable_attendances(self, responsable_id: UUID, limit: int = 3) -> List[CouncilAttendance]:
+    async def get_responsable_attendances(
+        self, responsable_id: UUID, limit: int = 3
+    ) -> List[CouncilAttendance]:
         """Récupère les dernières présences d'un responsable."""
         stmt = (
             select(CouncilAttendance)

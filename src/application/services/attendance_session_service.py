@@ -9,20 +9,14 @@ Règles métier :
 """
 import math
 from datetime import datetime
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from src.core.entities.attendance_session import (
-    AttendanceRecord,
-    AttendanceSession,
-    AttendanceStatus,
-)
+from src.core.entities.attendance_session import AttendanceRecord, AttendanceSession, AttendanceStatus
 from src.core.entities.user import UserRole
-from src.infrastructure.repositories.attendance_session_repository import (
-    AttendanceSessionRepository,
-)
+from src.infrastructure.repositories.attendance_session_repository import AttendanceSessionRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.schemas.attendance_session import (
     AttendanceRecordCreate,
@@ -248,9 +242,7 @@ class AttendanceSessionService:
         # Récupérer le générateur
         generator = await self.user_repo.get(generated_by)
         generated_by_name = (
-            f"{generator.first_name} {generator.last_name}"
-            if generator
-            else "Inconnu"
+            f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
         )
 
         return AttendanceReportResponse(

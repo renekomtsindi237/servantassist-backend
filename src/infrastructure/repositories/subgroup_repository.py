@@ -6,8 +6,8 @@ from typing import Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy import func
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.user import User
@@ -77,9 +77,7 @@ class SubGroupRepository:
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def get_active_membership(
-        self, user_id: UUID
-    ) -> Optional[SubGroupMember]:
+    async def get_active_membership(self, user_id: UUID) -> Optional[SubGroupMember]:
         """Retourne l'appartenance active d'un utilisateur (un seul sous-groupe)."""
         stmt = select(SubGroupMember).where(
             SubGroupMember.user_id == user_id,
@@ -115,9 +113,7 @@ class SubGroupRepository:
 
     async def enrich_member(self, member: SubGroupMember) -> Dict:
         user = (
-            await self.session.exec(
-                select(User).where(User.id == member.user_id)
-            )
+            await self.session.exec(select(User).where(User.id == member.user_id))
         ).first()
 
         return {
@@ -135,4 +131,3 @@ class SubGroupRepository:
 
     async def enrich_members(self, members: List[SubGroupMember]) -> List[Dict]:
         return [await self.enrich_member(m) for m in members]
-

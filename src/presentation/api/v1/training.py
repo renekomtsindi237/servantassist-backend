@@ -12,27 +12,37 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.entities.training import TrainingLevel, TrainingStatus, MaterialType, ParticipationStatus
+from src.application.services.training_service import TrainingService
+from src.core.entities.training import MaterialType, ParticipationStatus, TrainingLevel, TrainingStatus
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.training_repository import (
-    TrainingSessionRepository, TrainingParticipationRepository,
-    TrainingMaterialRepository, SessionMaterialRepository
+    SessionMaterialRepository,
+    TrainingMaterialRepository,
+    TrainingParticipationRepository,
+    TrainingSessionRepository,
 )
-from src.application.services.training_service import TrainingService
-from src.presentation.dependencies.auth_deps import (
-    get_current_user, require_charge_liturgie
-)
+from src.presentation.dependencies.auth_deps import get_current_user, require_charge_liturgie
 from src.presentation.schemas.training import (
-    TrainingSessionCreate, TrainingSessionUpdate, TrainingSessionResponse,
-    TrainingSessionListResponse, TrainingParticipationCreate,
-    TrainingParticipationBatchCreate, TrainingParticipationMarkAttendance,
-    TrainingParticipationEvaluate, TrainingParticipationResponse,
-    TrainingParticipationListResponse, TrainingMaterialCreate,
-    TrainingMaterialUpdate, TrainingMaterialResponse,
-    TrainingMaterialListResponse, TrainingStatsResponse,
-    TrainingReportRequest, TrainingReportResponse,
-    SessionMaterialAdd, SessionMaterialResponse
+    SessionMaterialAdd,
+    SessionMaterialResponse,
+    TrainingMaterialCreate,
+    TrainingMaterialListResponse,
+    TrainingMaterialResponse,
+    TrainingMaterialUpdate,
+    TrainingParticipationBatchCreate,
+    TrainingParticipationCreate,
+    TrainingParticipationEvaluate,
+    TrainingParticipationListResponse,
+    TrainingParticipationMarkAttendance,
+    TrainingParticipationResponse,
+    TrainingReportRequest,
+    TrainingReportResponse,
+    TrainingSessionCreate,
+    TrainingSessionListResponse,
+    TrainingSessionResponse,
+    TrainingSessionUpdate,
+    TrainingStatsResponse,
 )
 
 router = APIRouter()

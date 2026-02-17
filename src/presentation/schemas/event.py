@@ -9,20 +9,16 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
-from src.core.entities.event import (
-    EventStatus,
-    EventType,
-    ParticipantRole,
-    ParticipantStatus,
-)
-
+from src.core.entities.event import EventStatus, EventType, ParticipantRole, ParticipantStatus
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Participants
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class ParticipantAdd(BaseModel):
     """Schema pour ajouter un participant a un evenement."""
+
     user_id: UUID
     participant_role: ParticipantRole = ParticipantRole.SERVANT
     notes: Optional[str] = Field(None, max_length=500)
@@ -30,6 +26,7 @@ class ParticipantAdd(BaseModel):
 
 class ParticipantUpdate(BaseModel):
     """Schema pour modifier un participant."""
+
     participant_role: Optional[ParticipantRole] = None
     status: Optional[ParticipantStatus] = None
     notes: Optional[str] = Field(None, max_length=500)
@@ -37,6 +34,7 @@ class ParticipantUpdate(BaseModel):
 
 class ParticipantResponse(BaseModel):
     """Schema de reponse pour un participant."""
+
     id: UUID
     event_id: UUID
     user_id: UUID
@@ -60,8 +58,10 @@ class ParticipantResponse(BaseModel):
 #  Evenements
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class EventCreate(BaseModel):
     """Creation d'un evenement avec participants optionnels."""
+
     title: str = Field(..., min_length=2, max_length=200)
     description: Optional[str] = Field(None, max_length=2000)
     start_time: datetime
@@ -71,8 +71,7 @@ class EventCreate(BaseModel):
     status: EventStatus = EventStatus.BROUILLON
     # Participants a ajouter directement a la creation
     participants: Optional[List[ParticipantAdd]] = Field(
-        default=None,
-        description="Liste des participants a ajouter lors de la creation"
+        default=None, description="Liste des participants a ajouter lors de la creation"
     )
 
     @field_validator("end_time")
@@ -86,6 +85,7 @@ class EventCreate(BaseModel):
 
 class EventUpdate(BaseModel):
     """Modification partielle d'un evenement (PATCH)."""
+
     title: Optional[str] = Field(None, min_length=2, max_length=200)
     description: Optional[str] = Field(None, max_length=2000)
     start_time: Optional[datetime] = None
@@ -97,6 +97,7 @@ class EventUpdate(BaseModel):
 
 class EventResponse(BaseModel):
     """Reponse pour un evenement (sans participants detailles)."""
+
     id: UUID
     title: str
     description: Optional[str] = None
@@ -117,6 +118,7 @@ class EventResponse(BaseModel):
 
 class EventDetailResponse(BaseModel):
     """Reponse detaillee pour un evenement avec ses participants."""
+
     id: UUID
     title: str
     description: Optional[str] = None
@@ -139,8 +141,10 @@ class EventDetailResponse(BaseModel):
 #  Filtres de listing
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class EventListFilters(BaseModel):
     """Parametres de filtre et pagination pour la liste des evenements."""
+
     event_type: Optional[EventType] = None
     status: Optional[EventStatus] = None
     start_date: Optional[datetime] = None

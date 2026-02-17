@@ -25,10 +25,10 @@ logger = logging.getLogger(__name__)
 
 # Seuils progressifs : (nombre_echecs, duree_verrouillage_secondes)
 _LOCKOUT_TIERS: list[Tuple[int, int]] = [
-    (5, 60),       # 5 echecs  -> 1 min
-    (10, 300),     # 10 echecs -> 5 min
-    (15, 900),     # 15 echecs -> 15 min
-    (20, 1800),    # 20 echecs -> 30 min
+    (5, 60),  # 5 echecs  -> 1 min
+    (10, 300),  # 10 echecs -> 5 min
+    (15, 900),  # 15 echecs -> 15 min
+    (20, 1800),  # 20 echecs -> 30 min
 ]
 
 
@@ -52,6 +52,7 @@ def _get_remaining_attempts(count: int) -> int:
 # ═══════════════════════════════════════════════════════════════════════════
 #  Backend Redis
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class RedisBruteForceProtection:
     """Protection brute-force avec Redis comme backend."""
@@ -108,9 +109,11 @@ class RedisBruteForceProtection:
 #  Backend In-Memory (fallback)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class _LoginAttempt:
     """Suivi des tentatives de connexion pour un identifiant."""
+
     count: int = 0
     first_attempt: float = 0.0
     last_attempt: float = 0.0
@@ -169,7 +172,8 @@ class InMemoryBruteForceProtection:
     def cleanup(self, max_age: int = 3600) -> None:
         now = time.monotonic()
         to_delete = [
-            k for k, v in self._attempts.items()
+            k
+            for k, v in self._attempts.items()
             if now - v.last_attempt > max_age and v.locked_until < now
         ]
         for k in to_delete:
@@ -179,6 +183,7 @@ class InMemoryBruteForceProtection:
 # ═══════════════════════════════════════════════════════════════════════════
 #  Facade unifiee
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class BruteForceProtection:
     """
@@ -199,7 +204,9 @@ class BruteForceProtection:
             self._use_redis = True
             logger.info("Brute-force protection: backend Redis active")
         else:
-            logger.warning("Brute-force protection: Redis non disponible, fallback in-memory")
+            logger.warning(
+                "Brute-force protection: Redis non disponible, fallback in-memory"
+            )
 
     async def check_locked(self, identifier: str) -> Tuple[bool, Optional[int]]:
         if self._use_redis and self._redis_backend:

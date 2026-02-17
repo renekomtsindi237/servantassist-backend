@@ -8,13 +8,13 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.entities.user import User
 from src.core.entities.sunday_schedule import (
     SundayMassAssignment,
     SundayMassSlot,
     SundayScheduleStatus,
     SundayScheduleTemplate,
 )
+from src.core.entities.user import User
 
 
 class SundayScheduleRepository:
@@ -58,15 +58,13 @@ class SundayScheduleRepository:
         template = await self.get_template(template_id)
         if not template:
             return False
-        
+
         # Supprimer d'abord toutes les assignations
         masses_result = await self.session.execute(
-            select(SundayMassSlot).where(
-                SundayMassSlot.template_id == template_id
-            )
+            select(SundayMassSlot).where(SundayMassSlot.template_id == template_id)
         )
         masses = masses_result.scalars().all()
-        
+
         for mass in masses:
             # Supprimer les assignations de la messe
             assignments_result = await self.session.execute(
@@ -77,10 +75,10 @@ class SundayScheduleRepository:
             assignments = assignments_result.scalars().all()
             for assignment in assignments:
                 await self.session.delete(assignment)
-            
+
             # Supprimer la messe
             await self.session.delete(mass)
-        
+
         await self.session.delete(template)
         await self.session.commit()
         return True
@@ -153,9 +151,7 @@ class SundayScheduleRepository:
         )
         return result.scalar_one_or_none()
 
-    async def update_mass(
-        self, mass_id: UUID, mass: SundayMassSlot
-    ) -> SundayMassSlot:
+    async def update_mass(self, mass_id: UUID, mass: SundayMassSlot) -> SundayMassSlot:
         """Met à jour une messe."""
         await self.session.commit()
         await self.session.refresh(mass)
@@ -166,7 +162,7 @@ class SundayScheduleRepository:
         mass = await self.get_mass(mass_id)
         if not mass:
             return False
-        
+
         # Supprimer d'abord les assignations
         assignments_result = await self.session.execute(
             select(SundayMassAssignment).where(
@@ -176,14 +172,12 @@ class SundayScheduleRepository:
         assignments = assignments_result.scalars().all()
         for assignment in assignments:
             await self.session.delete(assignment)
-        
+
         await self.session.delete(mass)
         await self.session.commit()
         return True
 
-    async def get_template_masses(
-        self, template_id: UUID
-    ) -> List[SundayMassSlot]:
+    async def get_template_masses(self, template_id: UUID) -> List[SundayMassSlot]:
         """Récupère toutes les messes d'un modèle."""
         result = await self.session.execute(
             select(SundayMassSlot)
@@ -220,15 +214,11 @@ class SundayScheduleRepository:
     ) -> Optional[SundayMassAssignment]:
         """Récupère une assignation par son ID."""
         result = await self.session.execute(
-            select(SundayMassAssignment).where(
-                SundayMassAssignment.id == assignment_id
-            )
+            select(SundayMassAssignment).where(SundayMassAssignment.id == assignment_id)
         )
         return result.scalar_one_or_none()
 
-    async def get_mass_assignments(
-        self, mass_id: UUID
-    ) -> List[SundayMassAssignment]:
+    async def get_mass_assignments(self, mass_id: UUID) -> List[SundayMassAssignment]:
         """Récupère toutes les assignations d'une messe."""
         result = await self.session.execute(
             select(SundayMassAssignment)
@@ -258,9 +248,7 @@ class SundayScheduleRepository:
     #  ENRICHISSEMENT
     # ══════════════════════════════════════════════════════════════════
 
-    async def enrich_template(
-        self, template: SundayScheduleTemplate
-    ) -> dict:
+    async def enrich_template(self, template: SundayScheduleTemplate) -> dict:
         """Enrichit un modèle avec les infos du créateur et les messes."""
         # Récupérer le créateur
         creator_result = await self.session.execute(
@@ -282,26 +270,22 @@ class SundayScheduleRepository:
     async def enrich_mass(self, mass: SundayMassSlot) -> dict:
         """Enrichit une messe avec ses assignations."""
         enriched = mass.model_dump()
-        
+
         # Récupérer les assignations
         assignments = await self.get_mass_assignments(mass.id)
         enriched_assignments = await self.enrich_assignments(assignments)
         enriched["assignments"] = enriched_assignments
-        
+
         return enriched
 
-    async def enrich_masses(
-        self, masses: List[SundayMassSlot]
-    ) -> List[dict]:
+    async def enrich_masses(self, masses: List[SundayMassSlot]) -> List[dict]:
         """Enrichit plusieurs messes."""
         return [await self.enrich_mass(mass) for mass in masses]
 
-    async def enrich_assignment(
-        self, assignment: SundayMassAssignment
-    ) -> dict:
+    async def enrich_assignment(self, assignment: SundayMassAssignment) -> dict:
         """Enrichit une assignation avec les infos du servant et traçabilité."""
         enriched = assignment.model_dump()
-        
+
         # Infos du servant
         if assignment.servant_id:
             servant_result = await self.session.execute(
@@ -311,15 +295,17 @@ class SundayScheduleRepository:
             if servant:
                 enriched["servant_first_name"] = servant.first_name
                 enriched["servant_last_name"] = servant.last_name
-        
+
         # Infos de la personne qui a assigné
         assigned_by_result = await self.session.execute(
             select(User).where(User.id == assignment.assigned_by)
         )
         assigned_by = assigned_by_result.scalar_one_or_none()
         if assigned_by:
-            enriched["assigned_by_name"] = f"{assigned_by.first_name} {assigned_by.last_name}"
-        
+            enriched[
+                "assigned_by_name"
+            ] = f"{assigned_by.first_name} {assigned_by.last_name}"
+
         # Infos de la dernière modification
         if assignment.last_modified_by:
             modified_by_result = await self.session.execute(
@@ -327,8 +313,10 @@ class SundayScheduleRepository:
             )
             modified_by = modified_by_result.scalar_one_or_none()
             if modified_by:
-                enriched["last_modified_by_name"] = f"{modified_by.first_name} {modified_by.last_name}"
-        
+                enriched[
+                    "last_modified_by_name"
+                ] = f"{modified_by.first_name} {modified_by.last_name}"
+
         # Infos du marquage de présence
         if assignment.presence_marked_by:
             presence_by_result = await self.session.execute(
@@ -336,8 +324,10 @@ class SundayScheduleRepository:
             )
             presence_by = presence_by_result.scalar_one_or_none()
             if presence_by:
-                enriched["presence_marked_by_name"] = f"{presence_by.first_name} {presence_by.last_name}"
-        
+                enriched[
+                    "presence_marked_by_name"
+                ] = f"{presence_by.first_name} {presence_by.last_name}"
+
         return enriched
 
     async def enrich_assignments(
@@ -346,9 +336,7 @@ class SundayScheduleRepository:
         """Enrichit plusieurs assignations."""
         return [await self.enrich_assignment(a) for a in assignments]
 
-    async def get_template_summary(
-        self, template: SundayScheduleTemplate
-    ) -> dict:
+    async def get_template_summary(self, template: SundayScheduleTemplate) -> dict:
         """Crée un résumé d'un modèle avec statistiques."""
         # Récupérer le créateur
         creator_result = await self.session.execute(
@@ -359,14 +347,15 @@ class SundayScheduleRepository:
         # Compter les messes et assignations
         masses = await self.get_template_masses(template.id)
         total_masses = len(masses)
-        
+
         total_positions = 0
         filled_positions = 0
         for mass in masses:
             assignments = await self.get_mass_assignments(mass.id)
             total_positions += len(assignments)
             filled_positions += sum(
-                1 for a in assignments 
+                1
+                for a in assignments
                 if a.servant_id is not None or a.servant_name is not None
             )
 
@@ -388,7 +377,7 @@ class SundayScheduleRepository:
     ) -> "SundayScheduleModificationLog":
         """Crée une entrée dans l'historique des modifications."""
         from src.core.entities.sunday_schedule import SundayScheduleModificationLog
-        
+
         self.session.add(log)
         await self.session.commit()
         await self.session.refresh(log)
@@ -399,7 +388,7 @@ class SundayScheduleRepository:
     ) -> List["SundayScheduleModificationLog"]:
         """Récupère l'historique des modifications d'un modèle."""
         from src.core.entities.sunday_schedule import SundayScheduleModificationLog
-        
+
         result = await self.session.execute(
             select(SundayScheduleModificationLog)
             .where(SundayScheduleModificationLog.template_id == template_id)

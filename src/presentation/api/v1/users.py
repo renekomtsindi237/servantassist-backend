@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.user_service import UserService
@@ -29,10 +29,7 @@ from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.services.storage_service import StorageService
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    get_current_admin_user,
-)
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_user
 from src.presentation.schemas.user import (
     ChangePasswordRequest,
     PaginatedResponse,
@@ -97,7 +94,9 @@ async def change_my_password(
 
 @router.post("/me/photo", response_model=UserProfileResponse)
 async def upload_my_photo(
-    file: Annotated[UploadFile, File(description="Photo de profil (JPEG, PNG ou WebP, max 5 Mo)")],
+    file: Annotated[
+        UploadFile, File(description="Photo de profil (JPEG, PNG ou WebP, max 5 Mo)")
+    ],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
@@ -174,7 +173,9 @@ async def list_users(
     current_user: Annotated[User, Depends(get_current_admin_user)],
     role: Optional[UserRole] = Query(None, description="Filtrer par role"),
     is_active: Optional[bool] = Query(None, description="Filtrer par statut actif"),
-    search: Optional[str] = Query(None, max_length=100, description="Recherche par nom ou email"),
+    search: Optional[str] = Query(
+        None, max_length=100, description="Recherche par nom ou email"
+    ),
     page: int = Query(1, ge=1, description="Numero de page"),
     page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
 ):

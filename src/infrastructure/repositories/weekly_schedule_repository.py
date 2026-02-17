@@ -58,7 +58,7 @@ class WeeklyScheduleRepository:
         template = await self.get_template(template_id)
         if not template:
             return False
-        
+
         # Supprimer d'abord toutes les assignations
         slots_result = await self.session.execute(
             select(WeeklyScheduleSlot).where(
@@ -66,7 +66,7 @@ class WeeklyScheduleRepository:
             )
         )
         slots = slots_result.scalars().all()
-        
+
         for slot in slots:
             # Supprimer les assignations du créneau
             assignments_result = await self.session.execute(
@@ -77,10 +77,10 @@ class WeeklyScheduleRepository:
             assignments = assignments_result.scalars().all()
             for assignment in assignments:
                 await self.session.delete(assignment)
-            
+
             # Supprimer le créneau
             await self.session.delete(slot)
-        
+
         await self.session.delete(template)
         await self.session.commit()
         return True
@@ -166,7 +166,7 @@ class WeeklyScheduleRepository:
         slot = await self.get_slot(slot_id)
         if not slot:
             return False
-        
+
         # Supprimer d'abord les assignations
         assignments_result = await self.session.execute(
             select(SlotServantAssignment).where(
@@ -176,14 +176,12 @@ class WeeklyScheduleRepository:
         assignments = assignments_result.scalars().all()
         for assignment in assignments:
             await self.session.delete(assignment)
-        
+
         await self.session.delete(slot)
         await self.session.commit()
         return True
 
-    async def get_template_slots(
-        self, template_id: UUID
-    ) -> List[WeeklyScheduleSlot]:
+    async def get_template_slots(self, template_id: UUID) -> List[WeeklyScheduleSlot]:
         """Récupère tous les créneaux d'un modèle."""
         result = await self.session.execute(
             select(WeeklyScheduleSlot)
@@ -226,9 +224,7 @@ class WeeklyScheduleRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_slot_assignments(
-        self, slot_id: UUID
-    ) -> List[SlotServantAssignment]:
+    async def get_slot_assignments(self, slot_id: UUID) -> List[SlotServantAssignment]:
         """Récupère toutes les assignations d'un créneau."""
         result = await self.session.execute(
             select(SlotServantAssignment)
@@ -250,9 +246,7 @@ class WeeklyScheduleRepository:
     #  ENRICHISSEMENT
     # ══════════════════════════════════════════════════════════════════
 
-    async def enrich_template(
-        self, template: WeeklyScheduleTemplate
-    ) -> dict:
+    async def enrich_template(self, template: WeeklyScheduleTemplate) -> dict:
         """Enrichit un modèle avec les infos du créateur et les créneaux."""
         # Récupérer le créateur
         creator_result = await self.session.execute(
@@ -274,26 +268,22 @@ class WeeklyScheduleRepository:
     async def enrich_slot(self, slot: WeeklyScheduleSlot) -> dict:
         """Enrichit un créneau avec ses assignations de servants."""
         enriched = slot.model_dump()
-        
+
         # Récupérer les assignations
         assignments = await self.get_slot_assignments(slot.id)
         enriched_assignments = await self.enrich_assignments(assignments)
         enriched["servants"] = enriched_assignments
-        
+
         return enriched
 
-    async def enrich_slots(
-        self, slots: List[WeeklyScheduleSlot]
-    ) -> List[dict]:
+    async def enrich_slots(self, slots: List[WeeklyScheduleSlot]) -> List[dict]:
         """Enrichit plusieurs créneaux."""
         return [await self.enrich_slot(slot) for slot in slots]
 
-    async def enrich_assignment(
-        self, assignment: SlotServantAssignment
-    ) -> dict:
+    async def enrich_assignment(self, assignment: SlotServantAssignment) -> dict:
         """Enrichit une assignation avec les infos du servant."""
         enriched = assignment.model_dump()
-        
+
         if assignment.servant_id:
             servant_result = await self.session.execute(
                 select(User).where(User.id == assignment.servant_id)
@@ -302,7 +292,7 @@ class WeeklyScheduleRepository:
             if servant:
                 enriched["servant_first_name"] = servant.first_name
                 enriched["servant_last_name"] = servant.last_name
-        
+
         return enriched
 
     async def enrich_assignments(
@@ -311,9 +301,7 @@ class WeeklyScheduleRepository:
         """Enrichit plusieurs assignations."""
         return [await self.enrich_assignment(a) for a in assignments]
 
-    async def get_template_summary(
-        self, template: WeeklyScheduleTemplate
-    ) -> dict:
+    async def get_template_summary(self, template: WeeklyScheduleTemplate) -> dict:
         """Crée un résumé d'un modèle avec statistiques."""
         # Récupérer le créateur
         creator_result = await self.session.execute(
@@ -324,7 +312,7 @@ class WeeklyScheduleRepository:
         # Compter les créneaux et servants
         slots = await self.get_template_slots(template.id)
         total_slots = len(slots)
-        
+
         filled_slots = 0
         total_servants = 0
         for slot in slots:

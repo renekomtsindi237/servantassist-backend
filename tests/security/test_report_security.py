@@ -1,9 +1,10 @@
 """
 Tests de sécurité pour le module SECRETAIRE - Rapports.
 """
-import pytest
 from datetime import datetime, timedelta
 from uuid import uuid4
+
+import pytest
 
 
 @pytest.mark.asyncio
@@ -22,7 +23,7 @@ async def test_only_secretaire_can_create_report(client, servant_token, admin_to
         },
     )
     assert response.status_code == 403
-    
+
     # Admin ne peut pas non plus (permissions exclusives)
     response = await client.post(
         "/api/v1/reports/",
@@ -84,21 +85,23 @@ async def test_unauthenticated_cannot_access(client, sample_report):
         },
     )
     assert response.status_code == 401
-    
+
     # Liste rapports
     response = await client.get("/api/v1/reports/")
     assert response.status_code == 401
-    
+
     # Détail rapport
     response = await client.get(f"/api/v1/reports/{sample_report.id}")
     assert response.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_non_secretaire_cannot_see_draft_reports(client, servant_token, db_session):
+async def test_non_secretaire_cannot_see_draft_reports(
+    client, servant_token, db_session
+):
     """Test que les non-secrétaires ne voient pas les brouillons."""
-    from src.core.entities.report import Report, ReportType, ReportStatus
-    
+    from src.core.entities.report import Report, ReportStatus, ReportType
+
     # Créer un rapport en brouillon
     draft_report = Report(
         id=uuid4(),
@@ -112,7 +115,7 @@ async def test_non_secretaire_cannot_see_draft_reports(client, servant_token, db
     )
     db_session.add(draft_report)
     await db_session.commit()
-    
+
     # Tenter d'accéder au brouillon
     response = await client.get(
         f"/api/v1/reports/{draft_report.id}",
@@ -138,7 +141,7 @@ async def test_sql_injection_protection(client, secretaire_token):
     )
     # Devrait réussir (texte échappé)
     assert response.status_code == 201
-    
+
     # Vérifier que la table existe toujours
     response = await client.get(
         "/api/v1/reports/",
@@ -162,7 +165,7 @@ async def test_xss_protection(client, secretaire_token):
         },
     )
     assert response.status_code == 201
-    
+
     data = response.json()
     # Le script devrait être échappé ou supprimé
     assert "<script>" not in data.get("title", "")
@@ -183,12 +186,12 @@ async def test_invalid_uuid_protection(client, secretaire_token):
 @pytest.mark.asyncio
 async def test_cannot_modify_other_secretaire_report(client, db_session, aumonier_user):
     """Test isolation entre secrétaires."""
+    from src.core.entities.report import Report, ReportStatus, ReportType
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole
     from src.infrastructure.security.utils import SecurityUtils
-    from src.core.entities.report import Report, ReportType, ReportStatus
     from tests.conftest import make_access_token
-    
+
     # Créer deux secrétaires
     secretaire1 = User(
         id=uuid4(),
@@ -201,7 +204,7 @@ async def test_cannot_modify_other_secretaire_report(client, db_session, aumonie
         phone_number="+237600000031",
     )
     db_session.add(secretaire1)
-    
+
     secretaire2 = User(
         id=uuid4(),
         email="secretaire2@test.com",
@@ -214,7 +217,7 @@ async def test_cannot_modify_other_secretaire_report(client, db_session, aumonie
     )
     db_session.add(secretaire2)
     await db_session.commit()
-    
+
     # Nominations
     nom1 = Nomination(
         id=uuid4(),
@@ -233,7 +236,7 @@ async def test_cannot_modify_other_secretaire_report(client, db_session, aumonie
     db_session.add(nom1)
     db_session.add(nom2)
     await db_session.commit()
-    
+
     # Rapport créé par secretaire1
     report = Report(
         id=uuid4(),
@@ -247,10 +250,10 @@ async def test_cannot_modify_other_secretaire_report(client, db_session, aumonie
     )
     db_session.add(report)
     await db_session.commit()
-    
+
     # Secretaire2 peut voir le rapport (lecture publique pour secrétaires)
     secretaire2_token = make_access_token(secretaire2)
-    
+
     response = await client.get(
         f"/api/v1/reports/{report.id}",
         headers={"Authorization": f"Bearer {secretaire2_token}"},
@@ -269,7 +272,7 @@ async def test_rate_limiting(client, secretaire_token):
             headers={"Authorization": f"Bearer {secretaire_token}"},
         )
         responses.append(response)
-    
+
     # Au moins une devrait être limitée (429)
     status_codes = [r.status_code for r in responses]
     assert 200 in status_codes  # Certaines passent
@@ -347,10 +350,10 @@ async def test_empty_content_rejected(client, secretaire_token):
 async def test_token_expiration(client, secretaire_user):
     """Test que les tokens expirés sont rejetés."""
     from tests.conftest import make_access_token
-    
+
     # Token expiré
     expired_token = make_access_token(secretaire_user, expires=timedelta(seconds=-1))
-    
+
     response = await client.get(
         "/api/v1/reports/",
         headers={"Authorization": f"Bearer {expired_token}"},
@@ -359,13 +362,15 @@ async def test_token_expiration(client, secretaire_user):
 
 
 @pytest.mark.asyncio
-async def test_secretaire_adjoint_has_same_permissions(client, db_session, aumonier_user):
+async def test_secretaire_adjoint_has_same_permissions(
+    client, db_session, aumonier_user
+):
     """Test que le SECRETAIRE_ADJOINT a les mêmes permissions."""
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole
     from src.infrastructure.security.utils import SecurityUtils
     from tests.conftest import make_access_token
-    
+
     # Créer un secrétaire adjoint
     secretaire_adj = User(
         id=uuid4(),
@@ -379,7 +384,7 @@ async def test_secretaire_adjoint_has_same_permissions(client, db_session, aumon
     )
     db_session.add(secretaire_adj)
     await db_session.commit()
-    
+
     # Nomination
     nomination = Nomination(
         id=uuid4(),
@@ -390,9 +395,9 @@ async def test_secretaire_adjoint_has_same_permissions(client, db_session, aumon
     )
     db_session.add(nomination)
     await db_session.commit()
-    
+
     secretaire_adj_token = make_access_token(secretaire_adj)
-    
+
     # Devrait pouvoir créer un rapport
     response = await client.post(
         "/api/v1/reports/",

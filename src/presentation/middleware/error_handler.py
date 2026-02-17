@@ -57,4 +57,3 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                         "type": type(exc).__name__,
                     },
                 )
-

@@ -42,50 +42,83 @@ from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.entities.assignment import Assignment, AssignmentStatus, LiturgicalRole
-from src.core.entities.event import Event, EventParticipant, EventType, EventStatus
-from src.core.entities.invitation import InvitationCode, InvitationStatus
-from src.core.entities.responsable import (
-    Nomination, NominationStatus, PosteAction, PosteResponsable,
-    ActionCategory, ActionStatus,
+from src.core.entities.attendance import Attendance
+from src.core.entities.attendance import AttendanceStatus as BaseAttendanceStatus
+from src.core.entities.attendance import AttendanceType
+from src.core.entities.attendance_session import AttendanceRecord, AttendanceSession, AttendanceStatus
+from src.core.entities.contribution import Contribution, PaymentMode
+from src.core.entities.cotisation import (
+    CotisationPeriod,
+    CotisationStatus,
+    CotisationType,
+    MemberCotisation,
+    PeriodType,
 )
 from src.core.entities.discipline import (
-    DisciplineCase, DisciplineCaseStatus, SanctionType,
-    SanctionSeverity, OffenseCategory,
+    DisciplineCase,
+    DisciplineCaseStatus,
+    OffenseCategory,
+    SanctionSeverity,
+    SanctionType,
 )
-from src.core.entities.cotisation import (
-    CotisationPeriod, MemberCotisation, CotisationType,
-    CotisationStatus, PeriodType,
-)
-from src.core.entities.attendance import Attendance, AttendanceType, AttendanceStatus as BaseAttendanceStatus
-from src.core.entities.attendance_session import (
-    AttendanceSession,
-    AttendanceRecord,
-    AttendanceStatus,
-)
-from src.core.entities.contribution import Contribution, PaymentMode
-from src.core.entities.report import Report, ReportType, ReportStatus
-from src.core.entities.sport_culture import SportCultureEvent, SportType, EventType as SportEventType
-from src.core.entities.training import TrainingSession
-from src.core.entities.financial_entry import FinancialEntry, EntryCategory, EntrySource
+from src.core.entities.event import Event, EventParticipant, EventStatus, EventType
+from src.core.entities.financial_entry import EntryCategory, EntrySource, FinancialEntry
+from src.core.entities.invitation import InvitationCode, InvitationStatus
 from src.core.entities.material import (
-    MaterialItem, MaterialCategory, MaterialCondition,
-    CleaningTask, AubeTask, TaskType, TaskStatus
+    AubeTask,
+    CleaningTask,
+    MaterialCategory,
+    MaterialCondition,
+    MaterialItem,
+    TaskStatus,
+    TaskType,
 )
-from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.notification import (
-    Notification, NotificationPreference, NotificationType,
-    NotificationChannel, NotificationStatus, NotificationPriority,
+    Notification,
+    NotificationChannel,
+    NotificationPreference,
+    NotificationPriority,
+    NotificationStatus,
+    NotificationType,
 )
+from src.core.entities.report import Report, ReportStatus, ReportType
+from src.core.entities.responsable import (
+    ActionCategory,
+    ActionStatus,
+    Nomination,
+    NominationStatus,
+    PosteAction,
+    PosteResponsable,
+)
+from src.core.entities.sport_culture import EventType as SportEventType
+from src.core.entities.sport_culture import SportCultureEvent, SportType
+from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.training import TrainingSession
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.security.utils import SecurityUtils
 from src.presentation.api.v1 import (
-    admin, auth, users, activities, assignments,
-    responsables, poste, discipline, cotisations,
-    attendance, subgroups, attendance_sessions,
-    contributions, financial_entries, material,
-    reports, sport_culture, sunday_schedule,
-    training, weekly_schedule, communication,
+    activities,
+    admin,
+    assignments,
+    attendance,
+    attendance_sessions,
+    auth,
+    communication,
+    contributions,
+    cotisations,
+    discipline,
+    financial_entries,
+    material,
+    poste,
+    reports,
+    responsables,
+    sport_culture,
+    subgroups,
+    sunday_schedule,
+    training,
+    users,
+    weekly_schedule,
 )
 
 # ── Constantes de test ───────────────────────────────────────────────────
@@ -101,23 +134,63 @@ def create_test_app() -> FastAPI:
     test_app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
     test_app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
     test_app.include_router(activities.router, prefix="/api/v1/events", tags=["Events"])
-    test_app.include_router(assignments.router, prefix="/api/v1/assignments", tags=["Assignments"])
-    test_app.include_router(responsables.router, prefix="/api/v1/responsables", tags=["Responsables"])
-    test_app.include_router(poste.router, prefix="/api/v1/poste", tags=["Poste Actions"])
-    test_app.include_router(discipline.router, prefix="/api/v1/discipline", tags=["Discipline"])
-    test_app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
-    test_app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
-    test_app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
-    test_app.include_router(attendance_sessions.router, prefix="/api/v1/attendance-sessions", tags=["Attendance Sessions"])
-    test_app.include_router(contributions.router, prefix="/api/v1/contributions", tags=["Contributions"])
-    test_app.include_router(financial_entries.router, prefix="/api/v1/financial-entries", tags=["Financial Entries"])
-    test_app.include_router(material.router, prefix="/api/v1/material", tags=["Material"])
+    test_app.include_router(
+        assignments.router, prefix="/api/v1/assignments", tags=["Assignments"]
+    )
+    test_app.include_router(
+        responsables.router, prefix="/api/v1/responsables", tags=["Responsables"]
+    )
+    test_app.include_router(
+        poste.router, prefix="/api/v1/poste", tags=["Poste Actions"]
+    )
+    test_app.include_router(
+        discipline.router, prefix="/api/v1/discipline", tags=["Discipline"]
+    )
+    test_app.include_router(
+        cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"]
+    )
+    test_app.include_router(
+        attendance.router, prefix="/api/v1/attendance", tags=["Attendance"]
+    )
+    test_app.include_router(
+        subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"]
+    )
+    test_app.include_router(
+        attendance_sessions.router,
+        prefix="/api/v1/attendance-sessions",
+        tags=["Attendance Sessions"],
+    )
+    test_app.include_router(
+        contributions.router, prefix="/api/v1/contributions", tags=["Contributions"]
+    )
+    test_app.include_router(
+        financial_entries.router,
+        prefix="/api/v1/financial-entries",
+        tags=["Financial Entries"],
+    )
+    test_app.include_router(
+        material.router, prefix="/api/v1/material", tags=["Material"]
+    )
     test_app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
-    test_app.include_router(sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"])
-    test_app.include_router(sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"])
-    test_app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])
-    test_app.include_router(weekly_schedule.router, prefix="/api/v1/weekly-schedule", tags=["Weekly Schedule"])
-    test_app.include_router(communication.router, prefix="/api/v1/communication", tags=["Communication"])
+    test_app.include_router(
+        sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"]
+    )
+    test_app.include_router(
+        sunday_schedule.router,
+        prefix="/api/v1/sunday-schedule",
+        tags=["Sunday Schedule"],
+    )
+    test_app.include_router(
+        training.router, prefix="/api/v1/training", tags=["Training"]
+    )
+    test_app.include_router(
+        weekly_schedule.router,
+        prefix="/api/v1/weekly-schedule",
+        tags=["Weekly Schedule"],
+    )
+    test_app.include_router(
+        communication.router, prefix="/api/v1/communication", tags=["Communication"]
+    )
     return test_app
 
 
@@ -153,7 +226,9 @@ async def app(db_engine) -> FastAPI:
 
     async def _override():
         """Crée une nouvelle session pour chaque requête (évite les conflits concurrents)."""
-        factory = sessionmaker(bind=db_engine, class_=AsyncSession, expire_on_commit=False)
+        factory = sessionmaker(
+            bind=db_engine, class_=AsyncSession, expire_on_commit=False
+        )
         async with factory() as session:
             yield session
 
@@ -282,7 +357,7 @@ async def econome_user(db_session: AsyncSession, aumonier_user: User) -> User:
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.ECONOME,
@@ -334,7 +409,7 @@ async def secretaire_user(db_session: AsyncSession, aumonier_user: User) -> User
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.SECRETAIRE_GENERAL,
@@ -353,7 +428,9 @@ async def secretaire_token(secretaire_user: User) -> str:
 
 
 @pytest_asyncio.fixture()
-async def secretaire_adjoint_user(db_session: AsyncSession, aumonier_user: User) -> User:
+async def secretaire_adjoint_user(
+    db_session: AsyncSession, aumonier_user: User
+) -> User:
     """User with SECRETAIRE_ADJOINT nomination."""
     user = User(
         id=uuid4(),
@@ -366,7 +443,7 @@ async def secretaire_adjoint_user(db_session: AsyncSession, aumonier_user: User)
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.SECRETAIRE_GENERAL_ADJOINT,
@@ -398,7 +475,7 @@ async def censeur_user(db_session: AsyncSession, aumonier_user: User) -> User:
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.CENSEUR,
@@ -430,7 +507,7 @@ async def commissaire_user(db_session: AsyncSession, aumonier_user: User) -> Use
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.COMMISSAIRE_AUX_COMPTES,
@@ -462,7 +539,7 @@ async def charge_liturgie_user(db_session: AsyncSession, aumonier_user: User) ->
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.CHARGE_LITURGIE,
@@ -494,7 +571,7 @@ async def econome_user(db_session: AsyncSession, aumonier_user: User) -> User:
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.ECONOME,
@@ -526,7 +603,7 @@ async def intendant_user(db_session: AsyncSession, aumonier_user: User) -> User:
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.INTENDANT,
@@ -545,7 +622,9 @@ async def intendant_token(intendant_user: User) -> str:
 
 
 @pytest_asyncio.fixture()
-async def charge_sport_culture_user(db_session: AsyncSession, aumonier_user: User) -> User:
+async def charge_sport_culture_user(
+    db_session: AsyncSession, aumonier_user: User
+) -> User:
     """User with CHARGE_SPORT_CULTURE nomination."""
     user = User(
         id=uuid4(),
@@ -558,7 +637,7 @@ async def charge_sport_culture_user(db_session: AsyncSession, aumonier_user: Use
     )
     db_session.add(user)
     await db_session.commit()
-    
+
     nomination = Nomination(
         user_id=user.id,
         poste=PosteResponsable.CHARGE_SPORT_CULTURE,
@@ -583,7 +662,9 @@ def make_auth_header(user: User) -> dict:
 
 # ── Fixtures invitations ─────────────────────────────────────────────────
 @pytest_asyncio.fixture()
-async def valid_invitation(db_session: AsyncSession, admin_user: User) -> InvitationCode:
+async def valid_invitation(
+    db_session: AsyncSession, admin_user: User
+) -> InvitationCode:
     invitation = InvitationCode(
         id=uuid4(),
         code="INV-TESTCODE123",
@@ -980,6 +1061,7 @@ async def sample_event_participation(
 ):
     """Participation à un événement sportif de test."""
     from src.core.entities.sport_culture import EventParticipation, ParticipationStatus
+
     participation = EventParticipation(
         id=uuid4(),
         event_id=sample_sport_event.id,
@@ -1001,6 +1083,7 @@ async def sample_training_session(
 ) -> TrainingSession:
     """Session de formation de test."""
     from src.core.entities.training import TrainingLevel, TrainingStatus
+
     session = TrainingSession(
         id=uuid4(),
         title="Formation Liturgie",
@@ -1056,6 +1139,7 @@ async def sample_discrepancy(
 ):
     """Ecart financier de test."""
     from src.core.entities.financial_entry import Discrepancy
+
     discrepancy = Discrepancy(
         id=uuid4(),
         entry_id=sample_financial_entry.id,
@@ -1125,6 +1209,7 @@ async def sample_task_assignment(
 ):
     """Assignation de tache de test."""
     from src.core.entities.material import TaskAssignment
+
     assignment = TaskAssignment(
         id=uuid4(),
         task_id=sample_cleaning_task.id,
@@ -1146,6 +1231,7 @@ async def sample_maintenance_history(
 ):
     """Historique de maintenance de test."""
     from src.core.entities.material import MaintenanceHistory
+
     history = MaintenanceHistory(
         id=uuid4(),
         item_id=sample_material_item.id,
@@ -1250,7 +1336,8 @@ async def sample_training_material(
     charge_liturgie_user: User,
 ):
     """Materiel de formation de test."""
-    from src.core.entities.training import TrainingMaterial, MaterialType, TrainingLevel
+    from src.core.entities.training import MaterialType, TrainingLevel, TrainingMaterial
+
     material = TrainingMaterial(
         id=uuid4(),
         title="Guide de la liturgie",
@@ -1281,8 +1368,8 @@ async def sample_training_participation(
     aumonier_user: User,
 ):
     """Participation a une formation de test."""
-    from src.core.entities.training import TrainingParticipation
-    from src.core.entities.training import ParticipationStatus
+    from src.core.entities.training import ParticipationStatus, TrainingParticipation
+
     participation = TrainingParticipation(
         id=uuid4(),
         session_id=sample_training_session.id,
@@ -1305,6 +1392,7 @@ async def sample_event_team(
 ):
     """Équipe pour un événement sportif de test."""
     from src.core.entities.sport_culture import EventTeam
+
     team = EventTeam(
         id=uuid4(),
         event_id=sample_sport_event.id,
@@ -1329,6 +1417,7 @@ async def sample_event_result(
 ):
     """Résultat d'un événement sportif de test."""
     from src.core.entities.sport_culture import EventResult, ResultType
+
     result = EventResult(
         id=uuid4(),
         event_id=sample_sport_event.id,
@@ -1356,6 +1445,7 @@ async def sample_attachment(
 ):
     """Pièce jointe d'un rapport de test."""
     from src.core.entities.report import ReportAttachment
+
     attachment = ReportAttachment(
         id=uuid4(),
         report_id=sample_report.id,

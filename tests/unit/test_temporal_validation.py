@@ -10,10 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from src.application.services.sunday_schedule_service import (
-    is_within_mass_window,
-    parse_mass_time,
-)
+from src.application.services.sunday_schedule_service import is_within_mass_window, parse_mass_time
 
 
 class TestParseMassTime:
@@ -159,7 +156,7 @@ class TestTemporalValidationExceptionalMasses:
         """
         Test : Messe exceptionnelle de 09h00
         Fenêtre : 08h00 → 11h00
-        
+
         Démontre que la validation fonctionne EXACTEMENT de la même manière
         pour les messes exceptionnelles.
         """
@@ -237,7 +234,7 @@ class TestMultipleMassesSameDay:
     def test_independent_windows(self):
         """
         Test : Plusieurs messes le même jour ont des fenêtres indépendantes.
-        
+
         À 09h00 :
         - Messe 06h30 : fenêtre fermée (05h30-08h30)
         - Messe 08h30 : fenêtre ouverte (07h30-10h30)
@@ -265,7 +262,7 @@ class TestMultipleMassesSameDay:
     def test_overlapping_windows(self):
         """
         Test : Les fenêtres peuvent se chevaucher.
-        
+
         À 10h00 :
         - Messe 08h30 : fenêtre encore ouverte (07h30-10h30)
         - Messe 10h00 : fenêtre ouverte (09h00-12h00)
@@ -326,7 +323,7 @@ class TestEdgeCases:
         """Test que current_time=None utilise l'heure actuelle."""
         schedule_date = datetime.now(timezone.utc)
         mass_time = "08h30"
-        
+
         # Sans spécifier current_time, la fonction utilise datetime.now()
         # On ne peut pas tester le résultat exact, mais on vérifie qu'il n'y a pas d'erreur
         result = is_within_mass_window(schedule_date, mass_time)

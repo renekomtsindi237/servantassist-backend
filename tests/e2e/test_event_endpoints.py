@@ -8,15 +8,15 @@ Couvre :
 - Filtres et pagination
 - Self-service participant (confirmer/decliner)
 """
-import pytest
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
-from tests.conftest import VALID_PASSWORD, make_auth_header
-from src.core.entities.event import Event, EventType, EventStatus, EventParticipant
+from src.core.entities.event import Event, EventParticipant, EventStatus, EventType
 from src.core.entities.user import User, UserRole
+from tests.conftest import VALID_PASSWORD, make_auth_header
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -26,7 +26,9 @@ from src.core.entities.user import User, UserRole
 class TestCreateEvent:
     """Creation d'evenements par l'aumonier et l'admin."""
 
-    async def test_aumonier_creates_event(self, client: AsyncClient, aumonier_user: User):
+    async def test_aumonier_creates_event(
+        self, client: AsyncClient, aumonier_user: User
+    ):
         """L'aumonier peut creer un evenement."""
         resp = await client.post(
             "/api/v1/events/",
@@ -142,11 +144,20 @@ class TestCreateEvent:
     ):
         """Tous les types d'evenements sont acceptes."""
         types = [
-            "MESSE_DOMINICALE", "MESSE_SEMAINE", "MESSE_PONTIFICALE",
-            "MESSE_SOLENNELLE_PONTIFICALE", "MESSE_ACTION_GRACE",
-            "MARIAGE", "REQUIEM", "RECOLLECTION", "CAMP_SPIRITUEL",
-            "JOURNEE_AMITIE", "JOURNEE_SPORTIVE", "CAMP",
-            "REPETITION", "AUTRE",
+            "MESSE_DOMINICALE",
+            "MESSE_SEMAINE",
+            "MESSE_PONTIFICALE",
+            "MESSE_SOLENNELLE_PONTIFICALE",
+            "MESSE_ACTION_GRACE",
+            "MARIAGE",
+            "REQUIEM",
+            "RECOLLECTION",
+            "CAMP_SPIRITUEL",
+            "JOURNEE_AMITIE",
+            "JOURNEE_SPORTIVE",
+            "CAMP",
+            "REPETITION",
+            "AUTRE",
         ]
         for i, etype in enumerate(types):
             resp = await client.post(
@@ -196,9 +207,7 @@ class TestReadEvents:
         assert body["title"] == "Messe dominicale de test"
         assert "participants" in body
 
-    async def test_event_not_found_404(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_event_not_found_404(self, client: AsyncClient, servant_user: User):
         """Evenement inexistant -> 404."""
         resp = await client.get(
             f"/api/v1/events/{uuid4()}",
@@ -289,8 +298,11 @@ class TestParticipants:
     """Gestion des participants aux evenements."""
 
     async def test_add_participant(
-        self, client: AsyncClient, aumonier_user: User,
-        servant_user: User, sample_event: Event
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+        sample_event: Event,
     ):
         """L'aumonier ajoute un servant comme participant."""
         resp = await client.post(
@@ -310,8 +322,11 @@ class TestParticipants:
         assert body["notes"] == "Porte-croix titulaire"
 
     async def test_duplicate_participant_rejected(
-        self, client: AsyncClient, aumonier_user: User,
-        servant_user: User, sample_event: Event
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+        sample_event: Event,
     ):
         """On ne peut pas ajouter deux fois le meme participant."""
         # Premier ajout
@@ -329,8 +344,11 @@ class TestParticipants:
         assert resp.status_code == 409
 
     async def test_list_participants(
-        self, client: AsyncClient, aumonier_user: User,
-        servant_user: User, sample_event: Event
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+        sample_event: Event,
     ):
         """Lister les participants d'un evenement."""
         # Ajouter un participant
@@ -347,8 +365,11 @@ class TestParticipants:
         assert len(resp.json()) >= 1
 
     async def test_update_participant(
-        self, client: AsyncClient, aumonier_user: User,
-        servant_user: User, sample_event: Event
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+        sample_event: Event,
     ):
         """L'aumonier modifie le role d'un participant."""
         # Ajouter
@@ -370,8 +391,11 @@ class TestParticipants:
         assert resp.json()["status"] == "CONFIRME"
 
     async def test_remove_participant(
-        self, client: AsyncClient, aumonier_user: User,
-        servant_user: User, sample_event: Event
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+        sample_event: Event,
     ):
         """L'aumonier retire un participant."""
         add_resp = await client.post(
@@ -407,8 +431,11 @@ class TestMyParticipation:
     """Le servant/parent confirme ou decline sa participation."""
 
     async def test_confirm_participation(
-        self, client: AsyncClient, aumonier_user: User,
-        servant_user: User, sample_event: Event
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+        sample_event: Event,
     ):
         """Le servant confirme sa participation."""
         # Ajouter le servant
@@ -427,8 +454,11 @@ class TestMyParticipation:
         assert resp.json()["status"] == "CONFIRME"
 
     async def test_decline_participation(
-        self, client: AsyncClient, aumonier_user: User,
-        servant_user: User, sample_event: Event
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+        sample_event: Event,
     ):
         """Le servant decline sa participation."""
         await client.post(
@@ -455,8 +485,11 @@ class TestMyParticipation:
         assert resp.status_code == 404
 
     async def test_my_events(
-        self, client: AsyncClient, aumonier_user: User,
-        servant_user: User, sample_event: Event
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+        sample_event: Event,
     ):
         """Le servant voit ses evenements."""
         # Ajouter le servant a l'evenement
@@ -474,5 +507,3 @@ class TestMyParticipation:
         events = resp.json()
         assert len(events) >= 1
         assert any(e["id"] == str(sample_event.id) for e in events)
-
-

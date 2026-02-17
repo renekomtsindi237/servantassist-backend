@@ -24,10 +24,7 @@ import aiosmtplib
 from loguru import logger
 
 from src.infrastructure.config.settings import get_settings
-from src.infrastructure.services.email_templates import (
-    render_forgot_password,
-    render_password_changed,
-)
+from src.infrastructure.services.email_templates import render_forgot_password, render_password_changed
 
 
 class EmailService:
@@ -127,7 +124,9 @@ class EmailService:
             print(f"  EMAIL (non envoye — mode {self._settings.APP_ENV})")
             print(f"  To      : {to_email}")
             print(f"  Subject : {subject}")
-            print(f"  SMTP    : {'configure' if self._is_smtp_configured else 'NON configure'}")
+            print(
+                f"  SMTP    : {'configure' if self._is_smtp_configured else 'NON configure'}"
+            )
             print(f"{'='*70}\n")
 
     # ── Methode d'envoi principale ───────────────────────────────────────

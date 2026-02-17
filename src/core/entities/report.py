@@ -7,18 +7,20 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlmodel import Field, SQLModel, JSON
 from sqlalchemy import Column
+from sqlmodel import JSON, Field, SQLModel
 
 
 class ReportType(str, Enum):
     """Type de rapport."""
+
     MEETING = "REUNION"  # Réunion hebdomadaire
     ACTIVITY = "ACTIVITE"  # Activité du groupe
 
 
 class ReportStatus(str, Enum):
     """Statut du rapport."""
+
     DRAFT = "BROUILLON"
     PUBLISHED = "PUBLIE"
     ARCHIVED = "ARCHIVE"
@@ -28,6 +30,7 @@ class Report(SQLModel, table=True):
     """
     Rapport (réunion ou activité).
     """
+
     __tablename__ = "reports"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -36,7 +39,9 @@ class Report(SQLModel, table=True):
     content: str
     report_date: datetime
     location: str
-    participants: list[str] = Field(default_factory=list, sa_column=Column(JSON))  # Liste des noms
+    participants: list[str] = Field(
+        default_factory=list, sa_column=Column(JSON)
+    )  # Liste des noms
     decisions: Optional[str] = None
     action_items: Optional[str] = None
     status: ReportStatus = ReportStatus.DRAFT
@@ -51,6 +56,7 @@ class ReportAttachment(SQLModel, table=True):
     """
     Pièce jointe d'un rapport.
     """
+
     __tablename__ = "report_attachments"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)

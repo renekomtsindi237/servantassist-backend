@@ -14,8 +14,8 @@
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header
 from src.core.entities.user import User
+from tests.conftest import make_auth_header
 
 
 @pytest.mark.asyncio
@@ -122,4 +122,3 @@ class TestCrossAdminInvitation:
             headers=headers,
         )
         assert del_resp.status_code == 204
-

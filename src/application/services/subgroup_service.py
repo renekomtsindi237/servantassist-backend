@@ -16,6 +16,7 @@ from fastapi import HTTPException, status
 from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.user import User, UserRole
 from src.infrastructure.repositories.subgroup_repository import SubGroupRepository
+from src.infrastructure.repositories.training_repository import TrainingParticipationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.schemas.subgroup import (
     SubGroupCreate,
@@ -24,7 +25,6 @@ from src.presentation.schemas.subgroup import (
     SubGroupResponse,
     SubGroupUpdate,
 )
-from src.infrastructure.repositories.training_repository import TrainingParticipationRepository
 
 
 class SubGroupService:
@@ -103,9 +103,7 @@ class SubGroupService:
             )
         return await self._build_group_response(group)
 
-    async def list_groups(
-        self, active_only: bool = True
-    ) -> List[SubGroupResponse]:
+    async def list_groups(self, active_only: bool = True) -> List[SubGroupResponse]:
         groups = await self.group_repo.list_all(active_only=active_only)
         return [await self._build_group_response(g) for g in groups]
 
@@ -241,24 +239,32 @@ class SubGroupService:
 
         # Calcul de l'âge
         today = datetime.now(timezone.utc)
-        birth = user.birth_date.replace(tzinfo=timezone.utc) if user.birth_date.tzinfo is None else user.birth_date
-        age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+        birth = (
+            user.birth_date.replace(tzinfo=timezone.utc)
+            if user.birth_date.tzinfo is None
+            else user.birth_date
+        )
+        age = (
+            today.year
+            - birth.year
+            - ((today.month, today.day) < (birth.month, birth.day))
+        )
 
         # Déterminer le groupe cible
         target_name = "ASPIRANTS"
         if age >= 12:
             target_name = "CONFIRMÉS"
-        
+
         if age >= 15:
             # Vérifier les notes pour les Aînés (Article 26.4)
             stats = await self.training_repo.get_servant_stats(user_id)
-            if stats.average_score and stats.average_score >= 70: # 14/20 = 70%
+            if stats.average_score and stats.average_score >= 70:  # 14/20 = 70%
                 target_name = "AÎNÉS"
 
         # Trouver le groupe
         group = await self.group_repo.get_by_name(target_name)
         if not group:
-            # Fallback si le groupe n'existe pas (on ne le crée pas automatiquement 
+            # Fallback si le groupe n'existe pas (on ne le crée pas automatiquement
             # pour éviter les erreurs de foreign key sur created_by)
             return None
 
@@ -270,14 +276,13 @@ class SubGroupService:
         # Changer de groupe
         if current:
             await self.group_repo.remove_member(current)
-        
+
         membership = SubGroupMember(
             sub_group_id=group.id,
             user_id=user_id,
-            added_by=UUID("00000000-0000-0000-0000-000000000000"), # System
+            added_by=UUID("00000000-0000-0000-0000-000000000000"),  # System
         )
         # Note: system ID bypass check if repo allows it. In a real app we'd need a valid user.
         # But here we commit to BDD for RI compliance.
         created = await self.group_repo.add_member(membership)
         return await self._build_group_response(group)
-

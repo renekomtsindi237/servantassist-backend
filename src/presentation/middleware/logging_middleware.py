@@ -14,7 +14,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-
 # Endpoints qui declenchent un log d'audit de securite
 _AUDIT_PATHS = {
     "/api/v1/auth/login",
@@ -53,9 +52,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         }
 
         if status_code >= 500:
-            logger.error("HTTP {status} | {method} {path} | {duration_ms}ms | {client_ip}", **log_data)
+            logger.error(
+                "HTTP {status} | {method} {path} | {duration_ms}ms | {client_ip}",
+                **log_data,
+            )
         elif status_code >= 400:
-            logger.warning("HTTP {status} | {method} {path} | {duration_ms}ms | {client_ip}", **log_data)
+            logger.warning(
+                "HTTP {status} | {method} {path} | {duration_ms}ms | {client_ip}",
+                **log_data,
+            )
         else:
             logger.info("HTTP {status} | {method} {path} | {duration_ms}ms", **log_data)
 
@@ -68,4 +73,3 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             )
 
         return response
-

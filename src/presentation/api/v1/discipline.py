@@ -22,16 +22,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.discipline_service import DisciplineService
-from src.core.entities.discipline import (
-    DisciplineCaseStatus,
-    OffenseCategory,
-    SanctionSeverity,
-)
+from src.core.entities.discipline import DisciplineCaseStatus, OffenseCategory, SanctionSeverity
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.discipline_repository import DisciplineCaseRepository
-from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.repositories.responsable_repository import NominationRepository
+from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_admin_or_aumonier,
@@ -51,6 +47,7 @@ router = APIRouter()
 
 def _get_service(session: AsyncSession) -> DisciplineService:
     from src.infrastructure.repositories.attendance_repository import AttendanceRepository
+
     return DisciplineService(
         case_repo=DisciplineCaseRepository(session),
         user_repo=UserRepository(session),
@@ -61,6 +58,7 @@ def _get_service(session: AsyncSession) -> DisciplineService:
 # ═══════════════════════════════════════════════════════════════════════════
 #  ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.post(
     "/",
@@ -88,6 +86,7 @@ async def open_discipline_case(
 # ═══════════════════════════════════════════════════════════════════════════
 #  WORKFLOW DISCIPLINAIRE
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.post("/{case_id}/convoke", response_model=DisciplineCaseResponse)
 async def convoke_to_council(
@@ -193,6 +192,7 @@ async def dismiss_case(
 #  LECTURE
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @router.get("/", response_model=PaginatedResponse[DisciplineCaseResponse])
 async def list_discipline_cases(
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -279,4 +279,3 @@ async def get_attendance_compliance(
     """Vérifie la conformité de l'assiduité."""
     service = _get_service(session)
     return await service.check_attendance_compliance(user_id)
-

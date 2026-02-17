@@ -25,7 +25,9 @@ class TestCreateInvitation:
         assert body["role"] == "PARENT"
         assert body["status"] == "PENDING"
 
-    async def test_admin_creates_aumonier_invitation(self, client: AsyncClient, admin_user):
+    async def test_admin_creates_aumonier_invitation(
+        self, client: AsyncClient, admin_user
+    ):
         resp = await client.post(
             "/api/v1/admin/invitations",
             json={"role": "AUMÔNIER"},
@@ -79,7 +81,9 @@ class TestCreateInvitation:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.e2e
 class TestListInvitations:
-    async def test_admin_lists_invitations(self, client: AsyncClient, admin_user, valid_invitation):
+    async def test_admin_lists_invitations(
+        self, client: AsyncClient, admin_user, valid_invitation
+    ):
         resp = await client.get(
             "/api/v1/admin/invitations",
             headers=make_auth_header(admin_user),
@@ -106,7 +110,9 @@ class TestListInvitations:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.e2e
 class TestRevokeInvitation:
-    async def test_admin_revokes_own_invitation(self, client: AsyncClient, admin_user, valid_invitation):
+    async def test_admin_revokes_own_invitation(
+        self, client: AsyncClient, admin_user, valid_invitation
+    ):
         resp = await client.delete(
             f"/api/v1/admin/invitations/{valid_invitation.id}",
             headers=make_auth_header(admin_user),
@@ -115,6 +121,7 @@ class TestRevokeInvitation:
 
     async def test_revoke_nonexistent_404(self, client: AsyncClient, admin_user):
         import uuid
+
         resp = await client.delete(
             f"/api/v1/admin/invitations/{uuid.uuid4()}",
             headers=make_auth_header(admin_user),
@@ -146,7 +153,9 @@ class TestCreateAumonier:
         body = resp.json()
         assert body["role"] == "AUMÔNIER"
 
-    async def test_duplicate_aumonier_400(self, client: AsyncClient, admin_user, aumonier_user):
+    async def test_duplicate_aumonier_400(
+        self, client: AsyncClient, admin_user, aumonier_user
+    ):
         """Un seul AUMÔNIER autorisé."""
         resp = await client.post(
             "/api/v1/admin/users/aum%C3%B4nier",
@@ -164,8 +173,10 @@ class TestCreateAumonier:
         resp = await client.post(
             "/api/v1/admin/users/aum%C3%B4nier",
             json={
-                "email": "x@t.com", "password": "TestPass1",
-                "first_name": "A", "last_name": "B",
+                "email": "x@t.com",
+                "password": "TestPass1",
+                "first_name": "A",
+                "last_name": "B",
             },
         )
         assert resp.status_code == 401
@@ -174,8 +185,10 @@ class TestCreateAumonier:
         resp = await client.post(
             "/api/v1/admin/users/aum%C3%B4nier",
             json={
-                "email": "x@t.com", "password": "TestPass1",
-                "first_name": "A", "last_name": "B",
+                "email": "x@t.com",
+                "password": "TestPass1",
+                "first_name": "A",
+                "last_name": "B",
             },
             headers=make_auth_header(servant_user),
         )
@@ -206,8 +219,10 @@ class TestCreateParentDirect:
         resp = await client.post(
             "/api/v1/admin/users/parent",
             json={
-                "email": "x@t.com", "password": "TestPass1",
-                "first_name": "A", "last_name": "B",
+                "email": "x@t.com",
+                "password": "TestPass1",
+                "first_name": "A",
+                "last_name": "B",
                 "phone_number": "+237600000081",
             },
         )
@@ -237,9 +252,10 @@ class TestCreateAdmin:
         resp = await client.post(
             "/api/v1/admin/users/admin",
             json={
-                "email": "x@t.com", "password": "TestPass1",
-                "first_name": "A", "last_name": "B",
+                "email": "x@t.com",
+                "password": "TestPass1",
+                "first_name": "A",
+                "last_name": "B",
             },
         )
         assert resp.status_code == 401
-

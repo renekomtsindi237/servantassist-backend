@@ -9,8 +9,13 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.entities.sport_culture import (
-    SportCultureEvent, EventParticipation, EventResult, EventTeam,
-    EventType, EventStatus, ParticipationStatus
+    EventParticipation,
+    EventResult,
+    EventStatus,
+    EventTeam,
+    EventType,
+    ParticipationStatus,
+    SportCultureEvent,
 )
 from src.core.entities.user import User
 
@@ -94,11 +99,11 @@ class SportCultureEventRepository:
         result = await self.session.execute(
             select(SportCultureEvent)
             .where(SportCultureEvent.date >= now)
-            .where(SportCultureEvent.status.in_([
-                EventStatus.PLANIFIE,
-                EventStatus.OUVERT,
-                EventStatus.COMPLET
-            ]))
+            .where(
+                SportCultureEvent.status.in_(
+                    [EventStatus.PLANIFIE, EventStatus.OUVERT, EventStatus.COMPLET]
+                )
+            )
             .order_by(SportCultureEvent.date)
             .limit(limit)
         )
@@ -155,7 +160,9 @@ class EventParticipationRepository:
         # Joindre avec les événements pour filtrer par date
         query = (
             select(EventParticipation)
-            .join(SportCultureEvent, EventParticipation.event_id == SportCultureEvent.id)
+            .join(
+                SportCultureEvent, EventParticipation.event_id == SportCultureEvent.id
+            )
             .where(EventParticipation.servant_id == servant_id)
         )
 
@@ -177,7 +184,7 @@ class EventParticipationRepository:
             select(EventParticipation).where(
                 and_(
                     EventParticipation.event_id == event_id,
-                    EventParticipation.servant_id == servant_id
+                    EventParticipation.servant_id == servant_id,
                 )
             )
         )
@@ -213,10 +220,9 @@ class EventParticipationRepository:
             select(func.count()).where(
                 and_(
                     EventParticipation.event_id == event_id,
-                    EventParticipation.status.in_([
-                        ParticipationStatus.CONFIRME,
-                        ParticipationStatus.PRESENT
-                    ])
+                    EventParticipation.status.in_(
+                        [ParticipationStatus.CONFIRME, ParticipationStatus.PRESENT]
+                    ),
                 )
             )
         )
@@ -333,20 +339,20 @@ class EventTeamRepository:
             try:
                 # Convertir les chaînes UUID en objets UUID
                 member_ids = [UUID(str(m_id)) for m_id in team.members]
-                
+
                 members_result = await self.session.execute(
                     select(User).where(User.id.in_(member_ids))
                 )
                 members = list(members_result.scalars().all())
-                
+
                 # Créer une map pour respecter l'ordre ou juste lister les noms
                 members_map = {m.id: f"{m.first_name} {m.last_name}" for m in members}
-                
+
                 team.members_names = []
                 for m_id in member_ids:
                     if m_id in members_map:
                         team.members_names.append(members_map[m_id])
-                        
+
             except (ValueError, TypeError):
                 # En cas d'erreur de format UUID
                 team.members_names = []

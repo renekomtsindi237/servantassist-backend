@@ -5,10 +5,10 @@ from datetime import datetime
 from typing import List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.entities.report import Report, ReportAttachment, ReportType, ReportStatus
+from src.core.entities.report import Report, ReportAttachment, ReportStatus, ReportType
 
 
 class ReportRepository:
@@ -137,9 +137,7 @@ class ReportRepository:
         result = await self.session.execute(query)
         reports = list(result.scalars().all())
 
-        count_query = select(func.count(Report.id)).where(
-            Report.created_by == user_id
-        )
+        count_query = select(func.count(Report.id)).where(Report.created_by == user_id)
         count_result = await self.session.execute(count_query)
         total = count_result.scalar_one()
 

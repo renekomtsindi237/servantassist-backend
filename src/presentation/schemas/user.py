@@ -10,13 +10,13 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from src.core.entities.user import UserRole
 
-
 # ── Pagination generique ─────────────────────────────────────────────────
 T = TypeVar("T")
 
 
 class PaginatedResponse(BaseModel, Generic[T]):
     """Reponse paginee generique, reutilisable par tous les modules."""
+
     items: List[T]
     total: int
     page: int
@@ -27,6 +27,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 # ── Profil utilisateur (lecture) ─────────────────────────────────────────
 class UserProfileResponse(BaseModel):
     """Profil complet d'un utilisateur (lecture)."""
+
     id: UUID
     email: EmailStr
     first_name: str
@@ -45,6 +46,7 @@ class UserProfileResponse(BaseModel):
 # ── Mise a jour du profil (self-service) ─────────────────────────────────
 class UserProfileUpdate(BaseModel):
     """Champs modifiables par l'utilisateur lui-meme."""
+
     first_name: Optional[str] = Field(None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(None, min_length=1, max_length=100)
     phone_number: Optional[str] = None
@@ -54,13 +56,16 @@ class UserProfileUpdate(BaseModel):
     def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and v != "":
             if not re.match(r"^\+\d{1,3}\d{6,14}$", v):
-                raise ValueError("Le numero de telephone doit etre au format +237xxxxxxxxx")
+                raise ValueError(
+                    "Le numero de telephone doit etre au format +237xxxxxxxxx"
+                )
         return v
 
 
 # ── Changement de mot de passe ───────────────────────────────────────────
 class ChangePasswordRequest(BaseModel):
     """Requete de changement de mot de passe (l'utilisateur doit fournir l'ancien)."""
+
     current_password: str = Field(..., min_length=1)
     new_password: str = Field(..., min_length=8)
 
@@ -81,6 +86,7 @@ class ChangePasswordRequest(BaseModel):
 # ── Administration des utilisateurs ──────────────────────────────────────
 class UserAdminUpdate(BaseModel):
     """Champs modifiables par un administrateur."""
+
     first_name: Optional[str] = Field(None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(None, min_length=1, max_length=100)
     phone_number: Optional[str] = None
@@ -92,12 +98,15 @@ class UserAdminUpdate(BaseModel):
     def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and v != "":
             if not re.match(r"^\+\d{1,3}\d{6,14}$", v):
-                raise ValueError("Le numero de telephone doit etre au format +237xxxxxxxxx")
+                raise ValueError(
+                    "Le numero de telephone doit etre au format +237xxxxxxxxx"
+                )
         return v
 
 
 class UserAdminResetPassword(BaseModel):
     """Reinitialisation forcee du mot de passe par l'admin."""
+
     new_password: str = Field(..., min_length=8)
 
     @field_validator("new_password")
@@ -117,9 +126,11 @@ class UserAdminResetPassword(BaseModel):
 # ── Filtres de listing ───────────────────────────────────────────────────
 class UserListFilters(BaseModel):
     """Parametres de filtre et pagination pour la liste des utilisateurs."""
+
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
-    search: Optional[str] = Field(None, max_length=100, description="Recherche par nom ou email")
+    search: Optional[str] = Field(
+        None, max_length=100, description="Recherche par nom ou email"
+    )
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
-

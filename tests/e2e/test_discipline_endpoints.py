@@ -8,15 +8,14 @@ Couvre :
 - Listing et stats
 - Controle d'acces (RBAC)
 """
-import pytest
 from datetime import datetime, timedelta
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header, VALID_PASSWORD
 from src.core.entities.user import User
-
+from tests.conftest import VALID_PASSWORD, make_auth_header
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  OUVERTURE DE DOSSIER
@@ -258,9 +257,7 @@ class TestDisciplineRead:
         assert body["offense_category"] == "ABSENCE_NON_JUSTIFIEE"
 
     @pytest.mark.asyncio
-    async def test_get_case_not_found(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_get_case_not_found(self, client: AsyncClient, aumonier_user: User):
         resp = await client.get(
             f"/api/v1/discipline/{uuid4()}",
             headers=make_auth_header(aumonier_user),
@@ -283,4 +280,3 @@ class TestDisciplineRead:
         body = resp.json()
         assert body["user_id"] == str(servant_user.id)
         assert body["total_cases"] >= 1
-

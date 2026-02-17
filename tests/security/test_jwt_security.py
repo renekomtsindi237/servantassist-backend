@@ -1,10 +1,11 @@
 """
 Tests de sécurité — JWT (tokens falsifiés, expirés, manipulés).
 """
-import pytest
 from datetime import timedelta
-from jose import jwt
+
+import pytest
 from httpx import AsyncClient
+from jose import jwt
 
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.utils import SecurityUtils
@@ -91,7 +92,9 @@ class TestTokenMissingRole:
             "exp": 9999999999,
             # PAS de "role"
         }
-        token_no_role = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        token_no_role = jwt.encode(
+            payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+        )
         resp = await client.get(
             "/api/v1/admin/invitations",
             headers={"Authorization": f"Bearer {token_no_role}"},
@@ -104,7 +107,9 @@ class TestTokenMissingRole:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.security
 class TestTokenRoleMismatch:
-    async def test_servant_token_claiming_admin_role(self, client: AsyncClient, servant_user):
+    async def test_servant_token_claiming_admin_role(
+        self, client: AsyncClient, servant_user
+    ):
         """Token prétend être ADMIN mais l'utilisateur en BDD est SERVANT → 401."""
         fake_token = SecurityUtils.create_access_token(
             subject=servant_user.email,
@@ -118,7 +123,9 @@ class TestTokenRoleMismatch:
         assert resp.status_code == 401
         assert "mismatch" in resp.json().get("detail", "").lower()
 
-    async def test_parent_token_claiming_admin_role(self, client: AsyncClient, parent_user):
+    async def test_parent_token_claiming_admin_role(
+        self, client: AsyncClient, parent_user
+    ):
         """Token prétend être ADMIN mais l'utilisateur est PARENT → 401."""
         fake_token = SecurityUtils.create_access_token(
             subject=parent_user.email,
@@ -173,9 +180,10 @@ class TestInjectionAttempts:
         )
         # L'injection ne doit JAMAIS retourner 200 (accès réussi).
         # Les payloads non-email → 401 (Pydantic rejette le format email).
-        assert resp.status_code in (401, 422), (
-            f"SQL injection should return 401/422, got {resp.status_code}: {payload}"
-        )
+        assert resp.status_code in (
+            401,
+            422,
+        ), f"SQL injection should return 401/422, got {resp.status_code}: {payload}"
 
     @pytest.mark.parametrize("payload", SQL_INJECTION_PAYLOADS)
     async def test_sql_injection_in_phone_login(self, client: AsyncClient, payload):
@@ -194,6 +202,7 @@ class TestInjectionAttempts:
     @pytest.mark.parametrize("payload", XSS_PAYLOADS)
     async def test_xss_in_registration(self, client: AsyncClient, payload):
         import uuid as _uuid
+
         resp = await client.post(
             "/api/v1/auth/register",
             json={
@@ -219,7 +228,9 @@ class TestInjectionAttempts:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.security
 class TestRefreshTokenMisuse:
-    async def test_refresh_token_cannot_be_used_as_access(self, client: AsyncClient, admin_user):
+    async def test_refresh_token_cannot_be_used_as_access(
+        self, client: AsyncClient, admin_user
+    ):
         """Un refresh token ne doit pas fonctionner comme access token."""
         refresh = SecurityUtils.create_refresh_token(
             subject=admin_user.email,
@@ -234,7 +245,9 @@ class TestRefreshTokenMisuse:
         # Ce test vérifie le comportement actuel
         assert resp.status_code in (200, 401)
 
-    async def test_reset_token_cannot_be_used_as_access(self, client: AsyncClient, admin_user):
+    async def test_reset_token_cannot_be_used_as_access(
+        self, client: AsyncClient, admin_user
+    ):
         """Un reset token ne doit pas fonctionner comme access token."""
         reset = SecurityUtils.create_reset_token(subject=admin_user.email)
         resp = await client.get(
@@ -243,4 +256,3 @@ class TestRefreshTokenMisuse:
         )
         # Reset token n'a pas de "role" → rejeté en 401
         assert resp.status_code == 401
-

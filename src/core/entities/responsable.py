@@ -28,13 +28,14 @@ from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enums
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class PosteResponsable(str, Enum):
     """Les 19 postes de responsable au sein du groupe de servants."""
+
     CONSEILLER = "CONSEILLER"
     DELEGUE = "DELEGUE"
     VICE_DELEGUE = "VICE_DELEGUE"
@@ -59,26 +60,28 @@ class PosteResponsable(str, Enum):
 
 class NominationStatus(str, Enum):
     """Statut d'une nomination a un poste."""
+
     ACTIVE = "ACTIVE"
     REVOQUEE = "REVOQUEE"
 
 
 class ActionCategory(str, Enum):
     """Categories d'actions realisables par les responsables."""
-    DECISION = "DECISION"                    # Delegue : decisions du conseil
-    RAPPORT = "RAPPORT"                      # Secretariat : PV, rapports
-    COMMUNICATION = "COMMUNICATION"          # Secretariat : informations transmises
-    DISCIPLINE = "DISCIPLINE"                # Censeur : dossiers disciplinaires
-    SANCTION = "SANCTION"                    # Censeur : sanctions prononcees
-    CLASSEMENT = "CLASSEMENT"                # Classement : planning des messes
-    FORMATION = "FORMATION"                  # Liturgie : formations et enseignements
-    RECOLLECTION = "RECOLLECTION"            # Liturgie adj. : recollections mensuelles
-    REPETITION = "REPETITION"                # Ceremoniaire : repetitions
-    COLLECTE = "COLLECTE"                    # Econome : collectes financieres
-    DEPENSE = "DEPENSE"                      # Econome : sorties de fonds
-    BILAN_FINANCIER = "BILAN_FINANCIER"      # Commissaires : bilans hebdo/mensuels
-    MATERIEL = "MATERIEL"                    # Intendants : gestion du materiel
-    LAVAGE = "LAVAGE"                        # Intendants : planning lavage aubes
+
+    DECISION = "DECISION"  # Delegue : decisions du conseil
+    RAPPORT = "RAPPORT"  # Secretariat : PV, rapports
+    COMMUNICATION = "COMMUNICATION"  # Secretariat : informations transmises
+    DISCIPLINE = "DISCIPLINE"  # Censeur : dossiers disciplinaires
+    SANCTION = "SANCTION"  # Censeur : sanctions prononcees
+    CLASSEMENT = "CLASSEMENT"  # Classement : planning des messes
+    FORMATION = "FORMATION"  # Liturgie : formations et enseignements
+    RECOLLECTION = "RECOLLECTION"  # Liturgie adj. : recollections mensuelles
+    REPETITION = "REPETITION"  # Ceremoniaire : repetitions
+    COLLECTE = "COLLECTE"  # Econome : collectes financieres
+    DEPENSE = "DEPENSE"  # Econome : sorties de fonds
+    BILAN_FINANCIER = "BILAN_FINANCIER"  # Commissaires : bilans hebdo/mensuels
+    MATERIEL = "MATERIEL"  # Intendants : gestion du materiel
+    LAVAGE = "LAVAGE"  # Intendants : planning lavage aubes
     ACTIVITE_SPORTIVE = "ACTIVITE_SPORTIVE"  # Sport : activites sportives
     ACTIVITE_CULTURELLE = "ACTIVITE_CULTURELLE"  # Sport : activites culturelles
     AUTRE = "AUTRE"
@@ -86,6 +89,7 @@ class ActionCategory(str, Enum):
 
 class ActionStatus(str, Enum):
     """Statut d'une action de responsable."""
+
     BROUILLON = "BROUILLON"
     PUBLIE = "PUBLIE"
     EN_COURS = "EN_COURS"
@@ -97,6 +101,7 @@ class ActionStatus(str, Enum):
 #  Table : Nominations aux postes de responsable
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class Nomination(SQLModel, table=True):
     """
     Nomination d'un servant a un poste de responsable.
@@ -104,6 +109,7 @@ class Nomination(SQLModel, table=True):
     Un servant ne peut occuper qu'un seul poste actif a la fois.
     L'aumonier est le seul a pouvoir nommer et revoquer.
     """
+
     __tablename__ = "nominations"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -121,6 +127,7 @@ class Nomination(SQLModel, table=True):
 #  Table : Actions des responsables
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class PosteAction(SQLModel, table=True):
     """
     Action ou document cree par un responsable dans le cadre de son poste.
@@ -134,6 +141,7 @@ class PosteAction(SQLModel, table=True):
     - Les commissaires publient un bilan financier
     - Les intendants planifient un lavage d'aubes
     """
+
     __tablename__ = "poste_actions"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -163,68 +171,104 @@ class PosteAction(SQLModel, table=True):
 
 POSTE_ALLOWED_CATEGORIES: dict[PosteResponsable, list[ActionCategory]] = {
     PosteResponsable.CONSEILLER: [
-        ActionCategory.DECISION, ActionCategory.RAPPORT, ActionCategory.AUTRE,
+        ActionCategory.DECISION,
+        ActionCategory.RAPPORT,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.DELEGUE: [
-        ActionCategory.DECISION, ActionCategory.RAPPORT,
-        ActionCategory.COMMUNICATION, ActionCategory.AUTRE,
+        ActionCategory.DECISION,
+        ActionCategory.RAPPORT,
+        ActionCategory.COMMUNICATION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.VICE_DELEGUE: [
-        ActionCategory.DECISION, ActionCategory.RAPPORT,
-        ActionCategory.COMMUNICATION, ActionCategory.MATERIEL, ActionCategory.AUTRE,
+        ActionCategory.DECISION,
+        ActionCategory.RAPPORT,
+        ActionCategory.COMMUNICATION,
+        ActionCategory.MATERIEL,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.SECRETAIRE_GENERAL: [
-        ActionCategory.RAPPORT, ActionCategory.COMMUNICATION, ActionCategory.AUTRE,
+        ActionCategory.RAPPORT,
+        ActionCategory.COMMUNICATION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.SECRETAIRE_GENERAL_ADJOINT: [
-        ActionCategory.RAPPORT, ActionCategory.COMMUNICATION, ActionCategory.AUTRE,
+        ActionCategory.RAPPORT,
+        ActionCategory.COMMUNICATION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.SECRETAIRE: [
-        ActionCategory.RAPPORT, ActionCategory.COMMUNICATION, ActionCategory.AUTRE,
+        ActionCategory.RAPPORT,
+        ActionCategory.COMMUNICATION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.SECRETAIRE_ADJOINT: [
-        ActionCategory.RAPPORT, ActionCategory.COMMUNICATION, ActionCategory.AUTRE,
+        ActionCategory.RAPPORT,
+        ActionCategory.COMMUNICATION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.CENSEUR: [
-        ActionCategory.DISCIPLINE, ActionCategory.SANCTION, ActionCategory.AUTRE,
+        ActionCategory.DISCIPLINE,
+        ActionCategory.SANCTION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.CENSEUR_ADJOINT: [
-        ActionCategory.DISCIPLINE, ActionCategory.SANCTION, ActionCategory.AUTRE,
+        ActionCategory.DISCIPLINE,
+        ActionCategory.SANCTION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.ECONOME: [
-        ActionCategory.COLLECTE, ActionCategory.DEPENSE, ActionCategory.AUTRE,
+        ActionCategory.COLLECTE,
+        ActionCategory.DEPENSE,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.COMMISSAIRE_AUX_COMPTES: [
-        ActionCategory.BILAN_FINANCIER, ActionCategory.COLLECTE,
-        ActionCategory.DEPENSE, ActionCategory.AUTRE,
+        ActionCategory.BILAN_FINANCIER,
+        ActionCategory.COLLECTE,
+        ActionCategory.DEPENSE,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.CHARGE_LITURGIE: [
-        ActionCategory.FORMATION, ActionCategory.AUTRE,
+        ActionCategory.FORMATION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.CHARGE_LITURGIE_ADJOINT: [
-        ActionCategory.FORMATION, ActionCategory.RECOLLECTION, ActionCategory.AUTRE,
+        ActionCategory.FORMATION,
+        ActionCategory.RECOLLECTION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.CEREMONIAIRE: [
-        ActionCategory.REPETITION, ActionCategory.FORMATION, ActionCategory.AUTRE,
+        ActionCategory.REPETITION,
+        ActionCategory.FORMATION,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.CHARGE_CLASSEMENT_DIMANCHE: [
-        ActionCategory.CLASSEMENT, ActionCategory.AUTRE,
+        ActionCategory.CLASSEMENT,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.CHARGE_CLASSEMENT_SEMAINE: [
-        ActionCategory.CLASSEMENT, ActionCategory.AUTRE,
+        ActionCategory.CLASSEMENT,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.INTENDANT: [
-        ActionCategory.MATERIEL, ActionCategory.LAVAGE, ActionCategory.AUTRE,
+        ActionCategory.MATERIEL,
+        ActionCategory.LAVAGE,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.INTENDANT_ADJOINT: [
-        ActionCategory.MATERIEL, ActionCategory.LAVAGE, ActionCategory.AUTRE,
+        ActionCategory.MATERIEL,
+        ActionCategory.LAVAGE,
+        ActionCategory.AUTRE,
     ],
     PosteResponsable.CHARGE_SPORT_CULTURE: [
-        ActionCategory.ACTIVITE_SPORTIVE, ActionCategory.ACTIVITE_CULTURELLE,
+        ActionCategory.ACTIVITE_SPORTIVE,
+        ActionCategory.ACTIVITE_CULTURELLE,
         ActionCategory.AUTRE,
     ],
     PosteResponsable.CHARGE_SPORT_CULTURE_ADJOINT: [
-        ActionCategory.ACTIVITE_SPORTIVE, ActionCategory.ACTIVITE_CULTURELLE,
+        ActionCategory.ACTIVITE_SPORTIVE,
+        ActionCategory.ACTIVITE_CULTURELLE,
         ActionCategory.AUTRE,
     ],
 }
@@ -406,4 +450,3 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
         ],
     },
 }
-

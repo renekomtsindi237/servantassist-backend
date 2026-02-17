@@ -23,40 +23,44 @@ from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enums
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class CotisationType(str, Enum):
     """Types de cotisation prevus par le reglement."""
-    ORDINAIRE = "ORDINAIRE"            # Cotisation reguliere
-    SPECIALE = "SPECIALE"              # Pour un evenement specifique
-    AMENDE = "AMENDE"                  # Penalite financiere
-    AUTRE = "AUTRE"                    # Contribution volontaire
+
+    ORDINAIRE = "ORDINAIRE"  # Cotisation reguliere
+    SPECIALE = "SPECIALE"  # Pour un evenement specifique
+    AMENDE = "AMENDE"  # Penalite financiere
+    AUTRE = "AUTRE"  # Contribution volontaire
 
 
 class CotisationStatus(str, Enum):
     """Statut de paiement d'un membre pour une periode."""
-    EN_ATTENTE = "EN_ATTENTE"          # Pas encore paye
-    PAYE = "PAYE"                      # Paiement complet
+
+    EN_ATTENTE = "EN_ATTENTE"  # Pas encore paye
+    PAYE = "PAYE"  # Paiement complet
     PAYE_PARTIELLEMENT = "PAYE_PARTIELLEMENT"  # Paiement partiel
-    EXONERE = "EXONERE"                # Dispense de paiement
-    EN_RETARD = "EN_RETARD"            # Paiement en retard
+    EXONERE = "EXONERE"  # Dispense de paiement
+    EN_RETARD = "EN_RETARD"  # Paiement en retard
 
 
 class PeriodType(str, Enum):
     """Type de periode de collecte."""
-    HEBDOMADAIRE = "HEBDOMADAIRE"      # Chaque semaine (reunion)
-    MENSUEL = "MENSUEL"                # Chaque mois
-    EVENEMENT = "EVENEMENT"            # Lie a un evenement specifique
-    ANNUEL = "ANNUEL"                  # Cotisation annuelle
-    PONCTUEL = "PONCTUEL"              # Ponctuel (amende, etc.)
+
+    HEBDOMADAIRE = "HEBDOMADAIRE"  # Chaque semaine (reunion)
+    MENSUEL = "MENSUEL"  # Chaque mois
+    EVENEMENT = "EVENEMENT"  # Lie a un evenement specifique
+    ANNUEL = "ANNUEL"  # Cotisation annuelle
+    PONCTUEL = "PONCTUEL"  # Ponctuel (amende, etc.)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Table : Periodes de cotisation
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class CotisationPeriod(SQLModel, table=True):
     """
@@ -65,12 +69,15 @@ class CotisationPeriod(SQLModel, table=True):
     L'Aumonier ou l'Econome cree une periode avec un montant attendu,
     puis les paiements des membres sont enregistres.
     """
+
     __tablename__ = "cotisation_periods"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str = Field(max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
-    cotisation_type: CotisationType = Field(default=CotisationType.ORDINAIRE, index=True)
+    cotisation_type: CotisationType = Field(
+        default=CotisationType.ORDINAIRE, index=True
+    )
     period_type: PeriodType = Field(default=PeriodType.MENSUEL)
     amount_expected: float = Field(ge=0)
     # Periode
@@ -90,6 +97,7 @@ class CotisationPeriod(SQLModel, table=True):
 #  Table : Paiements individuels
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class MemberCotisation(SQLModel, table=True):
     """
     Paiement d'un membre pour une periode de cotisation.
@@ -97,6 +105,7 @@ class MemberCotisation(SQLModel, table=True):
     L'Econome enregistre chaque paiement au moment de la collecte.
     Les Commissaires aux comptes verifient les ecritures.
     """
+
     __tablename__ = "member_cotisations"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -114,4 +123,3 @@ class MemberCotisation(SQLModel, table=True):
     # Metadata
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
-

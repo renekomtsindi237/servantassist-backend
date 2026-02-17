@@ -5,15 +5,10 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import func
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
-from src.core.entities.cotisation import (
-    CotisationPeriod,
-    CotisationStatus,
-    CotisationType,
-    MemberCotisation,
-)
+from src.core.entities.cotisation import CotisationPeriod, CotisationStatus, CotisationType, MemberCotisation
 from src.core.entities.user import User
 
 
@@ -159,9 +154,7 @@ class MemberCotisationRepository:
     async def enrich_cotisation(self, cotisation: MemberCotisation) -> Dict:
         """Enrichit un paiement avec infos utilisateur et periode."""
         user = (
-            await self.session.exec(
-                select(User).where(User.id == cotisation.user_id)
-            )
+            await self.session.exec(select(User).where(User.id == cotisation.user_id))
         ).first()
 
         period = (
@@ -214,4 +207,3 @@ class MemberCotisationRepository:
             await self.session.commit()
             return True
         return False
-

@@ -11,16 +11,16 @@ Couvre :
 - Filtres et pagination
 - Enrichissement des reponses (infos user + event)
 """
-import pytest
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
-from tests.conftest import VALID_PASSWORD, make_auth_header
 from src.core.entities.assignment import Assignment, AssignmentStatus, LiturgicalRole
-from src.core.entities.event import Event, EventType, EventStatus
+from src.core.entities.event import Event, EventStatus, EventType
 from src.core.entities.user import User, UserRole
+from tests.conftest import VALID_PASSWORD, make_auth_header
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -253,9 +253,17 @@ class TestCreateAssignment:
     ):
         """Tous les roles liturgiques sont acceptes."""
         roles = [
-            "CRUCIFER", "THURIFER", "ACOLYTE", "CEROMONIAIRE",
-            "NAVETTIER", "PORTE_MITRE", "PORTE_CROSSE", "PORTE_BOUGEOIR",
-            "LECTEUR", "SERVANT_GENERAL", "AUTRE",
+            "CRUCIFER",
+            "THURIFER",
+            "ACOLYTE",
+            "CEROMONIAIRE",
+            "NAVETTIER",
+            "PORTE_MITRE",
+            "PORTE_CROSSE",
+            "PORTE_BOUGEOIR",
+            "LECTEUR",
+            "SERVANT_GENERAL",
+            "AUTRE",
         ]
         for role in roles:
             resp = await client.post(
@@ -727,5 +735,3 @@ class TestCancelAndDelete:
             headers=make_auth_header(aumonier_user),
         )
         assert resp.status_code == 400
-
-

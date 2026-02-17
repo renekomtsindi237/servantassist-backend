@@ -1,9 +1,10 @@
 """
 Tests de sécurité pour le module COMMISSAIRE - Audit financier.
 """
-import pytest
 from datetime import timedelta
 from uuid import uuid4
+
+import pytest
 
 
 @pytest.mark.asyncio
@@ -22,7 +23,7 @@ async def test_only_commissaire_can_create_entry(client, servant_token, admin_to
         },
     )
     assert response.status_code == 403
-    
+
     # Admin ne peut pas non plus
     response = await client.post(
         "/api/v1/financial-entries/",
@@ -41,9 +42,10 @@ async def test_only_commissaire_can_create_entry(client, servant_token, admin_to
 @pytest.mark.asyncio
 async def test_cannot_modify_verified_entry(client, commissaire_token, db_session):
     """Test qu'on ne peut pas modifier une entrée vérifiée."""
-    from src.core.entities.financial_entry import FinancialEntry, EntryCategory, EntrySource, VerificationStatus
     from datetime import datetime
-    
+
+    from src.core.entities.financial_entry import EntryCategory, EntrySource, FinancialEntry, VerificationStatus
+
     entry = FinancialEntry(
         id=uuid4(),
         date=datetime(2026, 2, 10),
@@ -57,13 +59,13 @@ async def test_cannot_modify_verified_entry(client, commissaire_token, db_sessio
     )
     db_session.add(entry)
     await db_session.commit()
-    
+
     response = await client.patch(
         f"/api/v1/financial-entries/{entry.id}",
         headers={"Authorization": f"Bearer {commissaire_token}"},
         json={"amount": 6000.0},
     )
-    
+
     assert response.status_code == 400
 
 
@@ -81,7 +83,7 @@ async def test_sql_injection_protection(client, commissaire_token):
             "description": "'; DROP TABLE financial_entries; --",
         },
     )
-    
+
     assert response.status_code == 201
 
 
@@ -99,7 +101,7 @@ async def test_negative_amount_rejected(client, commissaire_token):
             "description": "Test",
         },
     )
-    
+
     assert response.status_code == 422
 
 
@@ -107,9 +109,9 @@ async def test_negative_amount_rejected(client, commissaire_token):
 async def test_token_expiration(client, commissaire_user):
     """Test que les tokens expirés sont rejetés."""
     from tests.conftest import make_access_token
-    
+
     expired_token = make_access_token(commissaire_user, expires=timedelta(seconds=-1))
-    
+
     response = await client.get(
         "/api/v1/financial-entries/",
         headers={"Authorization": f"Bearer {expired_token}"},

@@ -31,10 +31,7 @@ from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.assignment_repository import AssignmentRepository
 from src.infrastructure.repositories.event_repository import EventRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    get_current_admin_or_aumonier,
-)
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
 from src.presentation.schemas.assignment import (
     AssignmentBatchCreate,
     AssignmentBatchResponse,
@@ -62,7 +59,9 @@ def _get_service(session: AsyncSession) -> AssignmentService:
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-@router.post("/", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_assignment(
     data: AssignmentCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -239,9 +238,7 @@ async def update_my_assignment_status(
     - PENDING → DECLINED
     """
     service = _get_service(session)
-    return await service.update_my_status(
-        assignment_id, data, user_id=current_user.id
-    )
+    return await service.update_my_status(assignment_id, data, user_id=current_user.id)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -275,9 +272,7 @@ async def mark_presence(
     assignment_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
-    present: bool = Query(
-        ..., description="true = PRESENT, false = ABSENT"
-    ),
+    present: bool = Query(..., description="true = PRESENT, false = ABSENT"),
 ):
     """
     Marquer la presence ou l'absence d'un servant le jour J.
@@ -305,9 +300,7 @@ async def cancel_assignment(
     **Accessible a :** Admin, Aumonier.
     """
     service = _get_service(session)
-    return await service.cancel_assignment(
-        assignment_id, cancelled_by=current_user.id
-    )
+    return await service.cancel_assignment(assignment_id, cancelled_by=current_user.id)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

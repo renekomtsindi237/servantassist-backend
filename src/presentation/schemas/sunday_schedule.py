@@ -10,30 +10,26 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
-from src.core.entities.sunday_schedule import (
-    LiturgicalPosition,
-    MassLanguage,
-    MassType,
-    SundayScheduleStatus,
-)
-
+from src.core.entities.sunday_schedule import LiturgicalPosition, MassLanguage, MassType, SundayScheduleStatus
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Assignation de servants à un poste liturgique
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class SundayMassAssignmentCreate(BaseModel):
     """Assignation d'un servant à un poste liturgique."""
+
     position: LiturgicalPosition
     servant_id: Optional[UUID] = None
     servant_name: Optional[str] = Field(None, max_length=200)
     notes: Optional[str] = Field(None, max_length=500)
 
-    @field_validator('servant_name')
+    @field_validator("servant_name")
     @classmethod
     def validate_servant_info(cls, v: Optional[str], info) -> Optional[str]:
         """Valide qu'au moins servant_id ou servant_name est fourni."""
-        servant_id = info.data.get('servant_id')
+        servant_id = info.data.get("servant_id")
         if not servant_id and not v:
             raise ValueError("Au moins servant_id ou servant_name doit être fourni")
         return v
@@ -41,6 +37,7 @@ class SundayMassAssignmentCreate(BaseModel):
 
 class SundayMassAssignmentResponse(BaseModel):
     """Réponse pour un servant assigné à un poste."""
+
     id: UUID
     mass_slot_id: UUID
     position: LiturgicalPosition
@@ -71,8 +68,10 @@ class SundayMassAssignmentResponse(BaseModel):
 #  Création de messes
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class SundayMassSlotCreate(BaseModel):
     """Création d'une messe."""
+
     mass_time: str = Field(..., max_length=10, description="Heure (ex: 06h30, 08h30)")
     language: MassLanguage
     notes: Optional[str] = Field(None, max_length=500)
@@ -81,6 +80,7 @@ class SundayMassSlotCreate(BaseModel):
 
 class SundayScheduleTemplateCreate(BaseModel):
     """Création d'un modèle de classement dominical."""
+
     title: str = Field(..., max_length=200)
     schedule_date: datetime
     mass_type: MassType = MassType.ORDINAIRE
@@ -93,8 +93,10 @@ class SundayScheduleTemplateCreate(BaseModel):
 #  Modification
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class SundayMassSlotUpdate(BaseModel):
     """Modification d'une messe."""
+
     mass_time: Optional[str] = Field(None, max_length=10)
     language: Optional[MassLanguage] = None
     notes: Optional[str] = Field(None, max_length=500)
@@ -102,6 +104,7 @@ class SundayMassSlotUpdate(BaseModel):
 
 class SundayScheduleTemplateUpdate(BaseModel):
     """Modification d'un modèle de classement."""
+
     title: Optional[str] = Field(None, max_length=200)
     schedule_date: Optional[datetime] = None
     mass_type: Optional[MassType] = None
@@ -114,8 +117,10 @@ class SundayScheduleTemplateUpdate(BaseModel):
 #  Réponses
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class SundayMassSlotResponse(BaseModel):
     """Réponse pour une messe avec ses assignations."""
+
     id: UUID
     template_id: UUID
     mass_time: str
@@ -131,6 +136,7 @@ class SundayMassSlotResponse(BaseModel):
 
 class SundayScheduleTemplateResponse(BaseModel):
     """Réponse pour un modèle de classement avec ses messes."""
+
     id: UUID
     title: str
     schedule_date: datetime
@@ -154,6 +160,7 @@ class SundayScheduleTemplateResponse(BaseModel):
 
 class SundayScheduleTemplateSummary(BaseModel):
     """Résumé d'un modèle de classement (pour les listes)."""
+
     id: UUID
     title: str
     schedule_date: datetime
@@ -176,14 +183,17 @@ class SundayScheduleTemplateSummary(BaseModel):
 #  Helpers pour génération automatique
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class MassTimePreset(BaseModel):
     """Preset d'horaires de messe."""
+
     time: str
     language: MassLanguage
 
 
 class GenerateOrdinaryScheduleRequest(BaseModel):
     """Requête pour générer un classement ordinaire."""
+
     title: str = Field(..., max_length=200)
     schedule_date: datetime
     notes: Optional[str] = Field(None, max_length=1000)
@@ -191,6 +201,7 @@ class GenerateOrdinaryScheduleRequest(BaseModel):
 
 class GenerateExceptionalScheduleRequest(BaseModel):
     """Requête pour générer un classement exceptionnel."""
+
     title: str = Field(..., max_length=200)
     schedule_date: datetime
     mass_times: List[MassTimePreset]
@@ -201,8 +212,10 @@ class GenerateExceptionalScheduleRequest(BaseModel):
 #  Marquage de présence
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class MarkPresenceRequest(BaseModel):
     """Requête pour marquer la présence d'un servant."""
+
     is_present: bool = Field(..., description="True=présent, False=absent")
 
 
@@ -210,8 +223,10 @@ class MarkPresenceRequest(BaseModel):
 #  Historique des modifications
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class ModificationLogResponse(BaseModel):
     """Réponse pour un log de modification."""
+
     id: UUID
     template_id: UUID
     mass_slot_id: Optional[UUID] = None

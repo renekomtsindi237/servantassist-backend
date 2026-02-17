@@ -7,14 +7,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.financial_entry import (
-    EntryCategory, EntrySource, VerificationStatus
-)
+from src.core.entities.financial_entry import EntryCategory, EntrySource, VerificationStatus
 
 
 # ── Schémas de création ──────────────────────────────────────────────────
 class FinancialEntryCreate(BaseModel):
     """Schéma pour créer une entrée financière."""
+
     date: datetime
     amount: float = Field(gt=0)
     category: EntryCategory
@@ -25,6 +24,7 @@ class FinancialEntryCreate(BaseModel):
 
 class FinancialEntryUpdate(BaseModel):
     """Schéma pour modifier une entrée financière."""
+
     date: Optional[datetime] = None
     amount: Optional[float] = Field(None, gt=0)
     category: Optional[EntryCategory] = None
@@ -35,6 +35,7 @@ class FinancialEntryUpdate(BaseModel):
 
 class FinancialEntryVerify(BaseModel):
     """Schéma pour vérifier une entrée."""
+
     verification_status: VerificationStatus
     notes: Optional[str] = None
 
@@ -42,6 +43,7 @@ class FinancialEntryVerify(BaseModel):
 # ── Schémas de réponse ───────────────────────────────────────────────────
 class FinancialEntryResponse(BaseModel):
     """Schéma de réponse pour une entrée financière."""
+
     id: UUID
     date: datetime
     amount: float
@@ -64,6 +66,7 @@ class FinancialEntryResponse(BaseModel):
 
 class FinancialEntryListResponse(BaseModel):
     """Schéma de réponse pour une liste d'entrées."""
+
     items: List[FinancialEntryResponse]
     total: int
     skip: int
@@ -73,6 +76,7 @@ class FinancialEntryListResponse(BaseModel):
 # ── Schémas pour rapport d'audit ─────────────────────────────────────────
 class AuditReportRequest(BaseModel):
     """Schéma pour demander un rapport d'audit."""
+
     start_date: datetime
     end_date: datetime
     include_discrepancies: bool = True
@@ -81,6 +85,7 @@ class AuditReportRequest(BaseModel):
 
 class FinancialSummaryResponse(BaseModel):
     """Schéma de réponse pour un résumé financier."""
+
     category: EntryCategory
     total_amount: float
     entry_count: int
@@ -93,6 +98,7 @@ class FinancialSummaryResponse(BaseModel):
 
 class AuditReportResponse(BaseModel):
     """Schéma de réponse pour un rapport d'audit."""
+
     id: UUID
     start_date: datetime
     end_date: datetime
@@ -115,6 +121,7 @@ class AuditReportResponse(BaseModel):
 # ── Schémas pour écarts ──────────────────────────────────────────────────
 class DiscrepancyCreate(BaseModel):
     """Schéma pour créer un écart."""
+
     entry_id: UUID
     type: str = Field(min_length=1, max_length=100)
     description: str = Field(min_length=1)
@@ -124,12 +131,14 @@ class DiscrepancyCreate(BaseModel):
 
 class DiscrepancyResolve(BaseModel):
     """Schéma pour résoudre un écart."""
+
     resolved: bool = True
     resolution_notes: str = Field(min_length=1)
 
 
 class DiscrepancyResponse(BaseModel):
     """Schéma de réponse pour un écart."""
+
     id: UUID
     entry_id: UUID
     type: str
@@ -148,6 +157,7 @@ class DiscrepancyResponse(BaseModel):
 # ── Schémas pour statistiques ────────────────────────────────────────────
 class FinancialStatsResponse(BaseModel):
     """Schéma de réponse pour les statistiques financières."""
+
     total_amount: float
     total_entries: int
     verified_amount: float

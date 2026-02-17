@@ -7,14 +7,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.material import (
-    MaterialCategory, MaterialCondition, TaskType, TaskStatus
-)
+from src.core.entities.material import MaterialCategory, MaterialCondition, TaskStatus, TaskType
 
 
 # ── Schémas de création - Articles ───────────────────────────────────
 class MaterialItemCreate(BaseModel):
     """Schéma pour créer un article."""
+
     name: str = Field(min_length=1, max_length=200)
     category: MaterialCategory
     description: Optional[str] = None
@@ -29,6 +28,7 @@ class MaterialItemCreate(BaseModel):
 
 class MaterialItemUpdate(BaseModel):
     """Schéma pour modifier un article."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=200)
     category: Optional[MaterialCategory] = None
     description: Optional[str] = None
@@ -45,6 +45,7 @@ class MaterialItemUpdate(BaseModel):
 
 class MaterialItemResponse(BaseModel):
     """Schéma de réponse pour un article."""
+
     id: UUID
     name: str
     category: MaterialCategory
@@ -68,6 +69,7 @@ class MaterialItemResponse(BaseModel):
 
 class MaterialItemListResponse(BaseModel):
     """Schéma de réponse pour une liste d'articles."""
+
     items: List[MaterialItemResponse]
     total: int
     skip: int
@@ -77,6 +79,7 @@ class MaterialItemListResponse(BaseModel):
 # ── Schémas de création - Tâches de nettoyage ────────────────────────
 class CleaningTaskCreate(BaseModel):
     """Schéma pour créer une tâche de nettoyage."""
+
     title: str = Field(min_length=1, max_length=200)
     description: str = Field(min_length=1)
     task_type: TaskType
@@ -89,6 +92,7 @@ class CleaningTaskCreate(BaseModel):
 
 class CleaningTaskUpdate(BaseModel):
     """Schéma pour modifier une tâche."""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, min_length=1)
     task_type: Optional[TaskType] = None
@@ -102,17 +106,20 @@ class CleaningTaskUpdate(BaseModel):
 
 class CleaningTaskComplete(BaseModel):
     """Schéma pour marquer une tâche comme terminée."""
+
     photos_after: List[str] = Field(default_factory=list)
     notes: Optional[str] = None
 
 
 class CleaningTaskValidate(BaseModel):
     """Schéma pour valider une tâche."""
+
     notes: Optional[str] = None
 
 
 class CleaningTaskResponse(BaseModel):
     """Schéma de réponse pour une tâche."""
+
     id: UUID
     title: str
     description: str
@@ -140,6 +147,7 @@ class CleaningTaskResponse(BaseModel):
 
 class CleaningTaskListResponse(BaseModel):
     """Schéma de réponse pour une liste de tâches."""
+
     items: List[CleaningTaskResponse]
     total: int
     skip: int
@@ -149,16 +157,19 @@ class CleaningTaskListResponse(BaseModel):
 # ── Schémas de création - Assignations ───────────────────────────────
 class TaskAssignmentCreate(BaseModel):
     """Schéma pour assigner un servant."""
+
     servant_id: UUID
 
 
 class TaskAssignmentBatchCreate(BaseModel):
     """Schéma pour assigner plusieurs servants."""
+
     servant_ids: List[UUID] = Field(min_length=1)
 
 
 class TaskAssignmentResponse(BaseModel):
     """Schéma de réponse pour une assignation."""
+
     id: UUID
     task_id: UUID
     servant_id: UUID
@@ -175,6 +186,7 @@ class TaskAssignmentResponse(BaseModel):
 # ── Schémas de création - Tâches aubes ───────────────────────────────
 class AubeTaskCreate(BaseModel):
     """Schéma pour créer une tâche d'aubes."""
+
     title: str = Field(min_length=1, max_length=200)
     task_type: TaskType  # LAVAGE ou REPASSAGE
     scheduled_date: datetime
@@ -188,6 +200,7 @@ class AubeTaskCreate(BaseModel):
 
 class AubeTaskUpdate(BaseModel):
     """Schéma pour modifier une tâche d'aubes."""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     task_type: Optional[TaskType] = None
     scheduled_date: Optional[datetime] = None
@@ -201,12 +214,14 @@ class AubeTaskUpdate(BaseModel):
 
 class AubeTaskComplete(BaseModel):
     """Schéma pour marquer une tâche d'aubes comme terminée."""
+
     photos_after: List[str] = Field(default_factory=list)
     notes: Optional[str] = None
 
 
 class AubeTaskResponse(BaseModel):
     """Schéma de réponse pour une tâche d'aubes."""
+
     id: UUID
     title: str
     task_type: TaskType
@@ -235,6 +250,7 @@ class AubeTaskResponse(BaseModel):
 
 class AubeTaskListResponse(BaseModel):
     """Schéma de réponse pour une liste de tâches d'aubes."""
+
     items: List[AubeTaskResponse]
     total: int
     skip: int
@@ -244,6 +260,7 @@ class AubeTaskListResponse(BaseModel):
 # ── Schémas pour historique de maintenance ───────────────────────────
 class MaintenanceHistoryCreate(BaseModel):
     """Schéma pour créer un historique de maintenance."""
+
     maintenance_type: TaskType
     description: str = Field(min_length=1)
     performed_date: datetime
@@ -253,6 +270,7 @@ class MaintenanceHistoryCreate(BaseModel):
 
 class MaintenanceHistoryResponse(BaseModel):
     """Schéma de réponse pour un historique."""
+
     id: UUID
     item_id: UUID
     maintenance_type: TaskType
@@ -270,6 +288,7 @@ class MaintenanceHistoryResponse(BaseModel):
 # ── Schémas pour rapports ────────────────────────────────────────────
 class MaterialReportRequest(BaseModel):
     """Schéma pour demander un rapport."""
+
     start_date: datetime
     end_date: datetime
     include_maintenance_history: bool = True
@@ -277,6 +296,7 @@ class MaterialReportRequest(BaseModel):
 
 class MaterialReportResponse(BaseModel):
     """Schéma de réponse pour un rapport."""
+
     id: UUID
     start_date: datetime
     end_date: datetime
@@ -299,6 +319,7 @@ class MaterialReportResponse(BaseModel):
 # ── Schémas pour statistiques ────────────────────────────────────────
 class MaterialStatsResponse(BaseModel):
     """Schéma de réponse pour les statistiques."""
+
     total_items: int
     items_by_category: dict
     items_by_condition: dict

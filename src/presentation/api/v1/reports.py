@@ -5,29 +5,23 @@ from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.report_service import ReportService
-from src.core.entities.report import ReportType, ReportStatus
+from src.core.entities.report import ReportStatus, ReportType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.report_repository import (
-    ReportRepository, AttachmentRepository
-)
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    require_secretaire,
-    get_current_responsable,
-)
+from src.infrastructure.repositories.report_repository import AttachmentRepository, ReportRepository
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_responsable, require_secretaire
 from src.presentation.schemas.report import (
-    ReportCreate,
-    ReportUpdate,
-    ReportPublish,
-    ReportResponse,
-    ReportListResponse,
     AttachmentCreate,
     AttachmentResponse,
+    ReportCreate,
+    ReportListResponse,
+    ReportPublish,
+    ReportResponse,
+    ReportUpdate,
 )
 
 router = APIRouter()
@@ -91,21 +85,25 @@ async def list_reports(
     # Les non-secrétaires ne voient que les rapports publiés
     from src.core.entities.responsable import PosteResponsable
     from src.infrastructure.repositories.responsable_repository import NominationRepository
-    
+
     # Vérifier si l'utilisateur est secrétaire
     is_secretaire = False
     if current_user.role.value == "SERVANT":
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
         is_secretaire = any(
-            nom.poste in (PosteResponsable.SECRETAIRE_GENERAL, PosteResponsable.SECRETAIRE_GENERAL_ADJOINT)
+            nom.poste
+            in (
+                PosteResponsable.SECRETAIRE_GENERAL,
+                PosteResponsable.SECRETAIRE_GENERAL_ADJOINT,
+            )
             for nom in nominations
         )
-    
+
     # Si pas secrétaire, forcer le filtre sur les rapports publiés
     if not is_secretaire:
         status = ReportStatus.PUBLISHED
-    
+
     reports, total = await service.list_reports(
         skip=skip,
         limit=limit,
@@ -114,7 +112,7 @@ async def list_reports(
         start_date=start_date,
         end_date=end_date,
     )
-    
+
     return ReportListResponse(
         items=reports,
         total=total,
@@ -142,18 +140,19 @@ async def get_report(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Rapport introuvable",
         )
-    
+
     # Vérifier les permissions
     # Les non-secrétaires ne peuvent voir que les rapports publiés
     from src.core.entities.responsable import PosteResponsable
     from src.infrastructure.repositories.responsable_repository import NominationRepository
-    
+
     is_secretaire = False
     if current_user.role.value == "SERVANT":
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
         is_secretaire = any(
-            nom.poste in (
+            nom.poste
+            in (
                 PosteResponsable.SECRETAIRE_GENERAL,
                 PosteResponsable.SECRETAIRE_GENERAL_ADJOINT,
                 PosteResponsable.SECRETAIRE,
@@ -161,13 +160,13 @@ async def get_report(
             )
             for nom in nominations
         )
-    
+
     if not is_secretaire and report.status != ReportStatus.PUBLISHED:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Vous ne pouvez consulter que les rapports publiés",
         )
-    
+
     return report
 
 
@@ -195,15 +194,15 @@ async def update_report(
             decisions=data.decisions,
             action_items=data.action_items,
         )
-        
+
         if not report:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Rapport introuvable",
             )
-        
+
         return report
-    
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -311,7 +310,7 @@ async def get_my_reports(
         skip=skip,
         limit=limit,
     )
-    
+
     return ReportListResponse(
         items=reports,
         total=total,
@@ -344,15 +343,15 @@ async def add_attachment(
             file_size=data.file_size,
             uploaded_by=current_user.id,
         )
-        
+
         if not attachment:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Rapport introuvable",
             )
-        
+
         return attachment
-    
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -379,7 +378,7 @@ async def get_attachments(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Rapport introuvable",
         )
-    
+
     attachments = await service.get_attachments(report_id)
     return attachments
 

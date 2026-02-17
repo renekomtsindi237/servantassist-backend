@@ -4,18 +4,19 @@ Using Pydantic Settings for environment variable management
 """
 from functools import lru_cache
 from typing import List
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings"""
-    
+
     # Application
     APP_NAME: str = "ServantAssist"
     APP_ENV: str = "development"
     APP_DEBUG: bool = True
     APP_URL: str = "http://localhost:8000"
-    
+
     # Database
     DATABASE_URL: str
     POSTGRES_USER: str = "servantassist"
@@ -23,20 +24,20 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "servantassist_db"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
-    
+
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_PASSWORD: str = ""
     REDIS_DB: int = 0
-    
+
     # JWT
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    
+
     # CloudFlare R2
     CLOUDFLARE_R2_ENDPOINT: str
     CLOUDFLARE_R2_ACCESS_KEY: str
@@ -44,7 +45,7 @@ class Settings(BaseSettings):
     CLOUDFLARE_R2_BUCKET: str
     CLOUDFLARE_R2_PUBLIC_URL: str
     CLOUDFLARE_R2_PROFILE_BUCKET: str = "profile"  # Bucket dedie aux photos de profil
-    
+
     # Email
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
@@ -53,49 +54,47 @@ class Settings(BaseSettings):
     SMTP_FROM: str = "noreply@servantassist.com"
     SMTP_FROM_NAME: str = "ServantAssist"
     SMTP_USE_TLS: bool = True
-    
+
     # Frontend (pour les liens dans les emails)
     FRONTEND_URL: str = "http://localhost:3000"
-    
+
     # WhatsApp
     WHATSAPP_API_URL: str = ""
     WHATSAPP_PHONE_NUMBER_ID: str = ""
     WHATSAPP_ACCESS_TOKEN: str = ""
-    
+
     # Twilio
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_PHONE_NUMBER: str = ""
     TWILIO_WHATSAPP_FROM: str = ""  # Format: "whatsapp:+237xxxxxxxxx"
-    
+
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
-    
+
     # Security
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
     SECRET_KEY: str
-    
+
     # Brute-force protection
-    LOGIN_MAX_ATTEMPTS: int = 5        # Tentatives avant verrouillage
-    LOGIN_LOCKOUT_SECONDS: int = 60    # Duree du premier palier de verrouillage
-    
+    LOGIN_MAX_ATTEMPTS: int = 5  # Tentatives avant verrouillage
+    LOGIN_LOCKOUT_SECONDS: int = 60  # Duree du premier palier de verrouillage
+
     # Rate limiting
-    RATE_LIMIT_AUTH: int = 5           # Requetes/min sur les endpoints auth
-    RATE_LIMIT_GLOBAL: int = 60        # Requetes/min global par IP
-    
+    RATE_LIMIT_AUTH: int = 5  # Requetes/min sur les endpoints auth
+    RATE_LIMIT_GLOBAL: int = 60  # Requetes/min global par IP
+
     # File Upload
     MAX_UPLOAD_SIZE: int = 10485760  # 10MB
     ALLOWED_IMAGE_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "webp"]
     ALLOWED_DOCUMENT_EXTENSIONS: List[str] = ["pdf", "doc", "docx"]
-    
+
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "json"
-    
+
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=True
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=True
     )
 
 

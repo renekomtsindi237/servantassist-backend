@@ -1,11 +1,11 @@
 """
 Tests de performance pour le module de contributions (ECONOME).
 """
-import pytest
 import time
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
 from src.core.entities.contribution import PaymentMode
@@ -21,12 +21,12 @@ class TestContributionPerformance:
     ):
         """Test : Performance de la liste des contributions."""
         start_time = time.time()
-        
+
         response = await client.get(
             "/api/v1/contributions/?page=1&page_size=50",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        
+
         end_time = time.time()
         duration = end_time - start_time
 
@@ -38,7 +38,7 @@ class TestContributionPerformance:
     ):
         """Test : Performance de création d'une contribution."""
         start_time = time.time()
-        
+
         response = await client.post(
             "/api/v1/contributions/",
             headers={"Authorization": f"Bearer {econome_token}"},
@@ -51,7 +51,7 @@ class TestContributionPerformance:
                 "year": 2026,
             },
         )
-        
+
         end_time = time.time()
         duration = end_time - start_time
 
@@ -63,12 +63,12 @@ class TestContributionPerformance:
     ):
         """Test : Performance du résumé mensuel."""
         start_time = time.time()
-        
+
         response = await client.get(
             "/api/v1/contributions/summary/2/2026",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        
+
         end_time = time.time()
         duration = end_time - start_time
 
@@ -80,7 +80,7 @@ class TestContributionPerformance:
     ):
         """Test : Performance de génération de rapport."""
         start_time = time.time()
-        
+
         response = await client.post(
             "/api/v1/contributions/report",
             headers={"Authorization": f"Bearer {econome_token}"},
@@ -89,7 +89,7 @@ class TestContributionPerformance:
                 "end_date": datetime(2026, 12, 31, tzinfo=timezone.utc).isoformat(),
             },
         )
-        
+
         end_time = time.time()
         duration = end_time - start_time
 
@@ -97,12 +97,17 @@ class TestContributionPerformance:
         assert duration < 3.0  # Doit générer en moins de 3 secondes
 
     async def test_bulk_contributions_query_performance(
-        self, client: AsyncClient, econome_token: str, db_session, servant_user: User, econome_user: User
+        self,
+        client: AsyncClient,
+        econome_token: str,
+        db_session,
+        servant_user: User,
+        econome_user: User,
     ):
         """Test : Performance avec un grand nombre de contributions."""
         # Créer 100 contributions
         from src.core.entities.contribution import Contribution
-        
+
         contributions = []
         for i in range(100):
             contribution = Contribution(
@@ -117,19 +122,19 @@ class TestContributionPerformance:
                 recorded_by=econome_user.id,
             )
             contributions.append(contribution)
-        
+
         for contrib in contributions:
             db_session.add(contrib)
         await db_session.commit()
 
         # Tester la performance de la requête
         start_time = time.time()
-        
+
         response = await client.get(
             f"/api/v1/contributions/servant/{servant_user.id}",
             headers={"Authorization": f"Bearer {econome_token}"},
         )
-        
+
         end_time = time.time()
         duration = end_time - start_time
 
@@ -166,10 +171,10 @@ class TestContributionConcurrency:
 
         # Créer 4 contributions en parallèle
         start_time = time.time()
-        
+
         tasks = [create_contribution(i + 1) for i in range(4)]
         responses = await asyncio.gather(*tasks)
-        
+
         end_time = time.time()
         duration = end_time - start_time
 

@@ -2,20 +2,36 @@
 Main application entry point for ServantAssist API
 Clean Architecture implementation with FastAPI
 """
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from contextlib import asynccontextmanager
 
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.database.session import sessionmanager
 from src.presentation.api.v1 import (
-    admin, auth, users, activities, communication,
-    assignments, responsables, poste,
-    discipline, cotisations, attendance, subgroups,
-    attendance_sessions, contributions, financial_entries,
-    material, reports, sport_culture, sunday_schedule,
-    training, weekly_schedule,
+    activities,
+    admin,
+    assignments,
+    attendance,
+    attendance_sessions,
+    auth,
+    communication,
+    contributions,
+    cotisations,
+    discipline,
+    financial_entries,
+    material,
+    poste,
+    reports,
+    responsables,
+    sport_culture,
+    subgroups,
+    sunday_schedule,
+    training,
+    users,
+    weekly_schedule,
 )
 from src.presentation.middleware.error_handler import ErrorHandlerMiddleware
 from src.presentation.middleware.logging_middleware import LoggingMiddleware
@@ -99,110 +115,50 @@ app.add_middleware(
 )
 
 # API Routes
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(activities.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(
-    auth.router,
-    prefix="/api/v1/auth",
-    tags=["Authentication"]
+    communication.router, prefix="/api/v1/communication", tags=["Communication"]
 )
 app.include_router(
-    admin.router,
-    prefix="/api/v1/admin",
-    tags=["Admin"]
+    assignments.router, prefix="/api/v1/assignments", tags=["Assignments"]
 )
 app.include_router(
-    users.router,
-    prefix="/api/v1/users",
-    tags=["Users"]
+    responsables.router, prefix="/api/v1/responsables", tags=["Responsables"]
 )
+app.include_router(poste.router, prefix="/api/v1/poste", tags=["Postes (Dynamic)"])
+app.include_router(discipline.router, prefix="/api/v1/discipline", tags=["Discipline"])
 app.include_router(
-    activities.router,
-    prefix="/api/v1/events",
-    tags=["Events"]
+    cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"]
 )
-app.include_router(
-    communication.router,
-    prefix="/api/v1/communication",
-    tags=["Communication"]
-)
-app.include_router(
-    assignments.router,
-    prefix="/api/v1/assignments",
-    tags=["Assignments"]
-)
-app.include_router(
-    responsables.router,
-    prefix="/api/v1/responsables",
-    tags=["Responsables"]
-)
-app.include_router(
-    poste.router,
-    prefix="/api/v1/poste",
-    tags=["Postes (Dynamic)"]
-)
-app.include_router(
-    discipline.router,
-    prefix="/api/v1/discipline",
-    tags=["Discipline"]
-)
-app.include_router(
-    cotisations.router,
-    prefix="/api/v1/cotisations",
-    tags=["Cotisations"]
-)
-app.include_router(
-    attendance.router,
-    prefix="/api/v1/attendance",
-    tags=["Attendance"]
-)
-app.include_router(
-    subgroups.router,
-    prefix="/api/v1/subgroups",
-    tags=["Sub-Groups"]
-)
+app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
+app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
 app.include_router(
     attendance_sessions.router,
     prefix="/api/v1/attendance-sessions",
-    tags=["Attendance Sessions"]
+    tags=["Attendance Sessions"],
 )
 app.include_router(
-    contributions.router,
-    prefix="/api/v1/contributions",
-    tags=["Contributions"]
+    contributions.router, prefix="/api/v1/contributions", tags=["Contributions"]
 )
 app.include_router(
     financial_entries.router,
     prefix="/api/v1/financial-entries",
-    tags=["Financial Entries"]
+    tags=["Financial Entries"],
+)
+app.include_router(material.router, prefix="/api/v1/material", tags=["Material"])
+app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
+app.include_router(
+    sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"]
 )
 app.include_router(
-    material.router,
-    prefix="/api/v1/material",
-    tags=["Material"]
+    sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"]
 )
+app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])
 app.include_router(
-    reports.router,
-    prefix="/api/v1/reports",
-    tags=["Reports"]
-)
-app.include_router(
-    sport_culture.router,
-    prefix="/api/v1/sport-culture",
-    tags=["Sport & Culture"]
-)
-app.include_router(
-    sunday_schedule.router,
-    prefix="/api/v1/sunday-schedule",
-    tags=["Sunday Schedule"]
-)
-app.include_router(
-    training.router,
-    prefix="/api/v1/training",
-    tags=["Training"]
-)
-app.include_router(
-    weekly_schedule.router,
-    prefix="/api/v1/weekly-schedule",
-    tags=["Weekly Schedule"]
+    weekly_schedule.router, prefix="/api/v1/weekly-schedule", tags=["Weekly Schedule"]
 )
 
 
@@ -213,21 +169,19 @@ async def root():
         "message": "Welcome to ServantAssist API",
         "version": "1.0.0",
         "docs": "/api/docs",
-        "status": "operational"
+        "status": "operational",
     }
 
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "environment": settings.APP_ENV
-    }
+    return {"status": "healthy", "environment": settings.APP_ENV}
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",  # nosec B104 — bind all interfaces dans Docker

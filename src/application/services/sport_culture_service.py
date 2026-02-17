@@ -8,13 +8,22 @@ from uuid import UUID, uuid4
 from fastapi import HTTPException, status
 
 from src.core.entities.sport_culture import (
-    SportCultureEvent, EventParticipation, EventResult, EventTeam,
-    SportCultureReport, EventType, EventStatus, SportType,
-    ParticipationStatus, ResultType
+    EventParticipation,
+    EventResult,
+    EventStatus,
+    EventTeam,
+    EventType,
+    ParticipationStatus,
+    ResultType,
+    SportCultureEvent,
+    SportCultureReport,
+    SportType,
 )
 from src.infrastructure.repositories.sport_culture_repository import (
-    SportCultureEventRepository, EventParticipationRepository,
-    EventResultRepository, EventTeamRepository
+    EventParticipationRepository,
+    EventResultRepository,
+    EventTeamRepository,
+    SportCultureEventRepository,
 )
 
 
@@ -273,9 +282,7 @@ class SportCultureService:
 
         return enriched
 
-    async def get_event_participants(
-        self, event_id: UUID
-    ) -> List[EventParticipation]:
+    async def get_event_participants(self, event_id: UUID) -> List[EventParticipation]:
         """Récupère les participants d'un événement."""
         participations = await self.participation_repo.get_by_event(event_id)
 
@@ -473,7 +480,6 @@ class SportCultureService:
         """Supprime une équipe."""
         return await self.team_repo.delete(team_id)
 
-
     # ══════════════════════════════════════════════════════════════════
     #  RAPPORTS ET STATISTIQUES
     # ══════════════════════════════════════════════════════════════════
@@ -512,8 +518,10 @@ class SportCultureService:
             participations = await self.participation_repo.get_by_event(event.id)
             participants_count = len(participations)
             present_count = sum(
-                1 for p in participations
-                if p.status in [ParticipationStatus.PRESENT, ParticipationStatus.CONFIRME]
+                1
+                for p in participations
+                if p.status
+                in [ParticipationStatus.PRESENT, ParticipationStatus.CONFIRME]
             )
             paid_count = sum(1 for p in participations if p.payment_status)
 
@@ -524,15 +532,17 @@ class SportCultureService:
                 total_cost += event.cost * participants_count
                 total_revenue += event.cost * paid_count
 
-            events_summary.append({
-                "id": str(event.id),
-                "title": event.title,
-                "date": event.date.isoformat(),
-                "type": event.event_type.value,
-                "participants": participants_count,
-                "present": present_count,
-                "cost": event.cost or 0.0,
-            })
+            events_summary.append(
+                {
+                    "id": str(event.id),
+                    "title": event.title,
+                    "date": event.date.isoformat(),
+                    "type": event.event_type.value,
+                    "participants": participants_count,
+                    "present": present_count,
+                    "cost": event.cost or 0.0,
+                }
+            )
 
         # Taux de participation moyen
         average_participation_rate = (
@@ -558,9 +568,7 @@ class SportCultureService:
 
         # Trier par nombre de participations
         top_participants = sorted(
-            servant_participations.values(),
-            key=lambda x: x["count"],
-            reverse=True
+            servant_participations.values(), key=lambda x: x["count"], reverse=True
         )[:10]
 
         return SportCultureReport(
@@ -603,8 +611,10 @@ class SportCultureService:
             participations = await self.participation_repo.get_by_event(event.id)
             total_participants += len(participations)
             total_present += sum(
-                1 for p in participations
-                if p.status in [ParticipationStatus.PRESENT, ParticipationStatus.CONFIRME]
+                1
+                for p in participations
+                if p.status
+                in [ParticipationStatus.PRESENT, ParticipationStatus.CONFIRME]
             )
 
         average_participation_rate = (
@@ -616,9 +626,7 @@ class SportCultureService:
         # Événements à venir et terminés
         now = datetime.utcnow()
         upcoming_events = sum(1 for e in events if e.date >= now)
-        completed_events = sum(
-            1 for e in events if e.status == EventStatus.TERMINE
-        )
+        completed_events = sum(1 for e in events if e.status == EventStatus.TERMINE)
 
         return {
             "total_events": total_events,
@@ -643,7 +651,8 @@ class SportCultureService:
 
         total_participations = len(participations)
         events_attended = sum(
-            1 for p in participations
+            1
+            for p in participations
             if p.status in [ParticipationStatus.PRESENT, ParticipationStatus.CONFIRME]
         )
         events_missed = sum(
@@ -670,7 +679,9 @@ class SportCultureService:
             event = await self.event_repo.get_by_id(participation.event_id)
             if event:
                 event_type_str = event.event_type.value
-                events_by_type[event_type_str] = events_by_type.get(event_type_str, 0) + 1
+                events_by_type[event_type_str] = (
+                    events_by_type.get(event_type_str, 0) + 1
+                )
 
         return {
             "servant_id": str(servant_id),

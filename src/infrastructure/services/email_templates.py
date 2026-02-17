@@ -6,18 +6,17 @@ Toutes les couleurs et styles sont en inline CSS pour la compatibilite maximale.
 """
 from datetime import datetime
 
-
 # ── Palette de couleurs ──────────────────────────────────────────────────
-_PRIMARY = "#6C3FC5"       # Violet profond (marque ServantAssist)
-_PRIMARY_LIGHT = "#F3EDFF" # Fond violet tres clair
-_ACCENT = "#E8A838"        # Or chaud (liturgique)
-_TEXT = "#2D2D2D"          # Texte principal
-_TEXT_LIGHT = "#6B7280"    # Texte secondaire
-_BG = "#F9FAFB"           # Fond gris tres clair
+_PRIMARY = "#6C3FC5"  # Violet profond (marque ServantAssist)
+_PRIMARY_LIGHT = "#F3EDFF"  # Fond violet tres clair
+_ACCENT = "#E8A838"  # Or chaud (liturgique)
+_TEXT = "#2D2D2D"  # Texte principal
+_TEXT_LIGHT = "#6B7280"  # Texte secondaire
+_BG = "#F9FAFB"  # Fond gris tres clair
 _WHITE = "#FFFFFF"
 _BORDER = "#E5E7EB"
-_SUCCESS = "#059669"       # Vert confirmation
-_SUCCESS_LIGHT = "#ECFDF5" # Fond vert clair
+_SUCCESS = "#059669"  # Vert confirmation
+_SUCCESS_LIGHT = "#ECFDF5"  # Fond vert clair
 
 
 def _base_layout(content: str, preview_text: str = "") -> str:
@@ -100,6 +99,7 @@ def _base_layout(content: str, preview_text: str = "") -> str:
 #  1. Mot de passe oublie — demande de reinitialisation
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def render_forgot_password(
     user_first_name: str,
     reset_link: str,
@@ -109,7 +109,9 @@ def render_forgot_password(
     Retourne (subject, html_body) pour l'email de reinitialisation.
     """
     subject = "Reinitialisation de votre mot de passe — ServantAssist"
-    preview = f"{user_first_name}, voici votre lien de reinitialisation de mot de passe."
+    preview = (
+        f"{user_first_name}, voici votre lien de reinitialisation de mot de passe."
+    )
 
     content = f"""\
               <!-- Icone + titre -->
@@ -205,6 +207,7 @@ def render_forgot_password(
 #  2. Confirmation de reinitialisation reussie
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def render_password_changed(
     user_first_name: str,
     login_link: str,
@@ -297,6 +300,7 @@ def render_password_changed(
 #  3. Notification d'affectation a un evenement
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def render_assignment_notification(
     user_first_name: str,
     event_title: str,
@@ -369,6 +373,7 @@ def render_assignment_notification(
 #  4. Rappel d'evenement (24h avant)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def render_event_reminder(
     user_first_name: str,
     event_title: str,
@@ -420,6 +425,7 @@ def render_event_reminder(
 #  5. Notification d'absence au parent
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def render_absence_parent_notification(
     parent_first_name: str,
     child_first_name: str,
@@ -467,6 +473,7 @@ def render_absence_parent_notification(
 #  6. Notification generale (broadcast / message personnalise)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def render_general_notification(
     user_first_name: str,
     title: str,
@@ -501,4 +508,3 @@ def render_general_notification(
 
     card_content = f"<table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr>{content}</table>"
     return subject, _base_layout(card_content, preview)
-

@@ -16,12 +16,14 @@ from sqlmodel import Field, SQLModel
 
 class PaymentMode(str, Enum):
     """Mode de paiement des contributions."""
+
     WEEKLY = "HEBDOMADAIRE"  # 100 FCFA/samedi
     MONTHLY = "MENSUEL"  # 500 FCFA/mois
 
 
 class PaymentStatus(str, Enum):
     """Statut du paiement."""
+
     PAID = "PAYE"
     PENDING = "EN_ATTENTE"
     LATE = "EN_RETARD"
@@ -31,6 +33,7 @@ class Contribution(SQLModel, table=True):
     """
     Contribution financière d'un servant.
     """
+
     __tablename__ = "contributions"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -50,7 +53,7 @@ class Contribution(SQLModel, table=True):
 class MonthlyContributionSummary(BaseModel):
     """
     Résumé des contributions pour un servant sur un mois.
-    
+
     Attributes:
         servant_id: ID du servant
         servant_name: Nom complet du servant
@@ -62,6 +65,7 @@ class MonthlyContributionSummary(BaseModel):
         status: Statut du paiement
         payments: Liste des paiements effectués
     """
+
     servant_id: UUID
     servant_name: str
     month: int
@@ -79,7 +83,7 @@ class MonthlyContributionSummary(BaseModel):
 class FinancialReport(BaseModel):
     """
     Rapport financier pour une période donnée.
-    
+
     Attributes:
         start_date: Date de début
         end_date: Date de fin
@@ -93,6 +97,7 @@ class FinancialReport(BaseModel):
         generated_at: Date de génération
         watermark_logo: Logo en filigrane
     """
+
     start_date: datetime
     end_date: datetime
     total_expected: float

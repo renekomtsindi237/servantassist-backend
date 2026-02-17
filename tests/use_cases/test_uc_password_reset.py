@@ -14,9 +14,9 @@
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import VALID_PASSWORD
 from src.core.entities.user import User
 from src.infrastructure.security.utils import SecurityUtils
+from tests.conftest import VALID_PASSWORD
 
 
 @pytest.mark.asyncio
@@ -90,4 +90,3 @@ class TestPasswordResetFlow:
             json={"token": access_token, "new_password": "NewPass1"},
         )
         assert resp.status_code == 400
-

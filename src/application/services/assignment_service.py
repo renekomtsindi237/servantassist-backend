@@ -19,11 +19,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from src.core.entities.assignment import (
-    Assignment,
-    AssignmentStatus,
-    LiturgicalRole,
-)
+from src.core.entities.assignment import Assignment, AssignmentStatus, LiturgicalRole
 from src.core.entities.event import Event
 from src.core.entities.user import User, UserRole
 from src.infrastructure.repositories.assignment_repository import AssignmentRepository
@@ -179,9 +175,7 @@ class AssignmentService:
                 created_list.append(AssignmentResponse(**enriched))
 
             except Exception as exc:
-                errors.append(
-                    f"Erreur pour l'utilisateur {item.user_id}: {str(exc)}"
-                )
+                errors.append(f"Erreur pour l'utilisateur {item.user_id}: {str(exc)}")
 
         return AssignmentBatchResponse(
             created=created_list,
@@ -241,9 +235,7 @@ class AssignmentService:
             total_pages=total_pages,
         )
 
-    async def get_event_assignments(
-        self, event_id: UUID
-    ) -> List[AssignmentResponse]:
+    async def get_event_assignments(self, event_id: UUID) -> List[AssignmentResponse]:
         """Toutes les affectations actives d'un evenement."""
         event = await self.event_repo.get(event_id)
         if not event:
@@ -257,17 +249,13 @@ class AssignmentService:
         enriched = await self.assignment_repo.enrich_assignments(active)
         return [AssignmentResponse(**e) for e in enriched]
 
-    async def get_my_assignments(
-        self, user_id: UUID
-    ) -> List[AssignmentResponse]:
+    async def get_my_assignments(self, user_id: UUID) -> List[AssignmentResponse]:
         """Toutes les affectations du servant connecte."""
         assignments = await self.assignment_repo.list_by_user(user_id)
         enriched = await self.assignment_repo.enrich_assignments(assignments)
         return [AssignmentResponse(**e) for e in enriched]
 
-    async def get_my_upcoming(
-        self, user_id: UUID
-    ) -> List[AssignmentResponse]:
+    async def get_my_upcoming(self, user_id: UUID) -> List[AssignmentResponse]:
         """Affectations a venir du servant (evenements futurs, statut PENDING ou ACCEPTED)."""
         assignments = await self.assignment_repo.get_upcoming_for_user(user_id)
         enriched = await self.assignment_repo.enrich_assignments(assignments)

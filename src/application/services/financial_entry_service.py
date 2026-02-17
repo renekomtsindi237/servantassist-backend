@@ -2,16 +2,19 @@
 Service pour la gestion des entrées financières (COMMISSAIRE_AUX_COMPTES).
 """
 from datetime import datetime
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
 from src.core.entities.financial_entry import (
-    FinancialEntry, Discrepancy, AuditReport, FinancialSummary,
-    EntryCategory, EntrySource, VerificationStatus
+    AuditReport,
+    Discrepancy,
+    EntryCategory,
+    EntrySource,
+    FinancialEntry,
+    FinancialSummary,
+    VerificationStatus,
 )
-from src.infrastructure.repositories.financial_entry_repository import (
-    FinancialEntryRepository, DiscrepancyRepository
-)
+from src.infrastructure.repositories.financial_entry_repository import DiscrepancyRepository, FinancialEntryRepository
 
 
 class FinancialEntryService:
@@ -169,7 +172,7 @@ class FinancialEntryService:
     ) -> dict:
         """Calcule les statistiques pour une période."""
         stats = await self.entry_repo.get_statistics(start_date, end_date)
-        
+
         # Calculer le taux de vérification
         if stats["total_entries"] > 0:
             stats["verification_rate"] = (
@@ -210,12 +213,12 @@ class FinancialEntryService:
         unresolved_discrepancies = await self.discrepancy_repo.list_unresolved()
 
         # Construire la liste des écarts
-        discrepancies = [
-            f"{d.type}: {d.description}" for d in unresolved_discrepancies
-        ]
+        discrepancies = [f"{d.type}: {d.description}" for d in unresolved_discrepancies]
 
         # Générer des recommandations
-        recommendations = self._generate_recommendations(stats, unresolved_discrepancies)
+        recommendations = self._generate_recommendations(
+            stats, unresolved_discrepancies
+        )
 
         # Créer le rapport
         report = AuditReport(

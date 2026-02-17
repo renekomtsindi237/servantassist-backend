@@ -1,10 +1,10 @@
 """
 Tests end-to-end pour les endpoints d'appels (CENSEUR).
 """
-import pytest
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import pytest
 from fastapi import status
 from httpx import AsyncClient
 
@@ -47,9 +47,7 @@ class TestAttendanceSessionEndpoints:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    async def test_list_sessions(
-        self, client: AsyncClient, censeur_token: str
-    ):
+    async def test_list_sessions(self, client: AsyncClient, censeur_token: str):
         """Test : Lister les sessions."""
         response = await client.get(
             "/api/v1/attendance-sessions/",
@@ -73,7 +71,11 @@ class TestAttendanceSessionEndpoints:
         assert data["id"] == attendance_session_id
 
     async def test_mark_attendance_present(
-        self, client: AsyncClient, censeur_token: str, attendance_session_id: str, servant_user_id: str
+        self,
+        client: AsyncClient,
+        censeur_token: str,
+        attendance_session_id: str,
+        servant_user_id: str,
     ):
         """Test : Marquer un servant présent."""
         response = await client.post(
@@ -92,7 +94,11 @@ class TestAttendanceSessionEndpoints:
         assert data["arrival_time"] == "07h25"
 
     async def test_mark_attendance_absent(
-        self, client: AsyncClient, censeur_token: str, attendance_session_id: str, servant_user_id: str
+        self,
+        client: AsyncClient,
+        censeur_token: str,
+        attendance_session_id: str,
+        servant_user_id: str,
     ):
         """Test : Marquer un servant absent."""
         response = await client.post(
@@ -109,7 +115,11 @@ class TestAttendanceSessionEndpoints:
         assert data["status"] == "ABSENT"
 
     async def test_mark_attendance_late(
-        self, client: AsyncClient, censeur_token: str, attendance_session_id: str, servant_user_id: str
+        self,
+        client: AsyncClient,
+        censeur_token: str,
+        attendance_session_id: str,
+        servant_user_id: str,
     ):
         """Test : Marquer un servant en retard."""
         response = await client.post(
@@ -127,7 +137,11 @@ class TestAttendanceSessionEndpoints:
         assert data["status"] == "LATE"
 
     async def test_mark_attendance_excused(
-        self, client: AsyncClient, censeur_token: str, attendance_session_id: str, servant_user_id: str
+        self,
+        client: AsyncClient,
+        censeur_token: str,
+        attendance_session_id: str,
+        servant_user_id: str,
     ):
         """Test : Marquer un servant excusé."""
         response = await client.post(
@@ -174,9 +188,7 @@ class TestAttendanceSessionEndpoints:
         assert "attendance_rate" in data
         assert "consecutive_absences" in data
 
-    async def test_generate_report(
-        self, client: AsyncClient, censeur_token: str
-    ):
+    async def test_generate_report(self, client: AsyncClient, censeur_token: str):
         """Test : Générer un rapport de présence."""
         response = await client.post(
             "/api/v1/attendance-sessions/report",
@@ -193,9 +205,7 @@ class TestAttendanceSessionEndpoints:
         assert "watermark_logo" in data
         assert data["watermark_logo"] == "logo_servant.jpeg"
 
-    async def test_get_servants_list(
-        self, client: AsyncClient, censeur_token: str
-    ):
+    async def test_get_servants_list(self, client: AsyncClient, censeur_token: str):
         """Test : Récupérer la liste des servants."""
         response = await client.get(
             "/api/v1/attendance-sessions/servants/list",
@@ -248,9 +258,7 @@ class TestAttendanceSessionPermissions:
         )
         assert response.status_code == status.HTTP_200_OK
 
-    async def test_unauthenticated_cannot_access(
-        self, client: AsyncClient
-    ):
+    async def test_unauthenticated_cannot_access(self, client: AsyncClient):
         """Test : Accès non authentifié refusé."""
         response = await client.get("/api/v1/attendance-sessions/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -291,7 +299,11 @@ class TestAttendanceSessionBusinessRules:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     async def test_invalid_status_rejected(
-        self, client: AsyncClient, censeur_token: str, attendance_session_id: str, servant_user_id: str
+        self,
+        client: AsyncClient,
+        censeur_token: str,
+        attendance_session_id: str,
+        servant_user_id: str,
     ):
         """Test : Statut invalide rejeté."""
         response = await client.post(

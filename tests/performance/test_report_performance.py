@@ -1,17 +1,18 @@
 """
 Tests de performance pour le module SECRETAIRE - Rapports.
 """
-import pytest
+import time
 from datetime import datetime
 from uuid import uuid4
-import time
+
+import pytest
 
 
 @pytest.mark.asyncio
 async def test_create_report_performance(client, secretaire_token):
     """Test performance création de rapport."""
     start_time = time.time()
-    
+
     response = await client.post(
         "/api/v1/reports/",
         headers={"Authorization": f"Bearer {secretaire_token}"},
@@ -24,9 +25,9 @@ async def test_create_report_performance(client, secretaire_token):
             "participants": ["Jean Dupont", "Pierre Martin"],
         },
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 201
     assert elapsed < 1.0  # Moins d'1 seconde
 
@@ -42,22 +43,22 @@ async def test_list_reports_performance(client, secretaire_token):
             json={
                 "type": "REUNION",
                 "title": f"Rapport {i}",
-                "content":"Contenu test",
+                "content": "Contenu test",
                 "report_date": "2026-02-08T15:00:00",
                 "location": "Salle",
             },
         )
         assert response.status_code == 201
-    
+
     start_time = time.time()
-    
+
     response = await client.get(
         "/api/v1/reports/?limit=100",
         headers={"Authorization": f"Bearer {secretaire_token}"},
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 2.0  # Moins de 2 secondes
 
@@ -66,14 +67,14 @@ async def test_list_reports_performance(client, secretaire_token):
 async def test_get_report_detail_performance(client, secretaire_token, sample_report):
     """Test performance récupération détail."""
     start_time = time.time()
-    
+
     response = await client.get(
         f"/api/v1/reports/{sample_report.id}",
         headers={"Authorization": f"Bearer {secretaire_token}"},
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 0.5  # Moins de 500ms
 
@@ -82,7 +83,7 @@ async def test_get_report_detail_performance(client, secretaire_token, sample_re
 async def test_update_report_performance(client, secretaire_token, sample_report):
     """Test performance modification."""
     start_time = time.time()
-    
+
     response = await client.patch(
         f"/api/v1/reports/{sample_report.id}",
         headers={"Authorization": f"Bearer {secretaire_token}"},
@@ -91,9 +92,9 @@ async def test_update_report_performance(client, secretaire_token, sample_report
             "content": "Contenu modifié",
         },
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 0.5  # Moins de 500ms
 
@@ -102,14 +103,14 @@ async def test_update_report_performance(client, secretaire_token, sample_report
 async def test_publish_report_performance(client, secretaire_token, sample_report):
     """Test performance publication."""
     start_time = time.time()
-    
+
     response = await client.post(
         f"/api/v1/reports/{sample_report.id}/publish",
         headers={"Authorization": f"Bearer {secretaire_token}"},
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 0.5  # Moins de 500ms
 
@@ -118,7 +119,7 @@ async def test_publish_report_performance(client, secretaire_token, sample_repor
 async def test_add_attachment_performance(client, secretaire_token, sample_report):
     """Test performance ajout pièce jointe."""
     start_time = time.time()
-    
+
     response = await client.post(
         f"/api/v1/reports/{sample_report.id}/attachments",
         headers={"Authorization": f"Bearer {secretaire_token}"},
@@ -129,9 +130,9 @@ async def test_add_attachment_performance(client, secretaire_token, sample_repor
             "file_size": 1024000,
         },
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 201
     assert elapsed < 1.0  # Moins d'1 seconde
 
@@ -152,16 +153,16 @@ async def test_get_attachments_performance(client, secretaire_token, sample_repo
             },
         )
         assert response.status_code == 201
-    
+
     start_time = time.time()
-    
+
     response = await client.get(
         f"/api/v1/reports/{sample_report.id}/attachments",
         headers={"Authorization": f"Bearer {secretaire_token}"},
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 1.0  # Moins d'1 seconde
 
@@ -183,16 +184,16 @@ async def test_filter_reports_performance(client, secretaire_token):
             },
         )
         assert response.status_code == 201
-    
+
     start_time = time.time()
-    
+
     response = await client.get(
         "/api/v1/reports/?report_type=REUNION&start_date=2026-02-01T00:00:00&end_date=2026-02-28T23:59:59",
         headers={"Authorization": f"Bearer {secretaire_token}"},
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 1.5  # Moins de 1.5 secondes
 
@@ -214,19 +215,19 @@ async def test_pagination_performance(client, secretaire_token):
             },
         )
         assert response.status_code == 201
-    
+
     # Tester plusieurs pages
     start_time = time.time()
-    
+
     for page in range(2):  # 2 pages
         response = await client.get(
             f"/api/v1/reports/?skip={page * 50}&limit=50",
             headers={"Authorization": f"Bearer {secretaire_token}"},
         )
         assert response.status_code == 200
-    
+
     elapsed = time.time() - start_time
-    
+
     # 2 requêtes en moins de 2 secondes
     assert elapsed < 2.0
 
@@ -248,16 +249,16 @@ async def test_my_reports_performance(client, secretaire_token, secretaire_user)
             },
         )
         assert response.status_code == 201
-    
+
     start_time = time.time()
-    
+
     response = await client.get(
         "/api/v1/reports/me/list",
         headers={"Authorization": f"Bearer {secretaire_token}"},
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 200
     assert elapsed < 1.0  # Moins d'1 seconde
 
@@ -266,7 +267,7 @@ async def test_my_reports_performance(client, secretaire_token, secretaire_user)
 async def test_concurrent_report_creation(client, secretaire_token):
     """Test performance création concurrente."""
     import asyncio
-    
+
     async def create_one(index):
         return await client.post(
             "/api/v1/reports/",
@@ -279,15 +280,15 @@ async def test_concurrent_report_creation(client, secretaire_token):
                 "location": "Salle",
             },
         )
-    
+
     start_time = time.time()
-    
+
     # Créer 10 rapports en parallèle
     tasks = [create_one(i) for i in range(10)]
     responses = await asyncio.gather(*tasks)
-    
+
     elapsed = time.time() - start_time
-    
+
     # Tous devraient réussir
     assert all(r.status_code == 201 for r in responses)
     # Devrait être plus rapide que séquentiel
@@ -299,9 +300,9 @@ async def test_large_content_performance(client, secretaire_token):
     """Test performance avec contenu volumineux."""
     # Contenu de 10KB
     large_content = "Lorem ipsum dolor sit amet. " * 400
-    
+
     start_time = time.time()
-    
+
     response = await client.post(
         "/api/v1/reports/",
         headers={"Authorization": f"Bearer {secretaire_token}"},
@@ -313,9 +314,9 @@ async def test_large_content_performance(client, secretaire_token):
             "location": "Salle",
         },
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 201
     assert elapsed < 2.0  # Moins de 2 secondes
 
@@ -325,9 +326,9 @@ async def test_many_participants_performance(client, secretaire_token):
     """Test performance avec beaucoup de participants."""
     # 100 participants
     participants = [f"Participant {i}" for i in range(100)]
-    
+
     start_time = time.time()
-    
+
     response = await client.post(
         "/api/v1/reports/",
         headers={"Authorization": f"Bearer {secretaire_token}"},
@@ -340,8 +341,8 @@ async def test_many_participants_performance(client, secretaire_token):
             "participants": participants,
         },
     )
-    
+
     elapsed = time.time() - start_time
-    
+
     assert response.status_code == 201
     assert elapsed < 1.5  # Moins de 1.5 secondes

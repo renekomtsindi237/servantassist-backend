@@ -33,10 +33,7 @@ from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.attendance_repository import AttendanceRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import (
-    get_current_active_user,
-    get_current_admin_or_aumonier,
-)
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
 from src.presentation.schemas.attendance import (
     AttendanceBatchCreate,
     AttendanceBatchResponse,
@@ -60,6 +57,7 @@ def _get_service(session: AsyncSession) -> AttendanceService:
 # ═══════════════════════════════════════════════════════════════════════════
 #  ENREGISTREMENT
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.post(
     "/",
@@ -102,6 +100,7 @@ async def record_batch_attendance(
 # ═══════════════════════════════════════════════════════════════════════════
 #  SELF-SERVICE (AVANT les routes parametrees)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.get("/my", response_model=PaginatedResponse[AttendanceResponse])
 async def get_my_attendances(
@@ -146,6 +145,7 @@ async def get_my_stats(
 # ═══════════════════════════════════════════════════════════════════════════
 #  LECTURE
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.get("/", response_model=PaginatedResponse[AttendanceResponse])
 async def list_attendances(
@@ -232,4 +232,3 @@ async def update_attendance(
     """
     service = _get_service(session)
     return await service.update_attendance(attendance_id, data)
-

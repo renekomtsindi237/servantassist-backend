@@ -28,10 +28,7 @@ from src.application.services.cotisation_service import CotisationService
 from src.core.entities.cotisation import CotisationType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.cotisation_repository import (
-    CotisationPeriodRepository,
-    MemberCotisationRepository,
-)
+from src.infrastructure.repositories.cotisation_repository import CotisationPeriodRepository, MemberCotisationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
@@ -59,11 +56,10 @@ def _get_service(session: AsyncSession) -> CotisationService:
     )
 
 
-
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  PERIODES
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @router.post(
     "/periods",
@@ -193,6 +189,7 @@ async def get_period_bilan(
 #  PAIEMENTS
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @router.post(
     "/payments",
     response_model=MemberCotisationResponse,
@@ -219,8 +216,8 @@ async def record_payment(
     2. Enregistrer le paiement en base de données
     3. Retourner l'objet créé
 
-    **Réponse 201** : Paiement enregistré  
-    **Réponse 403** : Non autorisé (pas ECONOME)  
+    **Réponse 201** : Paiement enregistré
+    **Réponse 403** : Non autorisé (pas ECONOME)
     **Réponse 400** : Validation échouée
     """
     service = _get_service(session)
@@ -267,4 +264,3 @@ async def get_my_cotisations(
     """
     service = _get_service(session)
     return await service.get_user_payments(current_user.id)
-

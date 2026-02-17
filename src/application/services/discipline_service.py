@@ -15,19 +15,18 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
+from src.core.entities.attendance import AttendanceStatus, AttendanceType
 from src.core.entities.discipline import (
+    OFFENSE_DEFAULT_SEVERITY,
+    SEVERITY_RECOMMENDED_SANCTION,
     DisciplineCase,
     DisciplineCaseStatus,
     OffenseCategory,
     SanctionSeverity,
     SanctionType,
-    OFFENSE_DEFAULT_SEVERITY,
-    SEVERITY_RECOMMENDED_SANCTION,
 )
-from src.core.entities.attendance import AttendanceStatus, AttendanceType
-from src.infrastructure.repositories.attendance_repository import AttendanceRepository
-
 from src.core.entities.user import User, UserRole
+from src.infrastructure.repositories.attendance_repository import AttendanceRepository
 from src.infrastructure.repositories.discipline_repository import DisciplineCaseRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.schemas.discipline import (
@@ -298,16 +297,16 @@ class DisciplineService:
             total_pages=total_pages,
         )
 
-    async def get_user_discipline_stats(
-        self, user_id: UUID
-    ) -> DisciplineStatsResponse:
+    async def get_user_discipline_stats(self, user_id: UUID) -> DisciplineStatsResponse:
         counts = await self.case_repo.count_sanctions_by_user(user_id)
         active = await self.case_repo.count_active_cases(user_id)
 
         return DisciplineStatsResponse(
             user_id=user_id,
             total_cases=sum(counts.values()) + active,
-            avertissements_verbaux=counts.get(SanctionType.AVERTISSEMENT_VERBAL.value, 0),
+            avertissements_verbaux=counts.get(
+                SanctionType.AVERTISSEMENT_VERBAL.value, 0
+            ),
             avertissements_ecrits=counts.get(SanctionType.AVERTISSEMENT_ECRIT.value, 0),
             suspensions=counts.get(SanctionType.SUSPENSION_TEMPORAIRE.value, 0),
             cases_en_cours=active,
@@ -321,31 +320,34 @@ class DisciplineService:
         """
         # Récupérer les 2 dernières réunions hebdomadaires
         attendances, _ = await self.attendance_repo.list_paginated(
-            user_id=user_id,
-            attendance_type=AttendanceType.WEEKLY,
-            page_size=2
+            user_id=user_id, attendance_type=AttendanceType.WEEKLY, page_size=2
         )
-        
-        consecutive_absences = all(a.status == AttendanceStatus.ABSENT for a in attendances) if len(attendances) >= 2 else False
-        
+
+        consecutive_absences = (
+            all(a.status == AttendanceStatus.ABSENT for a in attendances)
+            if len(attendances) >= 2
+            else False
+        )
+
         # Vérifier l'absence continue sur 6 mois
         six_months_ago = datetime.now(timezone.utc) - timedelta(days=180)
         recent_activity, _ = await self.attendance_repo.list_paginated(
-            user_id=user_id,
-            start_date=six_months_ago,
-            page_size=1
+            user_id=user_id, start_date=six_months_ago, page_size=1
         )
-        
-        continuous_absence = len(recent_activity) == 0 # Aucune présence enregistrée en 6 mois
+
+        continuous_absence = (
+            len(recent_activity) == 0
+        )  # Aucune présence enregistrée en 6 mois
 
         return {
             "user_id": user_id,
             "two_consecutive_absences": consecutive_absences,
             "six_months_continuous_absence": continuous_absence,
             "suggested_sanction": (
-                SanctionType.EXCLUSION_DEFINITIVE if continuous_absence else
-                SanctionType.SUSPENSION_TEMPORAIRE if consecutive_absences else
-                SanctionType.AUCUNE
-            )
+                SanctionType.EXCLUSION_DEFINITIVE
+                if continuous_absence
+                else SanctionType.SUSPENSION_TEMPORAIRE
+                if consecutive_absences
+                else SanctionType.AUCUNE
+            ),
         }
-

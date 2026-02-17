@@ -9,17 +9,16 @@ Couvre :
 - Listing et statistiques admin
 - Controle d'acces (RBAC)
 """
-import pytest
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 
-from tests.conftest import make_auth_header
 from src.core.entities.attendance import Attendance
 from src.core.entities.event import Event
 from src.core.entities.user import User
-
+from tests.conftest import make_auth_header
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  ENREGISTREMENT INDIVIDUEL
@@ -93,9 +92,7 @@ class TestRecordAttendance:
         assert resp2.status_code == 409
 
     @pytest.mark.asyncio
-    async def test_record_unknown_user(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_record_unknown_user(self, client: AsyncClient, aumonier_user: User):
         resp = await client.post(
             "/api/v1/attendance/",
             json={
@@ -109,9 +106,7 @@ class TestRecordAttendance:
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_servant_cannot_record(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_servant_cannot_record(self, client: AsyncClient, servant_user: User):
         resp = await client.post(
             "/api/v1/attendance/",
             json={
@@ -293,4 +288,3 @@ class TestAttendanceAdminRead:
         body = resp.json()
         assert body["user_id"] == str(servant_user.id)
         assert "taux_presence" in body
-
