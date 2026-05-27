@@ -236,8 +236,8 @@ jobs:
         id: deploy
         uses: appleboy/ssh-action@v1.0.3
         env:
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA: ${{ needs.build-push.outputs.sha_short }}
         with:
           host: ${{ secrets.STAGING_HOST }}
