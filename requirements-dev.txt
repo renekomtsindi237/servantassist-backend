@@ -7,15 +7,15 @@ aiosqlite==0.19.0
 
 # Code Quality
 ruff==0.2.2
-black==23.12.1
-flake8==7.0.0
-isort==5.13.2
-mypy==1.8.0
+black==26.5.1
+flake8==7.3.0
+isort==8.0.1
+mypy==1.18.2
 pylint==3.0.3
 
 # Security Scanning
-bandit==1.7.7
-pip-audit==2.7.0
+bandit==1.9.4
+pip-audit==2.10.0
 
 # Development
 ipython==8.20.0
