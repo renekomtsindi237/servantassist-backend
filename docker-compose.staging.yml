@@ -47,10 +47,11 @@ services:
         --maxmemory-policy allkeys-lru
         --requirepass ${REDIS_PASSWORD:-}
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      test: ["CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a $REDIS_PASSWORD} ping | grep -q PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # ── Backend (2 réplicas par défaut) ──────────────────────────────────────
   # Pas de container_name — Docker Compose nomme automatiquement les réplicas

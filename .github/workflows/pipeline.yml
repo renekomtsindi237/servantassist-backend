@@ -224,7 +224,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           script: |
-            DC="docker compose -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
+            DC="docker compose --env-file /opt/servantassist/servantassist-backend/.env.staging -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
             CURRENT=$($DC ps -q backend 2>/dev/null | head -1)
             if [ -n "$CURRENT" ]; then
               IMAGE=$(docker inspect --format='{{.Config.Image}}' "$CURRENT" 2>/dev/null || echo "")
@@ -247,7 +247,7 @@ jobs:
           envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA
           script: |
             set -euo pipefail
-            DC="docker compose -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
+            DC="docker compose --env-file /opt/servantassist/servantassist-backend/.env.staging -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
 
             echo "==> Pull code"
             cd /opt/servantassist/servantassist-backend
@@ -296,7 +296,7 @@ jobs:
           port: ${{ secrets.STAGING_PORT }}
           script: |
             set -euo pipefail
-            DC="docker compose -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
+            DC="docker compose --env-file /opt/servantassist/servantassist-backend/.env.staging -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
             ROLLBACK=$(cat /opt/servantassist/.rollback_image_staging 2>/dev/null || echo "")
 
             if [ -z "$ROLLBACK" ]; then
