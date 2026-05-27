@@ -19,6 +19,7 @@ Postes definis :
     CEREMONIAIRE, CHARGE_CLASSEMENT_DIMANCHE, CHARGE_CLASSEMENT_SEMAINE,
     INTENDANT, CHARGE_SPORT_CULTURE
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional

@@ -1,6 +1,7 @@
 """
 Service pour la gestion des classements.
 """
+
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
 
@@ -62,9 +63,7 @@ class ClassementService:
         status: Optional[ClassementStatus] = None,
         created_by: Optional[UUID] = None,
     ) -> Tuple[List[Classement], int]:
-        return await self.repo.list(
-            skip=skip, limit=limit, type=type, status=status, created_by=created_by
-        )
+        return await self.repo.list(skip=skip, limit=limit, type=type, status=status, created_by=created_by)
 
     async def update(
         self,

@@ -2,6 +2,7 @@
 Invitation codes for controlled user creation
 Prevents unauthorized role assignment (especially for PARENT and AUMÔNIER)
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -53,9 +54,7 @@ class InvitationCode(SQLModel, table=True):
     # No automatic expiration - admin controls lifespan via revocation
 
     # Usage tracking
-    used_by: Optional[UUID] = Field(
-        default=None, foreign_key="users.id"
-    )  # Who accepted this invitation
+    used_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # Who accepted this invitation
     used_at: Optional[datetime] = Field(default=None)
 
     # Metadata

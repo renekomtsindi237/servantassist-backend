@@ -11,6 +11,7 @@ Workflow d'un dossier disciplinaire :
     SIGNALE → CONVOQUE → EN_AUDIENCE → VERDICT_RENDU → EXECUTE
                                        → CLASSE (sans suite)
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -111,9 +112,7 @@ class DisciplineCase(SQLModel, table=True):
     offense_date: datetime = Field(default_factory=utc_now)
     severity: SanctionSeverity = Field(default=SanctionSeverity.MINEUR)
     # Statut du dossier
-    status: DisciplineCaseStatus = Field(
-        default=DisciplineCaseStatus.SIGNALE, index=True
-    )
+    status: DisciplineCaseStatus = Field(default=DisciplineCaseStatus.SIGNALE, index=True)
     # Convocation
     convocation_date: Optional[datetime] = Field(default=None)
     convocation_notes: Optional[str] = Field(default=None, max_length=1000)

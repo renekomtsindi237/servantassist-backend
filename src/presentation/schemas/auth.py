@@ -27,9 +27,7 @@ class UserLogin(BaseModel):
 class UserPhoneLogin(BaseModel):
     """Login for PARENT and SERVANT using phone number"""
 
-    phone_number: str = Field(
-        ..., description="Phone number with country code (e.g., +237xxxxxxxxx)"
-    )
+    phone_number: str = Field(..., description="Phone number with country code (e.g., +237xxxxxxxxx)")
     password: str
 
 
@@ -86,9 +84,7 @@ class UserCreateWithInvite(BaseModel):
     last_name: str
     phone_number: Optional[str] = None
     role: UserRole = UserRole.SERVANT
-    invitation_code: Optional[str] = Field(
-        default=None, description="Required for PARENT role"
-    )
+    invitation_code: Optional[str] = Field(default=None, description="Required for PARENT role")
 
     @field_validator("password")
     @classmethod

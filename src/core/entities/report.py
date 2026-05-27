@@ -1,6 +1,7 @@
 """
 Entités pour le module de gestion des rapports (SECRETAIRE).
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -39,9 +40,7 @@ class Report(SQLModel, table=True):
     content: str
     report_date: datetime
     location: str
-    participants: list[str] = Field(
-        default_factory=list, sa_column=Column(JSON)
-    )  # Liste des noms
+    participants: list[str] = Field(default_factory=list, sa_column=Column(JSON))  # Liste des noms
     decisions: Optional[str] = None
     action_items: Optional[str] = None
     status: ReportStatus = Field(

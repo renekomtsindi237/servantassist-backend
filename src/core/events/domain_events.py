@@ -5,12 +5,12 @@ Chaque événement documente quelque chose qui s'est passé dans le système.
 Les handlers (notification, audit, etc.) réagissent à ces événements sans
 modifier les services émetteurs.
 """
+
 from dataclasses import dataclass, field
 from typing import Optional
 from uuid import UUID
 
 from .base import DomainEvent
-
 
 # ── Utilisateurs ──────────────────────────────────────────────────────────────
 

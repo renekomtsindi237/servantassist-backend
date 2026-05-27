@@ -4,6 +4,7 @@ Schémas Pydantic pour le module Classement Hebdomadaire.
 Gère la création, modification et consultation des modèles de classement
 des messes en semaine. Chaque créneau peut avoir 0 ou plusieurs servants.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

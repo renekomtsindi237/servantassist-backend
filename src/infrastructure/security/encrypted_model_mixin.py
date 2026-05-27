@@ -24,6 +24,7 @@ Architecture :
   - La clé est lue une seule fois depuis FIELD_ENCRYPTION_KEY (.env) et mise
     en cache dans get_encryptor().
 """
+
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 from sqlalchemy.orm.attributes import set_committed_value

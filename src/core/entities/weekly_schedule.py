@@ -8,6 +8,7 @@ Gère les modèles de planification des messes en semaine avec les horaires fixe
 
 Chaque créneau peut avoir 0 ou plusieurs servants assignés.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -155,25 +156,15 @@ class WeeklyScheduleModificationLog(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     template_id: UUID = Field(foreign_key="weekly_schedule_templates.id", index=True)
-    slot_id: Optional[UUID] = Field(
-        default=None, foreign_key="weekly_schedule_slots.id"
-    )
-    assignment_id: Optional[UUID] = Field(
-        default=None, foreign_key="slot_servant_assignments.id"
-    )
+    slot_id: Optional[UUID] = Field(default=None, foreign_key="weekly_schedule_slots.id")
+    assignment_id: Optional[UUID] = Field(default=None, foreign_key="slot_servant_assignments.id")
 
-    action: WeeklyModificationAction = Field(
-        sa_column=Column(String(30), nullable=False)
-    )
-    description: str = Field(
-        max_length=500, description="Description de la modification"
-    )
+    action: WeeklyModificationAction = Field(sa_column=Column(String(30), nullable=False))
+    description: str = Field(max_length=500, description="Description de la modification")
 
     # Qui a fait la modification
     modified_by: UUID = Field(foreign_key="users.id", index=True)
-    modified_by_name: str = Field(
-        max_length=200, description="Nom complet de la personne"
-    )
+    modified_by_name: str = Field(max_length=200, description="Nom complet de la personne")
 
     # Quand et où
     modified_at: datetime = Field(default_factory=datetime.utcnow, index=True)

@@ -1,6 +1,7 @@
 """
 Entités pour le module CHARGE_LITURGIE - Formations liturgiques.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional

@@ -15,6 +15,7 @@ Cas couverts :
   6. Aucune justification en clair dans attendances
   7. Les servant_name dans sunday_mass_assignments sont chiffrés
 """
+
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -64,9 +65,7 @@ def _now():
     return datetime.now(timezone.utc)
 
 
-async def _insert_user(
-    session, first_name="Jean", last_name="Ndaa", email=None, phone=None
-) -> User:
+async def _insert_user(session, first_name="Jean", last_name="Ndaa", email=None, phone=None) -> User:
     email = email or f"u{uuid4().hex[:6]}@pii.cm"
     phone = phone or f"+23760{uuid4().int % 9_000_000 + 1_000_000}"
     repo = UserRepository(session)
@@ -168,9 +167,7 @@ class TestUsersTableHasNoPII:
             )
         ).all()
 
-        assert (
-            len(rows) == 0
-        ), "L'email en clair a été trouvé en base — faille de sécurité !"
+        assert len(rows) == 0, "L'email en clair a été trouvé en base — faille de sécurité !"
 
     async def test_full_table_scan_reveals_no_names(self, db_session):
         """Scan complet de la table : aucun premier/dernier nom en clair."""
@@ -242,9 +239,7 @@ class TestDisciplineTableHasNoPII:
 
         row = (
             await db_session.execute(
-                text(
-                    "SELECT offense_description FROM discipline_cases WHERE id = :uid"
-                ),
+                text("SELECT offense_description FROM discipline_cases WHERE id = :uid"),
                 {"uid": case.id.hex},
             )
         ).one()
@@ -353,9 +348,7 @@ class TestSundayAssignmentTableHasNoPII:
 
         row = (
             await db_session.execute(
-                text(
-                    "SELECT servant_name FROM sunday_mass_assignments WHERE id = :uid"
-                ),
+                text("SELECT servant_name FROM sunday_mass_assignments WHERE id = :uid"),
                 {"uid": assignment.id.hex},
             )
         ).one()

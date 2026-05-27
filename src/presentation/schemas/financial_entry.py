@@ -1,6 +1,7 @@
 """
 Schémas Pydantic pour le module COMMISSAIRE_AUX_COMPTES - Audit financier.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

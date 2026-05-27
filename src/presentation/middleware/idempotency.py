@@ -14,6 +14,7 @@ Fonctionnement :
 
 Endpoints protégés : tous les POST sauf auth/login, auth/register, auth/logout.
 """
+
 import hashlib
 import json
 import logging
@@ -117,9 +118,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         if _memory_store.is_in_progress(composite):
             return JSONResponse(
                 status_code=409,
-                content={
-                    "detail": "Requête en cours de traitement. Réessayez dans un instant."
-                },
+                content={"detail": "Requête en cours de traitement. Réessayez dans un instant."},
             )
 
         _memory_store.mark_in_progress(composite)

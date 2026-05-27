@@ -5,6 +5,7 @@ Vérifie que le mixin chiffre, déchiffre et indexe correctement les champs
 déclarés dans ENCRYPTED_FIELDS et HMAC_INDEX_MAP, indépendamment de toute
 entité SQLModel réelle.
 """
+
 import pytest
 
 from src.infrastructure.security.encrypted_model_mixin import EncryptedModelMixin
@@ -96,9 +97,7 @@ class TestEncryptModel:
         from src.infrastructure.security.field_encryption import get_encryptor
 
         repo = SearchableRepo()
-        model = FakeModel(
-            email="x@x.cm", phone="+237699001122", email_hmac=None, phone_hmac=None
-        )
+        model = FakeModel(email="x@x.cm", phone="+237699001122", email_hmac=None, phone_hmac=None)
         repo._encrypt_model(model)
 
         enc = get_encryptor()
@@ -106,9 +105,7 @@ class TestEncryptModel:
 
     def test_hmac_none_when_field_is_none(self):
         repo = SearchableRepo()
-        model = FakeModel(
-            email=None, phone="+237699001122", email_hmac=None, phone_hmac=None
-        )
+        model = FakeModel(email=None, phone="+237699001122", email_hmac=None, phone_hmac=None)
         repo._encrypt_model(model)
 
         assert model.email_hmac is None

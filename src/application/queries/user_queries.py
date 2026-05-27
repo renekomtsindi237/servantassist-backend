@@ -6,6 +6,7 @@ Séparées de UserService (commandes) pour permettre :
 - Réutilisation dans le dashboard et les rapports
 - Testabilité isolée des lectures
 """
+
 from typing import List, Optional
 from uuid import UUID
 

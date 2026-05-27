@@ -12,6 +12,7 @@ Endpoints :
 - PUT    /me/preferences   : mettre a jour une preference
 - GET    /history          : historique admin de toutes les notifications
 """
+
 from typing import Annotated, Optional
 from uuid import UUID
 

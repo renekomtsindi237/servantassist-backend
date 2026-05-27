@@ -3,6 +3,7 @@ Entités pour le module de gestion des appels (CENSEUR).
 
 Gère les appels hebdomadaires des servants chaque samedi après la messe de 06h15.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -43,9 +44,7 @@ class AttendanceSession(SQLModel, table=True):
     location: str = "Sacristie"
     session_type: SessionType = Field(
         default=SessionType.REUNION_HEBDOMADAIRE,
-        sa_column=Column(
-            String(30), nullable=False, server_default="REUNION_HEBDOMADAIRE"
-        ),
+        sa_column=Column(String(30), nullable=False, server_default="REUNION_HEBDOMADAIRE"),
     )
     conducted_by: UUID = Field(foreign_key="users.id")
     notes: Optional[str] = None

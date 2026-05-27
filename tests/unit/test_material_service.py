@@ -1,6 +1,7 @@
 """
 Unit tests for MaterialService (INTENDANTS).
 """
+
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
@@ -123,17 +124,13 @@ async def test_create_cleaning_task(service, mock_cleaning_task_repo):
 
 
 @pytest.mark.asyncio
-async def test_assign_servant_to_task(
-    service, mock_cleaning_task_repo, mock_assignment_repo
-):
+async def test_assign_servant_to_task(service, mock_cleaning_task_repo, mock_assignment_repo):
     task_id = uuid4()
     servant_id = uuid4()
     assigned_by = uuid4()
 
     mock_cleaning_task_repo.get_by_id.return_value = MagicMock()
-    assignment = TaskAssignment(
-        id=uuid4(), task_id=task_id, servant_id=servant_id, assigned_by=assigned_by
-    )
+    assignment = TaskAssignment(id=uuid4(), task_id=task_id, servant_id=servant_id, assigned_by=assigned_by)
     mock_assignment_repo.create.return_value = assignment
     mock_assignment_repo.enrich_assignment.return_value = assignment
 

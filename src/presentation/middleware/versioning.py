@@ -15,6 +15,7 @@ Deprecation (futur) :
     Sunset:      <date-ISO>
     Link:        </api/v2/...>; rel="successor-version"
 """
+
 import uuid
 
 from starlette.middleware.base import BaseHTTPMiddleware

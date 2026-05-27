@@ -1,6 +1,7 @@
 """
 Endpoints API pour le module COMMISSAIRE_AUX_COMPTES - Audit financier.
 """
+
 from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
@@ -297,9 +298,7 @@ async def generate_audit_report(
 
     # Récupérer les résumés par catégorie via le service (utilise la session
     # existante)
-    summaries_data = await service.get_summary_by_category(
-        data.start_date, data.end_date
-    )
+    summaries_data = await service.get_summary_by_category(data.start_date, data.end_date)
     summaries = [FinancialSummaryResponse(**s) for s in summaries_data]
 
     return AuditReportResponse(
@@ -445,9 +444,7 @@ async def export_financial_pdf(
     )
     period_label = "Toute période"
     if start_date and end_date:
-        period_label = (
-            f"{start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}"
-        )
+        period_label = f"{start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}"
     elif start_date:
         period_label = f"Depuis le {start_date.strftime('%d/%m/%Y')}"
     elif end_date:
@@ -460,9 +457,7 @@ async def export_financial_pdf(
         {
             "date": e.date,
             "description": e.description,
-            "category": e.category.value
-            if hasattr(e.category, "value")
-            else str(e.category),
+            "category": e.category.value if hasattr(e.category, "value") else str(e.category),
             "type": e.source.value if hasattr(e.source, "value") else str(e.source),
             "amount": float(e.amount),
         }

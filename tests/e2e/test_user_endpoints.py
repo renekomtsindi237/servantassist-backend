@@ -1,6 +1,7 @@
 """
 Tests e2e — Endpoints Users (profil self-service + administration).
 """
+
 import pytest
 from httpx import AsyncClient
 
@@ -14,18 +15,14 @@ from tests.conftest import VALID_PASSWORD, make_auth_header
 @pytest.mark.e2e
 class TestGetMyProfile:
     async def test_get_profile_servant(self, client: AsyncClient, servant_user: User):
-        resp = await client.get(
-            "/api/v1/users/me", headers=make_auth_header(servant_user)
-        )
+        resp = await client.get("/api/v1/users/me", headers=make_auth_header(servant_user))
         assert resp.status_code == 200
         body = resp.json()
         assert body["email"] == servant_user.email
         assert body["role"] == "SERVANT"
 
     async def test_get_profile_admin(self, client: AsyncClient, admin_user: User):
-        resp = await client.get(
-            "/api/v1/users/me", headers=make_auth_header(admin_user)
-        )
+        resp = await client.get("/api/v1/users/me", headers=make_auth_header(admin_user))
         assert resp.status_code == 200
         assert resp.json()["role"] == "ADMIN"
 
@@ -57,9 +54,7 @@ class TestUpdateMyProfile:
         assert resp.status_code == 200
         assert resp.json()["phone_number"] == "+237699887766"
 
-    async def test_update_phone_conflict(
-        self, client: AsyncClient, servant_user, parent_user
-    ):
+    async def test_update_phone_conflict(self, client: AsyncClient, servant_user, parent_user):
         """Numero deja utilise par un autre utilisateur."""
         resp = await client.patch(
             "/api/v1/users/me",
@@ -131,28 +126,18 @@ class TestListDirectory:
         admin_user: User,
         parent_user: User,
     ):
-        resp = await client.get(
-            "/api/v1/users/directory", headers=make_auth_header(servant_user)
-        )
+        resp = await client.get("/api/v1/users/directory", headers=make_auth_header(servant_user))
         assert resp.status_code == 200
         body = resp.json()
         assert "items" in body
         assert "total" in body
 
-    async def test_parent_can_access_directory(
-        self, client: AsyncClient, parent_user: User, servant_user: User
-    ):
-        resp = await client.get(
-            "/api/v1/users/directory", headers=make_auth_header(parent_user)
-        )
+    async def test_parent_can_access_directory(self, client: AsyncClient, parent_user: User, servant_user: User):
+        resp = await client.get("/api/v1/users/directory", headers=make_auth_header(parent_user))
         assert resp.status_code == 200
 
-    async def test_admin_can_access_directory(
-        self, client: AsyncClient, admin_user: User, servant_user: User
-    ):
-        resp = await client.get(
-            "/api/v1/users/directory", headers=make_auth_header(admin_user)
-        )
+    async def test_admin_can_access_directory(self, client: AsyncClient, admin_user: User, servant_user: User):
+        resp = await client.get("/api/v1/users/directory", headers=make_auth_header(admin_user))
         assert resp.status_code == 200
 
     async def test_unauthenticated_401(self, client: AsyncClient):
@@ -190,12 +175,8 @@ class TestListDirectory:
         assert len(body["items"]) == 1
         assert body["total"] >= 1
 
-    async def test_returns_only_active_by_default(
-        self, client: AsyncClient, servant_user: User, inactive_user: User
-    ):
-        resp = await client.get(
-            "/api/v1/users/directory", headers=make_auth_header(servant_user)
-        )
+    async def test_returns_only_active_by_default(self, client: AsyncClient, servant_user: User, inactive_user: User):
+        resp = await client.get("/api/v1/users/directory", headers=make_auth_header(servant_user))
         assert resp.status_code == 200
         ids = [item["id"] for item in resp.json()["items"]]
         assert str(inactive_user.id) not in ids
@@ -206,9 +187,7 @@ class TestListDirectory:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.e2e
 class TestListUsers:
-    async def test_admin_can_list(
-        self, client: AsyncClient, admin_user, servant_user, parent_user
-    ):
+    async def test_admin_can_list(self, client: AsyncClient, admin_user, servant_user, parent_user):
         resp = await client.get("/api/v1/users/", headers=make_auth_header(admin_user))
         assert resp.status_code == 200
         body = resp.json()
@@ -217,35 +196,25 @@ class TestListUsers:
         assert body["total"] >= 3
 
     async def test_filter_by_role(self, client: AsyncClient, admin_user, servant_user):
-        resp = await client.get(
-            "/api/v1/users/?role=SERVANT", headers=make_auth_header(admin_user)
-        )
+        resp = await client.get("/api/v1/users/?role=SERVANT", headers=make_auth_header(admin_user))
         assert resp.status_code == 200
         for item in resp.json()["items"]:
             assert item["role"] == "SERVANT"
 
     async def test_search(self, client: AsyncClient, admin_user, servant_user):
-        resp = await client.get(
-            "/api/v1/users/?search=Servant", headers=make_auth_header(admin_user)
-        )
+        resp = await client.get("/api/v1/users/?search=Servant", headers=make_auth_header(admin_user))
         assert resp.status_code == 200
         assert resp.json()["total"] >= 1
 
-    async def test_pagination(
-        self, client: AsyncClient, admin_user, servant_user, parent_user
-    ):
-        resp = await client.get(
-            "/api/v1/users/?page=1&page_size=1", headers=make_auth_header(admin_user)
-        )
+    async def test_pagination(self, client: AsyncClient, admin_user, servant_user, parent_user):
+        resp = await client.get("/api/v1/users/?page=1&page_size=1", headers=make_auth_header(admin_user))
         assert resp.status_code == 200
         body = resp.json()
         assert len(body["items"]) == 1
         assert body["total_pages"] >= 3
 
     async def test_servant_cannot_list(self, client: AsyncClient, servant_user):
-        resp = await client.get(
-            "/api/v1/users/", headers=make_auth_header(servant_user)
-        )
+        resp = await client.get("/api/v1/users/", headers=make_auth_header(servant_user))
         assert resp.status_code == 403
 
 
@@ -254,9 +223,7 @@ class TestListUsers:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.e2e
 class TestGetUser:
-    async def test_admin_can_view_user(
-        self, client: AsyncClient, admin_user, servant_user
-    ):
+    async def test_admin_can_view_user(self, client: AsyncClient, admin_user, servant_user):
         resp = await client.get(
             f"/api/v1/users/{servant_user.id}",
             headers=make_auth_header(admin_user),
@@ -279,9 +246,7 @@ class TestGetUser:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.e2e
 class TestAdminUpdateUser:
-    async def test_admin_updates_name(
-        self, client: AsyncClient, admin_user, servant_user
-    ):
+    async def test_admin_updates_name(self, client: AsyncClient, admin_user, servant_user):
         resp = await client.patch(
             f"/api/v1/users/{servant_user.id}",
             json={"first_name": "AdminModified"},
@@ -290,9 +255,7 @@ class TestAdminUpdateUser:
         assert resp.status_code == 200
         assert resp.json()["first_name"] == "AdminModified"
 
-    async def test_admin_updates_email(
-        self, client: AsyncClient, admin_user, servant_user
-    ):
+    async def test_admin_updates_email(self, client: AsyncClient, admin_user, servant_user):
         resp = await client.patch(
             f"/api/v1/users/{servant_user.id}",
             json={"email": "newemail@test.com"},
@@ -370,9 +333,7 @@ class TestDeleteUser:
         )
         assert resp.status_code == 400
 
-    async def test_servant_cannot_delete(
-        self, client: AsyncClient, servant_user, parent_user
-    ):
+    async def test_servant_cannot_delete(self, client: AsyncClient, servant_user, parent_user):
         resp = await client.delete(
             f"/api/v1/users/{parent_user.id}",
             headers=make_auth_header(servant_user),

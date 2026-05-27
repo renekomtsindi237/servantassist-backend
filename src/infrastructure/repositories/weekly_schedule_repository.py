@@ -6,6 +6,7 @@ Chiffrement PII (Loi 2024/017 Cameroun) :
   - WeeklyScheduleModificationLog : modified_by_name, ip_address, user_agent
   Les User chargés directement sont déchiffrés via decrypt_str_fields().
 """
+
 from datetime import datetime
 from typing import List, Optional, Tuple
 from uuid import UUID
@@ -59,9 +60,7 @@ class WeeklyScheduleRepository:
     #  TEMPLATES
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_template(
-        self, template: WeeklyScheduleTemplate
-    ) -> WeeklyScheduleTemplate:
+    async def create_template(self, template: WeeklyScheduleTemplate) -> WeeklyScheduleTemplate:
         """Crée un nouveau modèle de classement."""
         self.session.add(template)
         await self.session.commit()
@@ -71,15 +70,11 @@ class WeeklyScheduleRepository:
     async def get_template(self, template_id: UUID) -> Optional[WeeklyScheduleTemplate]:
         """Récupère un modèle par son ID."""
         result = await self.session.execute(
-            select(WeeklyScheduleTemplate).where(
-                WeeklyScheduleTemplate.id == template_id
-            )
+            select(WeeklyScheduleTemplate).where(WeeklyScheduleTemplate.id == template_id)
         )
         return result.scalar_one_or_none()
 
-    async def update_template(
-        self, template_id: UUID, template: WeeklyScheduleTemplate
-    ) -> WeeklyScheduleTemplate:
+    async def update_template(self, template_id: UUID, template: WeeklyScheduleTemplate) -> WeeklyScheduleTemplate:
         """Met à jour un modèle."""
         await self.session.commit()
         await self.session.refresh(template)
@@ -93,18 +88,14 @@ class WeeklyScheduleRepository:
 
         # Supprimer d'abord toutes les assignations
         slots_result = await self.session.execute(
-            select(WeeklyScheduleSlot).where(
-                WeeklyScheduleSlot.template_id == template_id
-            )
+            select(WeeklyScheduleSlot).where(WeeklyScheduleSlot.template_id == template_id)
         )
         slots = slots_result.scalars().all()
 
         for slot in slots:
             # Supprimer les assignations du créneau
             assignments_result = await self.session.execute(
-                select(SlotServantAssignment).where(
-                    SlotServantAssignment.slot_id == slot.id
-                )
+                select(SlotServantAssignment).where(SlotServantAssignment.slot_id == slot.id)
             )
             assignments = assignments_result.scalars().all()
             for assignment in assignments:
@@ -168,9 +159,7 @@ class WeeklyScheduleRepository:
         await self.session.refresh(slot)
         return slot
 
-    async def create_slots_batch(
-        self, slots: List[WeeklyScheduleSlot]
-    ) -> List[WeeklyScheduleSlot]:
+    async def create_slots_batch(self, slots: List[WeeklyScheduleSlot]) -> List[WeeklyScheduleSlot]:
         """Crée plusieurs créneaux en une seule transaction."""
         self.session.add_all(slots)
         await self.session.commit()
@@ -180,14 +169,10 @@ class WeeklyScheduleRepository:
 
     async def get_slot(self, slot_id: UUID) -> Optional[WeeklyScheduleSlot]:
         """Récupère un créneau par son ID."""
-        result = await self.session.execute(
-            select(WeeklyScheduleSlot).where(WeeklyScheduleSlot.id == slot_id)
-        )
+        result = await self.session.execute(select(WeeklyScheduleSlot).where(WeeklyScheduleSlot.id == slot_id))
         return result.scalar_one_or_none()
 
-    async def update_slot(
-        self, slot_id: UUID, slot: WeeklyScheduleSlot
-    ) -> WeeklyScheduleSlot:
+    async def update_slot(self, slot_id: UUID, slot: WeeklyScheduleSlot) -> WeeklyScheduleSlot:
         """Met à jour un créneau."""
         await self.session.commit()
         await self.session.refresh(slot)
@@ -201,9 +186,7 @@ class WeeklyScheduleRepository:
 
         # Supprimer d'abord les assignations
         assignments_result = await self.session.execute(
-            select(SlotServantAssignment).where(
-                SlotServantAssignment.slot_id == slot_id
-            )
+            select(SlotServantAssignment).where(SlotServantAssignment.slot_id == slot_id)
         )
         assignments = assignments_result.scalars().all()
         for assignment in assignments:
@@ -226,9 +209,7 @@ class WeeklyScheduleRepository:
     #  SERVANT ASSIGNMENTS
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_assignment(
-        self, assignment: SlotServantAssignment
-    ) -> SlotServantAssignment:
+    async def create_assignment(self, assignment: SlotServantAssignment) -> SlotServantAssignment:
         """Crée une nouvelle assignation de servant à un créneau."""
         _enc_fields(assignment, _ASSIGN_PII)
         self.session.add(assignment)
@@ -237,9 +218,7 @@ class WeeklyScheduleRepository:
         _dec_fields(assignment, _ASSIGN_PII)
         return assignment
 
-    async def create_assignments_batch(
-        self, assignments: List[SlotServantAssignment]
-    ) -> List[SlotServantAssignment]:
+    async def create_assignments_batch(self, assignments: List[SlotServantAssignment]) -> List[SlotServantAssignment]:
         """Crée plusieurs assignations en une seule transaction."""
         for a in assignments:
             _enc_fields(a, _ASSIGN_PII)
@@ -250,14 +229,10 @@ class WeeklyScheduleRepository:
             _dec_fields(assignment, _ASSIGN_PII)
         return assignments
 
-    async def get_assignment(
-        self, assignment_id: UUID
-    ) -> Optional[SlotServantAssignment]:
+    async def get_assignment(self, assignment_id: UUID) -> Optional[SlotServantAssignment]:
         """Récupère une assignation par son ID."""
         result = await self.session.execute(
-            select(SlotServantAssignment).where(
-                SlotServantAssignment.id == assignment_id
-            )
+            select(SlotServantAssignment).where(SlotServantAssignment.id == assignment_id)
         )
         a = result.scalar_one_or_none()
         if a:
@@ -292,9 +267,7 @@ class WeeklyScheduleRepository:
     async def enrich_template(self, template: WeeklyScheduleTemplate) -> dict:
         """Enrichit un modèle avec les infos du créateur et les créneaux."""
         # Récupérer le créateur
-        creator_result = await self.session.execute(
-            select(User).where(User.id == template.created_by)
-        )
+        creator_result = await self.session.execute(select(User).where(User.id == template.created_by))
         creator = creator_result.scalar_one_or_none()
         if creator:
             decrypt_str_fields(creator, _USER_PII)
@@ -330,9 +303,7 @@ class WeeklyScheduleRepository:
         enriched = assignment.model_dump()
 
         if assignment.servant_id:
-            servant_result = await self.session.execute(
-                select(User).where(User.id == assignment.servant_id)
-            )
+            servant_result = await self.session.execute(select(User).where(User.id == assignment.servant_id))
             servant = servant_result.scalar_one_or_none()
             if servant:
                 decrypt_str_fields(servant, _USER_PII)
@@ -341,18 +312,14 @@ class WeeklyScheduleRepository:
 
         return enriched
 
-    async def enrich_assignments(
-        self, assignments: List[SlotServantAssignment]
-    ) -> List[dict]:
+    async def enrich_assignments(self, assignments: List[SlotServantAssignment]) -> List[dict]:
         """Enrichit plusieurs assignations."""
         return [await self.enrich_assignment(a) for a in assignments]
 
     async def get_template_summary(self, template: WeeklyScheduleTemplate) -> dict:
         """Crée un résumé d'un modèle avec statistiques."""
         # Récupérer le créateur
-        creator_result = await self.session.execute(
-            select(User).where(User.id == template.created_by)
-        )
+        creator_result = await self.session.execute(select(User).where(User.id == template.created_by))
         creator = creator_result.scalar_one_or_none()
         if creator:
             decrypt_str_fields(creator, _USER_PII)

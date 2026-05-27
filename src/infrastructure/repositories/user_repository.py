@@ -7,6 +7,7 @@ Chiffrement PII (Loi 2024/017 Cameroun) :
   déchiffrés après lecture via EncryptedModelMixin. Les lookups email/téléphone
   utilisent les colonnes HMAC (opaque pour l'hébergeur étranger).
 """
+
 import math
 from typing import List, Optional, Tuple
 from uuid import UUID
@@ -73,9 +74,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
             val = getattr(model, field, None)
             if val and isinstance(val, str):
                 try:
-                    set_committed_value(
-                        model, field, dt.fromisoformat(enc.decrypt(val))
-                    )
+                    set_committed_value(model, field, dt.fromisoformat(enc.decrypt(val)))
                 except (ValueError, Exception):
                     pass
 
@@ -90,9 +89,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
 
     async def get_by_email(self, email: str) -> Optional[User]:
         email_hmac = get_encryptor().hmac_index(email)
-        result = await self.session.exec(
-            select(User).where(User.email_hmac == email_hmac)
-        )
+        result = await self.session.exec(select(User).where(User.email_hmac == email_hmac))
         user = result.first()
         if user:
             self._decrypt_model(user)
@@ -100,9 +97,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
 
     async def get_by_phone(self, phone_number: str) -> Optional[User]:
         phone_hmac = get_encryptor().hmac_index(phone_number)
-        result = await self.session.exec(
-            select(User).where(User.phone_hmac == phone_hmac)
-        )
+        result = await self.session.exec(select(User).where(User.phone_hmac == phone_hmac))
         user = result.first()
         if user:
             self._decrypt_model(user)
@@ -193,9 +188,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         result = await self.session.exec(stmt)
         return result.first() is not None
 
-    async def phone_exists(
-        self, phone_number: str, exclude_id: Optional[UUID] = None
-    ) -> bool:
+    async def phone_exists(self, phone_number: str, exclude_id: Optional[UUID] = None) -> bool:
         phone_hmac = get_encryptor().hmac_index(phone_number)
         stmt = select(User).where(User.phone_hmac == phone_hmac)
         if exclude_id:

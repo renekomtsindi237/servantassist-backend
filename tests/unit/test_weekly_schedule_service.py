@@ -1,6 +1,7 @@
 """
 Unit tests for WeeklyScheduleService (CHARGE_CLASSEMENT_SEMAINE).
 """
+
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
@@ -98,9 +99,7 @@ async def test_create_template_success(service, mock_schedule_repo, sample_templ
 
 
 @pytest.mark.asyncio
-async def test_add_servant_to_slot_outside_window(
-    service, mock_schedule_repo, sample_template
-):
+async def test_add_servant_to_slot_outside_window(service, mock_schedule_repo, sample_template):
     slot_id = uuid4()
     slot = WeeklyScheduleSlot(
         id=slot_id,

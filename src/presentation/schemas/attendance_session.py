@@ -1,6 +1,7 @@
 """
 Schémas Pydantic pour le module de gestion des appels (CENSEUR).
 """
+
 import html
 from datetime import datetime
 from typing import List, Optional

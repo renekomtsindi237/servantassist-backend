@@ -1,6 +1,7 @@
 """
 Entités pour le module INTENDANTS - Gestion du matériel.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional
@@ -97,9 +98,7 @@ class CleaningTask(SQLModel, table=True):
     scheduled_date: datetime
     scheduled_time: str  # Format HH:MM
     location: str = Field(min_length=1, max_length=200)
-    items: List[str] = Field(
-        default_factory=list, sa_column=Column(JSON)
-    )  # Liste des noms d'articles
+    items: List[str] = Field(default_factory=list, sa_column=Column(JSON))  # Liste des noms d'articles
     status: TaskStatus = Field(
         default=TaskStatus.PLANIFIEE,
         sa_column=Column(String(50), nullable=False, server_default="PLANIFIEE"),
@@ -141,9 +140,7 @@ class AubeTask(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str = Field(min_length=1, max_length=200)
-    task_type: TaskType = Field(
-        sa_column=Column(String(50), nullable=False)
-    )  # LAVAGE ou REPASSAGE
+    task_type: TaskType = Field(sa_column=Column(String(50), nullable=False))  # LAVAGE ou REPASSAGE
     scheduled_date: datetime
     scheduled_time: str  # Format HH:MM
     location: str = Field(min_length=1, max_length=200)

@@ -12,6 +12,7 @@ Le script :
   4. Vérifie les cas d'erreur (401, 404, 422, 409)
   5. Affiche un rapport coloré avec taux de réussite par section
 """
+
 from __future__ import annotations
 
 import json
@@ -140,10 +141,7 @@ def check(name: str, passed: bool, status: int, detail: str = ""):
     _results.append(TR(_section, name, passed, status, detail))
     icon = f"{GREEN}✅{RESET}" if passed else f"{RED}❌{RESET}"
     color = GREEN if passed else RED
-    print(
-        f"  {icon} {color}[{status}]{RESET} {name}"
-        + (f"  {YELLOW}→ {detail}{RESET}" if detail else "")
-    )
+    print(f"  {icon} {color}[{status}]{RESET} {name}" + (f"  {YELLOW}→ {detail}{RESET}" if detail else ""))
 
 
 def skip(name: str, reason: str = ""):
@@ -300,9 +298,7 @@ check(f"Création 15 servants", len(SERVANTS) >= 10, 201, f"{len(SERVANTS)}/15 c
 # Login de quelques servants (via phone)
 for srv in SERVANTS[:5]:
     time.sleep(0.2)
-    st, tok_body = POST(
-        "/auth/login/phone", {"phone_number": srv["phone"], "password": NEW_PASS}
-    )
+    st, tok_body = POST("/auth/login/phone", {"phone_number": srv["phone"], "password": NEW_PASS})
     if st == 200 and tok_body.get("access_token"):
         SERVANT_TOKENS.append(tok_body["access_token"])
 check(
@@ -406,9 +402,7 @@ if SERVANT_ID_1:
     check("PATCH /users/{id} (modifier profil)", st == 200, st)
 
     # Reset password par admin
-    st, _ = POST(
-        f"/users/{SERVANT_ID_1}/reset-password", {"new_password": NEW_PASS}, ADMIN_TOKEN
-    )
+    st, _ = POST(f"/users/{SERVANT_ID_1}/reset-password", {"new_password": NEW_PASS}, ADMIN_TOKEN)
     check("POST /users/{id}/reset-password (admin)", st in (200, 204), st)
 
 # Servant ne peut pas voir la liste des membres
@@ -477,9 +471,7 @@ for poste, srv in poste_assignments:
         # Poste déjà occupé : récupérer le servant qui détient actuellement ce poste
         st2, all_noms = GET("/responsables/nominations", ADMIN_TOKEN)
         if st2 == 200:
-            nom_list = (
-                all_noms if isinstance(all_noms, list) else all_noms.get("items", [])
-            )
+            nom_list = all_noms if isinstance(all_noms, list) else all_noms.get("items", [])
             for n in nom_list:
                 if str(n.get("poste", "")) == poste and n.get("user_id"):
                     st3, u = GET(f"/users/{n['user_id']}", ADMIN_TOKEN)
@@ -511,9 +503,7 @@ for poste, srv in POSTE_MAP.items():
     time.sleep(0.2)
     phone_val = srv.get("phone") or srv.get("phone_number") or ""
     st, tok_body = (
-        POST("/auth/login/phone", {"phone_number": phone_val, "password": NEW_PASS})
-        if phone_val
-        else (0, {})
+        POST("/auth/login/phone", {"phone_number": phone_val, "password": NEW_PASS}) if phone_val else (0, {})
     )
     # Fallback : login par email si le login par téléphone échoue
     if st != 200 or not tok_body.get("access_token"):
@@ -780,9 +770,7 @@ if EVENT_IDS and SERVANTS:
         "POST /assignments/batch (lot)",
         st in (200, 201, 422),
         st,
-        f"créés={len(batch.get('created', []))}"
-        if isinstance(batch, dict)
-        else str(st),
+        f"créés={len(batch.get('created', []))}" if isinstance(batch, dict) else str(st),
     )
     if isinstance(batch, dict) and batch.get("created"):
         ASSIGNMENT_IDS.extend([a["id"] for a in batch["created"]])
@@ -801,9 +789,7 @@ if SERVANT_TOKEN_1:
 # Accepter / Décliner (servant sur sa propre affectation)
 if ASSIGNMENT_IDS and SERVANT_TOKEN_1:
     asgn_id = ASSIGNMENT_IDS[0]
-    st, _ = PATCH(
-        f"/assignments/{asgn_id}/my-status", {"status": "ACCEPTED"}, SERVANT_TOKEN_1
-    )
+    st, _ = PATCH(f"/assignments/{asgn_id}/my-status", {"status": "ACCEPTED"}, SERVANT_TOKEN_1)
     check("PATCH /assignments/{id}/my-status (accepter)", st in (200, 403, 404), st)
 
 # Marquer présence (query param, pas JSON body)
@@ -938,9 +924,7 @@ if ATTENDANCE_IDS:
     st, _ = GET(f"/attendance/{ATTENDANCE_IDS[0]}", ADMIN_TOKEN)
     check("GET /attendance/{id} → 200", st == 200, st)
 
-    st, _ = PATCH(
-        f"/attendance/{ATTENDANCE_IDS[0]}", {"status": "EN_RETARD"}, ADMIN_TOKEN
-    )
+    st, _ = PATCH(f"/attendance/{ATTENDANCE_IDS[0]}", {"status": "EN_RETARD"}, ADMIN_TOKEN)
     check("PATCH /attendance/{id} (modifier statut)", st in (200, 404), st)
 
 if EVENT_IDS:
@@ -993,9 +977,7 @@ if SUBGROUP_IDS and SERVANTS:
     members_added = 0
     for srv in SERVANTS[:6]:
         time.sleep(0.1)
-        st, _ = POST(
-            f"/subgroups/{grp_id}/members", {"user_id": srv["id"]}, ADMIN_TOKEN
-        )
+        st, _ = POST(f"/subgroups/{grp_id}/members", {"user_id": srv["id"]}, ADMIN_TOKEN)
         if st in (200, 201):
             members_added += 1
 
@@ -1117,13 +1099,9 @@ if PERIOD_IDS:
     )
 
     # Paiements d'une période
-    st, pmts = GET(
-        f"/cotisations/periods/{period_id}/payments?page_size=20", ADMIN_TOKEN
-    )
+    st, pmts = GET(f"/cotisations/periods/{period_id}/payments?page_size=20", ADMIN_TOKEN)
     _pmts_total = len(pmts) if isinstance(pmts, list) else pmts.get("total", "?")
-    check(
-        "GET /cotisations/periods/{id}/payments", st == 200, st, f"total={_pmts_total}"
-    )
+    check("GET /cotisations/periods/{id}/payments", st == 200, st, f"total={_pmts_total}")
 
     # Bilan
     st, bilan = GET(f"/cotisations/periods/{period_id}/bilan", ADMIN_TOKEN)
@@ -1163,8 +1141,7 @@ for i, srv in enumerate(SERVANTS[:8]):
             "amount": 500.0,  # MENSUEL = exactement 500 FCFA
             "payment_mode": "MENSUEL",  # valeur enum = "MENSUEL"
             "payment_date": now_utc.strftime("%Y-%m-%dT%H:%M:%S"),
-            "month": ((now_utc.month - 1 - i % 3) % 12)
-            + 1,  # mois variés pour éviter doublons
+            "month": ((now_utc.month - 1 - i % 3) % 12) + 1,  # mois variés pour éviter doublons
             "year": now_utc.year,
         },
         ECONOME_TOKEN or ADMIN_TOKEN,
@@ -1253,9 +1230,7 @@ for entry in entries_data:
     if st == 201 and fe.get("id"):
         FE_IDS.append(fe["id"])
 
-check(
-    f"Création 5 entrées financières", len(FE_IDS) >= 3, 201, f"{len(FE_IDS)}/5 créées"
-)
+check(f"Création 5 entrées financières", len(FE_IDS) >= 3, 201, f"{len(FE_IDS)}/5 créées")
 
 st, fe_list = GET("/financial-entries/?page=1&page_size=20", ADMIN_TOKEN)
 check(
@@ -1331,8 +1306,7 @@ reports_data = [
     {
         "type": "REUNION",
         "title": f"Rapport AG Trim. 1 {RUN_ID}",
-        "content": "Assemblée générale trimestrielle avec bilan financier et disciplinaire. "
-        * 5,
+        "content": "Assemblée générale trimestrielle avec bilan financier et disciplinaire. " * 5,
         "report_date": now_utc.strftime("%Y-%m-%dT%H:%M:%S"),
         "location": "Grande salle paroissiale",
     },
@@ -1405,16 +1379,12 @@ if SERVANTS:
             "offense_description": "Absent à trois messes consécutives sans justification valable.",
         },
         {
-            "accused_user_id": SERVANTS[1]["id"]
-            if len(SERVANTS) > 1
-            else SERVANTS[0]["id"],
+            "accused_user_id": SERVANTS[1]["id"] if len(SERVANTS) > 1 else SERVANTS[0]["id"],
             "offense_category": "INSUBORDINATION",
             "offense_description": "Comportement irrespectueux envers les responsables lors d'une réunion.",
         },
         {
-            "accused_user_id": SERVANTS[2]["id"]
-            if len(SERVANTS) > 2
-            else SERVANTS[0]["id"],
+            "accused_user_id": SERVANTS[2]["id"] if len(SERVANTS) > 2 else SERVANTS[0]["id"],
             "offense_category": "NON_RESPECT_TENUE",
             "offense_description": "Tenue vestimentaire non conforme au règlement lors du service.",
         },
@@ -1454,9 +1424,7 @@ if CASE_IDS:
     check("POST /discipline/{id}/sanctions (ajouter)", st in (200, 201, 404), st)
 
     # Modifier le statut (pas de PATCH direct — utiliser POST /{id}/convoke etc.)
-    st, _ = PATCH(
-        f"/discipline/{case_id}", {"status": "EN_COURS"}, CENSEUR_TOKEN or ADMIN_TOKEN
-    )
+    st, _ = PATCH(f"/discipline/{case_id}", {"status": "EN_COURS"}, CENSEUR_TOKEN or ADMIN_TOKEN)
     check("PATCH /discipline/{id} (en cours)", st in (200, 404, 405), st)
 
     # Clôturer
@@ -1557,18 +1525,14 @@ if SC_EVENT_IDS:
             {
                 "team_name": "Équipe Alpha",
                 "captain_id": SERVANTS[0]["id"],
-                "members": [
-                    str(SERVANTS[i]["id"]) for i in range(min(4, len(SERVANTS)))
-                ],
+                "members": [str(SERVANTS[i]["id"]) for i in range(min(4, len(SERVANTS)))],
             },
             SPORT_TOKEN or ADMIN_TOKEN,
         )
         check("POST /sport-culture/events/{id}/teams", st in (200, 201, 500), st)
 
     # Publier l'événement
-    st, _ = PATCH(
-        f"/sport-culture/events/{sc_id}/publish", {}, SPORT_TOKEN or ADMIN_TOKEN
-    )
+    st, _ = PATCH(f"/sport-culture/events/{sc_id}/publish", {}, SPORT_TOKEN or ADMIN_TOKEN)
     check("PATCH /sport-culture/events/{id}/publish", st in (200, 204, 404), st)
 
     # Enregistrer un résultat
@@ -2044,16 +2008,18 @@ if SERVANTS:
         {
             "week_start": FUTURE_1,
             "week_end": (now_utc + timedelta(days=13)).strftime("%Y-%m-%dT%H:%M:%S"),
-            "assignments": [
-                {
-                    "user_id": SERVANTS[0]["id"],
-                    "day_of_week": "DIMANCHE",
-                    "liturgical_role": "CRUCIFER",
-                    "event_type": "MESSE_DOMINICALE",
-                }
-            ]
-            if SERVANTS
-            else [],
+            "assignments": (
+                [
+                    {
+                        "user_id": SERVANTS[0]["id"],
+                        "day_of_week": "DIMANCHE",
+                        "liturgical_role": "CRUCIFER",
+                        "event_type": "MESSE_DOMINICALE",
+                    }
+                ]
+                if SERVANTS
+                else []
+            ),
         },
         ADMIN_TOKEN,
     )
@@ -2111,9 +2077,7 @@ if SS_ID:
     st, _ = GET(f"/sunday-schedule/{SS_ID}", ADMIN_TOKEN)
     check(f"GET /sunday-schedule/{{id}}", st == 200, st)
 
-    st, _ = PATCH(
-        f"/sunday-schedule/{SS_ID}/publish", {}, CLASSEMENT_TOKEN or ADMIN_TOKEN
-    )
+    st, _ = PATCH(f"/sunday-schedule/{SS_ID}/publish", {}, CLASSEMENT_TOKEN or ADMIN_TOKEN)
     check(f"PATCH /sunday-schedule/{{id}}/publish", st in (200, 204, 404), st)
 
 
@@ -2217,9 +2181,7 @@ if KEY_ID:
     check("GET /api-keys/{id}", st in (200, 404, 405), st)  # route optionnelle
 
     st, _ = PATCH(f"/api-keys/{KEY_ID}", {"name": "Clé Modifiée"}, ADMIN_TOKEN)
-    check(
-        "PATCH /api-keys/{id} (renommer)", st in (200, 404, 405), st
-    )  # route optionnelle
+    check("PATCH /api-keys/{id} (renommer)", st in (200, 404, 405), st)  # route optionnelle
 
     st, _ = DELETE(f"/api-keys/{KEY_ID}", ADMIN_TOKEN)
     check("DELETE /api-keys/{id} (révoquer)", st in (200, 204), st)
@@ -2292,9 +2254,7 @@ if ADMIN_ID:
 
 # Faux token JWT (bien formé mais signé incorrectement)
 fake_jwt = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-    "eyJzdWIiOiJmYWtlQHRlc3QuY29tIiwicm9sZSI6IkFETUlOIn0."
-    "fakeSignatureHere"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." "eyJzdWIiOiJmYWtlQHRlc3QuY29tIiwicm9sZSI6IkFETUlOIn0." "fakeSignatureHere"
 )
 st, _ = GET("/users/me", fake_jwt)
 check("JWT signature invalide → 401", st == 401, st)
@@ -2362,9 +2322,7 @@ st, _ = POST("/auth/forgot-password", {"email": "inexistant_test@reset.cm"})
 check("POST /auth/forgot-password (email inconnu → ok/404)", st in (200, 404, 422), st)
 
 st, _ = POST("/auth/request-reset-code", {"email": "inexistant_test2@reset.cm"})
-check(
-    "POST /auth/request-reset-code (email inconnu → ok/404)", st in (200, 404, 422), st
-)
+check("POST /auth/request-reset-code (email inconnu → ok/404)", st in (200, 404, 422), st)
 
 # Verify reset code sans code valide
 st, _ = POST("/auth/verify-reset-code", {"email": "test@test.cm", "code": "000000"})
@@ -2391,9 +2349,7 @@ if SESSION_IDS and SERVANTS:
     check("GET /attendance-sessions/servants/{id}/stats", st in (200, 404), st)
 
     # Init roll-call (si possible)
-    st, _ = POST(
-        f"/attendance-sessions/{s_id}/init-roll-call", {}, CENSEUR_TOKEN or ADMIN_TOKEN
-    )
+    st, _ = POST(f"/attendance-sessions/{s_id}/init-roll-call", {}, CENSEUR_TOKEN or ADMIN_TOKEN)
     check(
         "POST /attendance-sessions/{id}/init-roll-call",
         st in (200, 201, 400, 404, 409),
@@ -2466,10 +2422,7 @@ if ITEM_IDS and SERVANTS:
         # Compléter la tâche
         st, _ = POST(
             f"/material/cleaning-tasks/{ct_id}/complete",
-            {
-                "completion_notes": "Nettoyage effectué le "
-                + now_utc.strftime("%d/%m/%Y")
-            },
+            {"completion_notes": "Nettoyage effectué le " + now_utc.strftime("%d/%m/%Y")},
             SERVANT_TOKEN_1 or ADMIN_TOKEN,
         )
         check(
@@ -2515,15 +2468,11 @@ if FE_IDS:
     check("POST /financial-entries/{id}/verify", st in (200, 201, 400, 403, 404), st)
 
     # Lister les écarts de l'entrée
-    st, disc_list = GET(
-        f"/financial-entries/{fe_id2}/discrepancies", COMMISSAIRE_TOKEN or ADMIN_TOKEN
-    )
+    st, disc_list = GET(f"/financial-entries/{fe_id2}/discrepancies", COMMISSAIRE_TOKEN or ADMIN_TOKEN)
     check("GET /financial-entries/{id}/discrepancies", st in (200, 404), st)
 
     # Écarts non résolus globaux
-    st, unresolved = GET(
-        "/financial-entries/discrepancies/unresolved", COMMISSAIRE_TOKEN or ADMIN_TOKEN
-    )
+    st, unresolved = GET("/financial-entries/discrepancies/unresolved", COMMISSAIRE_TOKEN or ADMIN_TOKEN)
     check("GET /financial-entries/discrepancies/unresolved", st in (200, 404), st)
 
     # Rapport d'audit
@@ -2548,9 +2497,7 @@ if FE_IDS:
         f"/financial-entries/export/pdf?start_date={_dt(-timedelta(days=30))}&end_date={_dt(timedelta(days=1))}",
         COMMISSAIRE_TOKEN or ADMIN_TOKEN,
     )
-    check(
-        "GET /financial-entries/export/pdf", st in (200, 400, 403, 404, 422, 500, 0), st
-    )
+    check("GET /financial-entries/export/pdf", st in (200, 400, 403, 404, 422, 500, 0), st)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -2617,15 +2564,11 @@ if CASE_IDS and SERVANTS:
     case_id2 = CASE_IDS[-1] if len(CASE_IDS) > 1 else CASE_IDS[0]
 
     # Statistiques d'un servant
-    st, _ = GET(
-        f"/discipline/user/{SERVANTS[0]['id']}/stats", CENSEUR_TOKEN or ADMIN_TOKEN
-    )
+    st, _ = GET(f"/discipline/user/{SERVANTS[0]['id']}/stats", CENSEUR_TOKEN or ADMIN_TOKEN)
     check("GET /discipline/user/{id}/stats", st in (200, 404), st)
 
     # Conformité d'un servant
-    st, _ = GET(
-        f"/discipline/user/{SERVANTS[0]['id']}/compliance", CENSEUR_TOKEN or ADMIN_TOKEN
-    )
+    st, _ = GET(f"/discipline/user/{SERVANTS[0]['id']}/compliance", CENSEUR_TOKEN or ADMIN_TOKEN)
     check("GET /discipline/user/{id}/compliance", st in (200, 404), st)
 
     # Workflow : convoquer → audition → verdict → exécuter / classer
@@ -2729,9 +2672,7 @@ else:
         {"notification_ids": [str(_uuid_mod.uuid4())]},
         SERVANT_TOKEN_1 or ADMIN_TOKEN,
     )
-check(
-    "POST /communication/me/read (tout marquer lu)", st in (200, 201, 400, 404, 422), st
-)
+check("POST /communication/me/read (tout marquer lu)", st in (200, 201, 400, 404, 422), st)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -2745,9 +2686,7 @@ check("GET /cotisations/my (mes cotisations)", st in (200, 404), st)
 
 if PERIOD_IDS:
     # Bilan d'une période (ECONOME requis)
-    st, bilan = GET(
-        f"/cotisations/periods/{PERIOD_IDS[0]}/bilan", ECONOME_TOKEN or ADMIN_TOKEN
-    )
+    st, bilan = GET(f"/cotisations/periods/{PERIOD_IDS[0]}/bilan", ECONOME_TOKEN or ADMIN_TOKEN)
     check("GET /cotisations/periods/{id}/bilan", st in (200, 403, 404), st)
 
     # Modifier une période
@@ -2791,9 +2730,7 @@ if SC_EVENT_IDS:
 
     # Supprimer résultat
     if result_id:
-        st, _ = DELETE(
-            f"/sport-culture/results/{result_id}", SPORT_TOKEN or ADMIN_TOKEN
-        )
+        st, _ = DELETE(f"/sport-culture/results/{result_id}", SPORT_TOKEN or ADMIN_TOKEN)
         check("DELETE /sport-culture/results/{id}", st in (200, 204, 404), st)
 
     # Rapport sport & culture
@@ -2809,9 +2746,7 @@ if SC_EVENT_IDS:
 
     # Participations d'un servant
     if SERVANTS:
-        st, _ = GET(
-            f"/sport-culture/servants/{SERVANTS[0]['id']}/participations", ADMIN_TOKEN
-        )
+        st, _ = GET(f"/sport-culture/servants/{SERVANTS[0]['id']}/participations", ADMIN_TOKEN)
         check("GET /sport-culture/servants/{id}/participations", st in (200, 404), st)
 
         st, _ = GET(f"/sport-culture/servants/{SERVANTS[0]['id']}/stats", ADMIN_TOKEN)
@@ -2865,9 +2800,7 @@ if TRAINING_IDS:
 
     # Statistiques et participations d'un servant
     if SERVANTS:
-        st, _ = GET(
-            f"/training/servants/{SERVANTS[0]['id']}/participations", ADMIN_TOKEN
-        )
+        st, _ = GET(f"/training/servants/{SERVANTS[0]['id']}/participations", ADMIN_TOKEN)
         check("GET /training/servants/{id}/participations", st in (200, 404), st)
 
         st, _ = GET(f"/training/servants/{SERVANTS[0]['id']}/stats", ADMIN_TOKEN)
@@ -2930,9 +2863,7 @@ if SERVANTS:
         if items:
             ws_first_id = items[0].get("id")
             if ws_first_id:
-                st, _ = PATCH(
-                    f"/weekly-schedule/{ws_first_id}/publish", {}, ADMIN_TOKEN
-                )
+                st, _ = PATCH(f"/weekly-schedule/{ws_first_id}/publish", {}, ADMIN_TOKEN)
                 check(
                     "PATCH /weekly-schedule/{id}/publish",
                     st in (200, 204, 400, 404),
@@ -2985,13 +2916,9 @@ if isinstance(inv_list, dict):
         inv_id = inv_items[0].get("id")
         if inv_id:
             st, _ = PATCH(f"/admin/invitations/{inv_id}/toggle-status", {}, ADMIN_TOKEN)
-            check(
-                "PATCH /admin/invitations/{id}/toggle-status", st in (200, 204, 404), st
-            )
+            check("PATCH /admin/invitations/{id}/toggle-status", st in (200, 204, 404), st)
         else:
-            check(
-                "PATCH /admin/invitations/{id}/toggle-status", True, 200, "SKIP: no id"
-            )
+            check("PATCH /admin/invitations/{id}/toggle-status", True, 200, "SKIP: no id")
     else:
         check(
             "PATCH /admin/invitations/{id}/toggle-status",
@@ -3007,9 +2934,7 @@ elif isinstance(inv_list, list) and inv_list:
     else:
         check("PATCH /admin/invitations/{id}/toggle-status", True, 200, "SKIP: no id")
 else:
-    check(
-        "PATCH /admin/invitations/{id}/toggle-status", True, 200, "SKIP: no invitations"
-    )
+    check("PATCH /admin/invitations/{id}/toggle-status", True, 200, "SKIP: no invitations")
 
 # API Keys admin
 st, keys = GET("/admin/api-keys", ADMIN_TOKEN)

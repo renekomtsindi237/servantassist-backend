@@ -6,6 +6,7 @@ SECURITY NOTE:
 - AUMÔNIER account is unique (only one can exist in the system)
 - ADMIN accounts must be created through secure database seeding
 """
+
 import hashlib
 import json
 import logging
@@ -175,14 +176,10 @@ async def send_invitation_email(
     invitation = await invitation_repo.get_by_id(invitation_id)
 
     if not invitation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Invitation introuvable."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation introuvable.")
 
     if invitation.created_by != current_admin.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé."
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé.")
 
     email_service = EmailService()
     parent_name = invitation.parent_name or request.email.split("@")[0]
@@ -218,14 +215,10 @@ async def toggle_invitation_status(
     invitation = await invitation_repo.get_by_id(invitation_id)
 
     if not invitation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Invitation introuvable."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation introuvable.")
 
     if invitation.created_by != current_admin.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé."
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé.")
 
     if invitation.status == InvitationStatus.ACCEPTED:
         raise HTTPException(
@@ -242,9 +235,7 @@ async def toggle_invitation_status(
     return updated
 
 
-@router.post(
-    "/users/aumônier", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/users/aumônier", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_aumônier(
     request: UserCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -268,9 +259,7 @@ async def create_aumônier(
     auth_service = AuthService(user_repo, None)
 
     try:
-        user = await auth_service.register_user(
-            user_create=aumônier_create, admin_id=current_admin.id
-        )
+        user = await auth_service.register_user(user_create=aumônier_create, admin_id=current_admin.id)
         return user
     except HTTPException:
         raise
@@ -287,9 +276,7 @@ async def create_aumônier(
         )
 
 
-@router.post(
-    "/users/admin", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/users/admin", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_admin(
     request: UserCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -313,9 +300,7 @@ async def create_admin(
     auth_service = AuthService(user_repo, None)
 
     try:
-        user = await auth_service.register_user(
-            user_create=admin_create, admin_id=current_admin.id
-        )
+        user = await auth_service.register_user(user_create=admin_create, admin_id=current_admin.id)
         return user
     except HTTPException:
         raise
@@ -332,9 +317,7 @@ async def create_admin(
         )
 
 
-@router.post(
-    "/users/parent", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/users/parent", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_parent_direct(
     user_data: UserCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -354,9 +337,7 @@ async def create_parent_direct(
     user_repo = UserRepository(session)
     auth_service = AuthService(user_repo, None)
 
-    created_user = await auth_service.register_user(
-        user_data, invitation_code=None, admin_id=current_admin.id
-    )
+    created_user = await auth_service.register_user(user_data, invitation_code=None, admin_id=current_admin.id)
 
     return created_user
 
@@ -486,6 +467,4 @@ async def revoke_api_key(
     )
     await session.commit()
     if result.rowcount == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Clé API introuvable."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clé API introuvable.")

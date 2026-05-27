@@ -8,6 +8,7 @@ Pour lancer en développement :
     celery -A src.infrastructure.tasks.celery_app worker --loglevel=info
     celery -A src.infrastructure.tasks.celery_app beat --loglevel=info
 """
+
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
@@ -97,11 +98,7 @@ async def _send_event_reminders_async():
                 if not user or not user.is_active or not user.email:
                     continue
 
-                role = (
-                    assignment.liturgical_role.value
-                    if assignment.liturgical_role
-                    else "servant"
-                )
+                role = assignment.liturgical_role.value if assignment.liturgical_role else "servant"
                 ok = await email_svc.send_event_reminder(
                     to_email=user.email,
                     user_first_name=user.first_name,
@@ -155,9 +152,7 @@ async def _send_weekly_report_async():
 
     async with sessionmanager.session() as session:
         # Récupérer les admins
-        stmt_admins = select(User).where(
-            User.role == UserRole.ADMIN, User.is_active == True
-        )
+        stmt_admins = select(User).where(User.role == UserRole.ADMIN, User.is_active == True)
         result_a = await session.exec(stmt_admins)
         admins = result_a.all()
 
@@ -181,8 +176,7 @@ async def _send_weekly_report_async():
         present = sum(
             1
             for a in attendance_week
-            if getattr(a, "status", None)
-            in (AttendanceStatus.PRESENT, AttendanceStatus.RETARD)
+            if getattr(a, "status", None) in (AttendanceStatus.PRESENT, AttendanceStatus.RETARD)
         )
         total_att = len(attendance_week)
         att_rate = f"{present / total_att * 100:.1f}%" if total_att else "N/A"

@@ -4,6 +4,7 @@ Schémas Pydantic pour le module Classement Dominical.
 Gère la création, modification et consultation des modèles de classement
 des messes dominicales et solennelles.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

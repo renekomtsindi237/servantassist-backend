@@ -118,9 +118,7 @@ class PayloadEncryptor:
         self._private_key = load_pem_private_key(pem, password=None)
         # Pré-calcul de la clé publique sérialisée
         self._public_key_raw = _ec_pubkey_to_raw_bytes(self._private_key.public_key())
-        self._public_key_b64 = base64.urlsafe_b64encode(self._public_key_raw).decode(
-            "ascii"
-        )
+        self._public_key_b64 = base64.urlsafe_b64encode(self._public_key_raw).decode("ascii")
 
     # ── API publique ──────────────────────────────────────────────────────────
 
@@ -140,9 +138,7 @@ class PayloadEncryptor:
         """
         # Décode la clé publique éphémère du client
         try:
-            client_pub_raw = base64.urlsafe_b64decode(
-                client_pub_b64.encode("ascii") + b"=="  # pad tolérant
-            )
+            client_pub_raw = base64.urlsafe_b64decode(client_pub_b64.encode("ascii") + b"==")  # pad tolérant
             client_pub_key = _raw_bytes_to_ec_pubkey(client_pub_raw)
         except Exception as exc:
             raise ValueError(f"X-Client-Pubkey invalide : {exc}") from exc
@@ -159,8 +155,7 @@ class PayloadEncryptor:
 
         if payload.get("v") != _PAYLOAD_VERSION:
             raise ValueError(
-                f"Version de chiffrement non supportée : {payload.get('v')} "
-                f"(attendu {_PAYLOAD_VERSION})"
+                f"Version de chiffrement non supportée : {payload.get('v')} " f"(attendu {_PAYLOAD_VERSION})"
             )
 
         try:
@@ -174,9 +169,7 @@ class PayloadEncryptor:
             aesgcm = AESGCM(session_key)
             plaintext = aesgcm.decrypt(iv, ct, None)
         except Exception as exc:
-            raise ValueError(
-                f"Déchiffrement GCM échoué (tag invalide ?) : {exc}"
-            ) from exc
+            raise ValueError(f"Déchiffrement GCM échoué (tag invalide ?) : {exc}") from exc
 
         return plaintext
 

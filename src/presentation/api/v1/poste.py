@@ -13,6 +13,7 @@ Slugs disponibles :
 
 L'Aumonier et l'Admin peuvent aussi acceder a tous les postes en lecture.
 """
+
 from typing import Annotated, Optional
 from uuid import UUID
 
@@ -180,12 +181,8 @@ async def list_actions(
     slug: str,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
-    category: Optional[ActionCategory] = Query(
-        None, description="Filtrer par categorie"
-    ),
-    action_status: Optional[ActionStatus] = Query(
-        None, alias="status", description="Filtrer par statut"
-    ),
+    category: Optional[ActionCategory] = Query(None, description="Filtrer par categorie"),
+    action_status: Optional[ActionStatus] = Query(None, alias="status", description="Filtrer par statut"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):

@@ -1,6 +1,7 @@
 """
 Endpoint pour le dossier unique d'un servant (agrégation multi-modules).
 """
+
 from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
@@ -60,9 +61,7 @@ async def get_dossier(
     decrypt_str_fields(user, _USER_PII)
 
     # ── Attendance stats ───────────────────────────────────────────
-    records_result = await session.execute(
-        select(AttendanceRecord).where(AttendanceRecord.servant_id == user_id)
-    )
+    records_result = await session.execute(select(AttendanceRecord).where(AttendanceRecord.servant_id == user_id))
     records = list(records_result.scalars().all())
 
     total = len(records)
@@ -111,9 +110,7 @@ async def get_dossier(
             cotisations.append(
                 DossierCotisation(
                     id=cot.id,
-                    period_label=f"{period.name}"
-                    if hasattr(period, "name")
-                    else str(period.id),
+                    period_label=f"{period.name}" if hasattr(period, "name") else str(period.id),
                     amount_due=float(getattr(period, "amount", 0)),
                     amount_paid=float(getattr(cot, "amount_paid", 0)),
                     status=getattr(cot, "status", "UNKNOWN"),

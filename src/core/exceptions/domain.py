@@ -2,6 +2,7 @@
 Exceptions métier — ServantAssist
 Hiérarchie claire mappée sur les codes HTTP standard.
 """
+
 from __future__ import annotations
 
 
@@ -79,9 +80,7 @@ class ConflictException(ServantAssistException):
     """Conflit d'état — doublon, version concurrente, etc."""
 
     http_status = 409
-    default_message = (
-        "Conflit : la ressource existe déjà ou est en cours de modification."
-    )
+    default_message = "Conflit : la ressource existe déjà ou est en cours de modification."
 
 
 class DuplicateException(ConflictException):

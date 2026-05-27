@@ -1,6 +1,7 @@
 """
 Repository pour le Conseil des Responsables.
 """
+
 from typing import List, Optional
 from uuid import UUID
 
@@ -29,9 +30,7 @@ class CouncilMeetingRepository:
         await self.session.refresh(attendance)
         return attendance
 
-    async def get_responsable_attendances(
-        self, responsable_id: UUID, limit: int = 3
-    ) -> List[CouncilAttendance]:
+    async def get_responsable_attendances(self, responsable_id: UUID, limit: int = 3) -> List[CouncilAttendance]:
         """Récupère les dernières présences d'un responsable."""
         stmt = (
             select(CouncilAttendance)

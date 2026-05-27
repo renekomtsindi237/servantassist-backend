@@ -19,6 +19,7 @@ Usage dans un router FastAPI :
     # Ou directement avec PaginatedResponse :
     return build_paginated_response(items, total, page, page_size, request)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -104,9 +105,7 @@ class PaginationResult:
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def build_link_header(
-    base_path: str, page: int, page_size: int, total: int, extra_qs: str = ""
-) -> str:
+def build_link_header(base_path: str, page: int, page_size: int, total: int, extra_qs: str = "") -> str:
     """
     Construit la valeur du header HTTP ``Link`` conforme RFC 5988.
 
@@ -145,9 +144,7 @@ def paginate(
     total: int,
     page: int,
     page_size: int,
-    request: Optional[
-        Any
-    ] = None,  # fastapi.Request — optionnel pour garder ce module pur
+    request: Optional[Any] = None,  # fastapi.Request — optionnel pour garder ce module pur
 ) -> PaginationResult:
     """
     Construit un PaginationResult complet avec headers HTTP prêts à émettre.
@@ -173,9 +170,7 @@ def paginate(
         params.pop("page", None)
         params.pop("page_size", None)
         extra_qs = "&".join(f"{k}={v}" for k, v in params.items())
-        headers["Link"] = build_link_header(
-            str(request.url.path), page, page_size, total, extra_qs
-        )
+        headers["Link"] = build_link_header(str(request.url.path), page, page_size, total, extra_qs)
 
     return PaginationResult(
         items=items,

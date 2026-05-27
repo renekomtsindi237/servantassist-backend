@@ -8,6 +8,7 @@ Fournit des métriques globales pour l'écran de tableau de bord admin :
 - 5 prochains événements
 - Top 10 servants par taux de présence
 """
+
 from datetime import datetime, timezone
 from src.core.utils import utc_now
 from typing import List, Optional
@@ -160,9 +161,7 @@ class DashboardService:
         Retourne le statut des cotisations de la période la plus récente.
         """
         # Récupérer la période la plus récente
-        stmt = select(CotisationPeriod).order_by(
-            col(CotisationPeriod.start_date).desc()
-        )
+        stmt = select(CotisationPeriod).order_by(col(CotisationPeriod.start_date).desc())
         result = await self.session.exec(stmt)
         period = result.first()
         if not period:
@@ -179,24 +178,16 @@ class DashboardService:
             )
 
         # Cotisations de cette période
-        stmt_cot = select(MemberCotisation).where(
-            MemberCotisation.period_id == period.id
-        )
+        stmt_cot = select(MemberCotisation).where(MemberCotisation.period_id == period.id)
         result_cot = await self.session.exec(stmt_cot)
         cotisations = result_cot.all()
 
         paid = sum(1 for c in cotisations if c.status == CotisationPaymentStatus.PAYE)
-        partial = sum(
-            1
-            for c in cotisations
-            if c.status == CotisationPaymentStatus.PAYE_PARTIELLEMENT
-        )
+        partial = sum(1 for c in cotisations if c.status == CotisationPaymentStatus.PAYE_PARTIELLEMENT)
         unpaid = len(cotisations) - paid - partial
 
         total_expected = float(period.amount_expected or 0) * len(cotisations)
-        total_collected = sum(
-            float(getattr(c, "amount_paid", 0) or 0) for c in cotisations
-        )
+        total_collected = sum(float(getattr(c, "amount_paid", 0) or 0) for c in cotisations)
         rate = (paid / len(cotisations) * 100) if cotisations else 0.0
 
         return CotisationStatusSchema(
@@ -216,12 +207,7 @@ class DashboardService:
     async def get_upcoming_events(self, limit: int = 5) -> List[UpcomingEvent]:
         """Retourne les N prochains événements avec leur nb d'assignments."""
         now = datetime.utcnow()
-        stmt = (
-            select(Event)
-            .where(col(Event.start_time) >= now)
-            .order_by(col(Event.start_time))
-            .limit(limit)
-        )
+        stmt = select(Event).where(col(Event.start_time) >= now).order_by(col(Event.start_time)).limit(limit)
         result = await self.session.exec(stmt)
         events = result.all()
 
@@ -259,9 +245,7 @@ class DashboardService:
         Retourne les servants classés par taux de présence décroissant.
         """
         # Récupérer tous les servants actifs
-        stmt_s = select(User).where(
-            User.role == UserRole.SERVANT, User.is_active == True
-        )
+        stmt_s = select(User).where(User.role == UserRole.SERVANT, User.is_active == True)
         result_s = await self.session.exec(stmt_s)
         servants = result_s.all()
 

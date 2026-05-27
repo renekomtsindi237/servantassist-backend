@@ -16,6 +16,7 @@ Usage :
     if hasattr(request.app.state, "ws_manager"):
         await request.app.state.ws_manager.send_to_user(user_id, payload)
 """
+
 import asyncio
 import logging
 import time
@@ -81,9 +82,7 @@ class ConnectionManager:
             if user_id not in self._connections:
                 self._connections[user_id] = []
             self._connections[user_id].append(conn)
-        logger.info(
-            "WebSocket connecté: user_id=%s total=%d", user_id, self.total_connections
-        )
+        logger.info("WebSocket connecté: user_id=%s total=%d", user_id, self.total_connections)
 
     async def disconnect(self, websocket: WebSocket, user_id: str) -> None:
         """Désenregistre une connexion WebSocket."""
@@ -174,9 +173,7 @@ class ConnectionManager:
                 for conn in conns:
                     # Déconnecter si le dernier pong est trop ancien
                     if now - conn.last_pong > _HEARTBEAT_TIMEOUT:
-                        logger.info(
-                            "WebSocket timeout (pas de pong): user_id=%s", user_id
-                        )
+                        logger.info("WebSocket timeout (pas de pong): user_id=%s", user_id)
                         try:
                             await conn.ws.close(code=1001, reason="heartbeat timeout")
                         except Exception:

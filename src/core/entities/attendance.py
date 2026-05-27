@@ -11,6 +11,7 @@ Le censeur adjoint veille a l'assiduite des servants.
 Le charge du classement peut utiliser ces donnees pour le planning.
 Les absences non justifiees repetees entrainent des sanctions disciplinaires.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -74,17 +75,13 @@ class Attendance(SQLModel, table=True):
     # Evenement associe (optionnel)
     event_id: Optional[UUID] = Field(default=None, foreign_key="events.id", index=True)
     # Type et date
-    attendance_type: AttendanceType = Field(
-        sa_column=Column(String(50), nullable=False, index=True)
-    )
+    attendance_type: AttendanceType = Field(sa_column=Column(String(50), nullable=False, index=True))
     attendance_date: datetime = Field(index=True)
     title: Optional[str] = Field(default=None, max_length=200)
     # Statut
     status: AttendanceStatus = Field(
         default=AttendanceStatus.PRESENT,
-        sa_column=Column(
-            String(50), nullable=False, server_default="PRESENT", index=True
-        ),
+        sa_column=Column(String(50), nullable=False, server_default="PRESENT", index=True),
     )
     # Justification
     justification: Optional[str] = Field(default=None, max_length=1000)

@@ -1,6 +1,7 @@
 """
 Endpoints API pour le module SECRETAIRE - Rapports.
 """
+
 from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
@@ -379,9 +380,7 @@ async def upload_attachment(
     report_id: UUID,
     file: Annotated[
         UploadFile,
-        File(
-            description="Fichier à attacher (image ou document PDF/DOC/DOCX, max 10 Mo)"
-        ),
+        File(description="Fichier à attacher (image ou document PDF/DOC/DOCX, max 10 Mo)"),
     ],
     current_user: Annotated[User, Depends(require_secretaire)],
     service: Annotated[ReportService, Depends(get_report_service)],
@@ -389,9 +388,7 @@ async def upload_attachment(
     """Upload un fichier et crée la pièce jointe associée au rapport."""
     report = await service.get_report(report_id)
     if not report:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Rapport introuvable"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rapport introuvable")
 
     file_data = await file.read()
     content_type = file.content_type or "application/octet-stream"
@@ -544,9 +541,7 @@ async def export_report_pdf(
     pdf_svc = PDFService()
     pdf_bytes = pdf_svc.generate_report(
         title=report.title,
-        report_type=report.type.value
-        if hasattr(report.type, "value")
-        else str(report.type),
+        report_type=report.type.value if hasattr(report.type, "value") else str(report.type),
         report_date=report.report_date,
         location=report.location,
         content=report.content,

@@ -1,6 +1,7 @@
 """
 Repository pour la gestion des classements.
 """
+
 from typing import List, Optional, Tuple
 from uuid import UUID
 
@@ -22,9 +23,7 @@ class ClassementRepository:
         return classement
 
     async def get_by_id(self, classement_id: UUID) -> Optional[Classement]:
-        result = await self.session.execute(
-            select(Classement).where(Classement.id == classement_id)
-        )
+        result = await self.session.execute(select(Classement).where(Classement.id == classement_id))
         return result.scalar_one_or_none()
 
     async def list(

@@ -5,9 +5,9 @@ Ces tests démarrent la vraie stack FastAPI (ASGI) avec SQLite en mémoire
 pour vérifier que l'application répond correctement aux sondes d'infrastructure
 et expose les bons en-têtes de versioning.
 """
+
 import pytest
 from httpx import AsyncClient
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Endpoint racine  GET /
@@ -138,9 +138,7 @@ class TestVersioningHeaders:
         assert "x-request-id" in response.headers
         assert len(response.headers["x-request-id"]) > 0
 
-    async def test_x_request_id_propagated_when_provided(
-        self, main_client: AsyncClient
-    ):
+    async def test_x_request_id_propagated_when_provided(self, main_client: AsyncClient):
         my_id = "test-trace-id-abc123"
         response = await main_client.get("/", headers={"X-Request-ID": my_id})
         assert response.headers.get("x-request-id") == my_id

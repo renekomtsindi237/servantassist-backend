@@ -19,11 +19,7 @@ def get_db_url(for_migrations: bool = False) -> str:
       - for_migrations=False → transaction pooler pgbouncer (runtime)
     """
     if settings.is_supabase_env:
-        url = (
-            settings.SUPABASE_DB_DIRECT_URL
-            if for_migrations
-            else settings.SUPABASE_DB_POOLER_URL
-        )
+        url = settings.SUPABASE_DB_DIRECT_URL if for_migrations else settings.SUPABASE_DB_POOLER_URL
         if not url:
             raise RuntimeError(
                 f"APP_ENV={settings.APP_ENV} mais "

@@ -5,6 +5,7 @@ Permissions:
 - CHARGE_SPORT_CULTURE / CHARGE_SPORT_CULTURE_ADJOINT : Gestion complète
 - Tous les utilisateurs authentifiés : Consultation et participation
 """
+
 from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
@@ -111,9 +112,7 @@ async def create_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(
-        event.id
-    )
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -152,9 +151,7 @@ async def list_events(
     enriched_events = []
     for event in events:
         participants_count = await service.participation_repo.count_by_event(event.id)
-        confirmed_count = await service.participation_repo.count_confirmed_by_event(
-            event.id
-        )
+        confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
         event_dict = event.model_dump()
         event_dict["participants_count"] = participants_count
@@ -191,9 +188,7 @@ async def get_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(
-        event.id
-    )
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -239,9 +234,7 @@ async def update_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(
-        event.id
-    )
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -288,9 +281,7 @@ async def get_upcoming_events(
     enriched_events = []
     for event in events:
         participants_count = await service.participation_repo.count_by_event(event.id)
-        confirmed_count = await service.participation_repo.count_confirmed_by_event(
-            event.id
-        )
+        confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
 
         event_dict = event.model_dump()
         event_dict["participants_count"] = participants_count
@@ -322,18 +313,14 @@ async def get_upcoming_events(
 )
 async def upload_event_photo(
     event_id: UUID,
-    file: Annotated[
-        UploadFile, File(description="Photo de l'événement (JPEG, PNG, WebP, max 5 Mo)")
-    ],
+    file: Annotated[UploadFile, File(description="Photo de l'événement (JPEG, PNG, WebP, max 5 Mo)")],
     current_user: User = Depends(require_charge_sport_culture),
     service: SportCultureService = Depends(get_sport_culture_service),
 ):
     """Upload une photo et l'associe à l'événement."""
     event = await service.get_event(event_id)
     if not event:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Événement introuvable"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Événement introuvable")
 
     storage = StorageService()
     try:

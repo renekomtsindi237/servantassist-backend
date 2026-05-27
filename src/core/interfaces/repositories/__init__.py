@@ -5,6 +5,7 @@ Toutes les interfaces utilisent typing.Protocol (subtyping structurel).
 Les implémentations concrètes n'ont pas besoin d'hériter explicitement :
 elles satisfont le protocole si elles possèdent les bonnes méthodes.
 """
+
 from .api_key_repository import IApiKeyRepository
 from .assignment_repository import IAssignmentRepository
 from .attendance_repository import IAttendanceRepository

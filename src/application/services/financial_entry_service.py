@@ -1,6 +1,7 @@
 """
 Service pour la gestion des entrées financières (COMMISSAIRE_AUX_COMPTES).
 """
+
 from datetime import datetime
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
@@ -200,17 +201,13 @@ class FinancialEntryService:
 
         # Calculer le taux de vérification
         if stats["total_entries"] > 0:
-            stats["verification_rate"] = (
-                stats["verified_entries"] / stats["total_entries"]
-            ) * 100
+            stats["verification_rate"] = (stats["verified_entries"] / stats["total_entries"]) * 100
         else:
             stats["verification_rate"] = 0.0
 
         # Calculer le montant moyen
         if stats["total_entries"] > 0:
-            stats["average_entry_amount"] = (
-                stats["total_amount"] / stats["total_entries"]
-            )
+            stats["average_entry_amount"] = stats["total_amount"] / stats["total_entries"]
         else:
             stats["average_entry_amount"] = 0.0
 
@@ -230,9 +227,7 @@ class FinancialEntryService:
         stats = await self.entry_repo.get_statistics(start_date, end_date)
 
         # Récupérer les résumés par catégorie
-        summaries_data = await self.entry_repo.get_summary_by_category(
-            start_date, end_date
-        )
+        summaries_data = await self.entry_repo.get_summary_by_category(start_date, end_date)
 
         # Récupérer les écarts non résolus
         unresolved_discrepancies = await self.discrepancy_repo.list_unresolved()
@@ -241,9 +236,7 @@ class FinancialEntryService:
         discrepancies = [f"{d.type}: {d.description}" for d in unresolved_discrepancies]
 
         # Générer des recommandations
-        recommendations = self._generate_recommendations(
-            stats, unresolved_discrepancies
-        )
+        recommendations = self._generate_recommendations(stats, unresolved_discrepancies)
 
         # Créer le rapport
         report = AuditReport(
@@ -272,9 +265,7 @@ class FinancialEntryService:
 
         # Taux de vérification faible
         if stats["total_entries"] > 0:
-            verification_rate = (
-                stats["verified_entries"] / stats["total_entries"]
-            ) * 100
+            verification_rate = (stats["verified_entries"] / stats["total_entries"]) * 100
             if verification_rate < 50:
                 recommendations.append(
                     f"Taux de vérification faible ({verification_rate:.1f}%). "
@@ -302,8 +293,7 @@ class FinancialEntryService:
 
         if not recommendations:
             recommendations.append(
-                "Aucune anomalie majeure détectée. "
-                "Continuer le suivi régulier des entrées financières."
+                "Aucune anomalie majeure détectée. " "Continuer le suivi régulier des entrées financières."
             )
 
         return "\n".join(recommendations)

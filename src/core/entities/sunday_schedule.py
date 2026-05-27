@@ -16,6 +16,7 @@ Horaires ordinaires :
 
 Horaires exceptionnels (variables selon les besoins)
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -123,9 +124,7 @@ class SundayMassSlotBase(SQLModel):
     """Champs communs d'une messe dans le classement dominical."""
 
     template_id: UUID = Field(foreign_key="sunday_schedule_templates.id", index=True)
-    mass_time: str = Field(
-        max_length=10, description="Heure de la messe (ex: 06h30, 08h30, 10h00)"
-    )
+    mass_time: str = Field(max_length=10, description="Heure de la messe (ex: 06h30, 08h30, 10h00)")
     language: MassLanguage = Field(sa_column=Column(String(20), nullable=False))
     notes: Optional[str] = Field(default=None, max_length=500)
 
@@ -156,9 +155,7 @@ class SundayMassAssignmentBase(SQLModel):
         max_length=200,
         description="Nom du servant (si non encore dans le système)",
     )
-    is_present: Optional[bool] = Field(
-        default=None, description="Présence constatée (None=pas encore vérifié)"
-    )
+    is_present: Optional[bool] = Field(default=None, description="Présence constatée (None=pas encore vérifié)")
     notes: Optional[str] = Field(default=None, max_length=500)
 
 
@@ -201,23 +198,15 @@ class SundayScheduleModificationLog(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     template_id: UUID = Field(foreign_key="sunday_schedule_templates.id", index=True)
-    mass_slot_id: Optional[UUID] = Field(
-        default=None, foreign_key="sunday_mass_slots.id"
-    )
-    assignment_id: Optional[UUID] = Field(
-        default=None, foreign_key="sunday_mass_assignments.id"
-    )
+    mass_slot_id: Optional[UUID] = Field(default=None, foreign_key="sunday_mass_slots.id")
+    assignment_id: Optional[UUID] = Field(default=None, foreign_key="sunday_mass_assignments.id")
 
     action: ModificationAction = Field(sa_column=Column(String(30), nullable=False))
-    description: str = Field(
-        max_length=500, description="Description de la modification"
-    )
+    description: str = Field(max_length=500, description="Description de la modification")
 
     # Qui a fait la modification
     modified_by: UUID = Field(foreign_key="users.id", index=True)
-    modified_by_name: str = Field(
-        max_length=200, description="Nom complet de la personne"
-    )
+    modified_by_name: str = Field(max_length=200, description="Nom complet de la personne")
 
     # Quand et où
     modified_at: datetime = Field(default_factory=datetime.utcnow, index=True)

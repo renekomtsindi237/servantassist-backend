@@ -10,6 +10,7 @@
 ║    5. Plusieurs SERVANT/PARENT peuvent coexister                      ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
+
 import pytest
 from httpx import AsyncClient
 
@@ -21,9 +22,7 @@ from tests.conftest import make_auth_header
 class TestAdminUniqueness:
     """Un seul admin dans le système."""
 
-    async def test_second_admin_creation_rejected(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_second_admin_creation_rejected(self, client: AsyncClient, admin_user: User):
         """admin_user existe déjà → créer un 2ème = 400."""
         headers = make_auth_header(admin_user)
         resp = await client.post(
@@ -44,9 +43,7 @@ class TestAdminUniqueness:
 class TestAumonierUniqueness:
     """Un seul aumônier dans le système."""
 
-    async def test_second_aumonier_creation_rejected(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_second_aumonier_creation_rejected(self, client: AsyncClient, admin_user: User):
         """Créer 2 aumôniers → le 2ème est rejeté."""
         headers = make_auth_header(admin_user)
 
@@ -97,9 +94,7 @@ class TestMultipleServantParent:
             )
             assert resp.status_code == 201, f"Servant {i} failed: {resp.text}"
 
-    async def test_multiple_parents_with_separate_invitations(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_multiple_parents_with_separate_invitations(self, client: AsyncClient, admin_user: User):
         headers = make_auth_header(admin_user)
 
         for i in range(3):

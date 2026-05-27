@@ -1,6 +1,7 @@
 """
 Storage tests for upload routing and URL prefixes.
 """
+
 import pytest
 
 from src.infrastructure.services.storage_service import StorageService

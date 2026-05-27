@@ -7,6 +7,7 @@ Utilise reportlab pour générer :
 - Bilans financiers
 - Rapports de présence
 """
+
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
@@ -108,9 +109,7 @@ def _header_elements(st: dict, title: str, subtitle: str = "") -> list:
     ]
     if subtitle:
         elems.append(Paragraph(subtitle, st["subtitle"]))
-    elems.append(
-        HRFlowable(width="100%", thickness=1, color=_COLOR_ACCENT, spaceAfter=10)
-    )
+    elems.append(HRFlowable(width="100%", thickness=1, color=_COLOR_ACCENT, spaceAfter=10))
     return elems
 
 
@@ -204,9 +203,7 @@ class PDFService:
 
         if score is not None:
             story.append(Spacer(1, 0.5 * cm))
-            story.append(
-                Paragraph(f"Note obtenue : <b>{score:.1f} / 20</b>", st["center"])
-            )
+            story.append(Paragraph(f"Note obtenue : <b>{score:.1f} / 20</b>", st["center"]))
 
         story.append(Spacer(1, 2 * cm))
 
@@ -338,9 +335,7 @@ class PDFService:
         st = _styles()
         story = []
 
-        story.extend(
-            _header_elements(st, "BILAN FINANCIER", f"Période : {period_label}")
-        )
+        story.extend(_header_elements(st, "BILAN FINANCIER", f"Période : {period_label}"))
         story.append(Paragraph(f"Établi par : {generated_by}", st["small"]))
         story.append(Spacer(1, 0.5 * cm))
 
@@ -380,14 +375,10 @@ class PDFService:
         # Détail des opérations
         if entries:
             story.append(Paragraph("Détail des opérations", st["section"]))
-            table_data = [
-                ["Date", "Description", "Catégorie", "Type", "Montant (FCFA)"]
-            ]
+            table_data = [["Date", "Description", "Catégorie", "Type", "Montant (FCFA)"]]
             for e in entries:
                 date_str = (
-                    e["date"].strftime("%d/%m/%Y")
-                    if hasattr(e.get("date"), "strftime")
-                    else str(e.get("date", ""))
+                    e["date"].strftime("%d/%m/%Y") if hasattr(e.get("date"), "strftime") else str(e.get("date", ""))
                 )
                 table_data.append(
                     [
@@ -495,14 +486,10 @@ class PDFService:
             table_data = [["Date", "Événement", "Rôle liturgique", "Statut"]]
             for s in sessions:
                 date_str = (
-                    s["date"].strftime("%d/%m/%Y")
-                    if hasattr(s.get("date"), "strftime")
-                    else str(s.get("date", ""))
+                    s["date"].strftime("%d/%m/%Y") if hasattr(s.get("date"), "strftime") else str(s.get("date", ""))
                 )
                 status = str(s.get("status", ""))
-                status_display = (
-                    "✓ Présent" if "PRESENT" in status.upper() else "✗ Absent"
-                )
+                status_display = "✓ Présent" if "PRESENT" in status.upper() else "✗ Absent"
                 table_data.append(
                     [
                         date_str,

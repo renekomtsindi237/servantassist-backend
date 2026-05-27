@@ -5,6 +5,7 @@ Endpoints de gestion des API Keys.
 - ADMIN/AUMÔNIER : peuvent créer des clés pour leur propre compte
 - Tout utilisateur actif : lister et révoquer ses propres clés
 """
+
 from typing import Annotated, List
 from uuid import UUID
 

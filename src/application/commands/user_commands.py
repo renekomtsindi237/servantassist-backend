@@ -10,6 +10,7 @@ Pour une architecture plus formelle, on peut séparer Command (DTO)
 et CommandHandler (exécuteur). Ici on les fusionne pour garder
 la simplicité sur un système de taille modérée.
 """
+
 from dataclasses import dataclass
 from uuid import UUID
 

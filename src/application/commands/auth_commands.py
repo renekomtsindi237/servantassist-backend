@@ -1,6 +1,7 @@
 """
 Auth commands — création d'invitations (CQRS).
 """
+
 from dataclasses import dataclass
 from typing import Optional
 from uuid import UUID

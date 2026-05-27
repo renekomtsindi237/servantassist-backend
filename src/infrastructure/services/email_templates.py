@@ -4,6 +4,7 @@ Templates HTML pour les emails transactionnels ServantAssist.
 Design : chaleureux, professionnel, compatible avec tous les clients email.
 Toutes les couleurs et styles sont en inline CSS pour la compatibilité maximale.
 """
+
 from datetime import datetime
 
 from src.infrastructure.config.settings import get_settings
@@ -129,10 +130,7 @@ def render_welcome_email(
     role_label = _ROLE_LABELS.get(role.upper(), role)
 
     subject = f"Bienvenue dans ServantAssist, {user_first_name} !"
-    preview = (
-        f"Bienvenue {user_first_name} ! Votre compte {role_label} est prêt. "
-        f"Connectez-vous dès maintenant."
-    )
+    preview = f"Bienvenue {user_first_name} ! Votre compte {role_label} est prêt. " f"Connectez-vous dès maintenant."
     logo = _logo_url()
 
     content = f"""\

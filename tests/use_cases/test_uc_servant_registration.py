@@ -11,6 +11,7 @@
 ║    6. La connexion par email est refusée (403)                         ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
+
 import pytest
 from httpx import AsyncClient
 from jose import jwt

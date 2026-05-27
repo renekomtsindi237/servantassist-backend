@@ -8,6 +8,7 @@ Responsabilites :
 - Marquage comme lu
 - Statistiques
 """
+
 from datetime import datetime, timezone
 import logging
 from typing import Optional
@@ -94,9 +95,7 @@ class NotificationService:
                         "type": notification_type.value,
                         "title": title,
                         "body": body,
-                        "created_at": notification.created_at.isoformat()
-                        if notification.created_at
-                        else None,
+                        "created_at": notification.created_at.isoformat() if notification.created_at else None,
                     },
                 )
             except Exception as exc:

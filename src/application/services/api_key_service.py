@@ -3,6 +3,7 @@ Service de gestion des API Keys.
 
 Génère des clés sécurisées (préfixe + secret), stocke uniquement le hash.
 """
+
 import secrets
 from typing import List, Optional, Tuple
 from uuid import UUID
@@ -71,31 +72,19 @@ class ApiKeyService:
     async def list_all_keys(self, limit: int = 50, offset: int = 0) -> List[ApiKey]:
         return await self.repo.list_all(limit=limit, offset=offset)
 
-    async def revoke_key(
-        self, key_id: UUID, requester_id: UUID, is_admin: bool
-    ) -> ApiKey:
+    async def revoke_key(self, key_id: UUID, requester_id: UUID, is_admin: bool) -> ApiKey:
         key = await self.repo.get_by_id(key_id)
         if not key:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Clé introuvable"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clé introuvable")
         if not is_admin and key.user_id != requester_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé")
         revoked = await self.repo.revoke(key_id)
         return revoked
 
-    async def delete_key(
-        self, key_id: UUID, requester_id: UUID, is_admin: bool
-    ) -> None:
+    async def delete_key(self, key_id: UUID, requester_id: UUID, is_admin: bool) -> None:
         key = await self.repo.get_by_id(key_id)
         if not key:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Clé introuvable"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clé introuvable")
         if not is_admin and key.user_id != requester_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé")
         await self.repo.delete(key_id)

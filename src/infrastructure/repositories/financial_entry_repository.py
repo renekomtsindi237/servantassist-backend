@@ -1,6 +1,7 @@
 """
 Repository pour la gestion des entrées financières (COMMISSAIRE_AUX_COMPTES).
 """
+
 from datetime import datetime, timezone
 from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
@@ -33,9 +34,7 @@ class FinancialEntryRepository:
 
     async def get_by_id(self, entry_id: UUID) -> Optional[FinancialEntry]:
         """Récupère une entrée par son ID."""
-        result = await self.session.execute(
-            select(FinancialEntry).where(FinancialEntry.id == entry_id)
-        )
+        result = await self.session.execute(select(FinancialEntry).where(FinancialEntry.id == entry_id))
         return result.scalar_one_or_none()
 
     async def list_entries(
@@ -142,9 +141,7 @@ class FinancialEntryRepository:
         result = await self.session.execute(query)
         entries = list(result.scalars().all())
 
-        count_query = select(func.count(FinancialEntry.id)).where(
-            FinancialEntry.recorded_by == user_id
-        )
+        count_query = select(func.count(FinancialEntry.id)).where(FinancialEntry.recorded_by == user_id)
         count_result = await self.session.execute(count_query)
         total = count_result.scalar_one()
 
@@ -157,18 +154,14 @@ class FinancialEntryRepository:
     ) -> dict:
         """Calcule les statistiques pour une période."""
         # Total
-        total_query = select(
-            func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)
-        ).where(
+        total_query = select(func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)).where(
             and_(FinancialEntry.date >= start_date, FinancialEntry.date <= end_date)
         )
         total_result = await self.session.execute(total_query)
         total_count, total_amount = total_result.one()
 
         # Vérifiées
-        verified_query = select(
-            func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)
-        ).where(
+        verified_query = select(func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)).where(
             and_(
                 FinancialEntry.date >= start_date,
                 FinancialEntry.date <= end_date,
@@ -179,9 +172,7 @@ class FinancialEntryRepository:
         verified_count, verified_amount = verified_result.one()
 
         # En attente
-        pending_query = select(
-            func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)
-        ).where(
+        pending_query = select(func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)).where(
             and_(
                 FinancialEntry.date >= start_date,
                 FinancialEntry.date <= end_date,
@@ -192,9 +183,7 @@ class FinancialEntryRepository:
         pending_count, pending_amount = pending_result.one()
 
         # Rejetées
-        rejected_query = select(
-            func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)
-        ).where(
+        rejected_query = select(func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)).where(
             and_(
                 FinancialEntry.date >= start_date,
                 FinancialEntry.date <= end_date,
@@ -222,9 +211,7 @@ class FinancialEntryRepository:
     ) -> List[dict]:
         """Résumé par catégorie."""
         # Récupération de toutes les entrées de la période
-        query = select(FinancialEntry).where(
-            and_(FinancialEntry.date >= start_date, FinancialEntry.date <= end_date)
-        )
+        query = select(FinancialEntry).where(and_(FinancialEntry.date >= start_date, FinancialEntry.date <= end_date))
 
         result = await self.session.execute(query)
         entries = result.scalars().all()
@@ -270,26 +257,20 @@ class DiscrepancyRepository:
 
     async def get_by_id(self, discrepancy_id: UUID) -> Optional[Discrepancy]:
         """Récupère un écart par son ID."""
-        result = await self.session.execute(
-            select(Discrepancy).where(Discrepancy.id == discrepancy_id)
-        )
+        result = await self.session.execute(select(Discrepancy).where(Discrepancy.id == discrepancy_id))
         return result.scalar_one_or_none()
 
     async def get_by_entry(self, entry_id: UUID) -> List[Discrepancy]:
         """Récupère les écarts d'une entrée."""
         result = await self.session.execute(
-            select(Discrepancy)
-            .where(Discrepancy.entry_id == entry_id)
-            .order_by(Discrepancy.detected_at.desc())
+            select(Discrepancy).where(Discrepancy.entry_id == entry_id).order_by(Discrepancy.detected_at.desc())
         )
         return list(result.scalars().all())
 
     async def list_unresolved(self) -> List[Discrepancy]:
         """Liste les écarts non résolus."""
         result = await self.session.execute(
-            select(Discrepancy)
-            .where(Discrepancy.resolved == False)
-            .order_by(Discrepancy.detected_at.desc())
+            select(Discrepancy).where(Discrepancy.resolved == False).order_by(Discrepancy.detected_at.desc())
         )
         return list(result.scalars().all())
 

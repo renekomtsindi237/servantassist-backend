@@ -17,6 +17,7 @@ Canaux de diffusion :
 
 Les preferences de canal sont configurables par utilisateur.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -106,9 +107,7 @@ class Notification(SQLModel, table=True):
     status: NotificationStatus = Field(default=NotificationStatus.PENDING, index=True)
     error_message: Optional[str] = Field(default=None, max_length=1000)
     # Envoyeur
-    sent_by: Optional[UUID] = Field(
-        default=None, foreign_key="users.id"
-    )  # None = systeme
+    sent_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # None = systeme
     # Dates
     sent_at: Optional[datetime] = Field(default=None)
     read_at: Optional[datetime] = Field(default=None)

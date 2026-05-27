@@ -13,6 +13,7 @@ Comportement :
 - Dev/Staging → message d'erreur complet pour le debug
 - Toujours loggé avec un error_id traçable
 """
+
 from __future__ import annotations
 
 import traceback

@@ -1,6 +1,7 @@
 """
 Entités pour le module COMMISSAIRE_AUX_COMPTES - Audit financier.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional

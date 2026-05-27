@@ -6,6 +6,7 @@ Chiffrement PII (Loi 2024/017 Cameroun) :
   car ils constituent des données sensibles pouvant révéler le comportement
   personnel et les antécédents disciplinaires d'un mineur.
 """
+
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
@@ -69,11 +70,7 @@ class DisciplineCaseRepository(EncryptedModelMixin):
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = (
-            stmt.offset(offset)
-            .limit(page_size)
-            .order_by(DisciplineCase.created_at.desc())
-        )
+        stmt = stmt.offset(offset).limit(page_size).order_by(DisciplineCase.created_at.desc())
         result = await self.session.exec(stmt)
         cases = list(result.all())
         self._decrypt_list(cases)

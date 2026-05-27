@@ -1,6 +1,7 @@
 """
 Tests unitaires pour le service d'audit financier (COMMISSAIRE).
 """
+
 from datetime import datetime
 from unittest.mock import AsyncMock
 from uuid import uuid4

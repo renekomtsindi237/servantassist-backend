@@ -5,6 +5,7 @@ Les commands modifient l'état du système et émettent des événements.
 Elles sont indépendantes des queries (lectures) et peuvent être
 distribuées, retentées ou journalisées séparément.
 """
+
 from .user_commands import (
     ActivateUserCommand,
     DeactivateUserCommand,

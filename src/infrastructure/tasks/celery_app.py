@@ -10,6 +10,7 @@ Schedule des tâches planifiées :
   - send_weekly_report    : chaque lundi à 7h00 (rapport hebdomadaire aux admins)
   - cleanup_notifications : chaque nuit à 2h00 (purge des notifications lues +30j)
 """
+
 import os
 
 from celery import Celery

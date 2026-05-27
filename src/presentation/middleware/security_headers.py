@@ -11,6 +11,7 @@ Ajoute les headers recommandes par OWASP sur chaque reponse :
 - Permissions-Policy
 - Cache-Control sur endpoints sensibles
 """
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -30,9 +31,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # -- HSTS : force HTTPS (1 an, incluant sous-domaines) --------
         if settings.APP_ENV == "production":
-            response.headers[
-                "Strict-Transport-Security"
-            ] = "max-age=31536000; includeSubDomains; preload"
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
 
         # -- Empeche le sniffing MIME ---------------------------------
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -75,9 +74,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         # -- Permissions Policy (desactive camera, micro, etc.) -------
-        response.headers[
-            "Permissions-Policy"
-        ] = "camera=(), microphone=(), geolocation=(), payment=()"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
 
         # -- Cache-Control sur les endpoints sensibles ----------------
         path = request.url.path

@@ -4,6 +4,7 @@ Schemas Pydantic pour le module Affectations.
 Gere la creation, la modification, la lecture et la gestion du cycle de vie
 des affectations liturgiques des servants.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
@@ -39,9 +40,7 @@ class AssignmentBatchCreate(BaseModel):
     """Schema pour creer plusieurs affectations en une seule requete."""
 
     event_id: UUID
-    assignments: List[AssignmentBatchItem] = Field(
-        ..., min_length=1, description="Au moins une affectation"
-    )
+    assignments: List[AssignmentBatchItem] = Field(..., min_length=1, description="Au moins une affectation")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -9,6 +9,7 @@ GET /cotisations      → Statut cotisations de la période courante
 GET /events/upcoming  → 5 prochains événements
 GET /top-servants     → Top 10 servants par taux de présence
 """
+
 from datetime import datetime
 from typing import Annotated, List, Optional
 

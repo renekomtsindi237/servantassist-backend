@@ -4,6 +4,7 @@ Endpoints d'administration des emails.
 - POST /api/v1/email/test  → envoie un email de test (ADMIN uniquement)
 - POST /api/v1/email/notify → envoie une notification générale à un ou plusieurs destinataires
 """
+
 import logging
 from typing import Annotated, List
 
@@ -21,7 +22,9 @@ logger = logging.getLogger(__name__)
 class TestEmailRequest(BaseModel):
     to_email: str
     subject: str = "Test ServantAssist — SMTP OK"
-    message: str = "Ceci est un email de test envoyé depuis ServantAssist pour vérifier que le service SMTP fonctionne correctement."
+    message: str = (
+        "Ceci est un email de test envoyé depuis ServantAssist pour vérifier que le service SMTP fonctionne correctement."
+    )
 
 
 class NotifyRequest(BaseModel):
@@ -60,9 +63,7 @@ async def send_test_email(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Échec de l'envoi de l'email. Vérifiez la configuration SMTP dans le fichier .env.",
         )
-    logger.info(
-        "Email de test envoyé | to=%s | by=%s", request.to_email, current_admin.id
-    )
+    logger.info("Email de test envoyé | to=%s | by=%s", request.to_email, current_admin.id)
     return EmailResult(
         success=True,
         to=request.to_email,

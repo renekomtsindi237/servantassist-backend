@@ -19,6 +19,7 @@ Gestion (CHARGE_CLASSEMENT_DIMANCHE uniquement) :
 Consultation (Tous les utilisateurs authentifiés) :
     GET    /published                     Modèles publiés (visible par tous)
 """
+
 from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
@@ -199,15 +200,9 @@ async def generate_exceptional_template(
 async def list_templates(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_charge_classement_dimanche)],
-    status_filter: Optional[SundayScheduleStatus] = Query(
-        None, alias="status", description="Filtrer par statut"
-    ),
-    start_date: Optional[datetime] = Query(
-        None, description="Modèles à partir de cette date"
-    ),
-    end_date: Optional[datetime] = Query(
-        None, description="Modèles jusqu'à cette date"
-    ),
+    status_filter: Optional[SundayScheduleStatus] = Query(None, alias="status", description="Filtrer par statut"),
+    start_date: Optional[datetime] = Query(None, description="Modèles à partir de cette date"),
+    end_date: Optional[datetime] = Query(None, description="Modèles jusqu'à cette date"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -374,9 +369,7 @@ async def add_assignment_to_mass(
     Une messe peut avoir plusieurs assignations pour différents postes.
     """
     service = _get_service(session)
-    return await service.add_assignment_to_mass(
-        mass_id, data, assigned_by=current_user.id
-    )
+    return await service.add_assignment_to_mass(mass_id, data, assigned_by=current_user.id)
 
 
 @router.delete("/assignments/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)

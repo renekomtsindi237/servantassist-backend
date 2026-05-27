@@ -20,6 +20,7 @@ Statistiques :
 Accessible a : Aumonier, Admin (toutes operations)
                Tout utilisateur (consulter ses propres presences)
 """
+
 from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
@@ -140,9 +141,7 @@ async def get_my_stats(
     **Accessible a :** Tout utilisateur authentifie.
     """
     service = _get_service(session)
-    return await service.get_user_stats(
-        current_user.id, start_date=start_date, end_date=end_date
-    )
+    return await service.get_user_stats(current_user.id, start_date=start_date, end_date=end_date)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -198,9 +197,7 @@ async def get_user_stats(
     **Accessible a :** Aumonier, Admin.
     """
     service = _get_service(session)
-    return await service.get_user_stats(
-        user_id, start_date=start_date, end_date=end_date
-    )
+    return await service.get_user_stats(user_id, start_date=start_date, end_date=end_date)
 
 
 @router.get("/{attendance_id}", response_model=AttendanceResponse)
@@ -216,10 +213,7 @@ async def get_attendance(
     """
     service = _get_service(session)
     attendance = await service.get_attendance(attendance_id)
-    if (
-        current_user.role not in (UserRole.ADMIN, UserRole.AUMÔNIER)
-        and attendance.user_id != current_user.id
-    ):
+    if current_user.role not in (UserRole.ADMIN, UserRole.AUMÔNIER) and attendance.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acces refuse a cet enregistrement de presence.",
@@ -257,9 +251,7 @@ async def update_attendance(
 async def export_attendance_pdf(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
-    user_id: Optional[UUID] = Query(
-        None, description="ID du servant (admin seulement)"
-    ),
+    user_id: Optional[UUID] = Query(None, description="ID du servant (admin seulement)"),
     start_date: Optional[datetime] = Query(None, description="Date de début"),
     end_date: Optional[datetime] = Query(None, description="Date de fin"),
 ):
@@ -268,11 +260,7 @@ async def export_attendance_pdf(
     from src.infrastructure.services.pdf_service import PDFService
 
     # Les non-admin ne peuvent exporter que leurs propres données
-    target_id = (
-        user_id
-        if user_id and current_user.role in (UserRole.ADMIN, UserRole.AUMONIER)
-        else current_user.id
-    )
+    target_id = user_id if user_id and current_user.role in (UserRole.ADMIN, UserRole.AUMONIER) else current_user.id
     svc = _get_service(session)
     result = await svc.list_attendances(
         user_id=target_id,
@@ -280,20 +268,12 @@ async def export_attendance_pdf(
         end_date=end_date,
         page_size=500,
     )
-    stats = await svc.get_user_stats(
-        target_id, start_date=start_date, end_date=end_date
-    )
+    stats = await svc.get_user_stats(target_id, start_date=start_date, end_date=end_date)
     target_user = await UserRepository(session).get(target_id)
-    servant_name = (
-        f"{target_user.first_name} {target_user.last_name}"
-        if target_user
-        else str(target_id)
-    )
+    servant_name = f"{target_user.first_name} {target_user.last_name}" if target_user else str(target_id)
     period_label = "Toute période"
     if start_date and end_date:
-        period_label = (
-            f"{start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}"
-        )
+        period_label = f"{start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}"
     elif start_date:
         period_label = f"Depuis le {start_date.strftime('%d/%m/%Y')}"
 

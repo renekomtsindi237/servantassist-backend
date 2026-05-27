@@ -3,6 +3,7 @@ Schemas Pydantic pour le module Evenements.
 
 Gere la creation, modification, lecture et gestion des participants.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

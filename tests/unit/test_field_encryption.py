@@ -9,6 +9,7 @@ Couvre :
   - Utilitaire decrypt_str_fields
   - Singleton get_encryptor
 """
+
 import base64
 
 import pytest
@@ -124,9 +125,7 @@ class TestHmacIndex:
         assert h1 == h2
 
     def test_case_insensitive(self, enc):
-        assert enc.hmac_index("SERVANT@paroisse.cm") == enc.hmac_index(
-            "servant@paroisse.cm"
-        )
+        assert enc.hmac_index("SERVANT@paroisse.cm") == enc.hmac_index("servant@paroisse.cm")
 
     def test_strips_whitespace(self, enc):
         assert enc.hmac_index("  email@test.com  ") == enc.hmac_index("email@test.com")

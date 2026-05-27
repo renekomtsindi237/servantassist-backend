@@ -9,6 +9,7 @@ Avantage : les lectures analytics peuvent être mise en cache,
 déplacées vers une base de données en lecture seule, ou parallélisées
 sans toucher aux services d'écriture.
 """
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.dashboard_service import DashboardService

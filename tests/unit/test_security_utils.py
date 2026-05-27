@@ -8,6 +8,7 @@ Couvre :
   SecurityUtils.create_reset_token   : courte durée de vie
   SecurityUtils.sanitize_html        : protection XSS
 """
+
 import pytest
 from datetime import timedelta
 
@@ -15,7 +16,6 @@ from jose import jwt
 
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.utils import SecurityUtils
-
 
 settings = get_settings()
 
@@ -100,9 +100,7 @@ class TestAccessToken:
     def test_custom_expiry(self):
         import time
 
-        token = SecurityUtils.create_access_token(
-            "uid", "SERVANT", expires_delta=timedelta(seconds=5)
-        )
+        token = SecurityUtils.create_access_token("uid", "SERVANT", expires_delta=timedelta(seconds=5))
         payload = self._decode(token)
         remaining = payload["exp"] - time.time()
         assert 0 < remaining <= 10  # entre 0 et 10 secondes

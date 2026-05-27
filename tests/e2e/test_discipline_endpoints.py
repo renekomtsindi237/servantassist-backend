@@ -8,6 +8,7 @@ Couvre :
 - Listing et stats
 - Controle d'acces (RBAC)
 """
+
 from datetime import datetime, timedelta
 from uuid import uuid4
 
@@ -26,9 +27,7 @@ class TestOpenDisciplineCase:
     """Tests pour l'ouverture de dossiers disciplinaires."""
 
     @pytest.mark.asyncio
-    async def test_open_case_success(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_open_case_success(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         resp = await client.post(
             "/api/v1/discipline/",
             json={
@@ -46,9 +45,7 @@ class TestOpenDisciplineCase:
         assert body["severity"] == "MOYEN"  # Default for ABSENCE_NON_JUSTIFIEE
 
     @pytest.mark.asyncio
-    async def test_open_case_with_custom_severity(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_open_case_with_custom_severity(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         resp = await client.post(
             "/api/v1/discipline/",
             json={
@@ -63,9 +60,7 @@ class TestOpenDisciplineCase:
         assert resp.json()["severity"] == "MOYEN"
 
     @pytest.mark.asyncio
-    async def test_open_case_non_servant_rejected(
-        self, client: AsyncClient, aumonier_user: User, parent_user: User
-    ):
+    async def test_open_case_non_servant_rejected(self, client: AsyncClient, aumonier_user: User, parent_user: User):
         resp = await client.post(
             "/api/v1/discipline/",
             json={
@@ -78,9 +73,7 @@ class TestOpenDisciplineCase:
         assert resp.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_open_case_servant_forbidden(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_open_case_servant_forbidden(self, client: AsyncClient, servant_user: User):
         """Un servant ne peut pas ouvrir de dossier."""
         resp = await client.post(
             "/api/v1/discipline/",
@@ -102,9 +95,7 @@ class TestOpenDisciplineCase:
 class TestDisciplineWorkflow:
     """Tests du workflow disciplinaire complet."""
 
-    async def _open_case(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ) -> dict:
+    async def _open_case(self, client: AsyncClient, aumonier_user: User, servant_user: User) -> dict:
         resp = await client.post(
             "/api/v1/discipline/",
             json={
@@ -119,9 +110,7 @@ class TestDisciplineWorkflow:
         return resp.json()
 
     @pytest.mark.asyncio
-    async def test_full_workflow_with_suspension(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_full_workflow_with_suspension(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         case = await self._open_case(client, aumonier_user, servant_user)
         case_id = case["id"]
 
@@ -171,9 +160,7 @@ class TestDisciplineWorkflow:
         assert resp.json()["status"] == "EXECUTE"
 
     @pytest.mark.asyncio
-    async def test_workflow_dismiss_case(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_workflow_dismiss_case(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         case = await self._open_case(client, aumonier_user, servant_user)
         case_id = case["id"]
 
@@ -189,9 +176,7 @@ class TestDisciplineWorkflow:
         assert body["sanction_type"] == "AUCUNE"
 
     @pytest.mark.asyncio
-    async def test_invalid_workflow_transition(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_invalid_workflow_transition(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         case = await self._open_case(client, aumonier_user, servant_user)
         case_id = case["id"]
 
@@ -203,9 +188,7 @@ class TestDisciplineWorkflow:
         assert resp.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_cannot_execute_without_verdict(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_cannot_execute_without_verdict(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         case = await self._open_case(client, aumonier_user, servant_user)
         case_id = case["id"]
 

@@ -6,6 +6,7 @@ Couvre :
   build_link_header : RFC 5988 (first/prev/next/last)
   paginate()   : headers HTTP + PaginationResult.as_dict()
 """
+
 import pytest
 
 from src.core.utils.pagination import (
@@ -16,7 +17,6 @@ from src.core.utils.pagination import (
     build_link_header,
     paginate,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  PageParams

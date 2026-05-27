@@ -12,6 +12,7 @@ Backends :
 - **Redis** : utilise en production pour le rate limiting distribue
 - **In-memory** : fallback si Redis n'est pas disponible (dev/test)
 """
+
 import logging
 import time
 from collections import defaultdict
@@ -84,9 +85,7 @@ class _InMemoryTokenBucket:
 
     def cleanup(self, max_age: int = 300):
         now = time.monotonic()
-        keys_to_delete = [
-            k for k, v in self._store.items() if not v or now - v[-1] > max_age
-        ]
+        keys_to_delete = [k for k, v in self._store.items() if not v or now - v[-1] > max_age]
         for k in keys_to_delete:
             del self._store[k]
 
@@ -104,9 +103,7 @@ class _RedisTokenBucket:
     def __init__(self, redis_client):
         self._redis = redis_client
 
-    async def is_allowed(
-        self, key: str, max_requests: int, window: int
-    ) -> Tuple[bool, int]:
+    async def is_allowed(self, key: str, max_requests: int, window: int) -> Tuple[bool, int]:
         """Verifie si la requete est autorisee via Redis sorted set."""
         import time as _time
 
@@ -157,18 +154,14 @@ class RateLimiter:
         else:
             logger.warning("Rate limiter: Redis non disponible, fallback in-memory")
 
-    async def is_allowed(
-        self, key: str, max_requests: int, window: int
-    ) -> Tuple[bool, int]:
+    async def is_allowed(self, key: str, max_requests: int, window: int) -> Tuple[bool, int]:
         if self._use_redis and self._redis_backend:
             try:
                 return await self._redis_backend.is_allowed(key, max_requests, window)
             except Exception:
                 # Redis indisponible — bascule silencieusement sur in-memory
                 self._use_redis = False
-                logger.warning(
-                    "Rate limiter: Redis inaccessible, bascule sur in-memory"
-                )
+                logger.warning("Rate limiter: Redis inaccessible, bascule sur in-memory")
         return self._memory_backend.is_allowed(key, max_requests, window)
 
 
@@ -200,9 +193,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 break
 
         bucket_key = f"{client_ip}:{matched_path or 'global'}"
-        allowed, remaining = await rate_limiter.is_allowed(
-            bucket_key, max_requests, window
-        )
+        allowed, remaining = await rate_limiter.is_allowed(bucket_key, max_requests, window)
 
         if not allowed:
             return JSONResponse(

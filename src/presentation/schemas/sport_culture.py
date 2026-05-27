@@ -1,6 +1,7 @@
 """
 Schémas Pydantic pour le module CHARGE_SPORT_CULTURE.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

@@ -1,6 +1,7 @@
 """
 Schémas pour le dossier unique d'un servant (agrégation multi-modules).
 """
+
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID

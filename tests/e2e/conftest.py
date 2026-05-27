@@ -4,6 +4,7 @@ Fixtures spécifiques aux tests e2e.
 Utilisent la vraie ``main.app`` (avec routes système /, /health, /ready, etc.)
 et patchent le sessionmanager pour pointer sur SQLite en mémoire.
 """
+
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -45,9 +46,7 @@ async def main_client(e2e_engine):
 
     # Fabrique de session partagée pour que /health et les routers
     # voient les mêmes tables.
-    factory = async_sessionmaker(
-        bind=e2e_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    factory = async_sessionmaker(bind=e2e_engine, class_=AsyncSession, expire_on_commit=False)
 
     # 1. Override DI
     async def _override_session():

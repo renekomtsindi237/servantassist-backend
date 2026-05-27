@@ -104,10 +104,7 @@ def upload_to_supabase_storage(
     """
     client = get_supabase_admin()
     if client is None:
-        raise RuntimeError(
-            "Supabase Storage n'est pas disponible en développement. "
-            "Utilisez Cloudflare R2."
-        )
+        raise RuntimeError("Supabase Storage n'est pas disponible en développement. " "Utilisez Cloudflare R2.")
 
     client.storage.from_(bucket).upload(
         path,

@@ -11,6 +11,7 @@
 ║    6. Rôle invalide pour invitation → rejeté                          ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
+
 import pytest
 from httpx import AsyncClient
 
@@ -22,9 +23,7 @@ from tests.conftest import make_auth_header
 class TestInvitationLifecycle:
     """Cycle complet : création → liste → révocation → tentative d'utilisation."""
 
-    async def test_create_list_revoke_cycle(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_create_list_revoke_cycle(self, client: AsyncClient, admin_user: User):
         headers = make_auth_header(admin_user)
 
         # ── Créer ────────────────────────────────────────────────────
@@ -66,9 +65,7 @@ class TestInvitationLifecycle:
         )
         assert reg_resp.status_code == 400
 
-    async def test_invalid_role_for_invitation_rejected(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_invalid_role_for_invitation_rejected(self, client: AsyncClient, admin_user: User):
         """Seuls PARENT et AUMÔNIER sont des rôles valides pour invitation."""
         headers = make_auth_header(admin_user)
         resp = await client.post(
@@ -79,9 +76,7 @@ class TestInvitationLifecycle:
         assert resp.status_code == 400
         assert "invalid role" in resp.json()["detail"].lower()
 
-    async def test_nonexistent_invitation_revoke_404(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_nonexistent_invitation_revoke_404(self, client: AsyncClient, admin_user: User):
         """Révoquer une invitation inexistante → 404."""
         import uuid
 
@@ -97,9 +92,7 @@ class TestInvitationLifecycle:
 class TestCrossAdminInvitation:
     """Un admin ne peut pas révoquer les invitations d'un autre admin."""
 
-    async def test_admin_cannot_revoke_other_admin_invitation(
-        self, client: AsyncClient, admin_user: User, db_session
-    ):
+    async def test_admin_cannot_revoke_other_admin_invitation(self, client: AsyncClient, admin_user: User, db_session):
         """
         Simule deux admins — vérifie qu'un admin ne peut pas révoquer
         l'invitation créée par un autre.

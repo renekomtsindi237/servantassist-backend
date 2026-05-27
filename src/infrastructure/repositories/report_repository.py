@@ -1,6 +1,7 @@
 """
 Repository pour la gestion des rapports (SECRETAIRE).
 """
+
 from datetime import datetime, timezone
 from src.core.utils import utc_now
 from typing import List, Optional, Tuple
@@ -27,9 +28,7 @@ class ReportRepository:
 
     async def get_by_id(self, report_id: UUID) -> Optional[Report]:
         """Récupère un rapport par son ID."""
-        result = await self.session.execute(
-            select(Report).where(Report.id == report_id)
-        )
+        result = await self.session.execute(select(Report).where(Report.id == report_id))
         return result.scalar_one_or_none()
 
     async def list_reports(
@@ -160,9 +159,7 @@ class AttachmentRepository:
 
     async def get_by_id(self, attachment_id: UUID) -> Optional[ReportAttachment]:
         """Récupère une pièce jointe par son ID."""
-        result = await self.session.execute(
-            select(ReportAttachment).where(ReportAttachment.id == attachment_id)
-        )
+        result = await self.session.execute(select(ReportAttachment).where(ReportAttachment.id == attachment_id))
         return result.scalar_one_or_none()
 
     async def get_by_report(self, report_id: UUID) -> List[ReportAttachment]:

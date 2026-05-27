@@ -7,6 +7,7 @@ les services émetteurs (principe Open/Closed).
 Ce module est importé une seule fois au démarrage de l'application
 (dans main.py lifespan) pour enregistrer tous les handlers.
 """
+
 import logging
 
 from src.core.events.domain_events import (
@@ -179,6 +180,4 @@ def register_all_handlers() -> None:
     l'import du module, donc il suffit d'importer ce fichier.
     Cette fonction existe pour rendre l'intention explicite dans main.py.
     """
-    logger.info(
-        "EventBus: %d event types have registered handlers", len(event_bus._handlers)
-    )
+    logger.info("EventBus: %d event types have registered handlers", len(event_bus._handlers))

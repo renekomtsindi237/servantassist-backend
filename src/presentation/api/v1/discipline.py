@@ -15,6 +15,7 @@ Gestion des dossiers disciplinaires :
 Accessible a : Aumonier, Admin (toutes operations)
                Censeur/Censeur adjoint (ouverture de dossier, convocation)
 """
+
 from typing import Annotated, Optional
 from uuid import UUID
 

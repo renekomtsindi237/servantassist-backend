@@ -2,6 +2,7 @@
 Tests de sécurité — RBAC (Role-Based Access Control).
 Vérifie que chaque rôle ne peut accéder qu'à ses propres ressources.
 """
+
 import pytest
 from httpx import AsyncClient
 
@@ -52,9 +53,7 @@ class TestAdminEndpointsRBAC:
     ]
 
     @pytest.mark.parametrize("method,url,body", ADMIN_ENDPOINTS)
-    async def test_servant_rejected(
-        self, client: AsyncClient, servant_user, method, url, body
-    ):
+    async def test_servant_rejected(self, client: AsyncClient, servant_user, method, url, body):
         headers = make_auth_header(servant_user)
         if method == "GET":
             resp = await client.get(url, headers=headers)
@@ -63,9 +62,7 @@ class TestAdminEndpointsRBAC:
         assert resp.status_code == 403, f"SERVANT should be 403 on {method} {url}"
 
     @pytest.mark.parametrize("method,url,body", ADMIN_ENDPOINTS)
-    async def test_parent_rejected(
-        self, client: AsyncClient, parent_user, method, url, body
-    ):
+    async def test_parent_rejected(self, client: AsyncClient, parent_user, method, url, body):
         headers = make_auth_header(parent_user)
         if method == "GET":
             resp = await client.get(url, headers=headers)
@@ -74,9 +71,7 @@ class TestAdminEndpointsRBAC:
         assert resp.status_code == 403, f"PARENT should be 403 on {method} {url}"
 
     @pytest.mark.parametrize("method,url,body", ADMIN_ENDPOINTS)
-    async def test_aumonier_rejected(
-        self, client: AsyncClient, aumonier_user, method, url, body
-    ):
+    async def test_aumonier_rejected(self, client: AsyncClient, aumonier_user, method, url, body):
         headers = make_auth_header(aumonier_user)
         if method == "GET":
             resp = await client.get(url, headers=headers)
@@ -85,9 +80,7 @@ class TestAdminEndpointsRBAC:
         assert resp.status_code == 403, f"AUMÔNIER should be 403 on {method} {url}"
 
     @pytest.mark.parametrize("method,url,body", ADMIN_ENDPOINTS)
-    async def test_unauthenticated_rejected(
-        self, client: AsyncClient, method, url, body
-    ):
+    async def test_unauthenticated_rejected(self, client: AsyncClient, method, url, body):
         if method == "GET":
             resp = await client.get(url)
         else:
@@ -111,18 +104,14 @@ class TestLoginMethodEnforcement:
         # 401 car pas de phone_number en BDD, mais si trouvé → 403
         assert resp.status_code in (401, 403)
 
-    async def test_servant_cannot_use_email_login(
-        self, client: AsyncClient, servant_user
-    ):
+    async def test_servant_cannot_use_email_login(self, client: AsyncClient, servant_user):
         resp = await client.post(
             "/api/v1/auth/login",
             data={"username": servant_user.email, "password": VALID_PASSWORD},
         )
         assert resp.status_code == 403
 
-    async def test_parent_cannot_use_email_login(
-        self, client: AsyncClient, parent_user
-    ):
+    async def test_parent_cannot_use_email_login(self, client: AsyncClient, parent_user):
         resp = await client.post(
             "/api/v1/auth/login",
             data={"username": parent_user.email, "password": VALID_PASSWORD},

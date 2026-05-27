@@ -1,6 +1,7 @@
 """
 Tests de performance pour le module SECRETAIRE - Rapports.
 """
+
 import time
 from datetime import datetime
 from uuid import uuid4

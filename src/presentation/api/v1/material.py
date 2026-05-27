@@ -5,6 +5,7 @@ Permissions:
 - INTENDANT / INTENDANT_ADJOINT : Gestion complète
 - Tous les utilisateurs authentifiés : Consultation
 """
+
 from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
@@ -73,9 +74,7 @@ def get_material_service(
     assignment_repo = TaskAssignmentRepository(db)
     aube_task_repo = AubeTaskRepository(db)
     maintenance_repo = MaintenanceHistoryRepository(db)
-    return MaterialService(
-        item_repo, cleaning_task_repo, assignment_repo, aube_task_repo, maintenance_repo
-    )
+    return MaterialService(item_repo, cleaning_task_repo, assignment_repo, aube_task_repo, maintenance_repo)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -208,9 +207,7 @@ async def update_material_item(
 )
 async def upload_material_photo(
     item_id: UUID,
-    file: Annotated[
-        UploadFile, File(description="Photo de l'article (JPEG, PNG ou WebP, max 5 Mo)")
-    ],
+    file: Annotated[UploadFile, File(description="Photo de l'article (JPEG, PNG ou WebP, max 5 Mo)")],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: User = Depends(require_intendant),
     service: MaterialService = Depends(get_material_service),
@@ -574,9 +571,7 @@ async def upload_cleaning_task_photo_before(
 ):
     task = await service.get_cleaning_task(task_id)
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
     storage = StorageService()
     try:
         photo_url = await storage.upload_task_photo(
@@ -618,9 +613,7 @@ async def upload_cleaning_task_photo_after(
 ):
     task = await service.get_cleaning_task(task_id)
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
     storage = StorageService()
     try:
         photo_url = await storage.upload_task_photo(
@@ -950,9 +943,7 @@ async def upload_aube_task_photo_before(
 ):
     task = await service.get_aube_task(task_id)
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
     storage = StorageService()
     try:
         photo_url = await storage.upload_task_photo(
@@ -984,9 +975,7 @@ async def upload_aube_task_photo_after(
 ):
     task = await service.get_aube_task(task_id)
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
     storage = StorageService()
     try:
         photo_url = await storage.upload_task_photo(

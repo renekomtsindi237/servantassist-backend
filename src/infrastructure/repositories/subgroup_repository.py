@@ -1,6 +1,7 @@
 """
 Repository pour les sous-groupes et leurs membres.
 """
+
 from datetime import datetime, timezone
 from src.core.utils import utc_now
 from typing import Dict, List, Optional
@@ -104,9 +105,7 @@ class SubGroupRepository:
         await self.session.refresh(membership)
         return membership
 
-    async def get_membership(
-        self, group_id: UUID, user_id: UUID
-    ) -> Optional[SubGroupMember]:
+    async def get_membership(self, group_id: UUID, user_id: UUID) -> Optional[SubGroupMember]:
         stmt = select(SubGroupMember).where(
             SubGroupMember.sub_group_id == group_id,
             SubGroupMember.user_id == user_id,
@@ -116,9 +115,7 @@ class SubGroupRepository:
         return result.first()
 
     async def enrich_member(self, member: SubGroupMember) -> Dict:
-        user = (
-            await self.session.exec(select(User).where(User.id == member.user_id))
-        ).first()
+        user = (await self.session.exec(select(User).where(User.id == member.user_id))).first()
         if user:
             decrypt_str_fields(user, _USER_PII)
 

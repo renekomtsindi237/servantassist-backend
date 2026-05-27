@@ -4,6 +4,7 @@ Blacklist de tokens JWT par JTI.
 Permet de révoquer un token avant son expiration naturelle (logout, rotation).
 Backend Redis avec fallback in-memory.
 """
+
 import logging
 import time
 from typing import Dict, Optional

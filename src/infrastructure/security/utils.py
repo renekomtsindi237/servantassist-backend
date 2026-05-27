@@ -4,6 +4,7 @@ Utilitaires de securite : hachage de mots de passe et creation de JWT.
 Chaque token contient un JTI (JWT Token ID) unique pour permettre
 la revocation future via blacklist Redis.
 """
+
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
@@ -52,9 +53,7 @@ class SecurityUtils:
             "jti": uuid.uuid4().hex,  # ID unique pour revocation future
             "iss": settings.APP_NAME,
         }
-        encoded_jwt = jwt.encode(
-            to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
-        )
+        encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         return encoded_jwt
 
     @staticmethod
@@ -78,15 +77,11 @@ class SecurityUtils:
             "jti": uuid.uuid4().hex,
             "iss": settings.APP_NAME,
         }
-        encoded_jwt = jwt.encode(
-            to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
-        )
+        encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         return encoded_jwt
 
     @staticmethod
-    def create_reset_token(
-        subject: Union[str, Any], expires_delta: timedelta = None
-    ) -> str:
+    def create_reset_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
         now = datetime.now(timezone.utc)
         if expires_delta:
             expire = now + expires_delta
@@ -101,9 +96,7 @@ class SecurityUtils:
             "jti": uuid.uuid4().hex,
             "iss": settings.APP_NAME,
         }
-        encoded_jwt = jwt.encode(
-            to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
-        )
+        encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         return encoded_jwt
 
     @staticmethod

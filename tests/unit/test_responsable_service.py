@@ -1,6 +1,7 @@
 """
 Unit tests for ResponsableService (Council Meetings & RI Compliance).
 """
+
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID, uuid4
@@ -43,9 +44,7 @@ def mock_council_repo():
 
 @pytest.fixture
 def service(mock_nomination_repo, mock_action_repo, mock_user_repo, mock_council_repo):
-    return ResponsableService(
-        mock_nomination_repo, mock_action_repo, mock_user_repo, mock_council_repo
-    )
+    return ResponsableService(mock_nomination_repo, mock_action_repo, mock_user_repo, mock_council_repo)
 
 
 @pytest.mark.asyncio
@@ -68,9 +67,7 @@ async def test_create_council_meeting_success(service, mock_council_repo):
 
 
 @pytest.mark.asyncio
-async def test_monitor_council_attendance_destitution(
-    service, mock_council_repo, mock_nomination_repo
-):
+async def test_monitor_council_attendance_destitution(service, mock_council_repo, mock_nomination_repo):
     responsable_id = uuid4()
     # Mock 3 consecutive absences
     mock_council_repo.get_responsable_attendances.return_value = [

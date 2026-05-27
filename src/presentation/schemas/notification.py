@@ -1,6 +1,7 @@
 """
 Schemas Pydantic pour le module Communication / Notifications.
 """
+
 from datetime import datetime
 from typing import Optional
 from uuid import UUID

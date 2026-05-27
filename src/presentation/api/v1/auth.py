@@ -125,9 +125,7 @@ async def login_with_phone(
     return await auth_service.create_tokens(user)
 
 
-@router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_data: UserCreateWithInvite,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -185,15 +183,11 @@ async def logout(
     _settings = get_settings()
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Token manquant"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token manquant")
 
     token = auth_header.split(" ", 1)[1]
     try:
-        payload = jwt.decode(
-            token, _settings.JWT_SECRET_KEY, algorithms=[_settings.JWT_ALGORITHM]
-        )
+        payload = jwt.decode(token, _settings.JWT_SECRET_KEY, algorithms=[_settings.JWT_ALGORITHM])
         jti = payload.get("jti")
         exp = payload.get("exp", time.time() + 1800)
         if jti:
@@ -220,9 +214,7 @@ async def forgot_password(
     email_service = EmailService()
 
     await auth_service.forgot_password(request.email, email_service)
-    return {
-        "message": "Si cet e-mail est enregistré, un lien de réinitialisation vous a été envoyé."
-    }
+    return {"message": "Si cet e-mail est enregistré, un lien de réinitialisation vous a été envoyé."}
 
 
 @router.post("/request-reset-code", status_code=status.HTTP_200_OK)
@@ -262,9 +254,7 @@ async def verify_reset_code(
     code_repo = PasswordResetCodeRepository(session)
     auth_service = AuthService(user_repo)
 
-    reset_token = await auth_service.verify_reset_code(
-        request.email, request.code, code_repo
-    )
+    reset_token = await auth_service.verify_reset_code(request.email, request.code, code_repo)
     return VerifyResetCodeResponse(reset_token=reset_token)
 
 
@@ -280,9 +270,7 @@ async def reset_password(
     auth_service = AuthService(user_repo)
     email_service = EmailService()
 
-    await auth_service.reset_password(
-        request.token, request.new_password, email_service
-    )
+    await auth_service.reset_password(request.token, request.new_password, email_service)
     return {"message": "Votre mot de passe a été réinitialisé avec succès."}
 
 

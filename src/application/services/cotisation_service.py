@@ -7,6 +7,7 @@ Regles du reglement interieur :
 - L'Aumonier / Admin cree les periodes de cotisation
 - Le non-paiement repete peut entrainer des sanctions
 """
+
 import math
 from datetime import datetime, timezone
 from src.core.utils import utc_now
@@ -56,9 +57,7 @@ class CotisationService:
     #  PERIODES
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_period(
-        self, data: CotisationPeriodCreate, created_by: UUID
-    ) -> CotisationPeriodResponse:
+    async def create_period(self, data: CotisationPeriodCreate, created_by: UUID) -> CotisationPeriodResponse:
         if data.end_date <= data.start_date:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -79,9 +78,7 @@ class CotisationService:
         created = await self.period_repo.create(period)
         return await self._build_period_response(created)
 
-    async def update_period(
-        self, period_id: UUID, data: CotisationPeriodUpdate
-    ) -> CotisationPeriodResponse:
+    async def update_period(self, period_id: UUID, data: CotisationPeriodUpdate) -> CotisationPeriodResponse:
         period = await self.period_repo.get(period_id)
         if not period:
             raise HTTPException(
@@ -145,9 +142,7 @@ class CotisationService:
             )
         await self.period_repo.delete(period_id)
 
-    async def _build_period_response(
-        self, period: CotisationPeriod
-    ) -> CotisationPeriodResponse:
+    async def _build_period_response(self, period: CotisationPeriod) -> CotisationPeriodResponse:
         stats = await self.payment_repo.get_period_stats(period.id)
         rate = 0.0
         if stats["total_members"] > 0:
@@ -177,9 +172,7 @@ class CotisationService:
     #  PAIEMENTS
     # ══════════════════════════════════════════════════════════════════
 
-    async def record_payment(
-        self, data: MemberCotisationCreate, recorded_by: UUID
-    ) -> MemberCotisationResponse:
+    async def record_payment(self, data: MemberCotisationCreate, recorded_by: UUID) -> MemberCotisationResponse:
         """Enregistrer un paiement de cotisation."""
         period = await self.period_repo.get(data.period_id)
         if not period:
@@ -200,9 +193,7 @@ class CotisationService:
                 detail="Utilisateur introuvable.",
             )
 
-        existing = await self.payment_repo.get_by_period_and_user(
-            data.period_id, data.user_id
-        )
+        existing = await self.payment_repo.get_by_period_and_user(data.period_id, data.user_id)
         if existing:
             # Mettre a jour le paiement existant (paiement supplementaire)
             existing.amount_paid += data.amount_paid
@@ -238,9 +229,7 @@ class CotisationService:
         enriched = await self.payment_repo.enrich_cotisation(created)
         return MemberCotisationResponse(**enriched)
 
-    async def get_period_payments(
-        self, period_id: UUID
-    ) -> List[MemberCotisationResponse]:
+    async def get_period_payments(self, period_id: UUID) -> List[MemberCotisationResponse]:
         period = await self.period_repo.get(period_id)
         if not period:
             raise HTTPException(

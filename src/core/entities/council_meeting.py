@@ -1,6 +1,7 @@
 """
 Entités pour le suivi des réunions du Conseil des Responsables (Art 12).
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional

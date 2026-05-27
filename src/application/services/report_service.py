@@ -1,6 +1,7 @@
 """
 Service pour la gestion des rapports (SECRETAIRE).
 """
+
 from datetime import datetime
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
@@ -178,9 +179,7 @@ class ReportService:
 
         # Vérifier que le rapport est en brouillon
         if report.status != ReportStatus.DRAFT:
-            raise ValueError(
-                "Les pièces jointes ne peuvent être ajoutées qu'aux rapports en brouillon"
-            )
+            raise ValueError("Les pièces jointes ne peuvent être ajoutées qu'aux rapports en brouillon")
 
         attachment = ReportAttachment(
             id=uuid4(),
@@ -207,8 +206,6 @@ class ReportService:
         # Vérifier que le rapport est en brouillon
         report = await self.report_repo.get_by_id(attachment.report_id)
         if report and report.status != ReportStatus.DRAFT:
-            raise ValueError(
-                "Les pièces jointes ne peuvent être supprimées que des rapports en brouillon"
-            )
+            raise ValueError("Les pièces jointes ne peuvent être supprimées que des rapports en brouillon")
 
         return await self.attachment_repo.delete(attachment_id)

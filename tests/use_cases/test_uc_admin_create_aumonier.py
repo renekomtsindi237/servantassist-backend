@@ -11,6 +11,7 @@
 ║    6. Un non-admin ne peut PAS créer d'aumônier                        ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
+
 import pytest
 from httpx import AsyncClient
 from jose import jwt
@@ -33,9 +34,7 @@ class TestAdminCreatesAumonier:
         "last_name": "Aumônier",
     }
 
-    async def test_full_aumonier_creation_flow(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_full_aumonier_creation_flow(self, client: AsyncClient, admin_user: User):
         admin_headers = make_auth_header(admin_user)
 
         # ── Étape 1 : Admin crée l'aumônier ──────────────────────────
@@ -89,9 +88,7 @@ class TestAdminCreatesAumonier:
 class TestNonAdminCannotCreateAumonier:
     """Un non-admin ne peut pas créer d'aumônier."""
 
-    async def test_servant_cannot_create_aumonier(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_servant_cannot_create_aumonier(self, client: AsyncClient, servant_user: User):
         servant_headers = make_auth_header(servant_user)
         resp = await client.post(
             "/api/v1/admin/users/aumônier",
@@ -105,9 +102,7 @@ class TestNonAdminCannotCreateAumonier:
         )
         assert resp.status_code == 403
 
-    async def test_parent_cannot_create_aumonier(
-        self, client: AsyncClient, parent_user: User
-    ):
+    async def test_parent_cannot_create_aumonier(self, client: AsyncClient, parent_user: User):
         parent_headers = make_auth_header(parent_user)
         resp = await client.post(
             "/api/v1/admin/users/aumônier",

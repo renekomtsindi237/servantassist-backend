@@ -1,6 +1,7 @@
 """
 Repository pour les cotisations et paiements.
 """
+
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -58,11 +59,7 @@ class CotisationPeriodRepository:
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = (
-            stmt.offset(offset)
-            .limit(page_size)
-            .order_by(CotisationPeriod.start_date.desc())
-        )
+        stmt = stmt.offset(offset).limit(page_size).order_by(CotisationPeriod.start_date.desc())
         result = await self.session.exec(stmt)
         return result.all(), total
 
@@ -98,9 +95,7 @@ class MemberCotisationRepository:
         result = await self.session.exec(stmt)
         return result.first()
 
-    async def get_by_period_and_user(
-        self, period_id: UUID, user_id: UUID
-    ) -> Optional[MemberCotisation]:
+    async def get_by_period_and_user(self, period_id: UUID, user_id: UUID) -> Optional[MemberCotisation]:
         stmt = select(MemberCotisation).where(
             MemberCotisation.period_id == period_id,
             MemberCotisation.user_id == user_id,
@@ -161,18 +156,12 @@ class MemberCotisationRepository:
 
     async def enrich_cotisation(self, cotisation: MemberCotisation) -> Dict:
         """Enrichit un paiement avec infos utilisateur et periode."""
-        user = (
-            await self.session.exec(select(User).where(User.id == cotisation.user_id))
-        ).first()
+        user = (await self.session.exec(select(User).where(User.id == cotisation.user_id))).first()
         if user:
             decrypt_str_fields(user, _USER_PII)
 
         period = (
-            await self.session.exec(
-                select(CotisationPeriod).where(
-                    CotisationPeriod.id == cotisation.period_id
-                )
-            )
+            await self.session.exec(select(CotisationPeriod).where(CotisationPeriod.id == cotisation.period_id))
         ).first()
 
         return {
@@ -193,9 +182,7 @@ class MemberCotisationRepository:
             "amount_expected": period.amount_expected if period else None,
         }
 
-    async def enrich_cotisations(
-        self, cotisations: List[MemberCotisation]
-    ) -> List[Dict]:
+    async def enrich_cotisations(self, cotisations: List[MemberCotisation]) -> List[Dict]:
         return [await self.enrich_cotisation(c) for c in cotisations]
 
     async def create(self, cotisation: MemberCotisation) -> MemberCotisation:

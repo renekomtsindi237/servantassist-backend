@@ -12,6 +12,7 @@ Couvre :
 - Interdiction d'acces aux non-responsables
 - Validation des categories par poste
 """
+
 from datetime import datetime
 from uuid import uuid4
 

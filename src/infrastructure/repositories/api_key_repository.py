@@ -1,4 +1,5 @@
 """Repository pour les API Keys."""
+
 from datetime import datetime, timezone
 from src.core.utils import utc_now
 from typing import List, Optional
@@ -26,19 +27,12 @@ class ApiKeyRepository:
 
     async def get_by_user(self, user_id: UUID) -> List[ApiKey]:
         result = await self.session.exec(
-            select(ApiKey)
-            .where(ApiKey.user_id == user_id)
-            .order_by(ApiKey.created_at.desc())
+            select(ApiKey).where(ApiKey.user_id == user_id).order_by(ApiKey.created_at.desc())
         )
         return list(result.all())
 
     async def list_all(self, limit: int = 50, offset: int = 0) -> List[ApiKey]:
-        result = await self.session.exec(
-            select(ApiKey)
-            .order_by(ApiKey.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        result = await self.session.exec(select(ApiKey).order_by(ApiKey.created_at.desc()).offset(offset).limit(limit))
         return list(result.all())
 
     async def revoke(self, key_id: UUID) -> Optional[ApiKey]:

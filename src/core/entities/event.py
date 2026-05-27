@@ -3,6 +3,7 @@ Entites du module Evenements.
 
 Types d'evenements liturgiques et paroissiaux geres par ServantAssist.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional

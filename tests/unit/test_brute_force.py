@@ -3,6 +3,7 @@ Tests unitaires — Protection brute-force (account lockout).
 
 Teste la facade BruteForceProtection en mode in-memory (sans Redis).
 """
+
 import pytest
 
 from src.infrastructure.security.brute_force import BruteForceProtection

@@ -1,6 +1,7 @@
 """
 Schemas for invitation code management
 """
+
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -14,15 +15,9 @@ class InvitationCodeCreate(BaseModel):
     """Request to create invitation code"""
 
     role: str = Field(default="PARENT", description="PARENT or AUMÔNIER")
-    parent_name: Optional[str] = Field(
-        default=None, description="Nom du parent destinataire"
-    )
-    email: Optional[str] = Field(
-        default=None, description="Optional: specific email allowed to use"
-    )
-    phone_number: Optional[str] = Field(
-        default=None, description="Optional: phone number for WhatsApp delivery"
-    )
+    parent_name: Optional[str] = Field(default=None, description="Nom du parent destinataire")
+    email: Optional[str] = Field(default=None, description="Optional: specific email allowed to use")
+    phone_number: Optional[str] = Field(default=None, description="Optional: phone number for WhatsApp delivery")
     notes: Optional[str] = None
 
 

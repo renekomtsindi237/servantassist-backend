@@ -16,6 +16,7 @@ Les risques A01, A02, A06, A08 sont couverts par :
   A06 → pip-audit dans le pipeline CI
   A08 → IdempotencyMiddleware + vérification d'intégrité HMAC
 """
+
 from __future__ import annotations
 
 import re
@@ -39,9 +40,7 @@ _SQL_PATTERNS: Sequence[re.Pattern] = [
         re.IGNORECASE,
     ),
     re.compile(r"(--\s|;--|\bor\b\s+\d+=\d+|\band\b\s+\d+=\d+)", re.IGNORECASE),
-    re.compile(
-        r"(xp_cmdshell|sp_executesql|information_schema|sysobjects)", re.IGNORECASE
-    ),
+    re.compile(r"(xp_cmdshell|sp_executesql|information_schema|sysobjects)", re.IGNORECASE),
 ]
 
 _SSTI_PATTERNS: Sequence[re.Pattern] = [
@@ -121,9 +120,7 @@ class OWASPGuardMiddleware(BaseHTTPMiddleware):
             return self._reject(400, "Malformed request")
 
         # ── A04 : Validation du Content-Type pour POST/PUT/PATCH ─────────
-        if request.method in _JSON_METHODS and not any(
-            request.url.path.startswith(p) for p in _CT_EXEMPT_PREFIXES
-        ):
+        if request.method in _JSON_METHODS and not any(request.url.path.startswith(p) for p in _CT_EXEMPT_PREFIXES):
             ct = request.headers.get("content-type", "").split(";")[0].strip()
             if ct and ct not in _ALLOWED_CONTENT_TYPES:
                 self._log_event("INVALID_CONTENT_TYPE", request, f"ct={ct}")
@@ -132,11 +129,7 @@ class OWASPGuardMiddleware(BaseHTTPMiddleware):
         # ── A04 : Taille du corps hors upload multipart ───────────────────
         content_length = request.headers.get("content-length")
         ct = request.headers.get("content-type", "")
-        if (
-            content_length
-            and "multipart/form-data" not in ct
-            and int(content_length) > _MAX_BODY_BYTES
-        ):
+        if content_length and "multipart/form-data" not in ct and int(content_length) > _MAX_BODY_BYTES:
             self._log_event("BODY_TOO_LARGE", request, f"size={content_length}")
             return self._reject(413, "Request body too large")
 

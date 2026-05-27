@@ -5,6 +5,7 @@ Permissions:
 - CHARGE_LITURGIE / CHARGE_LITURGIE_ADJOINT : Gestion complète
 - Tous les utilisateurs authentifiés : Consultation et participation
 """
+
 from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
@@ -80,9 +81,7 @@ def get_training_service(
     participation_repo = TrainingParticipationRepository(db)
     material_repo = TrainingMaterialRepository(db)
     session_material_repo = SessionMaterialRepository(db)
-    return TrainingService(
-        session_repo, participation_repo, material_repo, session_material_repo
-    )
+    return TrainingService(session_repo, participation_repo, material_repo, session_material_repo)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -680,11 +679,7 @@ async def download_certificate(
     # Récupérer la session de formation pour le titre
     session = await service.get_session(participation.session_id)
     session_title = session.title if session else "Formation"
-    session_date = (
-        session.date
-        if session and hasattr(session, "date")
-        else participation.created_at
-    )
+    session_date = session.date if session and hasattr(session, "date") else participation.created_at
 
     from src.infrastructure.services.pdf_service import PDFService
 
@@ -694,9 +689,7 @@ async def download_certificate(
         participant_last_name="",
         training_title=session_title,
         training_date=session_date,
-        score=float(participation.evaluation_score)
-        if participation.evaluation_score
-        else None,
+        score=float(participation.evaluation_score) if participation.evaluation_score else None,
     )
     filename = f"certificat_{participation_id}.pdf"
     return Response(

@@ -5,6 +5,7 @@ Gère les contributions mensuelles des servants :
 - Hebdomadaire : 100 FCFA/samedi
 - Mensuel : 500 FCFA/mois
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional

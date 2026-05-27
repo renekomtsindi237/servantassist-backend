@@ -7,6 +7,7 @@ Chiffrement PII (Loi 2024/017 Cameroun) :
     (une adresse IP est une donnée personnelle per Art. 5)
   Les User chargés directement sont déchiffrés via decrypt_str_fields().
 """
+
 from datetime import datetime
 from typing import List, Optional, Tuple
 from uuid import UUID
@@ -60,9 +61,7 @@ class SundayScheduleRepository:
     #  TEMPLATES
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_template(
-        self, template: SundayScheduleTemplate
-    ) -> SundayScheduleTemplate:
+    async def create_template(self, template: SundayScheduleTemplate) -> SundayScheduleTemplate:
         """Crée un nouveau modèle de classement."""
         self.session.add(template)
         await self.session.commit()
@@ -72,15 +71,11 @@ class SundayScheduleRepository:
     async def get_template(self, template_id: UUID) -> Optional[SundayScheduleTemplate]:
         """Récupère un modèle par son ID."""
         result = await self.session.execute(
-            select(SundayScheduleTemplate).where(
-                SundayScheduleTemplate.id == template_id
-            )
+            select(SundayScheduleTemplate).where(SundayScheduleTemplate.id == template_id)
         )
         return result.scalar_one_or_none()
 
-    async def update_template(
-        self, template_id: UUID, template: SundayScheduleTemplate
-    ) -> SundayScheduleTemplate:
+    async def update_template(self, template_id: UUID, template: SundayScheduleTemplate) -> SundayScheduleTemplate:
         """Met à jour un modèle."""
         await self.session.commit()
         await self.session.refresh(template)
@@ -101,9 +96,7 @@ class SundayScheduleRepository:
         for mass in masses:
             # Supprimer les assignations de la messe
             assignments_result = await self.session.execute(
-                select(SundayMassAssignment).where(
-                    SundayMassAssignment.mass_slot_id == mass.id
-                )
+                select(SundayMassAssignment).where(SundayMassAssignment.mass_slot_id == mass.id)
             )
             assignments = assignments_result.scalars().all()
             for assignment in assignments:
@@ -167,9 +160,7 @@ class SundayScheduleRepository:
         await self.session.refresh(mass)
         return mass
 
-    async def create_masses_batch(
-        self, masses: List[SundayMassSlot]
-    ) -> List[SundayMassSlot]:
+    async def create_masses_batch(self, masses: List[SundayMassSlot]) -> List[SundayMassSlot]:
         """Crée plusieurs messes en une seule transaction."""
         self.session.add_all(masses)
         await self.session.commit()
@@ -179,9 +170,7 @@ class SundayScheduleRepository:
 
     async def get_mass(self, mass_id: UUID) -> Optional[SundayMassSlot]:
         """Récupère une messe par son ID."""
-        result = await self.session.execute(
-            select(SundayMassSlot).where(SundayMassSlot.id == mass_id)
-        )
+        result = await self.session.execute(select(SundayMassSlot).where(SundayMassSlot.id == mass_id))
         return result.scalar_one_or_none()
 
     async def update_mass(self, mass_id: UUID, mass: SundayMassSlot) -> SundayMassSlot:
@@ -198,9 +187,7 @@ class SundayScheduleRepository:
 
         # Supprimer d'abord les assignations
         assignments_result = await self.session.execute(
-            select(SundayMassAssignment).where(
-                SundayMassAssignment.mass_slot_id == mass_id
-            )
+            select(SundayMassAssignment).where(SundayMassAssignment.mass_slot_id == mass_id)
         )
         assignments = assignments_result.scalars().all()
         for assignment in assignments:
@@ -213,9 +200,7 @@ class SundayScheduleRepository:
     async def get_template_masses(self, template_id: UUID) -> List[SundayMassSlot]:
         """Récupère toutes les messes d'un modèle."""
         result = await self.session.execute(
-            select(SundayMassSlot)
-            .where(SundayMassSlot.template_id == template_id)
-            .order_by(SundayMassSlot.mass_time)
+            select(SundayMassSlot).where(SundayMassSlot.template_id == template_id).order_by(SundayMassSlot.mass_time)
         )
         return list(result.scalars().all())
 
@@ -223,9 +208,7 @@ class SundayScheduleRepository:
     #  ASSIGNMENTS
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_assignment(
-        self, assignment: SundayMassAssignment
-    ) -> SundayMassAssignment:
+    async def create_assignment(self, assignment: SundayMassAssignment) -> SundayMassAssignment:
         """Crée une nouvelle assignation."""
         _enc_fields(assignment, _ASSIGN_PII)
         self.session.add(assignment)
@@ -234,9 +217,7 @@ class SundayScheduleRepository:
         _dec_fields(assignment, _ASSIGN_PII)
         return assignment
 
-    async def create_assignments_batch(
-        self, assignments: List[SundayMassAssignment]
-    ) -> List[SundayMassAssignment]:
+    async def create_assignments_batch(self, assignments: List[SundayMassAssignment]) -> List[SundayMassAssignment]:
         """Crée plusieurs assignations en une seule transaction."""
         for a in assignments:
             _enc_fields(a, _ASSIGN_PII)
@@ -247,9 +228,7 @@ class SundayScheduleRepository:
             _dec_fields(assignment, _ASSIGN_PII)
         return assignments
 
-    async def get_assignment(
-        self, assignment_id: UUID
-    ) -> Optional[SundayMassAssignment]:
+    async def get_assignment(self, assignment_id: UUID) -> Optional[SundayMassAssignment]:
         """Récupère une assignation par son ID."""
         result = await self.session.execute(
             select(SundayMassAssignment).where(SundayMassAssignment.id == assignment_id)
@@ -280,9 +259,7 @@ class SundayScheduleRepository:
         await self.session.commit()
         return True
 
-    async def update_assignment(
-        self, assignment_id: UUID, assignment: SundayMassAssignment
-    ) -> SundayMassAssignment:
+    async def update_assignment(self, assignment_id: UUID, assignment: SundayMassAssignment) -> SundayMassAssignment:
         """Met à jour une assignation."""
         _enc_fields(assignment, _ASSIGN_PII)
         await self.session.commit()
@@ -296,9 +273,7 @@ class SundayScheduleRepository:
 
     async def enrich_template(self, template: SundayScheduleTemplate) -> dict:
         """Enrichit un modèle avec les infos du créateur et les messes."""
-        creator_result = await self.session.execute(
-            select(User).where(User.id == template.created_by)
-        )
+        creator_result = await self.session.execute(select(User).where(User.id == template.created_by))
         creator = creator_result.scalar_one_or_none()
         if creator:
             decrypt_str_fields(creator, _USER_PII)
@@ -335,9 +310,7 @@ class SundayScheduleRepository:
 
         # Infos du servant
         if assignment.servant_id:
-            servant_result = await self.session.execute(
-                select(User).where(User.id == assignment.servant_id)
-            )
+            servant_result = await self.session.execute(select(User).where(User.id == assignment.servant_id))
             servant = servant_result.scalar_one_or_none()
             if servant:
                 decrypt_str_fields(servant, _USER_PII)
@@ -345,27 +318,19 @@ class SundayScheduleRepository:
                 enriched["servant_last_name"] = servant.last_name
 
         # Infos de la personne qui a assigné
-        assigned_by_result = await self.session.execute(
-            select(User).where(User.id == assignment.assigned_by)
-        )
+        assigned_by_result = await self.session.execute(select(User).where(User.id == assignment.assigned_by))
         assigned_by = assigned_by_result.scalar_one_or_none()
         if assigned_by:
             decrypt_str_fields(assigned_by, _USER_PII)
-            enriched[
-                "assigned_by_name"
-            ] = f"{assigned_by.first_name} {assigned_by.last_name}"
+            enriched["assigned_by_name"] = f"{assigned_by.first_name} {assigned_by.last_name}"
 
         # Infos de la dernière modification
         if assignment.last_modified_by:
-            modified_by_result = await self.session.execute(
-                select(User).where(User.id == assignment.last_modified_by)
-            )
+            modified_by_result = await self.session.execute(select(User).where(User.id == assignment.last_modified_by))
             modified_by = modified_by_result.scalar_one_or_none()
             if modified_by:
                 decrypt_str_fields(modified_by, _USER_PII)
-                enriched[
-                    "last_modified_by_name"
-                ] = f"{modified_by.first_name} {modified_by.last_name}"
+                enriched["last_modified_by_name"] = f"{modified_by.first_name} {modified_by.last_name}"
 
         # Infos du marquage de présence
         if assignment.presence_marked_by:
@@ -375,23 +340,17 @@ class SundayScheduleRepository:
             presence_by = presence_by_result.scalar_one_or_none()
             if presence_by:
                 decrypt_str_fields(presence_by, _USER_PII)
-                enriched[
-                    "presence_marked_by_name"
-                ] = f"{presence_by.first_name} {presence_by.last_name}"
+                enriched["presence_marked_by_name"] = f"{presence_by.first_name} {presence_by.last_name}"
 
         return enriched
 
-    async def enrich_assignments(
-        self, assignments: List[SundayMassAssignment]
-    ) -> List[dict]:
+    async def enrich_assignments(self, assignments: List[SundayMassAssignment]) -> List[dict]:
         """Enrichit plusieurs assignations."""
         return [await self.enrich_assignment(a) for a in assignments]
 
     async def get_template_summary(self, template: SundayScheduleTemplate) -> dict:
         """Crée un résumé d'un modèle avec statistiques."""
-        creator_result = await self.session.execute(
-            select(User).where(User.id == template.created_by)
-        )
+        creator_result = await self.session.execute(select(User).where(User.id == template.created_by))
         creator = creator_result.scalar_one_or_none()
         if creator:
             decrypt_str_fields(creator, _USER_PII)
@@ -405,11 +364,7 @@ class SundayScheduleRepository:
         for mass in masses:
             assignments = await self.get_mass_assignments(mass.id)
             total_positions += len(assignments)
-            filled_positions += sum(
-                1
-                for a in assignments
-                if a.servant_id is not None or a.servant_name is not None
-            )
+            filled_positions += sum(1 for a in assignments if a.servant_id is not None or a.servant_name is not None)
 
         return {
             **template.model_dump(),
@@ -424,9 +379,7 @@ class SundayScheduleRepository:
     #  HISTORIQUE DES MODIFICATIONS
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_modification_log(
-        self, log: "SundayScheduleModificationLog"
-    ) -> "SundayScheduleModificationLog":
+    async def create_modification_log(self, log: "SundayScheduleModificationLog") -> "SundayScheduleModificationLog":
         """Crée une entrée dans l'historique des modifications (champs PII chiffrés)."""
         from src.core.entities.sunday_schedule import SundayScheduleModificationLog
 

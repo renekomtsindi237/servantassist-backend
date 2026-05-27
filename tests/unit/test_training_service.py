@@ -1,6 +1,7 @@
 """
 Unit tests for TrainingService (CHARGE_LITURGIE).
 """
+
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
@@ -96,9 +97,7 @@ async def test_create_session(service, mock_session_repo, sample_session):
 
 
 @pytest.mark.asyncio
-async def test_register_participant_success(
-    service, mock_session_repo, mock_participation_repo, sample_session
-):
+async def test_register_participant_success(service, mock_session_repo, mock_participation_repo, sample_session):
     mock_session_repo.get_by_id.return_value = sample_session
     mock_participation_repo.get_by_session_and_servant.return_value = None
     mock_participation_repo.list_by_session.return_value = []
@@ -124,18 +123,14 @@ async def test_register_participant_success(
 
 
 @pytest.mark.asyncio
-async def test_register_participant_session_full(
-    service, mock_session_repo, mock_participation_repo, sample_session
-):
+async def test_register_participant_session_full(service, mock_session_repo, mock_participation_repo, sample_session):
     sample_session.max_participants = 1
     mock_session_repo.get_by_id.return_value = sample_session
     mock_participation_repo.get_by_session_and_servant.return_value = None
     mock_participation_repo.list_by_session.return_value = [MagicMock()]
 
     with pytest.raises(HTTPException) as exc:
-        await service.register_participant(
-            session_id=sample_session.id, servant_id=uuid4(), registered_by=uuid4()
-        )
+        await service.register_participant(session_id=sample_session.id, servant_id=uuid4(), registered_by=uuid4())
     assert exc.value.status_code == 400
     assert "Session is full" in exc.value.detail
 

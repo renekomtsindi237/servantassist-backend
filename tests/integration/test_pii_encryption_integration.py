@@ -6,6 +6,7 @@ Vérifie que :
   - Les données sont déchiffrées APRÈS lecture (API du repository)
   - Les méthodes enrich_* retournent bien le texte clair via decrypt_str_fields
 """
+
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -192,9 +193,7 @@ class TestDisciplineEncryption:
 
         row = (
             await db_session.execute(
-                text(
-                    "SELECT offense_description FROM discipline_cases WHERE id = :uid"
-                ),
+                text("SELECT offense_description FROM discipline_cases WHERE id = :uid"),
                 {"uid": case.id.hex},
             )
         ).one()
@@ -347,9 +346,7 @@ class TestSundayScheduleEncryption:
 
         row = (
             await db_session.execute(
-                text(
-                    "SELECT servant_name FROM sunday_mass_assignments WHERE id = :uid"
-                ),
+                text("SELECT servant_name FROM sunday_mass_assignments WHERE id = :uid"),
                 {"uid": assignment.id.hex},
             )
         ).one()
@@ -392,9 +389,7 @@ class TestSundayScheduleEncryption:
         )
 
         enriched = await repo.enrich_mass(mass)
-        names = [
-            a["servant_name"] for a in enriched["assignments"] if a.get("servant_name")
-        ]
+        names = [a["servant_name"] for a in enriched["assignments"] if a.get("servant_name")]
         assert "Marc Bella" in names
 
     async def test_enrich_template_decrypts_creator_name(self, db_session):

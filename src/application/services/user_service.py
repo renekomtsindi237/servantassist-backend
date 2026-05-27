@@ -11,6 +11,7 @@ Regles :
 - On ne peut pas supprimer le dernier ADMIN.
 - Les emails et telephones restent uniques.
 """
+
 import math
 from typing import List, Optional, Tuple
 from uuid import UUID
@@ -82,9 +83,7 @@ class UserService:
         L'ancien mot de passe est requis pour verification.
         """
         # Verifier l'ancien mot de passe
-        if not SecurityUtils.verify_password(
-            data.current_password, user.hashed_password
-        ):
+        if not SecurityUtils.verify_password(data.current_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Le mot de passe actuel est incorrect.",
@@ -141,9 +140,7 @@ class UserService:
             )
         return user
 
-    async def admin_update_user(
-        self, user_id: UUID, data: UserAdminUpdate, admin: User
-    ) -> User:
+    async def admin_update_user(self, user_id: UUID, data: UserAdminUpdate, admin: User) -> User:
         """
         Mise a jour d'un utilisateur par l'admin.
         Peut modifier email, nom, prenom, telephone, statut actif.
@@ -228,9 +225,7 @@ class UserService:
         user.is_active = False
         user.updated_at = utc_now()
         result = await self.user_repository.update(user.id, user)
-        await event_bus.publish(
-            UserDeactivated(user_id=user_id, deactivated_by_id=admin.id)
-        )
+        await event_bus.publish(UserDeactivated(user_id=user_id, deactivated_by_id=admin.id))
         return result
 
     async def activate_user(self, user_id: UUID) -> User:
@@ -249,9 +244,7 @@ class UserService:
         await event_bus.publish(UserActivated(user_id=user_id))
         return result
 
-    async def admin_reset_password(
-        self, user_id: UUID, data: UserAdminResetPassword
-    ) -> None:
+    async def admin_reset_password(self, user_id: UUID, data: UserAdminResetPassword) -> None:
         """Reinitialisation forcee du mot de passe par l'admin."""
         user = await self.get_user(user_id)
         user.hashed_password = SecurityUtils.get_password_hash(data.new_password)

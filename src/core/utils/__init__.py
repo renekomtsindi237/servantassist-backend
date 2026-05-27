@@ -4,6 +4,7 @@ Utilitaires partagés — package.
 Re-exporte les helpers datetime pour la compatibilité avec tous les imports
 existants du type ``from src.core.utils import utc_now``.
 """
+
 from datetime import datetime, timezone
 from typing import Optional
 

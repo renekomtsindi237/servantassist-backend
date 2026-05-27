@@ -1,6 +1,7 @@
 """
 Repository pour la gestion des formations liturgiques (CHARGE_LITURGIE).
 """
+
 from datetime import datetime, timezone
 from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
@@ -41,9 +42,7 @@ class TrainingSessionRepository:
 
     async def get_by_id(self, session_id: UUID) -> Optional[TrainingSession]:
         """Récupère une session par son ID."""
-        result = await self.session.execute(
-            select(TrainingSession).where(TrainingSession.id == session_id)
-        )
+        result = await self.session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
         return result.scalar_one_or_none()
 
     async def list_sessions(
@@ -125,14 +124,10 @@ class TrainingSessionRepository:
 
         return sessions, total
 
-    async def enrich_session(
-        self, training_session: TrainingSession
-    ) -> TrainingSession:
+    async def enrich_session(self, training_session: TrainingSession) -> TrainingSession:
         """Enrichit une session avec les noms."""
         # Récupérer le nom du formateur
-        trainer_result = await self.session.execute(
-            select(User).where(User.id == training_session.trainer_id)
-        )
+        trainer_result = await self.session.execute(select(User).where(User.id == training_session.trainer_id))
         trainer = trainer_result.scalar_one_or_none()
         if trainer:
             decrypt_str_fields(trainer, _USER_PII)
@@ -140,9 +135,7 @@ class TrainingSessionRepository:
 
         # Compter les participants
         count_result = await self.session.execute(
-            select(func.count()).where(
-                TrainingParticipation.session_id == training_session.id
-            )
+            select(func.count()).where(TrainingParticipation.session_id == training_session.id)
         )
         training_session.current_participants = count_result.scalar() or 0
 
@@ -155,18 +148,14 @@ class TrainingParticipationRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(
-        self, participation: TrainingParticipation
-    ) -> TrainingParticipation:
+    async def create(self, participation: TrainingParticipation) -> TrainingParticipation:
         """Crée une nouvelle participation."""
         self.session.add(participation)
         await self.session.commit()
         await self.session.refresh(participation)
         return participation
 
-    async def create_batch(
-        self, participations: List[TrainingParticipation]
-    ) -> List[TrainingParticipation]:
+    async def create_batch(self, participations: List[TrainingParticipation]) -> List[TrainingParticipation]:
         """Crée plusieurs participations en batch."""
         for participation in participations:
             self.session.add(participation)
@@ -175,20 +164,14 @@ class TrainingParticipationRepository:
             await self.session.refresh(participation)
         return participations
 
-    async def get_by_id(
-        self, participation_id: UUID
-    ) -> Optional[TrainingParticipation]:
+    async def get_by_id(self, participation_id: UUID) -> Optional[TrainingParticipation]:
         """Récupère une participation par son ID."""
         result = await self.session.execute(
-            select(TrainingParticipation).where(
-                TrainingParticipation.id == participation_id
-            )
+            select(TrainingParticipation).where(TrainingParticipation.id == participation_id)
         )
         return result.scalar_one_or_none()
 
-    async def get_by_session_and_servant(
-        self, session_id: UUID, servant_id: UUID
-    ) -> Optional[TrainingParticipation]:
+    async def get_by_session_and_servant(self, session_id: UUID, servant_id: UUID) -> Optional[TrainingParticipation]:
         """Récupère une participation par session et servant."""
         result = await self.session.execute(
             select(TrainingParticipation).where(
@@ -219,9 +202,7 @@ class TrainingParticipationRepository:
         # Joindre avec les sessions pour filtrer par date
         query = (
             select(TrainingParticipation)
-            .join(
-                TrainingSession, TrainingParticipation.session_id == TrainingSession.id
-            )
+            .join(TrainingSession, TrainingParticipation.session_id == TrainingSession.id)
             .where(TrainingParticipation.servant_id == servant_id)
         )
 
@@ -235,9 +216,7 @@ class TrainingParticipationRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
-    async def update(
-        self, participation: TrainingParticipation
-    ) -> TrainingParticipation:
+    async def update(self, participation: TrainingParticipation) -> TrainingParticipation:
         """Met à jour une participation."""
         participation.updated_at = utc_now()
         await self.session.commit()
@@ -262,9 +241,7 @@ class TrainingParticipationRepository:
     ) -> TrainingStats:
         """Calcule les statistiques d'un servant."""
         # Récupérer le servant
-        servant_result = await self.session.execute(
-            select(User).where(User.id == servant_id)
-        )
+        servant_result = await self.session.execute(select(User).where(User.id == servant_id))
         servant = servant_result.scalar_one_or_none()
         if not servant:
             raise ValueError("Servant not found")
@@ -274,23 +251,15 @@ class TrainingParticipationRepository:
         participations = await self.list_by_servant(servant_id, start_date, end_date)
 
         total_sessions = len(participations)
-        attended_sessions = sum(
-            1 for p in participations if p.status == ParticipationStatus.PRESENT
-        )
+        attended_sessions = sum(1 for p in participations if p.status == ParticipationStatus.PRESENT)
         absent_sessions = sum(
-            1
-            for p in participations
-            if p.status in [ParticipationStatus.ABSENT, ParticipationStatus.EXCUSE]
+            1 for p in participations if p.status in [ParticipationStatus.ABSENT, ParticipationStatus.EXCUSE]
         )
 
-        attendance_rate = (
-            (attended_sessions / total_sessions * 100) if total_sessions > 0 else 0.0
-        )
+        attendance_rate = (attended_sessions / total_sessions * 100) if total_sessions > 0 else 0.0
 
         # Calculer la note moyenne
-        scores = [
-            p.evaluation_score for p in participations if p.evaluation_score is not None
-        ]
+        scores = [p.evaluation_score for p in participations if p.evaluation_score is not None]
         average_score = sum(scores) / len(scores) if scores else None
 
         # Compter les certificats
@@ -302,9 +271,7 @@ class TrainingParticipationRepository:
             # Récupérer la session la plus récente
             last_participation = participations[0]  # Déjà trié par date desc
             session_result = await self.session.execute(
-                select(TrainingSession).where(
-                    TrainingSession.id == last_participation.session_id
-                )
+                select(TrainingSession).where(TrainingSession.id == last_participation.session_id)
             )
             last_session = session_result.scalar_one_or_none()
             if last_session:
@@ -322,14 +289,10 @@ class TrainingParticipationRepository:
             last_training_date=last_training_date,
         )
 
-    async def enrich_participation(
-        self, participation: TrainingParticipation
-    ) -> TrainingParticipation:
+    async def enrich_participation(self, participation: TrainingParticipation) -> TrainingParticipation:
         """Enrichit une participation avec les noms."""
         # Récupérer le nom du servant
-        servant_result = await self.session.execute(
-            select(User).where(User.id == participation.servant_id)
-        )
+        servant_result = await self.session.execute(select(User).where(User.id == participation.servant_id))
         servant = servant_result.scalar_one_or_none()
         if servant:
             decrypt_str_fields(servant, _USER_PII)
@@ -353,9 +316,7 @@ class TrainingMaterialRepository:
 
     async def get_by_id(self, material_id: UUID) -> Optional[TrainingMaterial]:
         """Récupère un matériel par son ID."""
-        result = await self.session.execute(
-            select(TrainingMaterial).where(TrainingMaterial.id == material_id)
-        )
+        result = await self.session.execute(select(TrainingMaterial).where(TrainingMaterial.id == material_id))
         return result.scalar_one_or_none()
 
     async def list_materials(
@@ -379,8 +340,7 @@ class TrainingMaterialRepository:
             query = query.where(TrainingMaterial.is_public == is_public)
         if search:
             query = query.where(
-                TrainingMaterial.title.ilike(f"%{search}%")
-                | TrainingMaterial.description.ilike(f"%{search}%")
+                TrainingMaterial.title.ilike(f"%{search}%") | TrainingMaterial.description.ilike(f"%{search}%")
             )
 
         # Compter le total
@@ -427,9 +387,7 @@ class TrainingMaterialRepository:
     async def enrich_material(self, material: TrainingMaterial) -> TrainingMaterial:
         """Enrichit un matériel avec les noms."""
         # Récupérer le nom de l'uploader
-        uploader_result = await self.session.execute(
-            select(User).where(User.id == material.uploaded_by)
-        )
+        uploader_result = await self.session.execute(select(User).where(User.id == material.uploaded_by))
         uploader = uploader_result.scalar_one_or_none()
         if uploader:
             decrypt_str_fields(uploader, _USER_PII)
@@ -454,17 +412,13 @@ class SessionMaterialRepository:
     async def get_by_session(self, session_id: UUID) -> List[SessionMaterial]:
         """Récupère les matériels d'une session."""
         result = await self.session.execute(
-            select(SessionMaterial)
-            .where(SessionMaterial.session_id == session_id)
-            .order_by(SessionMaterial.order)
+            select(SessionMaterial).where(SessionMaterial.session_id == session_id).order_by(SessionMaterial.order)
         )
         return list(result.scalars().all())
 
     async def delete(self, session_material_id: UUID) -> bool:
         """Supprime une association."""
-        result = await self.session.execute(
-            select(SessionMaterial).where(SessionMaterial.id == session_material_id)
-        )
+        result = await self.session.execute(select(SessionMaterial).where(SessionMaterial.id == session_material_id))
         session_material = result.scalar_one_or_none()
         if not session_material:
             return False

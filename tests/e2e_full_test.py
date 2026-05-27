@@ -3,6 +3,7 @@ Suite de tests end-to-end complète — ServantAssist
 Simule les appels Postman pour tous les modules.
 Exécuter avec : python -X utf8 tests/e2e_full_test.py
 """
+
 import json
 import sys
 import time
@@ -19,9 +20,7 @@ PASS = "Test1234!"
 # ── Helpers HTTP ──────────────────────────────────────────────────────────────
 
 
-def _req(
-    method: str, url: str, body=None, token: str = "", content_type="application/json"
-) -> tuple[int, Any]:
+def _req(method: str, url: str, body=None, token: str = "", content_type="application/json") -> tuple[int, Any]:
     data = None
     if body is not None:
         if content_type == "application/x-www-form-urlencoded":
@@ -216,9 +215,7 @@ test(
 
 # Login avec le servant créé via /auth/login/phone (réservé SERVANT/PARENT)
 time.sleep(0.3)
-st, srv_body = POST(
-    "/auth/login/phone", {"phone_number": servant_phone, "password": PASS}
-)
+st, srv_body = POST("/auth/login/phone", {"phone_number": servant_phone, "password": PASS})
 SERVANT_TOKEN = srv_body.get("access_token", "")
 test("Login servant créé (/auth/login/phone)", st == 200 and bool(SERVANT_TOKEN), st)
 
@@ -254,9 +251,7 @@ test(
 )
 
 st, invites2 = GET("/admin/invitations", ADMIN_TOKEN)
-found = any(
-    i.get("id") == INV_ID for i in (invites2 if isinstance(invites2, list) else [])
-)
+found = any(i.get("id") == INV_ID for i in (invites2 if isinstance(invites2, list) else []))
 test("Code apparaît dans la liste", st == 200 and found, st)
 
 # Servant ne peut pas accéder
@@ -459,9 +454,7 @@ test(
 )
 
 if ITEM_ID:
-    st, _ = GET(
-        f"/material/items/{ITEM_ID}", SERVANT_TOKEN if SERVANT_TOKEN else ADMIN_TOKEN
-    )
+    st, _ = GET(f"/material/items/{ITEM_ID}", SERVANT_TOKEN if SERVANT_TOKEN else ADMIN_TOKEN)
     test("GET /material/items/{id} (servant)", st == 200, st)
 
     st, _ = DELETE(f"/material/items/{ITEM_ID}", ADMIN_TOKEN)

@@ -1,6 +1,7 @@
 """
 Schémas Pydantic pour le module CHARGE_LITURGIE - Formations liturgiques.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

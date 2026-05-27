@@ -3,6 +3,7 @@ Repository pour les entites Event et EventParticipant.
 
 Fournit les operations CRUD + filtrage + pagination + gestion des participants.
 """
+
 import math
 from datetime import datetime
 from typing import List, Optional, Tuple
@@ -82,9 +83,7 @@ class EventRepository(IRepository[Event]):
 
         # Pagination
         offset = (page - 1) * page_size
-        statement = (
-            statement.offset(offset).limit(page_size).order_by(Event.start_time.desc())
-        )
+        statement = statement.offset(offset).limit(page_size).order_by(Event.start_time.desc())
 
         result = await self.session.exec(statement)
         events = result.all()
@@ -135,9 +134,7 @@ class EventRepository(IRepository[Event]):
         Retourne une liste de dictionnaires enrichis.
         """
         stmt = (
-            select(EventParticipant)
-            .where(EventParticipant.event_id == event_id)
-            .order_by(EventParticipant.created_at)
+            select(EventParticipant).where(EventParticipant.event_id == event_id).order_by(EventParticipant.created_at)
         )
         result = await self.session.exec(stmt)
         participants = result.all()
@@ -184,9 +181,7 @@ class EventRepository(IRepository[Event]):
         result = await self.session.exec(stmt)
         return result.first()
 
-    async def get_participant_by_event_and_user(
-        self, event_id: UUID, user_id: UUID
-    ) -> Optional[EventParticipant]:
+    async def get_participant_by_event_and_user(self, event_id: UUID, user_id: UUID) -> Optional[EventParticipant]:
         """Verifie si un utilisateur est deja participant a un evenement."""
         stmt = select(EventParticipant).where(
             EventParticipant.event_id == event_id,
@@ -195,9 +190,7 @@ class EventRepository(IRepository[Event]):
         result = await self.session.exec(stmt)
         return result.first()
 
-    async def update_participant(
-        self, participant: EventParticipant
-    ) -> EventParticipant:
+    async def update_participant(self, participant: EventParticipant) -> EventParticipant:
         """Met a jour un participant."""
         self.session.add(participant)
         await self.session.commit()
@@ -217,17 +210,13 @@ class EventRepository(IRepository[Event]):
 
     async def get_events_for_user(self, user_id: UUID) -> List[Event]:
         """Recupere tous les evenements auxquels un utilisateur participe."""
-        stmt = select(EventParticipant.event_id).where(
-            EventParticipant.user_id == user_id
-        )
+        stmt = select(EventParticipant.event_id).where(EventParticipant.user_id == user_id)
         result = await self.session.exec(stmt)
         event_ids = result.all()
 
         if not event_ids:
             return []
 
-        events_stmt = (
-            select(Event).where(Event.id.in_(event_ids)).order_by(Event.start_time)
-        )
+        events_stmt = select(Event).where(Event.id.in_(event_ids)).order_by(Event.start_time)
         events_result = await self.session.exec(events_stmt)
         return events_result.all()

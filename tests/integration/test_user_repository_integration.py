@@ -4,6 +4,7 @@ Tests d'intégration — UserRepository avec chiffrement PII activé.
 Vérifie le cycle complet : création → stockage chiffré → lecture déchiffrée
 via HMAC index, sans jamais exposer le texte clair à la base de données.
 """
+
 from uuid import uuid4
 
 import pytest
@@ -153,6 +154,4 @@ async def test_two_users_different_ciphertexts(db_session):
     ).all()
 
     fn1, fn2 = rows[0].first_name, rows[1].first_name
-    assert (
-        fn1 != fn2
-    ), "Même ciphertext pour deux utilisateurs → le nonce n'est pas aléatoire !"
+    assert fn1 != fn2, "Même ciphertext pour deux utilisateurs → le nonce n'est pas aléatoire !"

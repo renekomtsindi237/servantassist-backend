@@ -14,6 +14,7 @@ ou via event_bus.subscribe(EventType, handler_func).
 Le bus est « best-effort » : une exception dans un handler est loguée
 mais ne fait pas échouer la transaction principale.
 """
+
 import asyncio
 import logging
 from collections import defaultdict

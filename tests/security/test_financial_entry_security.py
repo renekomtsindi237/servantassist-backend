@@ -1,6 +1,7 @@
 """
 Tests de sécurité pour le module COMMISSAIRE - Audit financier.
 """
+
 from datetime import timedelta
 from uuid import uuid4
 

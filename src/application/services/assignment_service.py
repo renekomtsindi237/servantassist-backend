@@ -12,6 +12,7 @@ Regles metier :
 - La creation par lot (batch) gere les erreurs individuellement
   et retourne un rapport detaille.
 """
+
 import math
 from datetime import datetime, timezone
 from src.core.utils import utc_now
@@ -54,9 +55,7 @@ class AssignmentService:
     #  CREATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_assignment(
-        self, data: AssignmentCreate, assigned_by: UUID
-    ) -> AssignmentResponse:
+    async def create_assignment(self, data: AssignmentCreate, assigned_by: UUID) -> AssignmentResponse:
         """
         Cree une affectation unique.
 
@@ -92,9 +91,7 @@ class AssignmentService:
             )
 
         # Verifier doublon
-        existing = await self.assignment_repo.get_by_event_user_role(
-            data.event_id, data.user_id, data.liturgical_role
-        )
+        existing = await self.assignment_repo.get_by_event_user_role(data.event_id, data.user_id, data.liturgical_role)
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -112,9 +109,7 @@ class AssignmentService:
         enriched = await self.assignment_repo.enrich_assignment(created)
         return AssignmentResponse(**enriched)
 
-    async def create_batch(
-        self, data: AssignmentBatchCreate, assigned_by: UUID
-    ) -> AssignmentBatchResponse:
+    async def create_batch(self, data: AssignmentBatchCreate, assigned_by: UUID) -> AssignmentBatchResponse:
         """
         Cree plusieurs affectations pour un meme evenement en une seule requete.
 
@@ -140,14 +135,10 @@ class AssignmentService:
                     errors.append(f"Utilisateur {item.user_id} introuvable.")
                     continue
                 if not user.is_active:
-                    errors.append(
-                        f"Utilisateur {user.first_name} {user.last_name} inactif."
-                    )
+                    errors.append(f"Utilisateur {user.first_name} {user.last_name} inactif.")
                     continue
                 if user.role != UserRole.SERVANT:
-                    errors.append(
-                        f"{user.first_name} {user.last_name} n'est pas un servant."
-                    )
+                    errors.append(f"{user.first_name} {user.last_name} n'est pas un servant.")
                     continue
 
                 # Verifier doublon
@@ -375,9 +366,7 @@ class AssignmentService:
                 detail="Erreur lors de la suppression de l'affectation.",
             )
 
-    async def cancel_assignment(
-        self, assignment_id: UUID, cancelled_by: UUID
-    ) -> AssignmentResponse:
+    async def cancel_assignment(self, assignment_id: UUID, cancelled_by: UUID) -> AssignmentResponse:
         """
         Annule une affectation (soft-delete : passe le statut a CANCELLED).
         L'affectation reste en BDD pour l'historique.
@@ -428,9 +417,7 @@ class AssignmentService:
                 detail="Impossible de marquer la presence d'une affectation annulee.",
             )
 
-        assignment.status = (
-            AssignmentStatus.PRESENT if present else AssignmentStatus.ABSENT
-        )
+        assignment.status = AssignmentStatus.PRESENT if present else AssignmentStatus.ABSENT
         assignment.updated_at = utc_now()
         updated = await self.assignment_repo.update(assignment_id, assignment)
         enriched = await self.assignment_repo.enrich_assignment(updated)

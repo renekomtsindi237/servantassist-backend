@@ -12,6 +12,7 @@ Reference des postes :
     GET    /postes                   Liste de tous les postes (avec titulaires)
     GET    /postes/{poste}           Detail d'un poste
 """
+
 import asyncio
 import logging
 from typing import Annotated, List, Optional
@@ -94,9 +95,7 @@ async def create_nomination(
     asyncio.create_task(
         _notify_nomination(
             nomination.user_id,
-            nomination.poste.value
-            if hasattr(nomination.poste, "value")
-            else str(nomination.poste),
+            nomination.poste.value if hasattr(nomination.poste, "value") else str(nomination.poste),
             session,
         )
     )
@@ -256,9 +255,7 @@ async def record_council_attendance(
 ):
     """Enregistre les présences au conseil."""
     service = _get_service(session)
-    return await service.record_council_attendance(
-        meeting_id, data, recorded_by=current_user.id
-    )
+    return await service.record_council_attendance(meeting_id, data, recorded_by=current_user.id)
 
 
 @router.get(

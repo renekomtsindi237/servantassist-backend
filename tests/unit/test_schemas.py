@@ -1,6 +1,7 @@
 """
 Tests unitaires — Schémas Pydantic (validation, contraintes de rôle, mot de passe).
 """
+
 import pytest
 from pydantic import ValidationError
 

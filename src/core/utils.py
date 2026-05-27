@@ -1,6 +1,7 @@
 """
 Utilitaires partagés par les entités du domaine.
 """
+
 from datetime import datetime, timezone
 from typing import Optional
 

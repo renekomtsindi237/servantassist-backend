@@ -7,6 +7,7 @@ Log chaque requete avec :
 - User-Agent
 - Marquage special pour les endpoints sensibles (audit trail)
 """
+
 import time
 
 from loguru import logger

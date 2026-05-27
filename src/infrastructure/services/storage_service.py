@@ -30,6 +30,7 @@ isolation garantie par les préfixes de dossier.
 Pour isoler par bucket → renseigner CLOUDFLARE_R2_BUCKET_IMAGES
 et/ou CLOUDFLARE_R2_BUCKET_DOCUMENTS (les spécifiques héritent).
 """
+
 import uuid
 from io import BytesIO
 from pathlib import Path
@@ -201,12 +202,8 @@ class StorageService:
         """Même logique que _bucket_for_folder, appliquée aux URL publiques."""
         s = self._settings
         default = s.CLOUDFLARE_R2_PUBLIC_URL.rstrip("/")
-        images = (
-            s.CLOUDFLARE_R2_PUBLIC_URL_IMAGES or s.CLOUDFLARE_R2_PUBLIC_URL
-        ).rstrip("/")
-        documents = (
-            s.CLOUDFLARE_R2_PUBLIC_URL_DOCUMENTS or s.CLOUDFLARE_R2_PUBLIC_URL
-        ).rstrip("/")
+        images = (s.CLOUDFLARE_R2_PUBLIC_URL_IMAGES or s.CLOUDFLARE_R2_PUBLIC_URL).rstrip("/")
+        documents = (s.CLOUDFLARE_R2_PUBLIC_URL_DOCUMENTS or s.CLOUDFLARE_R2_PUBLIC_URL).rstrip("/")
 
         named = {
             FOLDER_PROFILES: s.CLOUDFLARE_R2_PUBLIC_URL_PROFILES or images,
@@ -315,9 +312,7 @@ class StorageService:
     async def _delete_from_r2(self, object_key: str, bucket: str) -> None:
         import asyncio
 
-        await asyncio.to_thread(
-            lambda: self._get_r2_client().delete_object(Bucket=bucket, Key=object_key)
-        )
+        await asyncio.to_thread(lambda: self._get_r2_client().delete_object(Bucket=bucket, Key=object_key))
         logger.info("Suppression R2 | bucket={b} | key={k}", b=bucket, k=object_key)
 
     # ── Moteur local (dev sans R2) ────────────────────────────────────────────
@@ -352,18 +347,11 @@ class StorageService:
         max_bytes: int,
     ) -> str:
         if len(file_data) > max_bytes:
-            raise ValueError(
-                f"Fichier trop volumineux ({max_bytes // (1024 * 1024)} Mo max)."
-            )
+            raise ValueError(f"Fichier trop volumineux ({max_bytes // (1024 * 1024)} Mo max).")
         if content_type not in allowed_types:
-            raise ValueError(
-                f"Type non autorisé : {content_type}. "
-                f"Acceptés : {', '.join(allowed_types)}."
-            )
+            raise ValueError(f"Type non autorisé : {content_type}. " f"Acceptés : {', '.join(allowed_types)}.")
         safe_owner = "".join(c for c in str(owner_id) if c.isalnum() or c == "-")
-        object_key = (
-            f"{folder}/{safe_owner}/{uuid.uuid4().hex}.{allowed_types[content_type]}"
-        )
+        object_key = f"{folder}/{safe_owner}/{uuid.uuid4().hex}.{allowed_types[content_type]}"
 
         if self._is_testing:
             logger.info("Upload simulé (testing) | key={k}", k=object_key)
@@ -391,24 +379,18 @@ class StorageService:
             if file_url.startswith(base + "/"):
                 object_key = file_url[len(base) + 1 :]
                 if self._is_r2_configured:
-                    await self._delete_from_r2(
-                        object_key, self._bucket_from_object_key(object_key)
-                    )
+                    await self._delete_from_r2(object_key, self._bucket_from_object_key(object_key))
                 else:
                     await self._delete_local(object_key)
                 return
         if file_url.startswith("/uploads/"):
             await self._delete_local(file_url[len("/uploads/") :])
         else:
-            logger.warning(
-                "URL non reconnue, suppression ignorée | url={u}", u=file_url
-            )
+            logger.warning("URL non reconnue, suppression ignorée | url={u}", u=file_url)
 
     # ── API publique — Domaine Images ─────────────────────────────────────────
 
-    async def upload_profile_photo(
-        self, user_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_profile_photo(self, user_id: str, file_data: bytes, content_type: str) -> str:
         """Photo de profil → images/profiles/{user_id}/{uuid}.ext"""
         return await self._upload(
             FOLDER_PROFILES,
@@ -419,9 +401,7 @@ class StorageService:
             _IMAGE_MAX_BYTES,
         )
 
-    async def upload_material_photo(
-        self, material_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_material_photo(self, material_id: str, file_data: bytes, content_type: str) -> str:
         """Photo matériel → images/materials/{material_id}/{uuid}.ext"""
         return await self._upload(
             FOLDER_MATERIALS,
@@ -432,9 +412,7 @@ class StorageService:
             _IMAGE_MAX_BYTES,
         )
 
-    async def upload_task_photo(
-        self, task_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_task_photo(self, task_id: str, file_data: bytes, content_type: str) -> str:
         """Photo tâche (nettoyage/aubes avant-après) → images/tasks/{task_id}/{uuid}.ext"""
         return await self._upload(
             FOLDER_TASKS,
@@ -445,9 +423,7 @@ class StorageService:
             _IMAGE_MAX_BYTES,
         )
 
-    async def upload_sport_culture_photo(
-        self, event_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_sport_culture_photo(self, event_id: str, file_data: bytes, content_type: str) -> str:
         """Photo événement sport/culture → images/sport_culture/{event_id}/{uuid}.ext"""
         return await self._upload(
             "images/sport_culture",
@@ -462,9 +438,7 @@ class StorageService:
     # Ces méthodes utilisent _resolve_folder : une image jointe à un rapport
     # va dans images/reports/, un PDF dans documents/reports/.
 
-    async def upload_report_attachment(
-        self, report_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_report_attachment(self, report_id: str, file_data: bytes, content_type: str) -> str:
         """PJ rapport — image → images/reports/, document → documents/reports/"""
         folder = self._resolve_folder("reports", content_type)
         return await self._upload(
@@ -476,9 +450,7 @@ class StorageService:
             _DOCUMENT_MAX_BYTES,
         )
 
-    async def upload_training_material(
-        self, training_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_training_material(self, training_id: str, file_data: bytes, content_type: str) -> str:
         """Support formation — image → images/training/, document → documents/training/"""
         folder = self._resolve_folder("training", content_type)
         return await self._upload(
@@ -490,9 +462,7 @@ class StorageService:
             _DOCUMENT_MAX_BYTES,
         )
 
-    async def upload_document(
-        self, owner_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_document(self, owner_id: str, file_data: bytes, content_type: str) -> str:
         """Document générique — image → images/general/, document → documents/general/"""
         folder = self._resolve_folder("general", content_type)
         return await self._upload(
@@ -506,9 +476,7 @@ class StorageService:
 
     # ── API publique — Domaine Communication ──────────────────────────────────
 
-    async def upload_communication_media(
-        self, campaign_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_communication_media(self, campaign_id: str, file_data: bytes, content_type: str) -> str:
         """Média campagne — image → images/communication/, document → documents/communication/"""
         folder = self._resolve_folder("communication", content_type)
         return await self._upload(
@@ -522,9 +490,7 @@ class StorageService:
 
     # ── API publique — Exports & Sauvegardes ──────────────────────────────────
 
-    async def upload_export(
-        self, export_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_export(self, export_id: str, file_data: bytes, content_type: str) -> str:
         """Fichier export → exports/{export_id}/{uuid}.ext"""
         return await self._upload(
             FOLDER_EXPORTS,
@@ -535,9 +501,7 @@ class StorageService:
             _EXPORT_MAX_BYTES,
         )
 
-    async def upload_backup(
-        self, backup_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_backup(self, backup_id: str, file_data: bytes, content_type: str) -> str:
         """Sauvegarde → backups/{backup_id}/{uuid}.ext"""
         return await self._upload(
             FOLDER_BACKUPS,
@@ -550,9 +514,7 @@ class StorageService:
 
     # ── API publique — Upload générique automatique ───────────────────────────
 
-    async def upload_file(
-        self, context: str, owner_id: str, file_data: bytes, content_type: str
-    ) -> str:
+    async def upload_file(self, context: str, owner_id: str, file_data: bytes, content_type: str) -> str:
         """
         Upload entièrement automatique — le domaine est déduit du type MIME.
 
@@ -574,9 +536,7 @@ class StorageService:
             allowed, max_bytes = _EXPORT_TYPES, _EXPORT_MAX_BYTES
         else:
             allowed, max_bytes = _IMAGE_AND_DOCUMENT_TYPES, _DOCUMENT_MAX_BYTES
-        return await self._upload(
-            folder, owner_id, file_data, content_type, allowed, max_bytes
-        )
+        return await self._upload(folder, owner_id, file_data, content_type, allowed, max_bytes)
 
     # ── Suppression générique ─────────────────────────────────────────────────
 

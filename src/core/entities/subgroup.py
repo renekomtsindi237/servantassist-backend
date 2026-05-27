@@ -9,6 +9,7 @@ Le reglement interieur prevoit l'organisation des servants en sous-groupes :
 L'Aumonier et le Delegue gerent la creation des sous-groupes.
 Le Charge du classement utilise les sous-groupes pour planifier les tours.
 """
+
 from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4

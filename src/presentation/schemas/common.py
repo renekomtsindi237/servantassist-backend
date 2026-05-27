@@ -23,6 +23,7 @@ Bonnes pratiques appliquées
   - build_paginated_response() accepte une Request FastAPI pour déduire
     l'URL de base automatiquement.
 """
+
 from math import ceil
 from typing import Dict, Generic, List, Optional, TypeVar
 from uuid import UUID
@@ -80,9 +81,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     model_config = {"populate_by_name": True}
 
 
-def _build_page_links(
-    base_url: str, page: int, page_size: int, total: int
-) -> PageLinks:
+def _build_page_links(base_url: str, page: int, page_size: int, total: int) -> PageLinks:
     total_pages = max(1, ceil(total / page_size))
 
     def _url(p: int) -> str:
@@ -191,9 +190,7 @@ def discipline_links(case_id: UUID, accused_user_id: UUID) -> Dict[str, Resource
     }
 
 
-def assignment_links(
-    assignment_id: UUID, user_id: UUID, event_id: UUID
-) -> Dict[str, ResourceLink]:
+def assignment_links(assignment_id: UUID, user_id: UUID, event_id: UUID) -> Dict[str, ResourceLink]:
     """Liens utiles pour une affectation liturgique."""
     return {
         "self": make_link(f"/assignments/{assignment_id}"),

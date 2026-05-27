@@ -1,6 +1,7 @@
 """
 Entités pour le module de gestion des classements (CHARGE_CLASSEMENT).
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional

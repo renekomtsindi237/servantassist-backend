@@ -15,6 +15,7 @@ Differences avec EventParticipant :
 - EventParticipant = participation generale (tout role y compris PARENT)
 - Assignment = affectation formelle de service liturgique (SERVANT uniquement)
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional

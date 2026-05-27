@@ -4,6 +4,7 @@ Schemas Pydantic pour le module Responsables.
 Gere les nominations aux postes de responsable et les actions
 effectuees par chaque responsable dans le cadre de son poste.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

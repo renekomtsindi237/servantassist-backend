@@ -33,9 +33,7 @@ class PasswordResetCodeRepository:
         return result.first()
 
     async def mark_used(self, code_id: UUID) -> None:
-        result = await self.session.exec(
-            select(PasswordResetCode).where(PasswordResetCode.id == code_id)
-        )
+        result = await self.session.exec(select(PasswordResetCode).where(PasswordResetCode.id == code_id))
         entry = result.first()
         if entry:
             entry.used = True
@@ -44,14 +42,10 @@ class PasswordResetCodeRepository:
 
     async def delete_expired(self) -> None:
         """Purge les codes expirés (appelé à chaque requête pour éviter l'accumulation)."""
-        await self.session.exec(
-            delete(PasswordResetCode).where(PasswordResetCode.expires_at < utc_now())
-        )
+        await self.session.exec(delete(PasswordResetCode).where(PasswordResetCode.expires_at < utc_now()))
         await self.session.commit()
 
     async def delete_for_email(self, email: str) -> None:
         """Supprime tous les codes existants pour cet email avant d'en créer un nouveau."""
-        await self.session.exec(
-            delete(PasswordResetCode).where(PasswordResetCode.email == email)
-        )
+        await self.session.exec(delete(PasswordResetCode).where(PasswordResetCode.email == email))
         await self.session.commit()

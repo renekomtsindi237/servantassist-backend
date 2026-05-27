@@ -1,6 +1,7 @@
 """
 Tests E2E pour les endpoints de formations liturgiques (CHARGE_LITURGIE).
 """
+
 from datetime import datetime, timedelta
 from uuid import uuid4
 

@@ -1,6 +1,7 @@
 """
 Tests E2E pour le module COMMISSAIRE_AUX_COMPTES - Audit financier.
 """
+
 from datetime import datetime
 from uuid import uuid4
 

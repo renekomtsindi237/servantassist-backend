@@ -1,6 +1,7 @@
 """
 Tests E2E pour les endpoints d'activités sportives et culturelles (CHARGE_SPORT_CULTURE).
 """
+
 from datetime import datetime, timedelta
 from uuid import uuid4
 

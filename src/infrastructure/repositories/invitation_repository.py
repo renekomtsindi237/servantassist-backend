@@ -5,6 +5,7 @@ Chiffrement PII (Loi 2024/017 Cameroun) :
   email et phone_number sont chiffrés en AES-256-GCM avant stockage.
   Les lookups utilisent les colonnes HMAC (email_hmac, phone_hmac).
 """
+
 from typing import Optional
 from uuid import UUID
 
@@ -63,9 +64,7 @@ class InvitationCodeRepository(EncryptedModelMixin):
         self._decrypt_list(invs)
         return invs
 
-    async def update(
-        self, invitation_id: UUID, invitation_code: InvitationCode
-    ) -> InvitationCode:
+    async def update(self, invitation_id: UUID, invitation_code: InvitationCode) -> InvitationCode:
         self._encrypt_model(invitation_code)
         await self.session.merge(invitation_code)
         await self.session.commit()

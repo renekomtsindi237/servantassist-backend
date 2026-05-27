@@ -12,6 +12,7 @@ Hiérarchie de traitement :
   4. SQLAlchemyError         → 503 masqué (jamais de détail DB en prod)
   5. Exception               → 500 masqué (never-expose pattern)
 """
+
 from __future__ import annotations
 
 import uuid
@@ -50,11 +51,7 @@ def _new_id() -> str:
 
 def _client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
-    return (
-        forwarded.split(",")[0].strip()
-        if forwarded
-        else (request.client.host if request.client else "unknown")
-    )
+    return forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
 
 
 # ── Traduction des types d'erreurs Pydantic ───────────────────────────────
@@ -121,9 +118,7 @@ def _translate_pydantic(err: dict) -> str:
 
 
 # ── Handler 1 : Erreurs de validation Pydantic (422) ──────────────────────
-async def validation_exception_handler(
-    request: Request, exc: RequestValidationError
-) -> JSONResponse:
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """
     Transforme les erreurs Pydantic en messages lisibles en français.
     Masque les valeurs envoyées (peuvent contenir des données sensibles).
@@ -179,9 +174,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
 
 # ── Handler 3 : Exceptions métier (ServantAssistException) ───────────────
-async def domain_exception_handler(
-    request: Request, exc: ServantAssistException
-) -> JSONResponse:
+async def domain_exception_handler(request: Request, exc: ServantAssistException) -> JSONResponse:
     """
     Mappe les exceptions métier sur leur code HTTP.
     Les détails techniques ne sont exposés qu'en dev/staging.
@@ -215,9 +208,7 @@ async def domain_exception_handler(
 
 
 # ── Handler 4 : Erreurs SQLAlchemy ───────────────────────────────────────
-async def sqlalchemy_exception_handler(
-    request: Request, exc: SQLAlchemyError
-) -> JSONResponse:
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError) -> JSONResponse:
     """
     Masque totalement les erreurs DB en production (fuite de schéma).
     Expose l'IntegrityError comme un 409 Conflict lisible.

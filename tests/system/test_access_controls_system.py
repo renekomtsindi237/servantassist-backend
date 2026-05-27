@@ -1,6 +1,7 @@
 """
 System tests for critical access control paths.
 """
+
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -126,9 +127,7 @@ async def test_attendance_detail_access_control(
 
 
 @pytest.mark.system
-async def test_attendance_sessions_list_accessible(
-    client, servant_token, censeur_token
-):
+async def test_attendance_sessions_list_accessible(client, servant_token, censeur_token):
     # All authenticated users can view sessions (servants need to see their attendance)
     resp = await client.get(
         "/api/v1/attendance-sessions/",

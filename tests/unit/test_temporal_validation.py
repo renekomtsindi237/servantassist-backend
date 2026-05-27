@@ -6,6 +6,7 @@ Ces tests démontrent que la validation fonctionne correctement pour :
 - Les messes exceptionnelles (09h00, etc.)
 - Différentes heures de tentative de modification
 """
+
 from datetime import datetime, timedelta, timezone
 
 import pytest

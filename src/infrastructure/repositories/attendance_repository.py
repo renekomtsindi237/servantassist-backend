@@ -5,6 +5,7 @@ Chiffrement PII (Loi 2024/017 Cameroun) :
   Le champ justification peut contenir des raisons de santé ou personnelles —
   il est chiffré (Art. 5 données sensibles, santé).
 """
+
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
@@ -80,11 +81,7 @@ class AttendanceRepository(EncryptedModelMixin):
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = (
-            stmt.offset(offset)
-            .limit(page_size)
-            .order_by(Attendance.attendance_date.desc())
-        )
+        stmt = stmt.offset(offset).limit(page_size).order_by(Attendance.attendance_date.desc())
         result = await self.session.exec(stmt)
         atts = list(result.all())
         self._decrypt_list(atts)
@@ -115,9 +112,7 @@ class AttendanceRepository(EncryptedModelMixin):
     # ── Enrichissement ─────────────────────────────────────────────────
 
     async def enrich_attendance(self, attendance: Attendance) -> Dict:
-        user = (
-            await self.session.exec(select(User).where(User.id == attendance.user_id))
-        ).first()
+        user = (await self.session.exec(select(User).where(User.id == attendance.user_id))).first()
         if user:
             decrypt_str_fields(user, _USER_PII)
 

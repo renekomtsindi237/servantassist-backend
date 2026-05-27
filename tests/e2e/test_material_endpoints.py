@@ -1,6 +1,7 @@
 """
 Tests E2E pour les endpoints de gestion du matériel (INTENDANTS).
 """
+
 from datetime import datetime, timedelta
 from uuid import uuid4
 

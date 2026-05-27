@@ -2,6 +2,7 @@
 Application settings and configuration
 Using Pydantic Settings for environment variable management
 """
+
 from functools import lru_cache
 from typing import List
 
@@ -73,12 +74,8 @@ class Settings(BaseSettings):
     CLOUDFLARE_R2_BUCKET_TASKS: str = ""  # photos avant-après tâches entretien
     CLOUDFLARE_R2_BUCKET_REPORTS: str = ""  # pièces jointes rapports (secrétariat)
     CLOUDFLARE_R2_BUCKET_TRAINING: str = ""  # supports formation
-    CLOUDFLARE_R2_BUCKET_DOCUMENTS: str = (
-        ""  # documents génériques (hors rapports/formation)
-    )
-    CLOUDFLARE_R2_BUCKET_COMMUNICATION: str = (
-        ""  # PJ notifications, campagnes, médias comms
-    )
+    CLOUDFLARE_R2_BUCKET_DOCUMENTS: str = ""  # documents génériques (hors rapports/formation)
+    CLOUDFLARE_R2_BUCKET_COMMUNICATION: str = ""  # PJ notifications, campagnes, médias comms
     CLOUDFLARE_R2_BUCKET_EXPORTS: str = ""  # exports CSV, fichiers temporaires export
     CLOUDFLARE_R2_BUCKET_BACKUPS: str = ""  # sauvegardes applicatives (optionnel)
     # URL publique par défaut (sans slash final). Domains ou pub-xxx.r2.dev

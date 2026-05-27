@@ -3,6 +3,7 @@ Repository pour les entites Nomination et PosteAction.
 
 Fournit les operations CRUD + enrichissement + filtrage + pagination.
 """
+
 from datetime import datetime, timezone
 from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
@@ -42,9 +43,7 @@ class NominationRepository:
         result = await self.session.exec(stmt)
         return result.first()
 
-    async def get_active_by_poste(
-        self, poste: PosteResponsable
-    ) -> Optional[Nomination]:
+    async def get_active_by_poste(self, poste: PosteResponsable) -> Optional[Nomination]:
         """Retourne la nomination active pour un poste donne (ou None)."""
         stmt = select(Nomination).where(
             Nomination.poste == poste,
@@ -62,9 +61,7 @@ class NominationRepository:
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def get_active_by_user_and_poste(
-        self, user_id: UUID, poste: PosteResponsable
-    ) -> Optional[Nomination]:
+    async def get_active_by_user_and_poste(self, user_id: UUID, poste: PosteResponsable) -> Optional[Nomination]:
         """Verifie si un utilisateur occupe un poste specifique."""
         stmt = select(Nomination).where(
             Nomination.user_id == user_id,
@@ -186,9 +183,7 @@ class PosteActionRepository:
         total = count_result.one()
 
         offset = (page - 1) * page_size
-        stmt = (
-            stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
-        )
+        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
 
         result = await self.session.exec(stmt)
         return result.all(), total
@@ -219,9 +214,7 @@ class PosteActionRepository:
 
         # Paginer et trier
         offset = (page - 1) * page_size
-        stmt = (
-            stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
-        )
+        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
 
         result = await self.session.exec(stmt)
         items = result.all()
@@ -269,9 +262,7 @@ class PosteActionRepository:
 
         # Paginer et trier
         offset = (page - 1) * page_size
-        stmt = (
-            stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
-        )
+        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
 
         result = await self.session.exec(stmt)
         items = result.all()
@@ -287,17 +278,11 @@ class PosteActionRepository:
 
     async def list_by_user(self, user_id: UUID) -> List[PosteAction]:
         """Toutes les actions creees par un utilisateur."""
-        stmt = (
-            select(PosteAction)
-            .where(PosteAction.created_by == user_id)
-            .order_by(PosteAction.created_at.desc())
-        )
+        stmt = select(PosteAction).where(PosteAction.created_by == user_id).order_by(PosteAction.created_at.desc())
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def count_by_poste_and_status(
-        self, poste: PosteResponsable
-    ) -> Dict[str, int]:
+    async def count_by_poste_and_status(self, poste: PosteResponsable) -> Dict[str, int]:
         """Compte les actions par statut pour un poste donne."""
         counts = {}
         for s in ActionStatus:
@@ -309,15 +294,10 @@ class PosteActionRepository:
             counts[s.value] = result.one()
         return counts
 
-    async def get_recent_by_poste(
-        self, poste: PosteResponsable, limit: int = 5
-    ) -> List[PosteAction]:
+    async def get_recent_by_poste(self, poste: PosteResponsable, limit: int = 5) -> List[PosteAction]:
         """Les N actions les plus recentes d'un poste."""
         stmt = (
-            select(PosteAction)
-            .where(PosteAction.poste == poste)
-            .order_by(PosteAction.created_at.desc())
-            .limit(limit)
+            select(PosteAction).where(PosteAction.poste == poste).order_by(PosteAction.created_at.desc()).limit(limit)
         )
         result = await self.session.exec(stmt)
         return result.all()

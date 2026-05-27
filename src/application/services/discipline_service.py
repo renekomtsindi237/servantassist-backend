@@ -8,6 +8,7 @@ Regles du reglement interieur :
 - Les sanctions sont graduelles : verbal → ecrit → suspension → exclusion
 - L'Aumonier a le dernier mot sur toute sanction
 """
+
 import math
 from datetime import datetime, timedelta, timezone
 from src.core.utils import utc_now
@@ -62,9 +63,7 @@ class DisciplineService:
     #  OUVRIR UN DOSSIER
     # ══════════════════════════════════════════════════════════════════
 
-    async def open_case(
-        self, data: DisciplineCaseCreate, reported_by: UUID
-    ) -> DisciplineCaseResponse:
+    async def open_case(self, data: DisciplineCaseCreate, reported_by: UUID) -> DisciplineCaseResponse:
         """Ouvrir un dossier disciplinaire."""
         user = await self.user_repo.get(data.accused_user_id)
         if not user:
@@ -78,9 +77,7 @@ class DisciplineService:
                 detail="Seuls les servants peuvent faire l'objet d'un dossier disciplinaire.",
             )
 
-        severity = data.severity or OFFENSE_DEFAULT_SEVERITY.get(
-            data.offense_category, SanctionSeverity.MINEUR
-        )
+        severity = data.severity or OFFENSE_DEFAULT_SEVERITY.get(data.offense_category, SanctionSeverity.MINEUR)
 
         case = DisciplineCase(
             accused_user_id=data.accused_user_id,
@@ -107,9 +104,7 @@ class DisciplineService:
     #  CONVOQUER AU CONSEIL DE DISCIPLINE
     # ══════════════════════════════════════════════════════════════════
 
-    async def convoke(
-        self, case_id: UUID, data: DisciplineConvocation
-    ) -> DisciplineCaseResponse:
+    async def convoke(self, case_id: UUID, data: DisciplineConvocation) -> DisciplineCaseResponse:
         """Convoquer un servant au conseil de discipline."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -161,9 +156,7 @@ class DisciplineService:
     #  RENDRE LE VERDICT
     # ══════════════════════════════════════════════════════════════════
 
-    async def render_verdict(
-        self, case_id: UUID, data: DisciplineVerdict, verdict_by: UUID
-    ) -> DisciplineCaseResponse:
+    async def render_verdict(self, case_id: UUID, data: DisciplineVerdict, verdict_by: UUID) -> DisciplineCaseResponse:
         """Rendre le verdict du conseil de discipline."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -244,9 +237,7 @@ class DisciplineService:
     #  CLASSER SANS SUITE
     # ══════════════════════════════════════════════════════════════════
 
-    async def dismiss_case(
-        self, case_id: UUID, notes: Optional[str] = None
-    ) -> DisciplineCaseResponse:
+    async def dismiss_case(self, case_id: UUID, notes: Optional[str] = None) -> DisciplineCaseResponse:
         """Classer un dossier sans suite."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -325,9 +316,7 @@ class DisciplineService:
         return DisciplineStatsResponse(
             user_id=user_id,
             total_cases=sum(counts.values()) + active,
-            avertissements_verbaux=counts.get(
-                SanctionType.AVERTISSEMENT_VERBAL.value, 0
-            ),
+            avertissements_verbaux=counts.get(SanctionType.AVERTISSEMENT_VERBAL.value, 0),
             avertissements_ecrits=counts.get(SanctionType.AVERTISSEMENT_ECRIT.value, 0),
             suspensions=counts.get(SanctionType.SUSPENSION_TEMPORAIRE.value, 0),
             cases_en_cours=active,
@@ -347,9 +336,7 @@ class DisciplineService:
         )
 
         consecutive_absences = (
-            all(a.status == AttendanceStatus.ABSENT for a in attendances)
-            if len(attendances) >= 2
-            else False
+            all(a.status == AttendanceStatus.ABSENT for a in attendances) if len(attendances) >= 2 else False
         )
 
         # Vérifier l'absence continue sur 6 mois
@@ -368,8 +355,6 @@ class DisciplineService:
             "suggested_sanction": (
                 SanctionType.EXCLUSION_DEFINITIVE
                 if continuous_absence
-                else SanctionType.SUSPENSION_TEMPORAIRE
-                if consecutive_absences
-                else SanctionType.AUCUNE
+                else SanctionType.SUSPENSION_TEMPORAIRE if consecutive_absences else SanctionType.AUCUNE
             ),
         }

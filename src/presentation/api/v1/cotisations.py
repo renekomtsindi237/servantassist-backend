@@ -18,6 +18,7 @@ Accessible a : Aumonier, Admin (toutes operations)
                Econome (enregistrement de paiements via son poste)
                Tout utilisateur (consulter ses propres cotisations)
 """
+
 from typing import Annotated, List, Optional
 from uuid import UUID
 

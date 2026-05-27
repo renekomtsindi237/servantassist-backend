@@ -1,6 +1,7 @@
 """
 Schémas Pydantic pour le module INTENDANTS - Gestion du matériel.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

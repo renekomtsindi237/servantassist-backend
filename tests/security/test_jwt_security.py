@@ -1,6 +1,7 @@
 """
 Tests de sécurité — JWT (tokens falsifiés, expirés, manipulés).
 """
+
 from datetime import timedelta
 
 import pytest
@@ -92,9 +93,7 @@ class TestTokenMissingRole:
             "exp": 9999999999,
             # PAS de "role"
         }
-        token_no_role = jwt.encode(
-            payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
-        )
+        token_no_role = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         resp = await client.get(
             "/api/v1/admin/invitations",
             headers={"Authorization": f"Bearer {token_no_role}"},
@@ -107,9 +106,7 @@ class TestTokenMissingRole:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.security
 class TestTokenRoleMismatch:
-    async def test_servant_token_claiming_admin_role(
-        self, client: AsyncClient, servant_user
-    ):
+    async def test_servant_token_claiming_admin_role(self, client: AsyncClient, servant_user):
         """Token prétend être ADMIN mais l'utilisateur en BDD est SERVANT → 401."""
         fake_token = SecurityUtils.create_access_token(
             subject=servant_user.email,
@@ -123,9 +120,7 @@ class TestTokenRoleMismatch:
         assert resp.status_code == 401
         assert "mismatch" in resp.json().get("detail", "").lower()
 
-    async def test_parent_token_claiming_admin_role(
-        self, client: AsyncClient, parent_user
-    ):
+    async def test_parent_token_claiming_admin_role(self, client: AsyncClient, parent_user):
         """Token prétend être ADMIN mais l'utilisateur est PARENT → 401."""
         fake_token = SecurityUtils.create_access_token(
             subject=parent_user.email,
@@ -228,9 +223,7 @@ class TestInjectionAttempts:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.security
 class TestRefreshTokenMisuse:
-    async def test_refresh_token_cannot_be_used_as_access(
-        self, client: AsyncClient, admin_user
-    ):
+    async def test_refresh_token_cannot_be_used_as_access(self, client: AsyncClient, admin_user):
         """Un refresh token ne doit pas fonctionner comme access token."""
         refresh = SecurityUtils.create_refresh_token(
             subject=admin_user.email,
@@ -242,9 +235,7 @@ class TestRefreshTokenMisuse:
         )
         assert resp.status_code == 401
 
-    async def test_reset_token_cannot_be_used_as_access(
-        self, client: AsyncClient, admin_user
-    ):
+    async def test_reset_token_cannot_be_used_as_access(self, client: AsyncClient, admin_user):
         """Un reset token ne doit pas fonctionner comme access token."""
         reset = SecurityUtils.create_reset_token(subject=admin_user.email)
         resp = await client.get(
