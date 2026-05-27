@@ -437,18 +437,7 @@ jobs:
               echo '{"ipv6": true, "fixed-cidr-v6": "fd00::/80", "ip6tables": true}' > "$DAEMON_JSON"
               IP6_NEED_RESTART=true
             elif ! python3 -c "import json; d=json.load(open('$DAEMON_JSON')); exit(0 if d.get('ip6tables') else 1)" 2>/dev/null; then
-              python3 -c "
-import json
-with open('/etc/docker/daemon.json') as f:
-    d = json.load(f)
-d['ipv6'] = True
-d['ip6tables'] = True
-if 'fixed-cidr-v6' not in d:
-    d['fixed-cidr-v6'] = 'fd00::/80'
-with open('/etc/docker/daemon.json', 'w') as f:
-    json.dump(d, f, indent=2)
-print('daemon.json mis a jour')
-"
+              python3 -c "import json; d=json.load(open('/etc/docker/daemon.json')); d.update({'ipv6':True,'ip6tables':True}); d.setdefault('fixed-cidr-v6','fd00::/80'); json.dump(d,open('/etc/docker/daemon.json','w'),indent=2)"
               IP6_NEED_RESTART=true
             fi
             if $IP6_NEED_RESTART; then
