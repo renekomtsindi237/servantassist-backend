@@ -262,7 +262,7 @@ async def record_council_attendance(
     "/council-meetings/responsable/{responsable_id}/monitor",
     response_model=dict,
     summary="Contrôler l'assiduité d'un responsable",
-    description="Vérifie si le responsable doit être destitué pour 3 absences consécutives (Art 15). Accessible au Délégué.",
+    description="Vérifie si le responsable doit être destitué pour 3 absences consécutives (Art 15). Accessible au Délégué.",  # noqa: E501
 )
 async def monitor_responsable_attendance(
     responsable_id: UUID,

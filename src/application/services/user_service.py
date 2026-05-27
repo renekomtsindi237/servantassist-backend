@@ -19,7 +19,6 @@ from uuid import UUID
 from fastapi import HTTPException, status
 
 from src.core.entities.user import User, UserRole
-from src.core.utils import utc_now
 from src.core.events.domain_events import (
     PasswordReset,
     UserActivated,
@@ -27,6 +26,7 @@ from src.core.events.domain_events import (
     UserDeleted,
 )
 from src.core.interfaces.repositories import IUserRepository
+from src.core.utils import utc_now
 from src.infrastructure.events.bus import event_bus
 from src.infrastructure.security.utils import SecurityUtils
 from src.presentation.schemas.user import (

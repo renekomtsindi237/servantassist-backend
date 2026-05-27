@@ -94,9 +94,9 @@ _EXPORT_TYPES: dict[str, str] = {
 
 # ── Limites de taille par domaine ────────────────────────────────────────────
 
-_IMAGE_MAX_BYTES = 5 * 1024 * 1024  #   5 Mo — photos
-_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024  #  10 Mo — documents / communication
-_EXPORT_MAX_BYTES = 50 * 1024 * 1024  #  50 Mo — exports
+_IMAGE_MAX_BYTES = 5 * 1024 * 1024  # 5 Mo — photos
+_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024  # 10 Mo — documents / communication
+_EXPORT_MAX_BYTES = 50 * 1024 * 1024  # 50 Mo — exports
 _BACKUP_MAX_BYTES = 100 * 1024 * 1024  # 100 Mo — sauvegardes
 
 # ── Stockage local (dev sans R2) ─────────────────────────────────────────────

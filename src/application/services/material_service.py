@@ -3,7 +3,6 @@ Service pour la gestion du matériel (INTENDANTS).
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
@@ -28,6 +27,7 @@ from src.core.interfaces.repositories import (
     IMaterialItemRepository,
     ITaskAssignmentRepository,
 )
+from src.core.utils import utc_now
 
 
 class MaterialService:

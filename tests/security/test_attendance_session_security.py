@@ -318,7 +318,7 @@ async def test_cannot_modify_past_sessions(client, censeur_token, db_session, ce
     await db_session.commit()
 
     # Tenter de marquer présence
-    response = await client.post(
+    await client.post(
         f"/api/v1/attendance-sessions/{old_session.id}/records",
         headers={"Authorization": f"Bearer {censeur_token}"},
         json={

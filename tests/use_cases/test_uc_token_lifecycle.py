@@ -38,7 +38,6 @@ class TestTokenRefreshFlow:
         assert login_resp.status_code == 200
         tokens = login_resp.json()
 
-        access_token = tokens["access_token"]
         refresh_token = tokens["refresh_token"]
 
         # Valider la structure du refresh token

@@ -39,7 +39,7 @@ def get_supabase_admin():
 
     _assert_supabase_config()
 
-    from supabase import create_client, Client  # import paresseux
+    from supabase import Client, create_client  # import paresseux
 
     client: Client = create_client(
         settings.SUPABASE_URL,
@@ -60,7 +60,7 @@ def get_supabase_public():
 
     _assert_supabase_config()
 
-    from supabase import create_client, Client
+    from supabase import Client, create_client
 
     client: Client = create_client(
         settings.SUPABASE_URL,

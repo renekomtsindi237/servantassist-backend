@@ -177,7 +177,7 @@ class PDFService:
         story.append(Spacer(1, 0.5 * cm))
         story.append(
             Paragraph(
-                f"a suivi et validé avec succès la formation",
+                "a suivi et validé avec succès la formation",
                 st["center"],
             )
         )

@@ -22,9 +22,9 @@ import hmac as hmac_lib
 import os
 from typing import Any, Optional
 
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
 
 _SALT_ENC = b"servantassist-pii-enc-v1"
 _SALT_HMAC = b"servantassist-pii-hmac-v1"

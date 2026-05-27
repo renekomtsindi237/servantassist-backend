@@ -3,7 +3,6 @@ Service pour la gestion des formations liturgiques (CHARGE_LITURGIE).
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
@@ -27,6 +26,7 @@ from src.core.interfaces.repositories import (
     ITrainingParticipationRepository,
     ITrainingSessionRepository,
 )
+from src.core.utils import utc_now
 
 
 class TrainingService:

@@ -11,7 +11,6 @@ Regles du reglement interieur :
 
 import math
 from datetime import datetime, timedelta, timezone
-from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -34,6 +33,7 @@ from src.core.interfaces.repositories import (
     IDisciplineCaseRepository,
     IUserRepository,
 )
+from src.core.utils import utc_now
 from src.infrastructure.events.bus import event_bus
 from src.presentation.schemas.discipline import (
     DisciplineCaseCreate,

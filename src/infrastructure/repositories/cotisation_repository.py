@@ -35,7 +35,7 @@ class CotisationPeriodRepository:
     async def list_active(self) -> List[CotisationPeriod]:
         stmt = (
             select(CotisationPeriod)
-            .where(CotisationPeriod.is_active == True)
+            .where(CotisationPeriod.is_active.is_(True))
             .order_by(CotisationPeriod.start_date.desc())
         )
         result = await self.session.exec(stmt)

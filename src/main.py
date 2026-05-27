@@ -4,15 +4,15 @@ Clean Architecture implementation with FastAPI
 """
 
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
-import logging
 
 try:
     import sentry_sdk
     from sentry_sdk.integrations.fastapi import FastApiIntegration
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
     _SENTRY_AVAILABLE = True
 except ImportError:
@@ -24,7 +24,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-
 from prometheus_client import Counter, Gauge, Histogram, make_asgi_app
 
 from src.infrastructure.config.settings import get_settings
@@ -46,6 +45,8 @@ active_ws_connections = Gauge(
     "active_ws_connections_total",
     "Number of active WebSocket connections",
 )
+from src.core.exceptions import ServantAssistException
+from src.infrastructure.events.handlers import register_all_handlers
 from src.presentation.api.v1 import (
     activities,
     admin,
@@ -56,11 +57,11 @@ from src.presentation.api.v1 import (
     auth,
     classement,
     communication,
-    dossier,
     contributions,
     cotisations,
     dashboard,
     discipline,
+    dossier,
     email,
     financial_entries,
     material,
@@ -74,13 +75,6 @@ from src.presentation.api.v1 import (
     users,
     weekly_schedule,
 )
-from src.infrastructure.events.handlers import register_all_handlers
-from src.presentation.middleware.error_handler import ErrorHandlerMiddleware
-from src.presentation.middleware.idempotency import IdempotencyMiddleware
-from src.presentation.middleware.logging_middleware import LoggingMiddleware
-from src.presentation.middleware.owasp_guard import OWASPGuardMiddleware
-from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
-from src.presentation.middleware.rate_limit import RateLimitMiddleware
 from src.presentation.exceptions.handlers import (
     domain_exception_handler,
     http_exception_handler,
@@ -88,7 +82,12 @@ from src.presentation.exceptions.handlers import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
-from src.core.exceptions import ServantAssistException
+from src.presentation.middleware.error_handler import ErrorHandlerMiddleware
+from src.presentation.middleware.idempotency import IdempotencyMiddleware
+from src.presentation.middleware.logging_middleware import LoggingMiddleware
+from src.presentation.middleware.owasp_guard import OWASPGuardMiddleware
+from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
+from src.presentation.middleware.rate_limit import RateLimitMiddleware
 from src.presentation.middleware.security_headers import SecurityHeadersMiddleware
 from src.presentation.middleware.versioning import API_VERSION, VersioningMiddleware
 

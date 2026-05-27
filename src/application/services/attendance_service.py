@@ -17,9 +17,8 @@ from fastapi import HTTPException, status
 
 from src.core.entities.attendance import Attendance, AttendanceStatus, AttendanceType
 from src.core.entities.user import UserRole
+from src.core.interfaces.repositories import IAttendanceRepository, IUserRepository
 from src.core.utils import utc_now
-from src.core.interfaces.repositories import IAttendanceRepository
-from src.core.interfaces.repositories import IUserRepository
 from src.presentation.schemas.attendance import (
     AttendanceBatchCreate,
     AttendanceBatchResponse,

@@ -227,7 +227,7 @@ class FinancialEntryService:
         stats = await self.entry_repo.get_statistics(start_date, end_date)
 
         # Récupérer les résumés par catégorie
-        summaries_data = await self.entry_repo.get_summary_by_category(start_date, end_date)
+        await self.entry_repo.get_summary_by_category(start_date, end_date)
 
         # Récupérer les écarts non résolus
         unresolved_discrepancies = await self.discrepancy_repo.list_unresolved()
@@ -288,7 +288,7 @@ class FinancialEntryService:
         # Montant élevé en attente
         if stats["pending_amount"] > stats["total_amount"] * 0.3:
             recommendations.append(
-                f"Montant important en attente de vérification ({stats['pending_amount']:.0f} FCFA). Prioriser la vérification des entrées en attente."
+                f"Montant important en attente de vérification ({stats['pending_amount']:.0f} FCFA)."  # noqa: E501
             )
 
         if not recommendations:

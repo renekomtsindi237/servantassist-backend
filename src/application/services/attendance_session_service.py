@@ -8,10 +8,9 @@ Règles métier :
 - Traçabilité complète de tous les enregistrements
 """
 
-import math
 import logging
+import math
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
@@ -29,8 +28,8 @@ from src.core.entities.notification import (
     NotificationType,
 )
 from src.core.entities.user import User, UserRole
-from src.core.interfaces.repositories import IAttendanceSessionRepository
-from src.core.interfaces.repositories import IUserRepository
+from src.core.interfaces.repositories import IAttendanceSessionRepository, IUserRepository
+from src.core.utils import utc_now
 from src.infrastructure.repositories.notification_repository import (
     NotificationRepository,
 )
@@ -171,9 +170,9 @@ class AttendanceSessionService:
                 priority=NotificationPriority.HIGH,
                 title="⚠️ Avertissement — 3 absences enregistrées",
                 body=(
-                    f"Vous avez cumulé 3 absences non justifiées. "
-                    f"Un email d'avertissement vous a été envoyé. "
-                    f"Attention : 5 absences entraîneront la convocation de vos parents."
+                    "Vous avez cumulé 3 absences non justifiées. "
+                    "Un email d'avertissement vous a été envoyé. "
+                    "Attention : 5 absences entraîneront la convocation de vos parents."
                 ),
             )
             self.notification_repo.session.add(notif)
@@ -191,8 +190,8 @@ class AttendanceSessionService:
                 priority=NotificationPriority.URGENT,
                 title="🔴 Convocation des parents — 5 absences",
                 body=(
-                    f"Vous avez atteint 5 absences. Vos parents ont été convoqués "
-                    f"pour un entretien avec l'Aumônier et le Censeur."
+                    "Vous avez atteint 5 absences. Vos parents ont été convoqués "
+                    "pour un entretien avec l'Aumônier et le Censeur."
                 ),
             )
             self.notification_repo.session.add(notif_servant)
@@ -267,7 +266,7 @@ class AttendanceSessionService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"La présence de {servant.first_name} {servant.last_name} est déjà enregistrée dans cette session.",
+                detail=f"La présence de {servant.first_name} {servant.last_name} est déjà enregistrée dans cette session.",  # noqa: E501
             )
 
         record = AttendanceRecord(

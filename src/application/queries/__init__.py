@@ -6,8 +6,8 @@ Elles sont indépendantes des services d'écriture (commands) et peuvent
 être optimisées séparément (cache, vues dénormalisées, etc.).
 """
 
-from .user_queries import UserListQuery, UserStatsQuery
 from .dashboard_queries import DashboardQuery
+from .user_queries import UserListQuery, UserStatsQuery
 
 __all__ = [
     "DashboardQuery",

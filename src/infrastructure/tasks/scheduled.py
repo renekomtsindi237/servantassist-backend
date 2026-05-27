@@ -152,7 +152,7 @@ async def _send_weekly_report_async():
 
     async with sessionmanager.session() as session:
         # Récupérer les admins
-        stmt_admins = select(User).where(User.role == UserRole.ADMIN, User.is_active == True)
+        stmt_admins = select(User).where(User.role == UserRole.ADMIN, User.is_active.is_(True))
         result_a = await session.exec(stmt_admins)
         admins = result_a.all()
 

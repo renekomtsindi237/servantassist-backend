@@ -9,7 +9,6 @@ Regles du reglement interieur :
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -17,9 +16,8 @@ from fastapi import HTTPException, status
 
 from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.user import User, UserRole
-from src.core.interfaces.repositories import ISubGroupRepository
-from src.core.interfaces.repositories import ITrainingParticipationRepository
-from src.core.interfaces.repositories import IUserRepository
+from src.core.interfaces.repositories import ISubGroupRepository, ITrainingParticipationRepository, IUserRepository
+from src.core.utils import utc_now
 from src.presentation.schemas.subgroup import (
     SubGroupCreate,
     SubGroupMemberAdd,
@@ -269,5 +267,5 @@ class SubGroupService:
         )
         # Note: system ID bypass check if repo allows it. In a real app we'd need a valid user.
         # But here we commit to BDD for RI compliance.
-        created = await self.group_repo.add_member(membership)
+        await self.group_repo.add_member(membership)
         return await self._build_group_response(group)

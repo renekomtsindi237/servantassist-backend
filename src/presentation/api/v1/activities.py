@@ -21,7 +21,6 @@ Participants (self-service) :
 """
 
 from datetime import datetime
-from src.core.utils import utc_now
 from typing import Annotated, List, Optional
 from uuid import UUID
 
@@ -40,6 +39,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.application.services.event_service import EventService
 from src.core.entities.event import EventStatus, EventType, ParticipantStatus
 from src.core.entities.user import User
+from src.core.utils import utc_now
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.event_repository import EventRepository
 from src.infrastructure.repositories.user_repository import UserRepository
@@ -128,7 +128,9 @@ async def export_all_events_ical(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     """Export iCal de tous les événements publiés à venir."""
-    from icalendar import Calendar, Event as IEvent
+    from icalendar import Calendar
+    from icalendar import Event as IEvent
+
     from src.core.entities.event import EventStatus
 
     service = _get_event_service(session)
@@ -343,7 +345,8 @@ async def export_single_event_ical(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     """Export iCal d'un événement unique."""
-    from icalendar import Calendar, Event as IEvent
+    from icalendar import Calendar
+    from icalendar import Event as IEvent
 
     service = _get_event_service(session)
     ev = await service.get_event(event_id)

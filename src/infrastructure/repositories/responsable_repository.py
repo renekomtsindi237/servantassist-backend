@@ -5,7 +5,6 @@ Fournit les operations CRUD + enrichissement + filtrage + pagination.
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -25,6 +24,7 @@ from src.core.entities.responsable import (
     PosteResponsable,
 )
 from src.core.entities.user import User
+from src.core.utils import utc_now
 from src.infrastructure.security.field_encryption import decrypt_str_fields
 
 _USER_PII = ("first_name", "last_name", "email", "phone_number")
@@ -239,8 +239,6 @@ class PosteActionRepository:
         page_size: int = 20,
     ) -> Dict:
         """Liste les actions visibles pour un utilisateur (ses actions + actions publiées)."""
-        from sqlalchemy import or_
-
         stmt = select(PosteAction).where(
             or_(
                 PosteAction.created_by == user_id,

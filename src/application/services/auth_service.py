@@ -8,8 +8,8 @@ from sqlalchemy import select
 
 from src.core.entities.user import User, UserRole
 from src.core.events.domain_events import UserInvited, UserRegistered
-from src.core.utils import utc_now
 from src.core.interfaces.repositories import IInvitationRepository, IUserRepository
+from src.core.utils import utc_now
 from src.infrastructure.events.bus import event_bus
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.security.utils import SecurityUtils
@@ -359,6 +359,7 @@ class AuthService:
 
     async def reset_password(self, token: str, new_password: str, email_service=None) -> None:
         import time as _time
+
         from jose import JWTError, jwt
 
         from src.infrastructure.config.settings import get_settings

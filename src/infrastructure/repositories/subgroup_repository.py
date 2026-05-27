@@ -3,7 +3,6 @@ Repository pour les sous-groupes et leurs membres.
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import Dict, List, Optional
 from uuid import UUID
 
@@ -13,6 +12,7 @@ from sqlmodel import select
 
 from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.user import User
+from src.core.utils import utc_now
 from src.infrastructure.security.field_encryption import decrypt_str_fields
 
 _USER_PII = ("first_name", "last_name", "email", "phone_number")
@@ -37,7 +37,7 @@ class SubGroupRepository:
     async def list_all(self, active_only: bool = True) -> List[SubGroup]:
         stmt = select(SubGroup)
         if active_only:
-            stmt = stmt.where(SubGroup.is_active == True)
+            stmt = stmt.where(SubGroup.is_active.is_(True))
         stmt = stmt.order_by(SubGroup.name)
         result = await self.session.exec(stmt)
         return result.all()
@@ -65,7 +65,7 @@ class SubGroupRepository:
     async def get_member_count(self, group_id: UUID) -> int:
         stmt = select(func.count()).where(
             SubGroupMember.sub_group_id == group_id,
-            SubGroupMember.is_active == True,
+            SubGroupMember.is_active.is_(True),
         )
         result = await self.session.exec(stmt)
         return result.one()
@@ -75,7 +75,7 @@ class SubGroupRepository:
             select(SubGroupMember)
             .where(
                 SubGroupMember.sub_group_id == group_id,
-                SubGroupMember.is_active == True,
+                SubGroupMember.is_active.is_(True),
             )
             .order_by(SubGroupMember.joined_at)
         )
@@ -86,7 +86,7 @@ class SubGroupRepository:
         """Retourne l'appartenance active d'un utilisateur (un seul sous-groupe)."""
         stmt = select(SubGroupMember).where(
             SubGroupMember.user_id == user_id,
-            SubGroupMember.is_active == True,
+            SubGroupMember.is_active.is_(True),
         )
         result = await self.session.exec(stmt)
         return result.first()
@@ -109,7 +109,7 @@ class SubGroupRepository:
         stmt = select(SubGroupMember).where(
             SubGroupMember.sub_group_id == group_id,
             SubGroupMember.user_id == user_id,
-            SubGroupMember.is_active == True,
+            SubGroupMember.is_active.is_(True),
         )
         result = await self.session.exec(stmt)
         return result.first()

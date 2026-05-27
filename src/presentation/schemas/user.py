@@ -9,7 +9,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from src.core.entities.user import UserRole, ServantPosition
+from src.core.entities.user import ServantPosition, UserRole
 
 # PaginatedResponse est défini une seule fois dans common.py et
 # ré-exporté ici pour la compatibilité descendante de tous les imports existants.

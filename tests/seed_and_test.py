@@ -18,13 +18,13 @@ from __future__ import annotations
 import json
 import sys
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
-import urllib.error
-import urllib.parse
-import urllib.request
 
 # ─────────────────────────── Configuration ────────────────────────────────
 BASE = "http://localhost:8000/api/v1"

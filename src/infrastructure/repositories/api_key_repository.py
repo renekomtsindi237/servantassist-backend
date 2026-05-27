@@ -1,7 +1,6 @@
 """Repository pour les API Keys."""
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -9,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from src.core.entities.api_key import ApiKey
+from src.core.utils import utc_now
 
 
 class ApiKeyRepository:

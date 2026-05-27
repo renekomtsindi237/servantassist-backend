@@ -3,7 +3,6 @@ Repository pour la gestion des rapports (SECRETAIRE).
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID
 
@@ -11,6 +10,7 @@ from sqlalchemy import String, and_, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.entities.report import Report, ReportAttachment, ReportStatus, ReportType
+from src.core.utils import utc_now
 
 
 class ReportRepository:

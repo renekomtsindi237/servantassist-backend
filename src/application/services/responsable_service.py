@@ -13,7 +13,6 @@ Regles metier :
 
 import math
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -37,12 +36,13 @@ from src.core.entities.responsable import (
     PosteResponsable,
 )
 from src.core.entities.user import User, UserRole
-from src.core.interfaces.repositories import ICouncilMeetingRepository
 from src.core.interfaces.repositories import (
+    ICouncilMeetingRepository,
     INominationRepository,
     IPosteActionRepository,
+    IUserRepository,
 )
-from src.core.interfaces.repositories import IUserRepository
+from src.core.utils import utc_now
 from src.presentation.schemas.responsable import (
     CouncilAttendanceRecordList,
     CouncilMeetingCreate,

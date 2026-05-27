@@ -44,7 +44,7 @@ async def _check_brute_force(identifier: str) -> None:
     if is_locked:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Compte temporairement bloqué suite à trop de tentatives échouées. Réessayez dans {remaining} secondes.",
+            detail=f"Compte temporairement bloqué suite à trop de tentatives échouées. Réessayez dans {remaining} secondes.",  # noqa: E501
             headers={"Retry-After": str(remaining)},
         )
 
@@ -226,10 +226,10 @@ async def request_reset_code(
     Envoie un code OTP 6 chiffres par email pour réinitialisation mobile.
     Retourne toujours 200 OK pour prévenir l'énumération d'emails.
     """
-    from src.infrastructure.services.email_service import EmailService
     from src.infrastructure.repositories.password_reset_code_repository import (
         PasswordResetCodeRepository,
     )
+    from src.infrastructure.services.email_service import EmailService
 
     user_repo = UserRepository(session)
     code_repo = PasswordResetCodeRepository(session)

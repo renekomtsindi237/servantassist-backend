@@ -9,9 +9,9 @@ Couvre :
   SecurityUtils.sanitize_html        : protection XSS
 """
 
-import pytest
 from datetime import timedelta
 
+import pytest
 from jose import jwt
 
 from src.infrastructure.config.settings import get_settings

@@ -3,7 +3,6 @@ Repository pour la gestion des sessions d'appel (CENSEUR).
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID
 
@@ -17,6 +16,7 @@ from src.core.entities.attendance_session import (
     ServantAttendanceStats,
 )
 from src.core.entities.user import User, UserRole
+from src.core.utils import utc_now
 from src.infrastructure.security.field_encryption import decrypt_str_fields
 
 _USER_PII = ("first_name", "last_name")

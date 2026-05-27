@@ -12,7 +12,6 @@ Règles métier :
 
 import math
 from datetime import datetime, timedelta, timezone
-from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -25,8 +24,8 @@ from src.core.entities.weekly_schedule import (
     WeeklyScheduleSlot,
     WeeklyScheduleTemplate,
 )
-from src.core.interfaces.repositories import IUserRepository
-from src.core.interfaces.repositories import IWeeklyScheduleRepository
+from src.core.interfaces.repositories import IUserRepository, IWeeklyScheduleRepository
+from src.core.utils import utc_now
 from src.presentation.schemas.user import PaginatedResponse
 from src.presentation.schemas.weekly_schedule import (
     SlotServantCreate,
@@ -444,7 +443,7 @@ class WeeklyScheduleService:
         if not is_within_mass_window(slot_date, slot.mass_time):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",
+                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",  # noqa: E501
             )
 
         # Valider le servant si fourni
@@ -514,7 +513,7 @@ class WeeklyScheduleService:
                     if not is_within_mass_window(slot_date, slot.mass_time):
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",
+                            detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",  # noqa: E501
                         )
 
         deleted = await self.schedule_repo.delete_assignment(assignment_id)

@@ -8,8 +8,8 @@ from uuid import UUID
 
 from src.core.entities.invitation import InvitationCode
 from src.core.entities.user import UserRole
-from src.core.interfaces.repositories import IInvitationRepository
 from src.core.events.domain_events import UserInvited
+from src.core.interfaces.repositories import IInvitationRepository
 from src.infrastructure.events.bus import event_bus
 
 
@@ -34,6 +34,7 @@ class CreateInvitationCommand:
 
     async def execute(self, invitation_repo: IInvitationRepository) -> InvitationCode:
         import secrets
+
         from src.core.utils import utc_now
 
         code = secrets.token_urlsafe(16)

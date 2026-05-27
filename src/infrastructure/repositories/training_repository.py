@@ -3,7 +3,6 @@ Repository pour la gestion des formations liturgiques (CHARGE_LITURGIE).
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -22,6 +21,7 @@ from src.core.entities.training import (
     TrainingStatus,
 )
 from src.core.entities.user import User, UserRole
+from src.core.utils import utc_now
 from src.infrastructure.security.field_encryption import decrypt_str_fields
 
 _USER_PII = ("first_name", "last_name")

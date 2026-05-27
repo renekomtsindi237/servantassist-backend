@@ -10,8 +10,9 @@ Couvre :
   ApiError / ErrorCode
 """
 
-import pytest
 from uuid import UUID, uuid4
+
+import pytest
 
 from src.presentation.schemas.common import (
     API_V1_PREFIX,

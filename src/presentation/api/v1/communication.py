@@ -13,6 +13,7 @@ Endpoints :
 - GET    /history          : historique admin de toutes les notifications
 """
 
+import logging
 from typing import Annotated, Optional
 from uuid import UUID
 
@@ -27,8 +28,6 @@ from fastapi import (
     status,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-
-import logging
 
 from src.application.services.notification_service import NotificationService
 from src.core.entities.notification import (

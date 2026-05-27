@@ -12,7 +12,6 @@ import json
 import logging
 import secrets
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
@@ -24,14 +23,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.application.services.auth_service import AuthService
 from src.core.entities.invitation import InvitationCode
 from src.core.entities.user import User, UserRole
+from src.core.utils import utc_now
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.invitation_repository import (
     InvitationCodeRepository,
 )
 from src.infrastructure.repositories.user_repository import UserRepository
+from src.infrastructure.services.email_service import EmailService
 from src.presentation.dependencies.auth_deps import get_current_admin_user
 from src.presentation.schemas.auth import UserCreate, UserResponse
-from src.infrastructure.services.email_service import EmailService
 from src.presentation.schemas.invitation import (
     InvitationCodeCreate,
     InvitationCodeListResponse,
@@ -74,7 +74,7 @@ async def create_invitation(
     if request.role not in ("PARENT", "AUMÔNIER"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Rôle invalide. Seules les invitations pour les rôles PARENT et AUMÔNIER peuvent être créées via l'API. Le rôle '{request.role}' n'est pas autorisé.",
+            detail=f"Rôle invalide. Seules les invitations pour les rôles PARENT et AUMÔNIER peuvent être créées via l'API. Le rôle '{request.role}' n'est pas autorisé.",  # noqa: E501
         )
 
     # Generate unique code
@@ -432,7 +432,7 @@ async def list_api_keys(
     """Retourne toutes les clés API (sans les clés en clair)."""
     result = await session.execute(
         text(
-            "SELECT id, name, scopes, is_active, last_used_at, created_at FROM api_keys WHERE user_id = :uid ORDER BY created_at DESC"
+            "SELECT id, name, scopes, is_active, last_used_at, created_at FROM api_keys WHERE user_id = :uid ORDER BY created_at DESC"  # noqa: E501
         ),
         {"uid": str(current_admin.id)},
     )

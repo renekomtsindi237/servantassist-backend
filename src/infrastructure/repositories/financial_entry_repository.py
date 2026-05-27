@@ -3,7 +3,6 @@ Repository pour la gestion des entrées financières (COMMISSAIRE_AUX_COMPTES).
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -17,6 +16,7 @@ from src.core.entities.financial_entry import (
     FinancialEntry,
     VerificationStatus,
 )
+from src.core.utils import utc_now
 
 
 class FinancialEntryRepository:
@@ -270,7 +270,7 @@ class DiscrepancyRepository:
     async def list_unresolved(self) -> List[Discrepancy]:
         """Liste les écarts non résolus."""
         result = await self.session.execute(
-            select(Discrepancy).where(Discrepancy.resolved == False).order_by(Discrepancy.detected_at.desc())
+            select(Discrepancy).where(Discrepancy.resolved.is_(False)).order_by(Discrepancy.detected_at.desc())
         )
         return list(result.scalars().all())
 

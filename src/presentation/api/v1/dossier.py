@@ -7,8 +7,8 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
 
 from src.core.entities.attendance_session import AttendanceRecord, AttendanceStatus
 from src.core.entities.user import User, UserRole
@@ -97,7 +97,7 @@ async def get_dossier(
     # ── Cotisations ────────────────────────────────────────────────
     cotisations: list[DossierCotisation] = []
     try:
-        from src.core.entities.cotisation import MemberCotisation, CotisationPeriod
+        from src.core.entities.cotisation import CotisationPeriod, MemberCotisation
 
         cot_result = await session.execute(
             select(MemberCotisation, CotisationPeriod)

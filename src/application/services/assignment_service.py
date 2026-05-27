@@ -15,7 +15,6 @@ Regles metier :
 
 import math
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -24,9 +23,8 @@ from fastapi import HTTPException, status
 from src.core.entities.assignment import Assignment, AssignmentStatus, LiturgicalRole
 from src.core.entities.event import Event
 from src.core.entities.user import User, UserRole
-from src.core.interfaces.repositories import IAssignmentRepository
-from src.core.interfaces.repositories import IEventRepository
-from src.core.interfaces.repositories import IUserRepository
+from src.core.interfaces.repositories import IAssignmentRepository, IEventRepository, IUserRepository
+from src.core.utils import utc_now
 from src.presentation.schemas.assignment import (
     AssignmentBatchCreate,
     AssignmentBatchResponse,

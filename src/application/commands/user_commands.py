@@ -14,9 +14,9 @@ la simplicité sur un système de taille modérée.
 from dataclasses import dataclass
 from uuid import UUID
 
+from src.application.services.user_service import UserService
 from src.core.entities.user import User
 from src.core.interfaces.repositories import IUserRepository
-from src.application.services.user_service import UserService
 from src.presentation.schemas.user import UserAdminResetPassword
 
 

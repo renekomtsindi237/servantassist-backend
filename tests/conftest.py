@@ -363,11 +363,6 @@ async def econome_token(econome_user: User) -> str:
 
 
 @pytest_asyncio.fixture()
-async def servant_user_id(servant_user: User) -> str:
-    return str(servant_user.id)
-
-
-@pytest_asyncio.fixture()
 async def secretaire_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with SECRETAIRE nomination."""
     user = await _make_user(

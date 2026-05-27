@@ -25,9 +25,8 @@ from src.core.entities.event import (
     ParticipantStatus,
 )
 from src.core.entities.user import User
+from src.core.interfaces.repositories import IEventRepository, IUserRepository
 from src.core.utils import utc_now
-from src.core.interfaces.repositories import IEventRepository
-from src.core.interfaces.repositories import IUserRepository
 from src.presentation.schemas.event import (
     EventCreate,
     EventDetailResponse,

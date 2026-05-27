@@ -148,8 +148,8 @@ async def notify_user_invited(event: UserInvited) -> None:
             user_first_name=event.email.split("@")[0].capitalize(),
             title="Votre code d'invitation ServantAssist",
             body=(
-                f"Votre code d'invitation est prêt. "
-                f"Rendez-vous sur la plateforme ServantAssist pour l'utiliser lors de votre inscription."
+                "Votre code d'invitation est prêt. "
+                "Rendez-vous sur la plateforme ServantAssist pour l'utiliser lors de votre inscription."
             ),
         )
     except Exception as exc:

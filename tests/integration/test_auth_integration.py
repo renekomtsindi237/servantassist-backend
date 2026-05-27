@@ -7,9 +7,9 @@ Particularité : les users DOIVENT être créés via UserRepository.create()
 pour que le champ email_hmac soit renseigné (get_by_email utilise HMAC lookup).
 """
 
-import pytest
 from uuid import uuid4
 
+import pytest
 from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 

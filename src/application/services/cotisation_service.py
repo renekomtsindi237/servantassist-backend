@@ -10,7 +10,6 @@ Regles du reglement interieur :
 
 import math
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -26,8 +25,9 @@ from src.core.entities.user import UserRole
 from src.core.interfaces.repositories import (
     ICotisationPeriodRepository,
     IMemberCotisationRepository,
+    IUserRepository,
 )
-from src.core.interfaces.repositories import IUserRepository
+from src.core.utils import utc_now
 from src.presentation.schemas.cotisation import (
     CotisationBilanResponse,
     CotisationPeriodCreate,

@@ -35,9 +35,7 @@ from src.infrastructure.repositories.attendance_repository import AttendanceRepo
 from src.infrastructure.repositories.discipline_repository import (
     DisciplineCaseRepository,
 )
-from src.infrastructure.repositories.invitation_repository import (
-    InvitationCodeRepository as InvitationRepository,
-)
+from src.infrastructure.repositories.invitation_repository import InvitationCodeRepository as InvitationRepository
 from src.infrastructure.repositories.sunday_schedule_repository import (
     SundayScheduleRepository,
 )

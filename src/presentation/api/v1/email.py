@@ -23,7 +23,7 @@ class TestEmailRequest(BaseModel):
     to_email: str
     subject: str = "Test ServantAssist — SMTP OK"
     message: str = (
-        "Ceci est un email de test envoyé depuis ServantAssist pour vérifier que le service SMTP fonctionne correctement."
+        "Ceci est un email de test envoyé depuis ServantAssist pour vérifier que le service SMTP fonctionne correctement."  # noqa: E501
     )
 
 

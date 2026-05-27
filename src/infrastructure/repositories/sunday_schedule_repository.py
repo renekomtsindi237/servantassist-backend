@@ -9,8 +9,11 @@ Chiffrement PII (Loi 2024/017 Cameroun) :
 """
 
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 from uuid import UUID
+
+if TYPE_CHECKING:
+    from src.core.entities.sunday_schedule import SundayScheduleModificationLog
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession

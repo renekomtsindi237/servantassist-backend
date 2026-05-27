@@ -40,7 +40,6 @@ async def test_mark_attendance_batch_performance(client, censeur_token, sample_a
     from src.infrastructure.security.utils import SecurityUtils
 
     # Créer 50 servants via API
-    servant_ids = []
     for i in range(50):
         # For simplicity in performance test, we'll just use the same servant multiple times
         # or skip detailed servant creation

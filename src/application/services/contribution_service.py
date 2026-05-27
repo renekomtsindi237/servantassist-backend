@@ -10,7 +10,6 @@ Règles métier :
 
 import math
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID
 
@@ -24,8 +23,8 @@ from src.core.entities.contribution import (
     PaymentStatus,
 )
 from src.core.entities.user import UserRole
-from src.core.interfaces.repositories import IContributionRepository
-from src.core.interfaces.repositories import IUserRepository
+from src.core.interfaces.repositories import IContributionRepository, IUserRepository
+from src.core.utils import utc_now
 from src.presentation.schemas.contribution import (
     ContributionCreate,
     ContributionResponse,

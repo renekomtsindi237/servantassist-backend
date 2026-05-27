@@ -7,10 +7,10 @@ et patchent le sessionmanager pour pointer sur SQLite en mémoire.
 
 import pytest
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
-from httpx import ASGITransport, AsyncClient
 
 from src.infrastructure.database.session import get_db_session
 from src.main import app as main_app

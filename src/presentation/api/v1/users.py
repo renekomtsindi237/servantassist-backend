@@ -19,7 +19,6 @@ Administration (admin requis) :
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import Annotated, Optional
 from uuid import UUID
 
@@ -29,6 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.user_service import UserService
 from src.core.entities.user import User, UserRole
+from src.core.utils import utc_now
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.services.storage_service import StorageService

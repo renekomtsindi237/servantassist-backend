@@ -899,7 +899,7 @@ class TestResponsableWorkflow:
             headers=make_auth_header(servant_user),
         )
         assert resp.status_code == 201
-        action_id = resp.json()["id"]
+        assert resp.json()["id"]
         assert resp.json()["amount"] == 15000.0
 
         # 4. Dashboard

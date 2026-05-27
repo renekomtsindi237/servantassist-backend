@@ -6,13 +6,13 @@ Elles sont indépendantes des queries (lectures) et peuvent être
 distribuées, retentées ou journalisées séparément.
 """
 
+from .auth_commands import CreateInvitationCommand
 from .user_commands import (
     ActivateUserCommand,
     DeactivateUserCommand,
     RegisterUserCommand,
     ResetPasswordCommand,
 )
-from .auth_commands import CreateInvitationCommand
 
 __all__ = [
     "ActivateUserCommand",

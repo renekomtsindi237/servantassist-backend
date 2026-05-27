@@ -3,11 +3,11 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
+from sqlalchemy import Column
+from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
-from sqlalchemy import Column
-from sqlalchemy import Enum as SAEnum
 
 
 class UserRole(str, Enum):

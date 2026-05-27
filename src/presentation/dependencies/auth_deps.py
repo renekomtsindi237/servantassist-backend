@@ -593,7 +593,7 @@ require_econome = get_require_econome()
 
 # SECRETAIRE - Reports and Communication
 def get_require_secretaire():
-    """Accepte SECRETAIRE, SECRETAIRE_ADJOINT, SECRETAIRE_GENERAL ou SECRETAIRE_GENERAL_ADJOINT via nomination active."""
+    """Accepte SECRETAIRE, SECRETAIRE_ADJOINT, SECRETAIRE_GENERAL ou SECRETAIRE_GENERAL_ADJOINT via nomination active."""  # noqa: E501
 
     async def require(
         current_user: Annotated[User, Depends(get_current_active_user)],

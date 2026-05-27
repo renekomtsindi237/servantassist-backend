@@ -39,6 +39,7 @@ import base64
 import json
 import os
 
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric.ec import (
     ECDH,
     SECP256R1,
@@ -47,7 +48,6 @@ from cryptography.hazmat.primitives.asymmetric.ec import (
 )
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     NoEncryption,

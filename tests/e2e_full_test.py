@@ -7,12 +7,12 @@ Exécuter avec : python -X utf8 tests/e2e_full_test.py
 import json
 import sys
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
 from dataclasses import dataclass, field
 from typing import Any, Optional
-import urllib.request
-import urllib.error
-import urllib.parse
 
 BASE = "http://localhost:8000/api/v1"
 PASS = "Test1234!"

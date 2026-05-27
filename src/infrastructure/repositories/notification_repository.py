@@ -3,7 +3,6 @@ Repository pour le module Communication / Notifications.
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import Optional
 from uuid import UUID
 
@@ -18,6 +17,7 @@ from src.core.entities.notification import (
     NotificationType,
 )
 from src.core.entities.user import User
+from src.core.utils import utc_now
 
 
 class NotificationRepository:

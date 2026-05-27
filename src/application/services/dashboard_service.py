@@ -10,26 +10,30 @@ Fournit des métriques globales pour l'écran de tableau de bord admin :
 """
 
 from datetime import datetime, timezone
-from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, func, select
 
-from src.core.entities.attendance import Attendance, AttendanceStatus
 from src.core.entities.assignment import Assignment, AssignmentStatus
+from src.core.entities.attendance import Attendance, AttendanceStatus
 from src.core.entities.cotisation import (
     CotisationPeriod,
-    CotisationStatus as CotisationPaymentStatus,
+)
+from src.core.entities.cotisation import CotisationStatus as CotisationPaymentStatus
+from src.core.entities.cotisation import (
     MemberCotisation,
 )
 from src.core.entities.event import Event
 from src.core.entities.user import User, UserRole
+from src.core.utils import utc_now
 from src.presentation.schemas.dashboard import (
     AttendancePoint,
     AttendanceTrend,
-    CotisationStatus as CotisationStatusSchema,
+)
+from src.presentation.schemas.dashboard import CotisationStatus as CotisationStatusSchema
+from src.presentation.schemas.dashboard import (
     DashboardSummary,
     TopServant,
     UpcomingEvent,
@@ -47,7 +51,7 @@ class DashboardService:
     async def get_summary(self) -> DashboardSummary:
         """Retourne les métriques globales de l'application."""
         # Comptages utilisateurs
-        stmt_users = select(User).where(User.is_active == True)
+        stmt_users = select(User).where(User.is_active.is_(True))
         result = await self.session.exec(stmt_users)
         all_users = result.all()
         total_servants = sum(1 for u in all_users if u.role == UserRole.SERVANT)
@@ -245,7 +249,7 @@ class DashboardService:
         Retourne les servants classés par taux de présence décroissant.
         """
         # Récupérer tous les servants actifs
-        stmt_s = select(User).where(User.role == UserRole.SERVANT, User.is_active == True)
+        stmt_s = select(User).where(User.role == UserRole.SERVANT, User.is_active.is_(True))
         result_s = await self.session.exec(stmt_s)
         servants = result_s.all()
 
