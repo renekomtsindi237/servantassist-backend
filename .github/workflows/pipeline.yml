@@ -191,6 +191,37 @@ jobs:
               echo "==> Docker Compose OK : $(docker compose version)"
             fi
 
+            # ── IPv6 + ip6tables (Supabase IPv6-only depuis containers) ────────
+            echo "==> Configuration Docker IPv6 + ip6tables..."
+            DAEMON_JSON="/etc/docker/daemon.json"
+            IP6_NEED_RESTART=false
+            if [ ! -f "$DAEMON_JSON" ]; then
+              echo '{"ipv6": true, "fixed-cidr-v6": "fd00::/80", "ip6tables": true}' > "$DAEMON_JSON"
+              IP6_NEED_RESTART=true
+            elif ! python3 -c "import json; d=json.load(open('$DAEMON_JSON')); exit(0 if d.get('ip6tables') else 1)" 2>/dev/null; then
+              python3 -c "
+import json
+with open('/etc/docker/daemon.json') as f:
+    d = json.load(f)
+d['ipv6'] = True
+d['ip6tables'] = True
+if 'fixed-cidr-v6' not in d:
+    d['fixed-cidr-v6'] = 'fd00::/80'
+with open('/etc/docker/daemon.json', 'w') as f:
+    json.dump(d, f, indent=2)
+print('daemon.json mis a jour')
+"
+              IP6_NEED_RESTART=true
+            fi
+            if $IP6_NEED_RESTART; then
+              echo "==> Redémarrage Docker (activation ip6tables)..."
+              systemctl restart docker
+              sleep 10
+              echo "==> Docker redémarré"
+            else
+              echo "==> Docker IPv6 déjà configuré"
+            fi
+
             # ── Répertoire application ──────────────────────────────────────
             mkdir -p /opt/servantassist/backups /opt/servantassist/logs
             echo "==> Bootstrap OK"
@@ -256,6 +287,10 @@ jobs:
 
             echo "==> Arrêt propre des containers existants"
             $DC down --remove-orphans 2>/dev/null || true
+
+            echo "==> Règle ip6tables masquerade (IPv6 → Supabase)"
+            ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
+              || ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE
 
             echo "==> Démarrage avec la nouvelle config (attente healthchecks)"
             $DC up -d --scale backend=2 --wait --timeout 120
