@@ -19,8 +19,6 @@ bcrypt==4.1.2
 cryptography>=41.0.0  # AES-256-GCM chiffrement des champs PII (Loi 2024/017)
 nh3==0.2.14
 
-# ASN.1 parsing
-pyasn1==0.6.3
 
 # Validation
 pydantic==2.5.3
