@@ -43,7 +43,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # -- Content Security Policy ----------------------------------
         if settings.APP_ENV == "development":
-            # En développement, permettre les ressources externes (Swagger, etc.)
+            # En développement, permettre les ressources externes (Swagger,
+            # etc.)
             csp = (
                 "default-src 'self'; "
                 "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fastapi.tiangolo.com; "

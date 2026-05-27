@@ -1,7 +1,8 @@
 """
 Repository pour la gestion des activités sportives et culturelles.
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID
 
@@ -18,6 +19,9 @@ from src.core.entities.sport_culture import (
     SportCultureEvent,
 )
 from src.core.entities.user import User
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name")
 
 
 class SportCultureEventRepository:
@@ -76,7 +80,7 @@ class SportCultureEventRepository:
 
     async def update(self, event: SportCultureEvent) -> SportCultureEvent:
         """Met à jour un événement."""
-        event.updated_at = datetime.utcnow()
+        event.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(event)
         return event
@@ -91,9 +95,10 @@ class SportCultureEventRepository:
         await self.session.commit()
         return True
 
-    async def get_upcoming_events(self, limit: int = 10) -> List[SportCultureEvent]:
+    async def get_upcoming_events(
+        self, limit: int = 10) -> List[SportCultureEvent]:
         """Récupère les événements à venir."""
-        now = datetime.utcnow()
+        now = utc_now()
         result = await self.session.execute(
             select(SportCultureEvent)
             .where(SportCultureEvent.date >= now)
@@ -110,14 +115,16 @@ class EventParticipationRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, participation: EventParticipation) -> EventParticipation:
+    async def create(
+        self, participation: EventParticipation) -> EventParticipation:
         """Crée une nouvelle participation."""
         self.session.add(participation)
         await self.session.commit()
         await self.session.refresh(participation)
         return participation
 
-    async def create_batch(self, participations: List[EventParticipation]) -> List[EventParticipation]:
+    async def create_batch(
+        self, participations: List[EventParticipation]) -> List[EventParticipation]:
         """Crée plusieurs participations en batch."""
         for participation in participations:
             self.session.add(participation)
@@ -126,7 +133,8 @@ class EventParticipationRepository:
             await self.session.refresh(participation)
         return participations
 
-    async def get_by_id(self, participation_id: UUID) -> Optional[EventParticipation]:
+    async def get_by_id(
+        self, participation_id: UUID) -> Optional[EventParticipation]:
         """Récupère une participation par son ID."""
         result = await self.session.execute(select(EventParticipation).where(EventParticipation.id == participation_id))
         return result.scalar_one_or_none()
@@ -164,7 +172,8 @@ class EventParticipationRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
-    async def get_by_event_and_servant(self, event_id: UUID, servant_id: UUID) -> Optional[EventParticipation]:
+    async def get_by_event_and_servant(
+        self, event_id: UUID, servant_id: UUID) -> Optional[EventParticipation]:
         """Récupère une participation spécifique."""
         result = await self.session.execute(
             select(EventParticipation).where(
@@ -176,9 +185,10 @@ class EventParticipationRepository:
         )
         return result.scalar_one_or_none()
 
-    async def update(self, participation: EventParticipation) -> EventParticipation:
+    async def update(
+        self, participation: EventParticipation) -> EventParticipation:
         """Met à jour une participation."""
-        participation.updated_at = datetime.utcnow()
+        participation.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(participation)
         return participation
@@ -204,18 +214,21 @@ class EventParticipationRepository:
             select(func.count()).where(
                 and_(
                     EventParticipation.event_id == event_id,
-                    EventParticipation.status.in_([ParticipationStatus.CONFIRME, ParticipationStatus.PRESENT]),
+                    EventParticipation.status.in_(
+                        [ParticipationStatus.CONFIRME, ParticipationStatus.PRESENT]),
                 )
             )
         )
         return result.scalar()
 
-    async def enrich_participation(self, participation: EventParticipation) -> EventParticipation:
+    async def enrich_participation(
+        self, participation: EventParticipation) -> EventParticipation:
         """Enrichit une participation avec les noms."""
         # Récupérer le nom du servant
         servant_result = await self.session.execute(select(User).where(User.id == participation.servant_id))
         servant = servant_result.scalar_one_or_none()
         if servant:
+            decrypt_str_fields(servant, _USER_PII)
             participation.servant_name = f"{servant.first_name} {servant.last_name}"
 
         return participation
@@ -237,7 +250,9 @@ class EventResultRepository:
     async def get_by_event(self, event_id: UUID) -> List[EventResult]:
         """Récupère les résultats d'un événement."""
         result = await self.session.execute(
-            select(EventResult).where(EventResult.event_id == event_id).order_by(EventResult.created_at)
+            select(EventResult).where(
+    EventResult.event_id == event_id).order_by(
+        EventResult.created_at)
         )
         return list(result.scalars().all())
 
@@ -274,7 +289,9 @@ class EventTeamRepository:
     async def get_by_event(self, event_id: UUID) -> List[EventTeam]:
         """Récupère les équipes d'un événement."""
         result = await self.session.execute(
-            select(EventTeam).where(EventTeam.event_id == event_id).order_by(EventTeam.team_name)
+            select(EventTeam).where(
+    EventTeam.event_id == event_id).order_by(
+        EventTeam.team_name)
         )
         return list(result.scalars().all())
 
@@ -300,6 +317,7 @@ class EventTeamRepository:
         captain_result = await self.session.execute(select(User).where(User.id == team.captain_id))
         captain = captain_result.scalar_one_or_none()
         if captain:
+            decrypt_str_fields(captain, _USER_PII)
             team.captain_name = f"{captain.first_name} {captain.last_name}"
 
         # Récupérer les noms des membres
@@ -310,6 +328,8 @@ class EventTeamRepository:
 
                 members_result = await self.session.execute(select(User).where(User.id.in_(member_ids)))
                 members = list(members_result.scalars().all())
+                for m in members:
+                    decrypt_str_fields(m, _USER_PII)
 
                 # Créer une map pour respecter l'ordre ou juste lister les noms
                 members_map = {m.id: f"{m.first_name} {m.last_name}" for m in members}

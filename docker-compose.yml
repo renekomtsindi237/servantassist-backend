@@ -65,6 +65,68 @@ services:
       APP_ENV: development
       APP_DEBUG: "True"
 
+  # ── Celery Worker ─────────────────────────────────────────────────
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-celery-worker
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-servantassist}:${POSTGRES_PASSWORD:-servantassist_password}@db:5432/${POSTGRES_DB:-servantassist_db}"
+      REDIS_URL: "redis://redis:6379/0"
+      APP_ENV: development
+    command: celery -A src.infrastructure.tasks.celery_app worker --loglevel=info --concurrency=2
+
+  # ── Celery Beat (scheduler) ───────────────────────────────────────
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-celery-beat
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - celery-worker
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-servantassist}:${POSTGRES_PASSWORD:-servantassist_password}@db:5432/${POSTGRES_DB:-servantassist_db}"
+      REDIS_URL: "redis://redis:6379/0"
+      APP_ENV: development
+    command: celery -A src.infrastructure.tasks.celery_app beat --loglevel=info
+
+  # ── Flower (Celery monitoring UI) ─────────────────────────────────
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-flower
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+    command: celery -A src.infrastructure.tasks.celery_app flower --port=5555
+
   # ── Tests (profil « test ») ───────────────────────────────────────
   test:
     build:

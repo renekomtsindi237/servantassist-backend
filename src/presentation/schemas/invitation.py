@@ -14,8 +14,12 @@ class InvitationCodeCreate(BaseModel):
     """Request to create invitation code"""
 
     role: str = Field(default="PARENT", description="PARENT or AUMÔNIER")
-    email: Optional[str] = Field(default=None, description="Optional: specific email allowed to use")
-    phone_number: Optional[str] = Field(default=None, description="Optional: phone number for WhatsApp delivery")
+    parent_name: Optional[str] = Field(default=None, description="Nom du parent destinataire")
+    email: Optional[str] = Field(
+    default=None,
+     description="Optional: specific email allowed to use")
+    phone_number: Optional[str] = Field(
+    default=None, description="Optional: phone number for WhatsApp delivery")
     notes: Optional[str] = None
 
 
@@ -25,6 +29,7 @@ class InvitationCodeResponse(BaseModel):
     id: UUID
     code: str
     role: str
+    parent_name: Optional[str] = None
     email: Optional[str] = None
     phone_number: Optional[str] = None
     status: InvitationStatus
@@ -32,6 +37,7 @@ class InvitationCodeResponse(BaseModel):
     used_at: Optional[datetime] = None
     notes: Optional[str] = None
     whatsapp_sent: bool = False
+    email_sent: bool = False
 
     class Config:
         from_attributes = True
@@ -43,6 +49,7 @@ class InvitationCodeListResponse(BaseModel):
     id: UUID
     code: str
     role: str
+    parent_name: Optional[str] = None
     email: Optional[str] = None
     phone_number: Optional[str] = None
     status: InvitationStatus
@@ -51,6 +58,13 @@ class InvitationCodeListResponse(BaseModel):
     used_at: Optional[datetime] = None
     notes: Optional[str] = None
     whatsapp_sent: bool = False
+    email_sent: bool = False
 
     class Config:
         from_attributes = True
+
+
+class SendInvitationEmailRequest(BaseModel):
+    """Request to send invitation code via email"""
+
+    email: str = Field(description="Email address to send the code to")

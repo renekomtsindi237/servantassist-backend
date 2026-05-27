@@ -232,10 +232,7 @@ class TestRefreshTokenMisuse:
             "/api/v1/admin/invitations",
             headers={"Authorization": f"Bearer {refresh}"},
         )
-        # Le refresh token a type="refresh", mais auth_deps ne vérifie pas le type
-        # pour l'access token — cependant le TokenData devrait quand même fonctionner...
-        # Ce test vérifie le comportement actuel
-        assert resp.status_code in (200, 401)
+        assert resp.status_code == 401
 
     async def test_reset_token_cannot_be_used_as_access(self, client: AsyncClient, admin_user):
         """Un reset token ne doit pas fonctionner comme access token."""

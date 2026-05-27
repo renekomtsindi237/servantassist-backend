@@ -1,7 +1,8 @@
 """
 Service pour la gestion des formations liturgiques (CHARGE_LITURGIE).
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
@@ -19,11 +20,11 @@ from src.core.entities.training import (
     TrainingStats,
     TrainingStatus,
 )
-from src.infrastructure.repositories.training_repository import (
-    SessionMaterialRepository,
-    TrainingMaterialRepository,
-    TrainingParticipationRepository,
-    TrainingSessionRepository,
+from src.core.interfaces.repositories import (
+    ISessionMaterialRepository,
+    ITrainingMaterialRepository,
+    ITrainingParticipationRepository,
+    ITrainingSessionRepository,
 )
 
 
@@ -32,10 +33,10 @@ class TrainingService:
 
     def __init__(
         self,
-        session_repo: TrainingSessionRepository,
-        participation_repo: TrainingParticipationRepository,
-        material_repo: TrainingMaterialRepository,
-        session_material_repo: SessionMaterialRepository,
+        session_repo: ITrainingSessionRepository,
+        participation_repo: ITrainingParticipationRepository,
+        material_repo: ITrainingMaterialRepository,
+        session_material_repo: ISessionMaterialRepository,
     ):
         self.session_repo = session_repo
         self.participation_repo = participation_repo
@@ -215,6 +216,10 @@ class TrainingService:
     #  GESTION DES PARTICIPATIONS
     # ══════════════════════════════════════════════════════════════════
 
+    async def get_participation(self, participation_id: UUID) -> Optional[TrainingParticipation]:
+        """Récupère une participation par son ID."""
+        return await self.participation_repo.get_by_id(participation_id)
+
     async def register_participant(
         self,
         session_id: UUID,
@@ -228,14 +233,14 @@ class TrainingService:
         if not session:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Training session not found",
+                detail="Cette session de formation est introuvable.",
             )
 
         # Vérifier que la session n'est pas terminée ou annulée
         if session.status in [TrainingStatus.TERMINEE, TrainingStatus.ANNULEE]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot register to a completed or cancelled session",
+                detail="Impossible de s'inscrire à une session déjà terminée ou annulée.",
             )
 
         # Vérifier que le servant n'est pas déjà inscrit
@@ -243,7 +248,7 @@ class TrainingService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Servant already registered to this session",
+                detail="Ce servant est déjà inscrit à cette session de formation.",
             )
 
         # Vérifier le nombre maximum de participants
@@ -304,7 +309,7 @@ class TrainingService:
             return None
 
         participation.status = status
-        participation.attendance_marked_at = datetime.utcnow()
+        participation.attendance_marked_at = utc_now()
         participation.marked_by = marked_by
         if notes:
             participation.notes = notes
@@ -328,13 +333,16 @@ class TrainingService:
         participation.evaluation_comments = evaluation_comments
         participation.certificate_issued = certificate_issued
 
-        # TODO: Générer le certificat si certificate_issued = True
-        # participation.certificate_url = ...
+        if certificate_issued:
+            participation.certificate_url = (
+                f"/api/v1/training/participations/{participation_id}/certificate"
+            )
 
         updated = await self.participation_repo.update(participation)
         return await self.participation_repo.enrich_participation(updated)
 
-    async def get_session_participants(self, session_id: UUID) -> List[TrainingParticipation]:
+    async def get_session_participants(
+        self, session_id: UUID) -> List[TrainingParticipation]:
         """Récupère les participants d'une session."""
         participations = await self.participation_repo.list_by_session(session_id)
 
@@ -413,7 +421,8 @@ class TrainingService:
         created = await self.material_repo.create(material)
         return await self.material_repo.enrich_material(created)
 
-    async def get_material(self, material_id: UUID) -> Optional[TrainingMaterial]:
+    async def get_material(
+        self, material_id: UUID) -> Optional[TrainingMaterial]:
         """Récupère un matériel par son ID."""
         material = await self.material_repo.get_by_id(material_id)
         if material:
@@ -505,7 +514,7 @@ class TrainingService:
         if not session:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Training session not found",
+                detail="Cette session de formation est introuvable.",
             )
 
         # Vérifier que le matériel existe
@@ -513,7 +522,7 @@ class TrainingService:
         if not material:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Training material not found",
+                detail="Ce support de formation est introuvable.",
             )
 
         session_material = SessionMaterial(
@@ -526,11 +535,13 @@ class TrainingService:
 
         return await self.session_material_repo.create(session_material)
 
-    async def get_session_materials(self, session_id: UUID) -> List[SessionMaterial]:
+    async def get_session_materials(
+        self, session_id: UUID) -> List[SessionMaterial]:
         """Récupère les matériels d'une session."""
         return await self.session_material_repo.get_by_session(session_id)
 
-    async def remove_material_from_session(self, session_material_id: UUID) -> bool:
+    async def remove_material_from_session(
+        self, session_material_id: UUID) -> bool:
         """Retire un matériel d'une session."""
         return await self.session_material_repo.delete(session_material_id)
 
@@ -555,7 +566,8 @@ class TrainingService:
             end_date=end_date,
         )
 
-        completed_sessions = sum(1 for s in sessions if s.status == TrainingStatus.TERMINEE)
+        completed_sessions = sum(
+    1 for s in sessions if s.status == TrainingStatus.TERMINEE)
 
         # Récupérer toutes les participations
         all_participations = []
@@ -566,25 +578,66 @@ class TrainingService:
         total_participants = len(all_participations)
 
         # Calculer le taux de présence moyen
-        attended = sum(1 for p in all_participations if p.status == ParticipationStatus.PRESENT)
-        average_attendance_rate = (attended / total_participants * 100) if total_participants > 0 else 0.0
+        attended = sum(1 for p in all_participations if p.status ==
+                       ParticipationStatus.PRESENT)
+        average_attendance_rate = (
+    attended /
+    total_participants *
+     100) if total_participants > 0 else 0.0
 
         # Calculer la note moyenne
-        scores = [p.evaluation_score for p in all_participations if p.evaluation_score is not None]
-        average_evaluation_score = sum(scores) / len(scores) if scores else None
+        scores = [
+    p.evaluation_score for p in all_participations if p.evaluation_score is not None]
+        average_evaluation_score = sum(
+            scores) / len(scores) if scores else None
 
         # Compter les certificats
-        certificates_issued = sum(1 for p in all_participations if p.certificate_issued)
+        certificates_issued = sum(
+    1 for p in all_participations if p.certificate_issued)
 
         # Top performers (meilleurs participants)
+        from collections import defaultdict
+        user_stats: dict = defaultdict(
+            lambda: {"scores": [], "attended": 0, "total": 0, "user_id": None}
+        )
+        for p in all_participations:
+            uid = str(p.user_id)
+            user_stats[uid]["user_id"] = p.user_id
+            user_stats[uid]["total"] += 1
+            if p.status == ParticipationStatus.PRESENT:
+                user_stats[uid]["attended"] += 1
+            if p.evaluation_score is not None:
+                user_stats[uid]["scores"].append(p.evaluation_score)
+
         top_performers = []
-        # TODO: Implémenter la logique pour identifier les meilleurs participants
+        for stats in user_stats.values():
+            avg_score = (
+                sum(stats["scores"]) / len(stats["scores"])
+                if stats["scores"]
+                else 0.0
+            )
+            attendance_rate = (
+                stats["attended"] / stats["total"] * 100
+                if stats["total"]
+                else 0.0
+            )
+            top_performers.append(
+                {
+                    "user_id": str(stats["user_id"]),
+                    "avg_score": round(avg_score, 2),
+                    "attendance_rate": round(attendance_rate, 2),
+                }
+            )
+        top_performers = sorted(
+            top_performers, key=lambda x: x["avg_score"], reverse=True
+        )[:10]
 
         # Répartition par niveau
         sessions_by_level = {}
         for session in sessions:
-            level_str = session.level.value
-            sessions_by_level[level_str] = sessions_by_level.get(level_str, 0) + 1
+            level_str = session.level.value if hasattr(session.level, 'value') else str(session.level)
+            sessions_by_level[level_str] = sessions_by_level.get(
+                level_str, 0) + 1
 
         return TrainingReport(
             id=uuid4(),

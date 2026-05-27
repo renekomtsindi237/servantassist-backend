@@ -1,7 +1,8 @@
 """
 Repository pour la gestion du matériel (INTENDANTS).
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -20,6 +21,9 @@ from src.core.entities.material import (
     TaskType,
 )
 from src.core.entities.user import User, UserRole
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name")
 
 
 class MaterialItemRepository:
@@ -57,7 +61,10 @@ class MaterialItemRepository:
         if condition:
             query = query.where(MaterialItem.condition == condition)
         if search:
-            query = query.where(MaterialItem.name.ilike(f"%{search}%") | MaterialItem.description.ilike(f"%{search}%"))
+            query = query.where(
+    MaterialItem.name.ilike(
+        f"%{search}%") | MaterialItem.description.ilike(
+            f"%{search}%"))
 
         # Compter le total
         count_query = select(func.count()).select_from(query.subquery())
@@ -75,7 +82,7 @@ class MaterialItemRepository:
 
     async def update(self, item: MaterialItem) -> MaterialItem:
         """Met à jour un article."""
-        item.updated_at = datetime.utcnow()
+        item.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(item)
         return item
@@ -92,7 +99,7 @@ class MaterialItemRepository:
 
     async def get_items_needing_maintenance(self) -> List[MaterialItem]:
         """Récupère les articles nécessitant une maintenance."""
-        now = datetime.utcnow()
+        now = utc_now()
         result = await self.session.execute(
             select(MaterialItem).where(
                 (MaterialItem.next_maintenance_date <= now)
@@ -158,7 +165,7 @@ class CleaningTaskRepository:
 
     async def update(self, task: CleaningTask) -> CleaningTask:
         """Met à jour une tâche."""
-        task.updated_at = datetime.utcnow()
+        task.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(task)
         return task
@@ -187,7 +194,8 @@ class TaskAssignmentRepository:
         await self.session.refresh(assignment)
         return assignment
 
-    async def create_batch(self, assignments: List[TaskAssignment]) -> List[TaskAssignment]:
+    async def create_batch(
+        self, assignments: List[TaskAssignment]) -> List[TaskAssignment]:
         """Crée plusieurs assignations en batch."""
         for assignment in assignments:
             self.session.add(assignment)
@@ -234,12 +242,14 @@ class TaskAssignmentRepository:
         await self.session.commit()
         return True
 
-    async def enrich_assignment(self, assignment: TaskAssignment) -> TaskAssignment:
+    async def enrich_assignment(
+        self, assignment: TaskAssignment) -> TaskAssignment:
         """Enrichit une assignation avec les noms."""
         # Récupérer le nom du servant
         servant_result = await self.session.execute(select(User).where(User.id == assignment.servant_id))
         servant = servant_result.scalar_one_or_none()
         if servant:
+            decrypt_str_fields(servant, _USER_PII)
             assignment.servant_name = f"{servant.first_name} {servant.last_name}"
 
         return assignment
@@ -301,7 +311,7 @@ class AubeTaskRepository:
 
     async def update(self, task: AubeTask) -> AubeTask:
         """Met à jour une tâche."""
-        task.updated_at = datetime.utcnow()
+        task.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(task)
         return task

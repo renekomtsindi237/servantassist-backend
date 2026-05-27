@@ -12,11 +12,15 @@ Reference des postes :
     GET    /postes                   Liste de tous les postes (avec titulaires)
     GET    /postes/{poste}           Detail d'un poste
 """
+import asyncio
+import logging
 from typing import Annotated, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from src.application.services.responsable_service import ResponsableService
 from src.core.entities.responsable import PosteResponsable
@@ -81,7 +85,28 @@ async def create_nomination(
     - Le servant ne doit pas deja occuper un autre poste
     """
     service = _get_service(session)
-    return await service.nominate(data, nominated_by=current_user.id)
+    nomination = await service.nominate(data, nominated_by=current_user.id)
+    asyncio.create_task(_notify_nomination(nomination.user_id, nomination.poste.value if hasattr(nomination.poste, 'value') else str(nomination.poste), session))
+    return nomination
+
+
+async def _notify_nomination(user_id: UUID, poste_label: str, session) -> None:
+    """Notifie un servant de sa nouvelle nomination."""
+    try:
+        from src.infrastructure.repositories.user_repository import UserRepository
+        from src.infrastructure.services.email_service import EmailService
+        user_repo = UserRepository(session)
+        servant = await user_repo.get(user_id)
+        if servant and servant.email:
+            await EmailService().send_assignment_notification(
+                to_email=servant.email,
+                user_first_name=servant.first_name or "Servant",
+                event_title="Nouvelle nomination",
+                event_date="",
+                liturgical_role=poste_label,
+            )
+    except Exception as exc:
+        logger.error("Erreur notification nomination | error=%s", str(exc))
 
 
 @router.delete(
@@ -122,7 +147,8 @@ async def get_nomination_history(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
     user_id: Optional[UUID] = Query(None, description="Filtrer par servant"),
-    poste: Optional[PosteResponsable] = Query(None, description="Filtrer par poste"),
+    poste: Optional[PosteResponsable] = Query(
+        None, description="Filtrer par poste"),
 ):
     """
     Historique complet des nominations (actives et revoquees).
@@ -217,7 +243,7 @@ async def record_council_attendance(
 ):
     """Enregistre les présences au conseil."""
     service = _get_service(session)
-    return await service.record_council_attendance(meeting_id, data)
+    return await service.record_council_attendance(meeting_id, data, recorded_by=current_user.id)
 
 
 @router.get(

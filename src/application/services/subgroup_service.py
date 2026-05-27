@@ -8,6 +8,7 @@ Regles du reglement interieur :
 - Le Charge du classement utilise les sous-groupes pour le planning
 """
 from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -15,9 +16,9 @@ from fastapi import HTTPException, status
 
 from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.user import User, UserRole
-from src.infrastructure.repositories.subgroup_repository import SubGroupRepository
-from src.infrastructure.repositories.training_repository import TrainingParticipationRepository
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.core.interfaces.repositories import ISubGroupRepository
+from src.core.interfaces.repositories import ITrainingParticipationRepository
+from src.core.interfaces.repositories import IUserRepository
 from src.presentation.schemas.subgroup import (
     SubGroupCreate,
     SubGroupMemberAdd,
@@ -32,9 +33,9 @@ class SubGroupService:
 
     def __init__(
         self,
-        group_repo: SubGroupRepository,
-        user_repo: UserRepository,
-        training_repo: TrainingParticipationRepository,
+        group_repo: ISubGroupRepository,
+        user_repo: IUserRepository,
+        training_repo: ITrainingParticipationRepository,
     ):
         self.group_repo = group_repo
         self.user_repo = user_repo
@@ -44,7 +45,8 @@ class SubGroupService:
     #  SOUS-GROUPES (CRUD)
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_group(self, data: SubGroupCreate, created_by: UUID) -> SubGroupResponse:
+    async def create_group(self, data: SubGroupCreate,
+                           created_by: UUID) -> SubGroupResponse:
         existing = await self.group_repo.get_by_name(data.name)
         if existing:
             raise HTTPException(
@@ -62,7 +64,8 @@ class SubGroupService:
         created = await self.group_repo.create(group)
         return await self._build_group_response(created)
 
-    async def update_group(self, group_id: UUID, data: SubGroupUpdate) -> SubGroupResponse:
+    async def update_group(self, group_id: UUID,
+                           data: SubGroupUpdate) -> SubGroupResponse:
         group = await self.group_repo.get(group_id)
         if not group:
             raise HTTPException(
@@ -85,7 +88,7 @@ class SubGroupService:
             group.max_members = data.max_members
         if data.is_active is not None:
             group.is_active = data.is_active
-        group.updated_at = datetime.now(timezone.utc)
+        group.updated_at = utc_now()
 
         updated = await self.group_repo.update(group)
         return await self._build_group_response(updated)
@@ -99,7 +102,8 @@ class SubGroupService:
             )
         return await self._build_group_response(group)
 
-    async def list_groups(self, active_only: bool = True) -> List[SubGroupResponse]:
+    async def list_groups(
+        self, active_only: bool = True) -> List[SubGroupResponse]:
         groups = await self.group_repo.list_all(active_only=active_only)
         return [await self._build_group_response(g) for g in groups]
 
@@ -136,7 +140,8 @@ class SubGroupService:
     #  MEMBRES
     # ══════════════════════════════════════════════════════════════════
 
-    async def add_member(self, group_id: UUID, data: SubGroupMemberAdd, added_by: UUID) -> SubGroupMemberResponse:
+    async def add_member(self, group_id: UUID, data: SubGroupMemberAdd,
+                         added_by: UUID) -> SubGroupMemberResponse:
         group = await self.group_repo.get(group_id)
         if not group:
             raise HTTPException(
@@ -185,7 +190,8 @@ class SubGroupService:
             if count >= group.max_members:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Ce sous-groupe a atteint sa capacite maximale ({group.max_members}).",
+                    detail=f"Ce sous-groupe a atteint sa capacite maximale ({
+    group.max_members}).",
                 )
 
         membership = SubGroupMember(
@@ -197,7 +203,8 @@ class SubGroupService:
         enriched = await self.group_repo.enrich_member(created)
         return SubGroupMemberResponse(**enriched)
 
-    async def remove_member(self, group_id: UUID, user_id: UUID) -> SubGroupMemberResponse:
+    async def remove_member(self, group_id: UUID,
+                            user_id: UUID) -> SubGroupMemberResponse:
         membership = await self.group_repo.get_membership(group_id, user_id)
         if not membership:
             raise HTTPException(
@@ -217,7 +224,8 @@ class SubGroupService:
             return None
         return await self._build_group_response(group)
 
-    async def reclassify_servant(self, user_id: UUID) -> Optional[SubGroupResponse]:
+    async def reclassify_servant(
+        self, user_id: UUID) -> Optional[SubGroupResponse]:
         """
         Reclassification automatique selon l'Article 26 :
         - Aspirants : < 12 ans
@@ -229,9 +237,11 @@ class SubGroupService:
             return None
 
         # Calcul de l'âge
-        today = datetime.now(timezone.utc)
-        birth = user.birth_date.replace(tzinfo=timezone.utc) if user.birth_date.tzinfo is None else user.birth_date
-        age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+        today = utc_now()
+        birth = user.birth_date.replace(
+    tzinfo=timezone.utc) if user.birth_date.tzinfo is None else user.birth_date
+        age = today.year - birth.year - \
+            ((today.month, today.day) < (birth.month, birth.day))
 
         # Déterminer le groupe cible
         target_name = "ASPIRANTS"

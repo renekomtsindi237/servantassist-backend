@@ -17,6 +17,9 @@ from src.core.entities.assignment import Assignment, AssignmentStatus, Liturgica
 from src.core.entities.event import Event
 from src.core.entities.user import User
 from src.core.interfaces.repository import IRepository
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name", "email", "phone_number")
 
 
 class AssignmentRepository(IRepository[Assignment]):
@@ -37,13 +40,17 @@ class AssignmentRepository(IRepository[Assignment]):
 
     async def list_by_user(self, user_id: UUID) -> List[Assignment]:
         """Toutes les affectations d'un servant."""
-        statement = select(Assignment).where(Assignment.user_id == user_id).order_by(Assignment.created_at.desc())
+        statement = select(Assignment).where(
+    Assignment.user_id == user_id).order_by(
+        Assignment.created_at.desc())
         result = await self.session.exec(statement)
         return result.all()
 
     async def list_by_event(self, event_id: UUID) -> List[Assignment]:
         """Toutes les affectations d'un evenement."""
-        statement = select(Assignment).where(Assignment.event_id == event_id).order_by(Assignment.created_at)
+        statement = select(Assignment).where(
+    Assignment.event_id == event_id).order_by(
+        Assignment.created_at)
         result = await self.session.exec(statement)
         return result.all()
 
@@ -73,7 +80,8 @@ class AssignmentRepository(IRepository[Assignment]):
         if status is not None:
             statement = statement.where(Assignment.status == status)
         if liturgical_role is not None:
-            statement = statement.where(Assignment.liturgical_role == liturgical_role)
+            statement = statement.where(
+    Assignment.liturgical_role == liturgical_role)
 
         # Filtres par date (via jointure avec Event)
         if start_date or end_date:
@@ -90,14 +98,16 @@ class AssignmentRepository(IRepository[Assignment]):
 
         # Pagination
         offset = (page - 1) * page_size
-        statement = statement.offset(offset).limit(page_size).order_by(Assignment.created_at.desc())
+        statement = statement.offset(offset).limit(
+            page_size).order_by(Assignment.created_at.desc())
 
         result = await self.session.exec(statement)
         assignments = result.all()
 
         return assignments, total
 
-    async def get_by_event_and_user(self, event_id: UUID, user_id: UUID) -> Optional[Assignment]:
+    async def get_by_event_and_user(
+        self, event_id: UUID, user_id: UUID) -> Optional[Assignment]:
         """Verifie si un servant est deja affecte a un evenement."""
         stmt = select(Assignment).where(
             Assignment.event_id == event_id,
@@ -107,7 +117,8 @@ class AssignmentRepository(IRepository[Assignment]):
         result = await self.session.exec(stmt)
         return result.first()
 
-    async def get_by_event_user_role(self, event_id: UUID, user_id: UUID, role: LiturgicalRole) -> Optional[Assignment]:
+    async def get_by_event_user_role(
+        self, event_id: UUID, user_id: UUID, role: LiturgicalRole) -> Optional[Assignment]:
         """Verifie si un servant est deja affecte avec le meme role."""
         stmt = select(Assignment).where(
             Assignment.event_id == event_id,
@@ -138,10 +149,11 @@ class AssignmentRepository(IRepository[Assignment]):
 
     async def get_upcoming_for_user(self, user_id: UUID) -> List[Assignment]:
         """Affectations a venir d'un servant (evenements futurs)."""
-        from datetime import datetime as dt
-        from datetime import timezone
+        # Les colonnes DateTime côté DB sont en `TIMESTAMP WITHOUT TIME ZONE`,
+        # donc on compare avec un datetime timezone-naif (UTC).
+        from src.core.utils import utc_now
 
-        now = dt.now(timezone.utc)
+        now = utc_now()
         stmt = (
             select(Assignment)
             .join(Event, Assignment.event_id == Event.id)
@@ -160,9 +172,12 @@ class AssignmentRepository(IRepository[Assignment]):
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def list_by_event_with_cancelled(self, event_id: UUID) -> List[Assignment]:
+    async def list_by_event_with_cancelled(
+        self, event_id: UUID) -> List[Assignment]:
         """Toutes les affectations d'un evenement, y compris annulees."""
-        statement = select(Assignment).where(Assignment.event_id == event_id).order_by(Assignment.created_at)
+        statement = select(Assignment).where(
+    Assignment.event_id == event_id).order_by(
+        Assignment.created_at)
         result = await self.session.exec(statement)
         return result.all()
 
@@ -177,6 +192,8 @@ class AssignmentRepository(IRepository[Assignment]):
         user_stmt = select(User).where(User.id == assignment.user_id)
         user_result = await self.session.exec(user_stmt)
         user = user_result.first()
+        if user:
+            decrypt_str_fields(user, _USER_PII)
 
         # Info evenement
         event_stmt = select(Event).where(Event.id == assignment.event_id)
@@ -203,7 +220,8 @@ class AssignmentRepository(IRepository[Assignment]):
             "updated_at": assignment.updated_at,
         }
 
-    async def enrich_assignments(self, assignments: List[Assignment]) -> List[Dict]:
+    async def enrich_assignments(
+        self, assignments: List[Assignment]) -> List[Dict]:
         """Enrichit une liste d'affectations."""
         return [await self.enrich_assignment(a) for a in assignments]
 

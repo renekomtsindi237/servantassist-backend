@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.financial_entry_service import FinancialEntryService
@@ -13,7 +13,7 @@ from src.core.entities.financial_entry import EntryCategory, EntrySource, Verifi
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.financial_entry_repository import DiscrepancyRepository, FinancialEntryRepository
-from src.presentation.dependencies.auth_deps import get_current_active_user, require_commissaire
+from src.presentation.dependencies.auth_deps import get_current_active_user, require_commissaire, require_commissaire_strict
 from src.presentation.schemas.financial_entry import (
     AuditReportRequest,
     AuditReportResponse,
@@ -51,7 +51,7 @@ def get_financial_service(
 )
 async def create_entry(
     data: FinancialEntryCreate,
-    current_user: Annotated[User, Depends(require_commissaire)],
+    current_user: Annotated[User, Depends(require_commissaire_strict)],
     service: Annotated[FinancialEntryService, Depends(get_financial_service)],
 ):
     """Crée une nouvelle entrée financière."""
@@ -284,7 +284,8 @@ async def generate_audit_report(
         generated_by=current_user.id,
     )
 
-    # Récupérer les résumés par catégorie via le service (utilise la session existante)
+    # Récupérer les résumés par catégorie via le service (utilise la session
+    # existante)
     summaries_data = await service.get_summary_by_category(data.start_date, data.end_date)
     summaries = [FinancialSummaryResponse(**s) for s in summaries_data]
 
@@ -403,3 +404,66 @@ async def delete_discrepancy(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Écart introuvable",
         )
+
+
+# ── Export PDF ────────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/export/pdf",
+    summary="Exporter le bilan financier en PDF",
+    description="Télécharge le bilan financier de la période en PDF.",
+)
+async def export_financial_pdf(
+    current_user: Annotated[User, Depends(require_commissaire)],
+    service: Annotated[FinancialEntryService, Depends(get_financial_service)],
+    start_date: Optional[datetime] = Query(None, description="Date de début"),
+    end_date: Optional[datetime] = Query(None, description="Date de fin"),
+):
+    """Génère le bilan financier PDF pour la période donnée."""
+    entries, _ = await service.list_entries(
+        start_date=start_date,
+        end_date=end_date,
+        limit=1000,
+    )
+    summary = await service.get_financial_summary(
+        start_date=start_date,
+        end_date=end_date,
+    )
+    period_label = "Toute période"
+    if start_date and end_date:
+        period_label = (
+            f"{start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}"
+        )
+    elif start_date:
+        period_label = f"Depuis le {start_date.strftime('%d/%m/%Y')}"
+    elif end_date:
+        period_label = f"Jusqu'au {end_date.strftime('%d/%m/%Y')}"
+
+    from src.infrastructure.services.pdf_service import PDFService
+
+    pdf_svc = PDFService()
+    entry_dicts = [
+        {
+            "date": e.date,
+            "description": e.description,
+            "category": e.category.value if hasattr(e.category, "value") else str(e.category),
+            "type": e.source.value if hasattr(e.source, "value") else str(e.source),
+            "amount": float(e.amount),
+        }
+        for e in entries
+    ]
+    total_income = float(getattr(summary, "total_income", 0) or 0)
+    total_expense = float(getattr(summary, "total_expense", 0) or 0)
+    pdf_bytes = pdf_svc.generate_financial_statement(
+        entries=entry_dicts,
+        period_label=period_label,
+        generated_by=f"{current_user.first_name} {current_user.last_name}",
+        total_income=total_income,
+        total_expense=total_expense,
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="bilan_financier.pdf"'},
+    )

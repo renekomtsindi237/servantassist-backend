@@ -81,6 +81,7 @@ async def test_create_event(service, mock_event_repo, sample_event):
         created_by=sample_event.created_by,
         sport_type=sample_event.sport_type,
         cost=sample_event.cost,
+        broadcast_notification=False,
     )
 
     assert result.title == sample_event.title

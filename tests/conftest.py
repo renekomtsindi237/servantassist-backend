@@ -22,9 +22,9 @@ os.environ.update(
         "CLOUDFLARE_R2_SECRET_KEY": "test-secret-key",
         "CLOUDFLARE_R2_BUCKET": "test-bucket",
         "CLOUDFLARE_R2_PUBLIC_URL": "https://test.r2.dev",
-        "CLOUDFLARE_R2_PROFILE_BUCKET": "profile",
         "FRONTEND_URL": "http://localhost:3000",
         "SMTP_FROM_NAME": "ServantAssist Test",
+        "FIELD_ENCRYPTION_KEY": "test-field-encryption-key-for-testing-only-32ch!",
     }
 )
 
@@ -219,9 +219,19 @@ async def client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
 
 
 # ── Fabriques d'utilisateurs ─────────────────────────────────────────────
+# Tous les users passent par UserRepository.create() pour que email_hmac
+# soit renseigné — indispensable pour que get_by_email() (HMAC lookup)
+# fonctionne lors de la validation JWT dans les e2e tests.
+async def _make_user(db_session: AsyncSession, **kwargs) -> User:
+    from src.infrastructure.repositories.user_repository import UserRepository
+    user = User(**kwargs)
+    return await UserRepository(db_session).create(user)
+
+
 @pytest_asyncio.fixture()
 async def admin_user(db_session: AsyncSession) -> User:
-    user = User(
+    return await _make_user(
+        db_session,
         id=uuid4(),
         email="admin@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -230,15 +240,12 @@ async def admin_user(db_session: AsyncSession) -> User:
         role=UserRole.ADMIN,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
 
 
 @pytest_asyncio.fixture()
 async def aumonier_user(db_session: AsyncSession) -> User:
-    user = User(
+    return await _make_user(
+        db_session,
         id=uuid4(),
         email="aumonier@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -247,15 +254,12 @@ async def aumonier_user(db_session: AsyncSession) -> User:
         role=UserRole.AUMÔNIER,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
 
 
 @pytest_asyncio.fixture()
 async def servant_user(db_session: AsyncSession) -> User:
-    user = User(
+    return await _make_user(
+        db_session,
         id=uuid4(),
         email="servant@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -265,15 +269,12 @@ async def servant_user(db_session: AsyncSession) -> User:
         is_active=True,
         phone_number="+237600000001",
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
 
 
 @pytest_asyncio.fixture()
 async def parent_user(db_session: AsyncSession) -> User:
-    user = User(
+    return await _make_user(
+        db_session,
         id=uuid4(),
         email="parent@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -283,15 +284,12 @@ async def parent_user(db_session: AsyncSession) -> User:
         is_active=True,
         phone_number="+237600000002",
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
 
 
 @pytest_asyncio.fixture()
 async def inactive_user(db_session: AsyncSession) -> User:
-    user = User(
+    return await _make_user(
+        db_session,
         id=uuid4(),
         email="inactive@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -301,10 +299,6 @@ async def inactive_user(db_session: AsyncSession) -> User:
         is_active=False,
         phone_number="+237600000099",
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
 
 
 # ── Helpers tokens ────────────────────────────────────────────────────────
@@ -320,7 +314,8 @@ def make_access_token(user: User, expires: timedelta | None = None) -> str:
 @pytest_asyncio.fixture()
 async def econome_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with ECONOME nomination."""
-    user = User(
+    user = await _make_user(
+        db_session,
         id=uuid4(),
         email="econome@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -329,18 +324,13 @@ async def econome_user(db_session: AsyncSession, aumonier_user: User) -> User:
         role=UserRole.SERVANT,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
+    db_session.add(Nomination(
         user_id=user.id,
         poste=PosteResponsable.ECONOME,
         status=NominationStatus.ACTIVE,
         nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
+    ))
     await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 
@@ -372,7 +362,8 @@ async def servant_user_id(servant_user: User) -> str:
 @pytest_asyncio.fixture()
 async def secretaire_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with SECRETAIRE nomination."""
-    user = User(
+    user = await _make_user(
+        db_session,
         id=uuid4(),
         email="secretaire@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -381,18 +372,13 @@ async def secretaire_user(db_session: AsyncSession, aumonier_user: User) -> User
         role=UserRole.SERVANT,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
+    db_session.add(Nomination(
         user_id=user.id,
         poste=PosteResponsable.SECRETAIRE_GENERAL,
         status=NominationStatus.ACTIVE,
         nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
+    ))
     await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 
@@ -404,7 +390,8 @@ async def secretaire_token(secretaire_user: User) -> str:
 @pytest_asyncio.fixture()
 async def secretaire_adjoint_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with SECRETAIRE_ADJOINT nomination."""
-    user = User(
+    user = await _make_user(
+        db_session,
         id=uuid4(),
         email="secretaire_adj@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -413,18 +400,13 @@ async def secretaire_adjoint_user(db_session: AsyncSession, aumonier_user: User)
         role=UserRole.SERVANT,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
+    db_session.add(Nomination(
         user_id=user.id,
         poste=PosteResponsable.SECRETAIRE_GENERAL_ADJOINT,
         status=NominationStatus.ACTIVE,
         nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
+    ))
     await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 
@@ -436,7 +418,8 @@ async def secretaire_adjoint_token(secretaire_adjoint_user: User) -> str:
 @pytest_asyncio.fixture()
 async def censeur_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with CENSEUR nomination."""
-    user = User(
+    user = await _make_user(
+        db_session,
         id=uuid4(),
         email="censeur@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -445,18 +428,13 @@ async def censeur_user(db_session: AsyncSession, aumonier_user: User) -> User:
         role=UserRole.SERVANT,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
+    db_session.add(Nomination(
         user_id=user.id,
         poste=PosteResponsable.CENSEUR,
         status=NominationStatus.ACTIVE,
         nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
+    ))
     await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 
@@ -468,7 +446,8 @@ async def censeur_token(censeur_user: User) -> str:
 @pytest_asyncio.fixture()
 async def commissaire_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with COMMISSAIRE nomination."""
-    user = User(
+    user = await _make_user(
+        db_session,
         id=uuid4(),
         email="commissaire@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -477,18 +456,13 @@ async def commissaire_user(db_session: AsyncSession, aumonier_user: User) -> Use
         role=UserRole.SERVANT,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
+    db_session.add(Nomination(
         user_id=user.id,
         poste=PosteResponsable.COMMISSAIRE_AUX_COMPTES,
         status=NominationStatus.ACTIVE,
         nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
+    ))
     await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 
@@ -500,7 +474,8 @@ async def commissaire_token(commissaire_user: User) -> str:
 @pytest_asyncio.fixture()
 async def charge_liturgie_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with CHARGE_LITURGIE nomination."""
-    user = User(
+    user = await _make_user(
+        db_session,
         id=uuid4(),
         email="charge_liturgie@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -509,18 +484,13 @@ async def charge_liturgie_user(db_session: AsyncSession, aumonier_user: User) ->
         role=UserRole.SERVANT,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
+    db_session.add(Nomination(
         user_id=user.id,
         poste=PosteResponsable.CHARGE_LITURGIE,
         status=NominationStatus.ACTIVE,
         nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
+    ))
     await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 
@@ -530,41 +500,10 @@ async def charge_liturgie_token(charge_liturgie_user: User) -> str:
 
 
 @pytest_asyncio.fixture()
-async def econome_user(db_session: AsyncSession, aumonier_user: User) -> User:
-    """User with ECONOME nomination."""
-    user = User(
-        id=uuid4(),
-        email="econome@test.com",
-        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
-        first_name="Economе",
-        last_name="Test",
-        role=UserRole.SERVANT,
-        is_active=True,
-    )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
-        user_id=user.id,
-        poste=PosteResponsable.ECONOME,
-        status=NominationStatus.ACTIVE,
-        nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
-
-
-@pytest_asyncio.fixture()
-async def econome_token(econome_user: User) -> str:
-    return make_access_token(econome_user)
-
-
-@pytest_asyncio.fixture()
 async def intendant_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with INTENDANT nomination."""
-    user = User(
+    user = await _make_user(
+        db_session,
         id=uuid4(),
         email="intendant@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -573,18 +512,13 @@ async def intendant_user(db_session: AsyncSession, aumonier_user: User) -> User:
         role=UserRole.SERVANT,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
+    db_session.add(Nomination(
         user_id=user.id,
         poste=PosteResponsable.INTENDANT,
         status=NominationStatus.ACTIVE,
         nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
+    ))
     await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 
@@ -596,7 +530,8 @@ async def intendant_token(intendant_user: User) -> str:
 @pytest_asyncio.fixture()
 async def charge_sport_culture_user(db_session: AsyncSession, aumonier_user: User) -> User:
     """User with CHARGE_SPORT_CULTURE nomination."""
-    user = User(
+    user = await _make_user(
+        db_session,
         id=uuid4(),
         email="charge_sport_culture@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -605,18 +540,13 @@ async def charge_sport_culture_user(db_session: AsyncSession, aumonier_user: Use
         role=UserRole.SERVANT,
         is_active=True,
     )
-    db_session.add(user)
-    await db_session.commit()
-
-    nomination = Nomination(
+    db_session.add(Nomination(
         user_id=user.id,
         poste=PosteResponsable.CHARGE_SPORT_CULTURE,
         status=NominationStatus.ACTIVE,
         nominated_by=aumonier_user.id,
-    )
-    db_session.add(nomination)
+    ))
     await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 
@@ -682,7 +612,8 @@ async def used_invitation(db_session: AsyncSession, admin_user: User) -> Invitat
 @pytest_asyncio.fixture()
 async def servant_user_2(db_session: AsyncSession) -> User:
     """Deuxieme servant pour les tests de creation par lot."""
-    user = User(
+    return await _make_user(
+        db_session,
         id=uuid4(),
         email="servant2@test.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
@@ -692,10 +623,6 @@ async def servant_user_2(db_session: AsyncSession) -> User:
         is_active=True,
         phone_number="+237600000003",
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
 
 
 # ── Fixtures événements ──────────────────────────────────────────────────
@@ -706,8 +633,8 @@ async def sample_event(db_session: AsyncSession, aumonier_user: User) -> Event:
         id=uuid4(),
         title="Messe dominicale de test",
         description="Messe du dimanche pour les tests",
-        start_time=datetime(2026, 3, 1, 9, 0),
-        end_time=datetime(2026, 3, 1, 11, 0),
+        start_time=datetime(2027, 6, 1, 9, 0),
+        end_time=datetime(2027, 6, 1, 11, 0),
         location="Paroisse Saint-Pierre",
         event_type=EventType.MESSE_DOMINICALE,
         status=EventStatus.PUBLIE,

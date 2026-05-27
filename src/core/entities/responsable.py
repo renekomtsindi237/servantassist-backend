@@ -42,7 +42,8 @@ class PosteResponsable(str, Enum):
     SECRETAIRE_GENERAL = "SECRETAIRE_GENERAL"
     SECRETAIRE_GENERAL_ADJOINT = "SECRETAIRE_GENERAL_ADJOINT"
     SECRETAIRE = "SECRETAIRE"  # Alias pour SECRETAIRE_GENERAL
-    SECRETAIRE_ADJOINT = "SECRETAIRE_ADJOINT"  # Alias pour SECRETAIRE_GENERAL_ADJOINT
+    # Alias pour SECRETAIRE_GENERAL_ADJOINT
+    SECRETAIRE_ADJOINT = "SECRETAIRE_ADJOINT"
     CENSEUR = "CENSEUR"
     CENSEUR_ADJOINT = "CENSEUR_ADJOINT"
     ECONOME = "ECONOME"
@@ -150,8 +151,10 @@ class PosteAction(SQLModel, table=True):
     title: str = Field(max_length=300)
     content: Optional[str] = Field(default=None, max_length=5000)
     # Cibles optionnelles
-    target_user_id: Optional[UUID] = Field(default=None, foreign_key="users.id")
-    target_event_id: Optional[UUID] = Field(default=None, foreign_key="events.id")
+    target_user_id: Optional[UUID] = Field(
+        default=None, foreign_key="users.id")
+    target_event_id: Optional[UUID] = Field(
+        default=None, foreign_key="events.id")
     # Champs financiers (econome, commissaires)
     amount: Optional[float] = Field(default=None)
     # Date d'effet de l'action
@@ -297,7 +300,8 @@ SLUG_TO_POSTE: dict[str, PosteResponsable] = {
     "sport-culture": PosteResponsable.CHARGE_SPORT_CULTURE,
 }
 
-POSTE_TO_SLUG: dict[PosteResponsable, str] = {v: k for k, v in SLUG_TO_POSTE.items()}
+POSTE_TO_SLUG: dict[PosteResponsable, str] = {
+    v: k for k, v in SLUG_TO_POSTE.items()}
 
 
 # ═══════════════════════════════════════════════════════════════════════════

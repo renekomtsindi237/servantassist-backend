@@ -21,18 +21,35 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from src.infrastructure.config.settings import get_settings
 logger = logging.getLogger(__name__)
 
 
 # Configuration : (max_requests, window_seconds)
-_RATE_LIMITS: Dict[str, Tuple[int, int]] = {
-    "/api/v1/auth/login": (5, 60),
-    "/api/v1/auth/login/phone": (5, 60),
-    "/api/v1/auth/register": (3, 60),
-    "/api/v1/auth/forgot-password": (3, 60),
-    "/api/v1/auth/reset-password": (3, 60),
-}
-_DEFAULT_LIMIT: Tuple[int, int] = (60, 60)  # 60 req/min
+_RATE_LIMIT_PREFIXES = (
+    "/api/v1/auth/login",
+    "/api/v1/auth/login/phone",
+    "/api/v1/auth/register",
+    "/api/v1/auth/forgot-password",
+    "/api/v1/auth/reset-password",
+)
+_WINDOW_SECONDS = 60
+
+
+def _get_client_ip(request: Request) -> str:
+    settings = get_settings()
+    if settings.TRUST_PROXY_HEADERS:
+        forwarded_for = request.headers.get("x-forwarded-for")
+        if forwarded_for:
+            return forwarded_for.split(",", 1)[0].strip()
+        real_ip = request.headers.get("x-real-ip")
+        if real_ip:
+            return real_ip.strip()
+        cf_ip = request.headers.get("cf-connecting-ip")
+        if cf_ip:
+            return cf_ip.strip()
+
+    return request.client.host if request.client else "unknown"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -48,7 +65,8 @@ class _InMemoryTokenBucket:
     def __init__(self):
         self._store: Dict[str, list] = defaultdict(list)
 
-    def is_allowed(self, key: str, max_requests: int, window: int) -> Tuple[bool, int]:
+    def is_allowed(self, key: str, max_requests: int,
+                   window: int) -> Tuple[bool, int]:
         """Retourne (autorise, requetes_restantes)."""
         now = time.monotonic()
         timestamps = self._store[key]
@@ -66,7 +84,8 @@ class _InMemoryTokenBucket:
 
     def cleanup(self, max_age: int = 300):
         now = time.monotonic()
-        keys_to_delete = [k for k, v in self._store.items() if not v or now - v[-1] > max_age]
+        keys_to_delete = [k for k, v in self._store.items()
+                                                          if not v or now - v[-1] > max_age]
         for k in keys_to_delete:
             del self._store[k]
 
@@ -84,7 +103,8 @@ class _RedisTokenBucket:
     def __init__(self, redis_client):
         self._redis = redis_client
 
-    async def is_allowed(self, key: str, max_requests: int, window: int) -> Tuple[bool, int]:
+    async def is_allowed(self, key: str, max_requests: int,
+                         window: int) -> Tuple[bool, int]:
         """Verifie si la requete est autorisee via Redis sorted set."""
         import time as _time
 
@@ -133,11 +153,18 @@ class RateLimiter:
             self._use_redis = True
             logger.info("Rate limiter: backend Redis active")
         else:
-            logger.warning("Rate limiter: Redis non disponible, fallback in-memory")
+            logger.warning(
+                "Rate limiter: Redis non disponible, fallback in-memory")
 
-    async def is_allowed(self, key: str, max_requests: int, window: int) -> Tuple[bool, int]:
+    async def is_allowed(self, key: str, max_requests: int,
+                         window: int) -> Tuple[bool, int]:
         if self._use_redis and self._redis_backend:
-            return await self._redis_backend.is_allowed(key, max_requests, window)
+            try:
+                return await self._redis_backend.is_allowed(key, max_requests, window)
+            except Exception:
+                # Redis indisponible — bascule silencieusement sur in-memory
+                self._use_redis = False
+                logger.warning("Rate limiter: Redis inaccessible, bascule sur in-memory")
         return self._memory_backend.is_allowed(key, max_requests, window)
 
 
@@ -154,16 +181,17 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """Applique le rate limiting par IP sur les endpoints sensibles."""
 
     async def dispatch(self, request: Request, call_next) -> Response:
+        settings = get_settings()
         # Identifier le client par IP
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = _get_client_ip(request)
         path = request.url.path
 
         # Determiner la limite applicable
-        max_requests, window = _DEFAULT_LIMIT
+        max_requests, window = settings.RATE_LIMIT_GLOBAL, _WINDOW_SECONDS
         matched_path = None
-        for prefix, limits in _RATE_LIMITS.items():
+        for prefix in _RATE_LIMIT_PREFIXES:
             if path.startswith(prefix):
-                max_requests, window = limits
+                max_requests, window = settings.RATE_LIMIT_AUTH, _WINDOW_SECONDS
                 matched_path = prefix
                 break
 

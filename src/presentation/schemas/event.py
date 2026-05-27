@@ -7,9 +7,10 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from src.core.entities.event import EventStatus, EventType, ParticipantRole, ParticipantStatus
+from src.core.utils import maybe_to_naive_utc, to_naive_utc
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Participants
@@ -74,13 +75,16 @@ class EventCreate(BaseModel):
         default=None, description="Liste des participants a ajouter lors de la creation"
     )
 
-    @field_validator("end_time")
+    @field_validator("start_time", "end_time")
     @classmethod
-    def end_after_start(cls, v: datetime, info) -> datetime:
-        start = info.data.get("start_time")
-        if start and v <= start:
+    def normalize_datetimes(cls, v: datetime) -> datetime:
+        return to_naive_utc(v)
+
+    @model_validator(mode="after")
+    def validate_end_after_start(self):
+        if self.end_time <= self.start_time:
             raise ValueError("La date de fin doit etre apres la date de debut")
-        return v
+        return self
 
 
 class EventUpdate(BaseModel):
@@ -93,6 +97,11 @@ class EventUpdate(BaseModel):
     location: Optional[str] = Field(None, min_length=2, max_length=300)
     event_type: Optional[EventType] = None
     status: Optional[EventStatus] = None
+
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def normalize_optional_datetimes(cls, v: Optional[datetime]) -> Optional[datetime]:
+        return maybe_to_naive_utc(v)
 
 
 class EventResponse(BaseModel):
@@ -152,3 +161,8 @@ class EventListFilters(BaseModel):
     search: Optional[str] = Field(None, max_length=100)
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
+
+    @field_validator("start_date", "end_date")
+    @classmethod
+    def normalize_filter_datetimes(cls, v: Optional[datetime]) -> Optional[datetime]:
+        return maybe_to_naive_utc(v)

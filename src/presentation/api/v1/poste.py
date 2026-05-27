@@ -55,7 +55,10 @@ def _resolve_slug(slug: str) -> PosteResponsable:
     if not poste:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=(f"Poste inconnu : '{slug}'. " f"Slugs valides : {', '.join(SLUG_TO_POSTE.keys())}"),
+            detail=(
+    f"Poste inconnu : '{slug}'. " f"Slugs valides : {
+        ', '.join(
+            SLUG_TO_POSTE.keys())}"),
         )
     return poste
 
@@ -79,7 +82,8 @@ async def _verify_poste_access(
     if not nomination:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Vous n'occupez pas le poste de {poste.value}. Acces refuse.",
+            detail=f"Vous n'occupez pas le poste de {
+    poste.value}. Acces refuse.",
         )
 
 
@@ -170,8 +174,10 @@ async def list_actions(
     slug: str,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
-    category: Optional[ActionCategory] = Query(None, description="Filtrer par categorie"),
-    action_status: Optional[ActionStatus] = Query(None, alias="status", description="Filtrer par statut"),
+    category: Optional[ActionCategory] = Query(
+    None, description="Filtrer par categorie"),
+    action_status: Optional[ActionStatus] = Query(
+    None, alias="status", description="Filtrer par statut"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -210,7 +216,8 @@ async def get_action(
     return await service.get_action(action_id)
 
 
-@router.patch("/{slug}/actions/{action_id}", response_model=PosteActionResponse)
+@router.patch("/{slug}/actions/{action_id}",
+              response_model=PosteActionResponse)
 async def update_action(
     slug: str,
     action_id: UUID,

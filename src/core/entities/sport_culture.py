@@ -7,7 +7,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlalchemy import Column
+from sqlalchemy import Column, String
 from sqlmodel import JSON, Field, SQLModel
 
 
@@ -77,15 +77,18 @@ class SportCultureEvent(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str = Field(min_length=1, max_length=200)
     description: str
-    event_type: EventType
-    sport_type: Optional[SportType] = None
+    event_type: EventType = Field(sa_column=Column(String(50), nullable=False))
+    sport_type: Optional[SportType] = Field(default=None, sa_column=Column(String(50), nullable=True))
     date: datetime
     start_time: str  # Format HHhMM
     end_time: str  # Format HHhMM
     location: str = Field(min_length=1, max_length=200)
     max_participants: int = Field(ge=0)
     cost: Optional[float] = Field(None, ge=0)
-    status: EventStatus = EventStatus.PLANIFIE
+    status: EventStatus = Field(
+        default=EventStatus.PLANIFIE,
+        sa_column=Column(String(50), nullable=False, server_default="PLANIFIE"),
+    )
     registration_deadline: Optional[datetime] = None
     notes: Optional[str] = None
     photos: List[str] = Field(default_factory=list, sa_column=Column(JSON))
@@ -106,7 +109,10 @@ class EventParticipation(SQLModel, table=True):
     event_id: UUID = Field(foreign_key="sport_culture_events.id")
     servant_id: UUID = Field(foreign_key="users.id")
     servant_name: Optional[str] = None  # Enrichi
-    status: ParticipationStatus = ParticipationStatus.INSCRIT
+    status: ParticipationStatus = Field(
+        default=ParticipationStatus.INSCRIT,
+        sa_column=Column(String(50), nullable=False, server_default="INSCRIT"),
+    )
     registration_date: datetime = Field(default_factory=datetime.utcnow)
     attendance_marked_at: Optional[datetime] = None
     payment_status: bool = False
@@ -127,7 +133,7 @@ class EventResult(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     event_id: UUID = Field(foreign_key="sport_culture_events.id")
-    result_type: ResultType
+    result_type: ResultType = Field(sa_column=Column(String(50), nullable=False))
     team_name: Optional[str] = None
     score: Optional[int] = Field(None, ge=0)
     opponent_name: Optional[str] = None
@@ -154,7 +160,9 @@ class EventTeam(SQLModel, table=True):
     members: List[str] = Field(
         default_factory=list, sa_column=Column(JSON)
     )  # Changed to List[str] for JSON serialization
-    members_names: List[str] = Field(default_factory=list, sa_column=Column(JSON))  # Enrichi
+    members_names: List[str] = Field(
+    default_factory=list,
+     sa_column=Column(JSON))  # Enrichi
     created_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

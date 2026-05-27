@@ -1,0 +1,95 @@
+# ServantAssist — Docker Compose pour simulation locale (sans conflits de ports)
+# Usage:
+#   docker compose -f docker-compose.sim.yml up -d
+#   docker compose -f docker-compose.sim.yml exec backend alembic upgrade head
+#   docker compose -f docker-compose.sim.yml exec backend python scripts/init_db.py
+#   docker compose -f docker-compose.sim.yml down
+
+services:
+  # ── PostgreSQL dédié ServantAssist (port 5433 pour éviter conflits) ──────
+  sa-db:
+    image: postgres:16-alpine
+    container_name: servantassist-sim-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: servantassist
+      POSTGRES_PASSWORD: servantassist_password
+      POSTGRES_DB: servantassist_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - sa_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U servantassist -d servantassist_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend ServantAssist ──────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: servantassist-backend-dev:latest
+    container_name: servantassist-sim-backend
+    restart: unless-stopped
+    depends_on:
+      sa-db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      APP_ENV: development
+      APP_DEBUG: "true"
+      DATABASE_URL: "postgresql+asyncpg://servantassist:servantassist_password@sa-db:5432/servantassist_db"
+      # Redis : réutilise celui déjà en marche (external)
+      REDIS_URL: "redis://host.docker.internal:6379/1"
+      JWT_SECRET_KEY: "olSRKIpTZ18SHk16cvFdv0kWsTmQ53vc3Em7q0aOxND6BGdQkWJpBzFQEf5lMgylmtLrZfk1pG9iW22kKE8Gqw"
+      JWT_ALGORITHM: "HS256"
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: "7"
+      SECRET_KEY: "CmyOUmUVc21SUOi5At88uk_Du3st2Ddnx9zjltds-Sb1DILfPCUTalq0dVaeh0AoJZozUT2OYo6nO9CKSMyP2g"
+      ALLOWED_HOSTS: '["localhost","127.0.0.1","localhost:8000"]'
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost:4200"]'
+      TRUST_PROXY_HEADERS: "false"
+      LOGIN_MAX_ATTEMPTS: "50"
+      LOGIN_LOCKOUT_SECONDS: "10"
+      RATE_LIMIT_AUTH: "200"
+      RATE_LIMIT_GLOBAL: "1000"
+      MAX_UPLOAD_SIZE: "10485760"
+      ALLOWED_IMAGE_EXTENSIONS: '["jpg","jpeg","png","webp"]'
+      ALLOWED_DOCUMENT_EXTENSIONS: '["pdf","doc","docx"]'
+      SMTP_HOST: "smtp.gmail.com"
+      SMTP_PORT: "587"
+      SMTP_USE_TLS: "true"
+      SMTP_USER: "renekomtsindi7@gmail.com"
+      SMTP_PASSWORD: "vhwjpyytijxltkko"
+      SMTP_FROM: "renekomtsindi7@gmail.com"
+      SMTP_FROM_NAME: "ServantAssist Dev"
+      FRONTEND_URL: "http://localhost:4200"
+      CLOUDFLARE_R2_ENDPOINT: "https://61a23f65159306f2aaf08c0e0bf76d59.r2.cloudflarestorage.com"
+      CLOUDFLARE_R2_ACCESS_KEY: "c03a39ab68c1074d7e14bb3ca41f9007"
+      CLOUDFLARE_R2_SECRET_KEY: "b0f8c47ec86913d655ce688cafb222568576e9fdf0fd2d430f44575fb67689bf"
+      CLOUDFLARE_R2_BUCKET: "servantassist"
+      CLOUDFLARE_R2_PUBLIC_URL: "https://pub-c12b067c7ba54484b3bf7ed1c0e10d3c.r2.dev"
+      LOG_LEVEL: "INFO"
+      LOG_FORMAT: "text"
+      FIELD_ENCRYPTION_KEY: "niNn3-DloQUCabmLxVO8ED86s0EP_Y1UQ4ZbkUEQX2rc9gmIzRCbXCxfEVXbTCa5"
+      PAYLOAD_ENCRYPTION_ENABLED: "false"
+      ADMIN_EMAIL: "renekomtsindi7@gmail.com"
+      ADMIN_PASSWORD: "Mbetoumou olive77"
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  sa_pgdata:

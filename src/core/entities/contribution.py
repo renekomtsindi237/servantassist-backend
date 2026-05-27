@@ -11,6 +11,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
+from sqlalchemy import Column, String
 from sqlmodel import Field, SQLModel
 
 
@@ -39,7 +40,7 @@ class Contribution(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     servant_id: UUID = Field(foreign_key="users.id")
     amount: float  # Montant en FCFA
-    payment_mode: PaymentMode
+    payment_mode: PaymentMode = Field(sa_column=Column(String(20), nullable=False))
     payment_date: datetime
     month: int  # 1-12
     year: int

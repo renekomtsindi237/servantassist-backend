@@ -2,6 +2,7 @@
 Repository pour les sous-groupes et leurs membres.
 """
 from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import Dict, List, Optional
 from uuid import UUID
 
@@ -11,6 +12,9 @@ from sqlmodel import select
 
 from src.core.entities.subgroup import SubGroup, SubGroupMember
 from src.core.entities.user import User
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name", "email", "phone_number")
 
 
 class SubGroupRepository:
@@ -77,7 +81,8 @@ class SubGroupRepository:
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def get_active_membership(self, user_id: UUID) -> Optional[SubGroupMember]:
+    async def get_active_membership(
+        self, user_id: UUID) -> Optional[SubGroupMember]:
         """Retourne l'appartenance active d'un utilisateur (un seul sous-groupe)."""
         stmt = select(SubGroupMember).where(
             SubGroupMember.user_id == user_id,
@@ -92,15 +97,17 @@ class SubGroupRepository:
         await self.session.refresh(membership)
         return membership
 
-    async def remove_member(self, membership: SubGroupMember) -> SubGroupMember:
+    async def remove_member(
+        self, membership: SubGroupMember) -> SubGroupMember:
         membership.is_active = False
-        membership.left_at = datetime.now(timezone.utc)
+        membership.left_at = utc_now()
         self.session.add(membership)
         await self.session.commit()
         await self.session.refresh(membership)
         return membership
 
-    async def get_membership(self, group_id: UUID, user_id: UUID) -> Optional[SubGroupMember]:
+    async def get_membership(self, group_id: UUID,
+                             user_id: UUID) -> Optional[SubGroupMember]:
         stmt = select(SubGroupMember).where(
             SubGroupMember.sub_group_id == group_id,
             SubGroupMember.user_id == user_id,
@@ -111,6 +118,8 @@ class SubGroupRepository:
 
     async def enrich_member(self, member: SubGroupMember) -> Dict:
         user = (await self.session.exec(select(User).where(User.id == member.user_id))).first()
+        if user:
+            decrypt_str_fields(user, _USER_PII)
 
         return {
             "id": member.id,
@@ -125,5 +134,6 @@ class SubGroupRepository:
             "user_phone": user.phone_number if user else None,
         }
 
-    async def enrich_members(self, members: List[SubGroupMember]) -> List[Dict]:
+    async def enrich_members(
+        self, members: List[SubGroupMember]) -> List[Dict]:
         return [await self.enrich_member(m) for m in members]

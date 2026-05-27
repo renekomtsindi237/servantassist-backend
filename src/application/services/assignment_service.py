@@ -14,6 +14,7 @@ Regles metier :
 """
 import math
 from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -22,9 +23,9 @@ from fastapi import HTTPException, status
 from src.core.entities.assignment import Assignment, AssignmentStatus, LiturgicalRole
 from src.core.entities.event import Event
 from src.core.entities.user import User, UserRole
-from src.infrastructure.repositories.assignment_repository import AssignmentRepository
-from src.infrastructure.repositories.event_repository import EventRepository
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.core.interfaces.repositories import IAssignmentRepository
+from src.core.interfaces.repositories import IEventRepository
+from src.core.interfaces.repositories import IUserRepository
 from src.presentation.schemas.assignment import (
     AssignmentBatchCreate,
     AssignmentBatchResponse,
@@ -41,9 +42,9 @@ class AssignmentService:
 
     def __init__(
         self,
-        assignment_repository: AssignmentRepository,
-        event_repository: EventRepository,
-        user_repository: UserRepository,
+        assignment_repository: IAssignmentRepository,
+        event_repository: IEventRepository,
+        user_repository: IUserRepository,
     ):
         self.assignment_repo = assignment_repository
         self.event_repo = event_repository
@@ -53,7 +54,8 @@ class AssignmentService:
     #  CREATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_assignment(self, data: AssignmentCreate, assigned_by: UUID) -> AssignmentResponse:
+    async def create_assignment(
+        self, data: AssignmentCreate, assigned_by: UUID) -> AssignmentResponse:
         """
         Cree une affectation unique.
 
@@ -93,7 +95,9 @@ class AssignmentService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=(f"Ce servant est deja affecte comme {data.liturgical_role.value} " f"a cet evenement."),
+                detail=(
+    f"Ce servant est deja affecte comme {
+        data.liturgical_role.value} " f"a cet evenement."),
             )
 
         assignment = Assignment(
@@ -107,7 +111,8 @@ class AssignmentService:
         enriched = await self.assignment_repo.enrich_assignment(created)
         return AssignmentResponse(**enriched)
 
-    async def create_batch(self, data: AssignmentBatchCreate, assigned_by: UUID) -> AssignmentBatchResponse:
+    async def create_batch(self, data: AssignmentBatchCreate,
+                           assigned_by: UUID) -> AssignmentBatchResponse:
         """
         Cree plusieurs affectations pour un meme evenement en une seule requete.
 
@@ -133,10 +138,14 @@ class AssignmentService:
                     errors.append(f"Utilisateur {item.user_id} introuvable.")
                     continue
                 if not user.is_active:
-                    errors.append(f"Utilisateur {user.first_name} {user.last_name} inactif.")
+                    errors.append(
+    f"Utilisateur {
+        user.first_name} {
+            user.last_name} inactif.")
                     continue
                 if user.role != UserRole.SERVANT:
-                    errors.append(f"{user.first_name} {user.last_name} n'est pas un servant.")
+                    errors.append(
+                        f"{user.first_name} {user.last_name} n'est pas un servant.")
                     continue
 
                 # Verifier doublon
@@ -162,7 +171,10 @@ class AssignmentService:
                 created_list.append(AssignmentResponse(**enriched))
 
             except Exception as exc:
-                errors.append(f"Erreur pour l'utilisateur {item.user_id}: {str(exc)}")
+                errors.append(
+    f"Erreur pour l'utilisateur {
+        item.user_id}: {
+            str(exc)}")
 
         return AssignmentBatchResponse(
             created=created_list,
@@ -222,7 +234,8 @@ class AssignmentService:
             total_pages=total_pages,
         )
 
-    async def get_event_assignments(self, event_id: UUID) -> List[AssignmentResponse]:
+    async def get_event_assignments(
+        self, event_id: UUID) -> List[AssignmentResponse]:
         """Toutes les affectations actives d'un evenement."""
         event = await self.event_repo.get(event_id)
         if not event:
@@ -232,11 +245,13 @@ class AssignmentService:
             )
         assignments = await self.assignment_repo.list_by_event(event_id)
         # Filtrer les annulees
-        active = [a for a in assignments if a.status != AssignmentStatus.CANCELLED]
+        active = [a for a in assignments if a.status !=
+            AssignmentStatus.CANCELLED]
         enriched = await self.assignment_repo.enrich_assignments(active)
         return [AssignmentResponse(**e) for e in enriched]
 
-    async def get_my_assignments(self, user_id: UUID) -> List[AssignmentResponse]:
+    async def get_my_assignments(
+        self, user_id: UUID) -> List[AssignmentResponse]:
         """Toutes les affectations du servant connecte."""
         assignments = await self.assignment_repo.list_by_user(user_id)
         enriched = await self.assignment_repo.enrich_assignments(assignments)
@@ -280,7 +295,8 @@ class AssignmentService:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
                         detail=(
-                            f"Ce servant a deja une affectation " f"{data.liturgical_role.value} pour cet evenement."
+                            f"Ce servant a deja une affectation " f"{
+    data.liturgical_role.value} pour cet evenement."
                         ),
                     )
             assignment.liturgical_role = data.liturgical_role
@@ -291,7 +307,7 @@ class AssignmentService:
         if data.notes is not None:
             assignment.notes = data.notes
 
-        assignment.updated_at = datetime.now(timezone.utc)
+        assignment.updated_at = utc_now()
         updated = await self.assignment_repo.update(assignment_id, assignment)
         enriched = await self.assignment_repo.enrich_assignment(updated)
         return AssignmentResponse(**enriched)
@@ -339,12 +355,14 @@ class AssignmentService:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=(
-                    f"Vous ne pouvez qu'accepter ou decliner. " f"Statuts autorises : {[s.value for s in allowed]}"
+                    f"Vous ne pouvez qu'accepter ou decliner. " f"Statuts autorises : {
+    [
+        s.value for s in allowed]}"
                 ),
             )
 
         assignment.status = data.status
-        assignment.updated_at = datetime.now(timezone.utc)
+        assignment.updated_at = utc_now()
         updated = await self.assignment_repo.update(assignment_id, assignment)
         enriched = await self.assignment_repo.enrich_assignment(updated)
         return AssignmentResponse(**enriched)
@@ -368,7 +386,8 @@ class AssignmentService:
                 detail="Erreur lors de la suppression de l'affectation.",
             )
 
-    async def cancel_assignment(self, assignment_id: UUID, cancelled_by: UUID) -> AssignmentResponse:
+    async def cancel_assignment(
+        self, assignment_id: UUID, cancelled_by: UUID) -> AssignmentResponse:
         """
         Annule une affectation (soft-delete : passe le statut a CANCELLED).
         L'affectation reste en BDD pour l'historique.
@@ -387,7 +406,7 @@ class AssignmentService:
             )
 
         assignment.status = AssignmentStatus.CANCELLED
-        assignment.updated_at = datetime.now(timezone.utc)
+        assignment.updated_at = utc_now()
         updated = await self.assignment_repo.update(assignment_id, assignment)
         enriched = await self.assignment_repo.enrich_assignment(updated)
         return AssignmentResponse(**enriched)
@@ -420,7 +439,7 @@ class AssignmentService:
             )
 
         assignment.status = AssignmentStatus.PRESENT if present else AssignmentStatus.ABSENT
-        assignment.updated_at = datetime.now(timezone.utc)
+        assignment.updated_at = utc_now()
         updated = await self.assignment_repo.update(assignment_id, assignment)
         enriched = await self.assignment_repo.enrich_assignment(updated)
         return AssignmentResponse(**enriched)

@@ -9,6 +9,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
+from sqlalchemy import Column, String
 from sqlmodel import Field, SQLModel
 
 
@@ -19,6 +20,14 @@ class AttendanceStatus(str, Enum):
     ABSENT = "ABSENT"
     LATE = "LATE"
     EXCUSED = "EXCUSED"
+
+
+class SessionType(str, Enum):
+    """Type de session d'appel."""
+
+    REUNION_HEBDOMADAIRE = "REUNION_HEBDOMADAIRE"
+    LITURGIQUE = "LITURGIQUE"
+    AUTRE = "AUTRE"
 
 
 class AttendanceSession(SQLModel, table=True):
@@ -32,6 +41,10 @@ class AttendanceSession(SQLModel, table=True):
     session_date: datetime
     session_time: str = "07h30"  # Après la messe de 06h15
     location: str = "Sacristie"
+    session_type: SessionType = Field(
+        default=SessionType.REUNION_HEBDOMADAIRE,
+        sa_column=Column(String(30), nullable=False, server_default="REUNION_HEBDOMADAIRE"),
+    )
     conducted_by: UUID = Field(foreign_key="users.id")
     notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -48,7 +61,7 @@ class AttendanceRecord(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     session_id: UUID = Field(foreign_key="attendance_sessions.id")
     servant_id: UUID = Field(foreign_key="users.id")
-    status: AttendanceStatus
+    status: AttendanceStatus = Field(sa_column=Column(String(50), nullable=False))
     arrival_time: Optional[str] = None
     notes: Optional[str] = None
     recorded_by: UUID = Field(foreign_key="users.id")

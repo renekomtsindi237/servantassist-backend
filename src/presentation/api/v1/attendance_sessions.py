@@ -1,6 +1,8 @@
 """
 Endpoints API pour la gestion des appels (CENSEUR).
 """
+import asyncio
+import logging
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -12,7 +14,10 @@ from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.attendance_session_repository import AttendanceSessionRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import get_current_user, require_censeur, require_censeur_strict
+from src.infrastructure.services.email_service import EmailService
+from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_user, require_censeur, require_censeur_strict
+
+logger = logging.getLogger(__name__)
 from src.presentation.schemas.attendance_session import (
     AttendanceRecordCreate,
     AttendanceRecordResponse,
@@ -38,9 +43,11 @@ async def get_attendance_service(
     session=Depends(get_db_session),
 ) -> AttendanceSessionService:
     """Injecte le service d'appels."""
+    from src.infrastructure.repositories.notification_repository import NotificationRepository
     attendance_repo = AttendanceSessionRepository(session)
     user_repo = UserRepository(session)
-    return AttendanceSessionService(attendance_repo, user_repo)
+    notification_repo = NotificationRepository(session)
+    return AttendanceSessionService(attendance_repo, user_repo, notification_repo)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -68,14 +75,14 @@ async def create_session(
     "/",
     response_model=PaginatedResponse[AttendanceSessionResponse],
     summary="Liste des sessions",
-    description="Liste paginée des sessions d'appel",
+    description="Liste paginée des sessions d'appel (tout utilisateur authentifié)",
 )
 async def list_sessions(
     start_date: Optional[datetime] = Query(None, description="Date de début"),
     end_date: Optional[datetime] = Query(None, description="Date de fin"),
     page: int = Query(1, ge=1, description="Numéro de page"),
     page_size: int = Query(50, ge=1, le=100, description="Taille de page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     service: AttendanceSessionService = Depends(get_attendance_service),
 ):
     """Liste les sessions d'appel."""
@@ -95,11 +102,31 @@ async def list_sessions(
 )
 async def get_session(
     session_id: UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     service: AttendanceSessionService = Depends(get_attendance_service),
 ):
     """Récupère une session par son ID."""
     return await service.get_session(session_id)
+
+
+# ══════════════════════════════════════════════════════════════════
+#  ENDPOINTS - APPEL AUTOMATIQUE
+# ══════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/{session_id}/init-roll-call",
+    response_model=AttendanceSessionResponse,
+    summary="Initialiser l'appel",
+    description="Crée un enregistrement ABSENT pour chaque servant actif (CENSEUR uniquement)",
+)
+async def init_roll_call(
+    session_id: UUID,
+    current_user: User = Depends(require_censeur),
+    service: AttendanceSessionService = Depends(get_attendance_service),
+):
+    """Initialise l'appel hebdomadaire en marquant tous les servants absents par défaut."""
+    return await service.init_roll_call(session_id, current_user.id)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -135,14 +162,52 @@ async def update_attendance(
     data: AttendanceRecordUpdate,
     current_user: User = Depends(require_censeur),
     service: AttendanceSessionService = Depends(get_attendance_service),
+    session=Depends(get_db_session),
 ):
     """Met à jour un enregistrement de présence."""
-    return await service.update_attendance(record_id, data)
+    record = await service.update_attendance(record_id, data)
+    if data.status and data.status.value == "ABSENT":
+        asyncio.create_task(_notify_servant_absent(record, session))
+    return record
+
+
+async def _notify_servant_absent(record: AttendanceRecordResponse, session) -> None:
+    """Notifie un servant qu'il a été marqué absent."""
+    try:
+        user_repo = UserRepository(session)
+        servant = await user_repo.get(record.servant_id)
+        if servant and servant.email:
+            email_svc = EmailService()
+            await email_svc.send_general_notification(
+                to_email=servant.email,
+                user_first_name=servant.first_name or "Servant",
+                title="Absence enregistrée",
+                body=(
+                    "Votre absence a été enregistrée pour la session d'appel.<br><br>"
+                    "Si cette absence est erronée ou si vous souhaitez la justifier, "
+                    "veuillez contacter votre censeur."
+                ),
+            )
+    except Exception as exc:
+        logger.error("Erreur notification absence servant | error=%s", str(exc))
 
 
 # ══════════════════════════════════════════════════════════════════
 #  ENDPOINTS - STATISTIQUES
 # ══════════════════════════════════════════════════════════════════
+
+
+@router.get(
+    "/servants/all-stats",
+    summary="Stats de tous les servants",
+    description="Retourne le total d'absences/présences pour chaque servant actif",
+)
+async def get_all_servants_stats(
+    current_user: User = Depends(get_current_active_user),
+    service: AttendanceSessionService = Depends(get_attendance_service),
+) -> list[dict]:
+    """Stats agrégées pour tous les servants — utilisé par l'UI de l'appel."""
+    return await service.get_all_servants_stats()
 
 
 @router.get(
@@ -186,10 +251,10 @@ async def generate_report(
     "/servants/list",
     response_model=list[ServantListItem],
     summary="Liste des servants",
-    description="Récupère la liste complète des servants pour l'appel",
+    description="Récupère la liste complète des servants pour l'appel (CENSEUR uniquement)",
 )
 async def get_servants_list(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_censeur),
     service: AttendanceSessionService = Depends(get_attendance_service),
 ):
     """Récupère la liste complète des servants."""

@@ -41,6 +41,8 @@ class NotificationType(str, Enum):
     COTISATION = "COTISATION"  # Rappel cotisation
     NOMINATION = "NOMINATION"  # Nomination / revocation
     GENERAL = "GENERAL"  # Message personnalise admin
+    AVERTISSEMENT_ABSENCE = "AVERTISSEMENT_ABSENCE"  # Alerte 3 absences → servant
+    CONVOCATION_PARENT = "CONVOCATION_PARENT"  # Convocation 5 absences → parent
 
 
 class NotificationChannel(str, Enum):
@@ -97,13 +99,16 @@ class Notification(SQLModel, table=True):
     title: str = Field(max_length=300)
     body: str = Field(max_length=5000)
     # Ressource liee (optionnel — pour navigation deep link)
-    related_entity_type: Optional[str] = Field(default=None, max_length=50)  # "event", "assignment", ...
+    # "event", "assignment", ...
+    related_entity_type: Optional[str] = Field(default=None, max_length=50)
     related_entity_id: Optional[UUID] = Field(default=None)
     # Statut
-    status: NotificationStatus = Field(default=NotificationStatus.PENDING, index=True)
+    status: NotificationStatus = Field(
+    default=NotificationStatus.PENDING, index=True)
     error_message: Optional[str] = Field(default=None, max_length=1000)
     # Envoyeur
-    sent_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # None = systeme
+    sent_by: Optional[UUID] = Field(
+    default=None, foreign_key="users.id")  # None = systeme
     # Dates
     sent_at: Optional[datetime] = Field(default=None)
     read_at: Optional[datetime] = Field(default=None)

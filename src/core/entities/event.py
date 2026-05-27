@@ -109,6 +109,7 @@ class EventParticipant(SQLModel, table=True):
     participant_role: ParticipantRole = Field(default=ParticipantRole.SERVANT)
     status: ParticipantStatus = Field(default=ParticipantStatus.INVITE)
     notes: Optional[str] = Field(default=None, max_length=500)
-    added_by: UUID = Field(foreign_key="users.id")  # Qui a ajoute ce participant
+    # Qui a ajoute ce participant
+    added_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

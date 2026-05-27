@@ -4,6 +4,7 @@ Repository pour les entites Nomination et PosteAction.
 Fournit les operations CRUD + enrichissement + filtrage + pagination.
 """
 from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -23,6 +24,9 @@ from src.core.entities.responsable import (
     PosteResponsable,
 )
 from src.core.entities.user import User
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name", "email", "phone_number")
 
 
 class NominationRepository:
@@ -38,7 +42,8 @@ class NominationRepository:
         result = await self.session.exec(stmt)
         return result.first()
 
-    async def get_active_by_poste(self, poste: PosteResponsable) -> Optional[Nomination]:
+    async def get_active_by_poste(
+        self, poste: PosteResponsable) -> Optional[Nomination]:
         """Retourne la nomination active pour un poste donne (ou None)."""
         stmt = select(Nomination).where(
             Nomination.poste == poste,
@@ -56,7 +61,8 @@ class NominationRepository:
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def get_active_by_user_and_poste(self, user_id: UUID, poste: PosteResponsable) -> Optional[Nomination]:
+    async def get_active_by_user_and_poste(
+        self, user_id: UUID, poste: PosteResponsable) -> Optional[Nomination]:
         """Verifie si un utilisateur occupe un poste specifique."""
         stmt = select(Nomination).where(
             Nomination.user_id == user_id,
@@ -97,6 +103,8 @@ class NominationRepository:
         user_stmt = select(User).where(User.id == nomination.user_id)
         user_result = await self.session.exec(user_stmt)
         user = user_result.first()
+        if user:
+            decrypt_str_fields(user, _USER_PII)
 
         missions = POSTE_MISSIONS.get(nomination.poste, {})
         slug = POSTE_TO_SLUG.get(nomination.poste, "")
@@ -119,7 +127,8 @@ class NominationRepository:
             "user_phone": user.phone_number if user else None,
         }
 
-    async def enrich_nominations(self, nominations: List[Nomination]) -> List[Dict]:
+    async def enrich_nominations(
+        self, nominations: List[Nomination]) -> List[Dict]:
         return [await self.enrich_nomination(n) for n in nominations]
 
     # ── Ecriture ──────────────────────────────────────────────────────
@@ -176,7 +185,8 @@ class PosteActionRepository:
         total = count_result.one()
 
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        stmt = stmt.offset(offset).limit(page_size).order_by(
+            PosteAction.created_at.desc())
 
         result = await self.session.exec(stmt)
         return result.all(), total
@@ -207,7 +217,8 @@ class PosteActionRepository:
 
         # Paginer et trier
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        stmt = stmt.offset(offset).limit(page_size).order_by(
+            PosteAction.created_at.desc())
 
         result = await self.session.exec(stmt)
         items = result.all()
@@ -255,7 +266,8 @@ class PosteActionRepository:
 
         # Paginer et trier
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(PosteAction.created_at.desc())
+        stmt = stmt.offset(offset).limit(page_size).order_by(
+            PosteAction.created_at.desc())
 
         result = await self.session.exec(stmt)
         items = result.all()
@@ -271,11 +283,14 @@ class PosteActionRepository:
 
     async def list_by_user(self, user_id: UUID) -> List[PosteAction]:
         """Toutes les actions creees par un utilisateur."""
-        stmt = select(PosteAction).where(PosteAction.created_by == user_id).order_by(PosteAction.created_at.desc())
+        stmt = select(PosteAction).where(
+    PosteAction.created_by == user_id).order_by(
+        PosteAction.created_at.desc())
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def count_by_poste_and_status(self, poste: PosteResponsable) -> Dict[str, int]:
+    async def count_by_poste_and_status(
+        self, poste: PosteResponsable) -> Dict[str, int]:
         """Compte les actions par statut pour un poste donne."""
         counts = {}
         for s in ActionStatus:
@@ -287,10 +302,13 @@ class PosteActionRepository:
             counts[s.value] = result.one()
         return counts
 
-    async def get_recent_by_poste(self, poste: PosteResponsable, limit: int = 5) -> List[PosteAction]:
+    async def get_recent_by_poste(
+        self, poste: PosteResponsable, limit: int = 5) -> List[PosteAction]:
         """Les N actions les plus recentes d'un poste."""
         stmt = (
-            select(PosteAction).where(PosteAction.poste == poste).order_by(PosteAction.created_at.desc()).limit(limit)
+            select(PosteAction).where(
+    PosteAction.poste == poste).order_by(
+        PosteAction.created_at.desc()).limit(limit)
         )
         result = await self.session.exec(stmt)
         return result.all()
@@ -303,6 +321,8 @@ class PosteActionRepository:
         author_stmt = select(User).where(User.id == action.created_by)
         author_result = await self.session.exec(author_stmt)
         author = author_result.first()
+        if author:
+            decrypt_str_fields(author, _USER_PII)
 
         # Cible utilisateur (optionnel)
         target_user_name = None
@@ -311,6 +331,7 @@ class PosteActionRepository:
             t_result = await self.session.exec(t_stmt)
             target_user = t_result.first()
             if target_user:
+                decrypt_str_fields(target_user, _USER_PII)
                 target_user_name = f"{target_user.first_name} {target_user.last_name}"
 
         # Cible evenement (optionnel)
@@ -381,7 +402,8 @@ class PosteActionRepository:
         await self.session.refresh(action)
         return action
 
-    async def update(self, action_id: UUID, data: Dict) -> Optional[PosteAction]:
+    async def update(self, action_id: UUID,
+                     data: Dict) -> Optional[PosteAction]:
         """Modifie une action existante par son ID avec un dictionnaire de données."""
         action = await self.get(action_id)
         if not action:
@@ -391,7 +413,7 @@ class PosteActionRepository:
             if hasattr(action, key) and value is not None:
                 setattr(action, key, value)
 
-        action.updated_at = datetime.now(timezone.utc)
+        action.updated_at = utc_now()
         self.session.add(action)
         await self.session.commit()
         await self.session.refresh(action)

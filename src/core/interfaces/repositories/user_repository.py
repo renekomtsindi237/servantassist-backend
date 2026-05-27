@@ -1,76 +1,33 @@
 """
-User Repository Interface - Clean Architecture
-Defines the contract for user data access
+Interface IUserRepository — contrat du repository utilisateur.
+Utilise typing.Protocol (subtyping structurel) : les implémentations concrètes
+n'ont pas besoin d'hériter explicitement — elles satisfont le protocole si elles
+possèdent les bonnes méthodes.
 """
-from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Protocol, Tuple, runtime_checkable
+from uuid import UUID
 
 from src.core.entities.user import User, UserRole
 
 
-class IUserRepository(ABC):
-    """
-    User Repository Interface
-    Defines methods for user data access without implementation details
-    """
-
-    @abstractmethod
-    async def create(self, user: User) -> User:
-        """Create a new user"""
-        pass
-
-    @abstractmethod
-    async def get_by_id(self, user_id: str) -> Optional[User]:
-        """Get user by ID"""
-        pass
-
-    @abstractmethod
-    async def get_by_email(self, email: str) -> Optional[User]:
-        """Get user by email"""
-        pass
-
-    @abstractmethod
-    async def get_by_phone(self, phone_number: str) -> Optional[User]:
-        """Get user by phone number"""
-        pass
-
-    @abstractmethod
-    async def get_all(
+@runtime_checkable
+class IUserRepository(Protocol):
+    async def get(self, id: UUID) -> Optional[User]: ...
+    async def get_by_email(self, email: str) -> Optional[User]: ...
+    async def get_by_phone(self, phone_number: str) -> Optional[User]: ...
+    async def list(self) -> List[User]: ...
+    async def list_paginated(
         self,
-        skip: int = 0,
-        limit: int = 100,
+        *,
         role: Optional[UserRole] = None,
         is_active: Optional[bool] = None,
-    ) -> List[User]:
-        """Get all users with optional filters"""
-        pass
-
-    @abstractmethod
-    async def update(self, user: User) -> User:
-        """Update user"""
-        pass
-
-    @abstractmethod
-    async def delete(self, user_id: str) -> bool:
-        """Delete user (soft delete)"""
-        pass
-
-    @abstractmethod
-    async def exists_by_email(self, email: str) -> bool:
-        """Check if user exists by email"""
-        pass
-
-    @abstractmethod
-    async def exists_by_phone(self, phone_number: str) -> bool:
-        """Check if user exists by phone number"""
-        pass
-
-    @abstractmethod
-    async def count(self, role: Optional[UserRole] = None) -> int:
-        """Count users with optional role filter"""
-        pass
-
-    @abstractmethod
-    async def get_children(self, parent_id: str) -> List[User]:
-        """Get all children of a parent"""
-        pass
+        search: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[User], int]: ...
+    async def count_by_role(self, role: UserRole) -> int: ...
+    async def create(self, user: User) -> User: ...
+    async def update(self, id: UUID, entity: User) -> User: ...
+    async def delete(self, id: UUID) -> bool: ...
+    async def email_exists(self, email: str, exclude_id: Optional[UUID] = None) -> bool: ...
+    async def phone_exists(self, phone_number: str, exclude_id: Optional[UUID] = None) -> bool: ...

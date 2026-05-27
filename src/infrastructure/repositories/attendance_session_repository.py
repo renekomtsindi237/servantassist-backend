@@ -1,7 +1,8 @@
 """
 Repository pour la gestion des sessions d'appel (CENSEUR).
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID
 
@@ -15,6 +16,9 @@ from src.core.entities.attendance_session import (
     ServantAttendanceStats,
 )
 from src.core.entities.user import User, UserRole
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name")
 
 
 class AttendanceSessionRepository:
@@ -27,7 +31,8 @@ class AttendanceSessionRepository:
     #  SESSIONS - CRÉATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_session(self, session_data: AttendanceSession) -> AttendanceSession:
+    async def create_session(
+        self, session_data: AttendanceSession) -> AttendanceSession:
         """Crée une nouvelle session d'appel."""
         self.session.add(session_data)
         await self.session.commit()
@@ -38,7 +43,8 @@ class AttendanceSessionRepository:
     #  SESSIONS - LECTURE
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_session(self, session_id: UUID) -> Optional[AttendanceSession]:
+    async def get_session(
+        self, session_id: UUID) -> Optional[AttendanceSession]:
         """Récupère une session par son ID."""
         result = await self.session.execute(select(AttendanceSession).where(AttendanceSession.id == session_id))
         return result.scalar_one_or_none()
@@ -81,14 +87,16 @@ class AttendanceSessionRepository:
     #  RECORDS - CRÉATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_record(self, record: AttendanceRecord) -> AttendanceRecord:
+    async def create_record(
+        self, record: AttendanceRecord) -> AttendanceRecord:
         """Crée un enregistrement de présence."""
         self.session.add(record)
         await self.session.commit()
         await self.session.refresh(record)
         return record
 
-    async def create_records_batch(self, records: List[AttendanceRecord]) -> List[AttendanceRecord]:
+    async def create_records_batch(
+        self, records: List[AttendanceRecord]) -> List[AttendanceRecord]:
         """Crée plusieurs enregistrements en batch."""
         for record in records:
             self.session.add(record)
@@ -106,7 +114,8 @@ class AttendanceSessionRepository:
         result = await self.session.execute(select(AttendanceRecord).where(AttendanceRecord.id == record_id))
         return result.scalar_one_or_none()
 
-    async def get_record_by_session_and_servant(self, session_id: UUID, servant_id: UUID) -> Optional[AttendanceRecord]:
+    async def get_record_by_session_and_servant(
+        self, session_id: UUID, servant_id: UUID) -> Optional[AttendanceRecord]:
         """Vérifie s'il existe déjà un enregistrement pour ce servant dans cette session."""
         result = await self.session.execute(
             select(AttendanceRecord).where(
@@ -116,7 +125,8 @@ class AttendanceSessionRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_session_records(self, session_id: UUID) -> List[AttendanceRecord]:
+    async def get_session_records(
+        self, session_id: UUID) -> List[AttendanceRecord]:
         """Récupère tous les enregistrements d'une session."""
         result = await self.session.execute(
             select(AttendanceRecord)
@@ -133,7 +143,8 @@ class AttendanceSessionRepository:
     ) -> List[AttendanceRecord]:
         """Récupère tous les enregistrements d'un servant."""
         # Joindre avec les sessions pour filtrer par date
-        query = select(AttendanceRecord).join(AttendanceSession).where(AttendanceRecord.servant_id == servant_id)
+        query = select(AttendanceRecord).join(AttendanceSession).where(
+            AttendanceRecord.servant_id == servant_id)
 
         if start_date:
             query = query.where(AttendanceSession.session_date >= start_date)
@@ -149,7 +160,8 @@ class AttendanceSessionRepository:
     #  RECORDS - MODIFICATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def update_record(self, record_id: UUID, record: AttendanceRecord) -> Optional[AttendanceRecord]:
+    async def update_record(
+        self, record_id: UUID, record: AttendanceRecord) -> Optional[AttendanceRecord]:
         """Met à jour un enregistrement."""
         existing = await self.get_record(record_id)
         if not existing:
@@ -158,7 +170,7 @@ class AttendanceSessionRepository:
         for key, value in record.model_dump(exclude_unset=True).items():
             setattr(existing, key, value)
 
-        existing.updated_at = datetime.utcnow()
+        existing.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(existing)
         return existing
@@ -177,6 +189,8 @@ class AttendanceSessionRepository:
         # Récupérer le servant
         servant_result = await self.session.execute(select(User).where(User.id == servant_id))
         servant = servant_result.scalar_one_or_none()
+        if servant:
+            decrypt_str_fields(servant, _USER_PII)
         servant_name = f"{servant.first_name} {servant.last_name}" if servant else "Inconnu"
 
         # Récupérer les enregistrements
@@ -193,13 +207,18 @@ class AttendanceSessionRepository:
         total_sessions = total_result.scalar()
 
         # Compter par statut
-        present_count = sum(1 for r in records if r.status == AttendanceStatus.PRESENT)
-        absent_count = sum(1 for r in records if r.status == AttendanceStatus.ABSENT)
-        late_count = sum(1 for r in records if r.status == AttendanceStatus.LATE)
-        excused_count = sum(1 for r in records if r.status == AttendanceStatus.EXCUSED)
+        present_count = sum(
+    1 for r in records if r.status == AttendanceStatus.PRESENT)
+        absent_count = sum(1 for r in records if r.status ==
+                           AttendanceStatus.ABSENT)
+        late_count = sum(1 for r in records if r.status ==
+                         AttendanceStatus.LATE)
+        excused_count = sum(
+    1 for r in records if r.status == AttendanceStatus.EXCUSED)
 
         # Calculer le taux de présence
-        attendance_rate = (present_count + late_count) / total_sessions * 100 if total_sessions > 0 else 0
+        attendance_rate = (present_count + late_count) / \
+                           total_sessions * 100 if total_sessions > 0 else 0
 
         # Calculer les absences consécutives
         consecutive_absences = 0
@@ -224,7 +243,10 @@ class AttendanceSessionRepository:
     async def get_all_servants(self) -> List[User]:
         """Récupère tous les servants."""
         result = await self.session.execute(select(User).where(User.role == UserRole.SERVANT).order_by(User.last_name))
-        return list(result.scalars().all())
+        servants = list(result.scalars().all())
+        for s in servants:
+            decrypt_str_fields(s, _USER_PII)
+        return servants
 
     # ══════════════════════════════════════════════════════════════════
     #  ENRICHISSEMENT
@@ -235,11 +257,15 @@ class AttendanceSessionRepository:
         # Récupérer le servant
         servant_result = await self.session.execute(select(User).where(User.id == record.servant_id))
         servant = servant_result.scalar_one_or_none()
+        if servant:
+            decrypt_str_fields(servant, _USER_PII)
         servant_name = f"{servant.first_name} {servant.last_name}" if servant else "Inconnu"
 
         # Récupérer l'enregistreur
         recorder_result = await self.session.execute(select(User).where(User.id == record.recorded_by))
         recorder = recorder_result.scalar_one_or_none()
+        if recorder:
+            decrypt_str_fields(recorder, _USER_PII)
         recorded_by_name = f"{recorder.first_name} {recorder.last_name}" if recorder else "Inconnu"
 
         return {
@@ -253,6 +279,8 @@ class AttendanceSessionRepository:
         # Récupérer le conducteur
         conductor_result = await self.session.execute(select(User).where(User.id == session.conducted_by))
         conductor = conductor_result.scalar_one_or_none()
+        if conductor:
+            decrypt_str_fields(conductor, _USER_PII)
         conducted_by_name = f"{conductor.first_name} {conductor.last_name}" if conductor else "Inconnu"
 
         # Récupérer les enregistrements
@@ -266,10 +294,14 @@ class AttendanceSessionRepository:
 
         # Calculer les statistiques
         total_servants = len(records)
-        present_count = sum(1 for r in records if r.status == AttendanceStatus.PRESENT)
-        absent_count = sum(1 for r in records if r.status == AttendanceStatus.ABSENT)
-        late_count = sum(1 for r in records if r.status == AttendanceStatus.LATE)
-        excused_count = sum(1 for r in records if r.status == AttendanceStatus.EXCUSED)
+        present_count = sum(
+    1 for r in records if r.status == AttendanceStatus.PRESENT)
+        absent_count = sum(1 for r in records if r.status ==
+                           AttendanceStatus.ABSENT)
+        late_count = sum(1 for r in records if r.status ==
+                         AttendanceStatus.LATE)
+        excused_count = sum(
+    1 for r in records if r.status == AttendanceStatus.EXCUSED)
 
         return {
             **session.model_dump(),

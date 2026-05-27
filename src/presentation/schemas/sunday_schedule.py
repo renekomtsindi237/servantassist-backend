@@ -31,7 +31,8 @@ class SundayMassAssignmentCreate(BaseModel):
         """Valide qu'au moins servant_id ou servant_name est fourni."""
         servant_id = info.data.get("servant_id")
         if not servant_id and not v:
-            raise ValueError("Au moins servant_id ou servant_name doit être fourni")
+            raise ValueError(
+                "Au moins servant_id ou servant_name doit être fourni")
         return v
 
 
@@ -72,7 +73,8 @@ class SundayMassAssignmentResponse(BaseModel):
 class SundayMassSlotCreate(BaseModel):
     """Création d'une messe."""
 
-    mass_time: str = Field(..., max_length=10, description="Heure (ex: 06h30, 08h30)")
+    mass_time: str = Field(..., max_length=10,
+                           description="Heure (ex: 06h30, 08h30)")
     language: MassLanguage
     notes: Optional[str] = Field(None, max_length=500)
     assignments: List[SundayMassAssignmentCreate] = Field(default_factory=list)

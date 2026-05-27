@@ -7,7 +7,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlalchemy import Column
+from sqlalchemy import Column, String
 from sqlmodel import JSON, Field, Relationship, SQLModel
 
 
@@ -64,11 +64,14 @@ class MaterialItem(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     name: str = Field(min_length=1, max_length=200)
-    category: MaterialCategory
+    category: MaterialCategory = Field(sa_column=Column(String(50), nullable=False))
     description: Optional[str] = None
     quantity: int = Field(ge=0)
     size: Optional[str] = None  # Pour les aubes : S, M, L, XL
-    condition: MaterialCondition = MaterialCondition.BON
+    condition: MaterialCondition = Field(
+        default=MaterialCondition.BON,
+        sa_column=Column(String(50), nullable=False, server_default="BON"),
+    )
     location: str = Field(min_length=1, max_length=200)
     purchase_date: Optional[datetime] = None
     last_maintenance_date: Optional[datetime] = None
@@ -90,17 +93,26 @@ class CleaningTask(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str = Field(min_length=1, max_length=200)
     description: str
-    task_type: TaskType
+    task_type: TaskType = Field(sa_column=Column(String(50), nullable=False))
     scheduled_date: datetime
     scheduled_time: str  # Format HH:MM
     location: str = Field(min_length=1, max_length=200)
-    items: List[str] = Field(default_factory=list, sa_column=Column(JSON))  # Liste des noms d'articles
-    status: TaskStatus = TaskStatus.PLANIFIEE
+    items: List[str] = Field(
+    default_factory=list,
+     sa_column=Column(JSON))  # Liste des noms d'articles
+    status: TaskStatus = Field(
+        default=TaskStatus.PLANIFIEE,
+        sa_column=Column(String(50), nullable=False, server_default="PLANIFIEE"),
+    )
     completed_at: Optional[datetime] = None
     validated_at: Optional[datetime] = None
     validated_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
-    photos_before: List[str] = Field(default_factory=list, sa_column=Column(JSON))
-    photos_after: List[str] = Field(default_factory=list, sa_column=Column(JSON))
+    photos_before: List[str] = Field(
+    default_factory=list,
+     sa_column=Column(JSON))
+    photos_after: List[str] = Field(
+    default_factory=list,
+     sa_column=Column(JSON))
     notes: Optional[str] = None
     created_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -133,18 +145,25 @@ class AubeTask(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str = Field(min_length=1, max_length=200)
-    task_type: TaskType  # LAVAGE ou REPASSAGE
+    task_type: TaskType = Field(sa_column=Column(String(50), nullable=False))  # LAVAGE ou REPASSAGE
     scheduled_date: datetime
     scheduled_time: str  # Format HH:MM
     location: str = Field(min_length=1, max_length=200)
     aube_count: int = Field(gt=0)
     aube_sizes: List[str] = Field(default_factory=list, sa_column=Column(JSON))
-    status: TaskStatus = TaskStatus.PLANIFIEE
+    status: TaskStatus = Field(
+        default=TaskStatus.PLANIFIEE,
+        sa_column=Column(String(50), nullable=False, server_default="PLANIFIEE"),
+    )
     completed_at: Optional[datetime] = None
     validated_at: Optional[datetime] = None
     validated_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
-    photos_before: List[str] = Field(default_factory=list, sa_column=Column(JSON))
-    photos_after: List[str] = Field(default_factory=list, sa_column=Column(JSON))
+    photos_before: List[str] = Field(
+    default_factory=list,
+     sa_column=Column(JSON))
+    photos_after: List[str] = Field(
+    default_factory=list,
+     sa_column=Column(JSON))
     notes: Optional[str] = None
     broadcast_notification: bool = True  # Notification à tous par défaut
     created_by: UUID = Field(foreign_key="users.id")
@@ -161,7 +180,7 @@ class MaintenanceHistory(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     item_id: UUID = Field(foreign_key="material_items.id")
-    maintenance_type: TaskType
+    maintenance_type: TaskType = Field(sa_column=Column(String(50), nullable=False))
     description: str
     performed_date: datetime
     performed_by: UUID = Field(foreign_key="users.id")

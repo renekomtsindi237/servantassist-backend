@@ -1,0 +1,183 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# ServantAssist — Docker Compose PRODUCTION (Haute Disponibilité)
+# Base de données : Supabase (externe)
+#
+# Architecture :
+#   nginx-lb → 3 réplicas backend (Gunicorn+Uvicorn) → Redis → Supabase
+#
+# Commandes :
+#   Démarrer      : docker compose -f docker-compose.production.yml up -d
+#   Scaler        : docker compose -f docker-compose.production.yml up -d --scale backend=4
+#   Migrations    : make migrate-production
+#   Logs          : docker compose -f docker-compose.production.yml logs -f
+#
+# Prérequis : .env.production rempli
+# ──────────────────────────────────────────────────────────────────────────────
+version: "3.9"
+
+services:
+
+  # ── Nginx — Load Balancer ─────────────────────────────────────────────────
+  nginx-lb:
+    image: nginx:1.27-alpine
+    container_name: servantassist-prod-lb
+    restart: always
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - ./nginx/nginx-lb.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/nginx-health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 64M
+
+  # ── Redis (durci) ────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: servantassist-prod-redis
+    restart: always
+    command: >
+      redis-server
+        --maxmemory 512mb
+        --maxmemory-policy allkeys-lru
+        --requirepass ${REDIS_PASSWORD}
+        --rename-command FLUSHALL ""
+        --rename-command FLUSHDB ""
+        --rename-command CONFIG ""
+        --rename-command DEBUG ""
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 640M
+
+  # ── Backend (3 réplicas par défaut, scalable) ─────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
+      GUNICORN_WORKERS: "4"     # 4 workers par réplica (ajustable via env)
+    volumes:
+      - ./gunicorn.conf.py:/app/gunicorn.conf.py:ro
+    tmpfs:
+      - /tmp:size=100M,noexec
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/ready"]
+      interval: 15s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 60s
+
+  # ── Migration (one-shot — profil "migrate") ────────────────────────────────
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: servantassist-prod-migrate
+    profiles: [migrate]
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+    command: alembic upgrade head
+
+  # ── Celery Worker ────────────────────────────────────────────────────────
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: servantassist-prod-celery
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
+    command: celery -A src.infrastructure.tasks.celery_app worker --loglevel=warning --concurrency=4
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+
+  # ── Celery Beat ──────────────────────────────────────────────────────────
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: servantassist-prod-beat
+    restart: always
+    depends_on:
+      - redis
+      - celery-worker
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
+    command: celery -A src.infrastructure.tasks.celery_app beat --loglevel=warning
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

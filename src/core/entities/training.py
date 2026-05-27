@@ -7,7 +7,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlalchemy import Column
+from sqlalchemy import Column, String
 from sqlmodel import JSON, Field, SQLModel
 
 
@@ -59,7 +59,6 @@ class TrainingSession(SQLModel, table=True):
     title: str = Field(min_length=1, max_length=200)
     description: str
     objectives: Optional[str] = None
-    level: TrainingLevel = TrainingLevel.TOUS
     date: datetime
     start_time: str  # Format HH:MM
     end_time: str  # Format HH:MM
@@ -69,7 +68,14 @@ class TrainingSession(SQLModel, table=True):
     trainer_name: Optional[str] = None  # Enrichi
     max_participants: int = Field(ge=0, default=0)  # 0 = illimité
     current_participants: int = 0  # Enrichi
-    status: TrainingStatus = TrainingStatus.PLANIFIEE
+    level: TrainingLevel = Field(
+        default=TrainingLevel.TOUS,
+        sa_column=Column(String(50), nullable=False, server_default="TOUS"),
+    )
+    status: TrainingStatus = Field(
+        default=TrainingStatus.PLANIFIEE,
+        sa_column=Column(String(50), nullable=False, server_default="PLANIFIEE"),
+    )
     materials_url: Optional[str] = None
     notes: Optional[str] = None
     created_by: UUID = Field(foreign_key="users.id")
@@ -88,7 +94,10 @@ class TrainingParticipation(SQLModel, table=True):
     session_id: UUID = Field(foreign_key="training_sessions.id")
     servant_id: UUID = Field(foreign_key="users.id")
     servant_name: Optional[str] = None  # Enrichi
-    status: ParticipationStatus = ParticipationStatus.INSCRIT
+    status: ParticipationStatus = Field(
+        default=ParticipationStatus.INSCRIT,
+        sa_column=Column(String(50), nullable=False, server_default="INSCRIT"),
+    )
     registration_date: datetime = Field(default_factory=datetime.utcnow)
     attendance_marked_at: Optional[datetime] = None
     evaluation_score: Optional[int] = Field(None, ge=0, le=100)
@@ -112,12 +121,15 @@ class TrainingMaterial(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str = Field(min_length=1, max_length=200)
     description: str
-    type: MaterialType
+    type: MaterialType = Field(sa_column=Column(String(50), nullable=False))
     file_url: str
     file_type: str  # MIME type
     file_size: int = Field(gt=0)
     thumbnail_url: Optional[str] = None
-    level: TrainingLevel = TrainingLevel.TOUS
+    level: TrainingLevel = Field(
+        default=TrainingLevel.TOUS,
+        sa_column=Column(String(50), nullable=False, server_default="TOUS"),
+    )
     tags: List[str] = Field(default_factory=list, sa_column=Column(JSON))
     is_public: bool = True  # Accessible à tous par défaut
     view_count: int = 0

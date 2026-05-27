@@ -1,0 +1,1140 @@
+src/application\services\assignment_service.py:23:1: F401 'src.core.entities.event.Event' imported but unused
+src/application\services\assignment_service.py:24:1: F401 'src.core.entities.user.User' imported but unused
+src/application\services\assignment_service.py:57:9: E125 continuation line with same indent as next logical line
+src/application\services\assignment_service.py:98:5: E122 continuation line missing indentation or outdented
+src/application\services\assignment_service.py:141:5: E122 continuation line missing indentation or outdented
+src/application\services\assignment_service.py:174:5: E122 continuation line missing indentation or outdented
+src/application\services\assignment_service.py:237:9: E125 continuation line with same indent as next logical line
+src/application\services\assignment_service.py:248:13: E128 continuation line under-indented for visual indent
+src/application\services\assignment_service.py:253:9: E125 continuation line with same indent as next logical line
+src/application\services\assignment_service.py:298:5: E122 continuation line missing indentation or outdented
+src/application\services\assignment_service.py:358:5: E122 continuation line missing indentation or outdented
+src/application\services\assignment_service.py:389:9: E125 continuation line with same indent as next logical line
+src/application\services\attendance_service.py:18:1: F401 'src.core.entities.user.UserRole' imported but unused
+src/application\services\attendance_service.py:48:9: E125 continuation line with same indent as next logical line
+src/application\services\attendance_service.py:75:5: E122 continuation line missing indentation or outdented
+src/application\services\attendance_service.py:137:9: E125 continuation line with same indent as next logical line
+src/application\services\attendance_service.py:236:5: E122 continuation line missing indentation or outdented
+src/application\services\attendance_session_service.py:12:1: F401 'typing.Tuple' imported but unused
+src/application\services\attendance_session_service.py:17:1: F401 'src.core.entities.attendance_session.AttendanceStatus' imported but unused
+src/application\services\attendance_session_service.py:136:5: E122 continuation line missing indentation or outdented
+src/application\services\attendance_session_service.py:147:5: E122 continuation line missing indentation or outdented
+src/application\services\attendance_session_service.py:165:9: E125 continuation line with same indent as next logical line
+src/application\services\attendance_session_service.py:232:5: E122 continuation line missing indentation or outdented
+src/application\services\attendance_session_service.py:242:5: E122 continuation line missing indentation or outdented
+src/application\services\auth_service.py:28:9: E125 continuation line with same indent as next logical line
+src/application\services\auth_service.py:50:5: E122 continuation line missing indentation or outdented
+src/application\services\auth_service.py:66:5: E122 continuation line missing indentation or outdented
+src/application\services\auth_service.py:71:13: E125 continuation line with same indent as next logical line
+src/application\services\auth_service.py:111:13: E128 continuation line under-indented for visual indent
+src/application\services\auth_service.py:111:13: E125 continuation line with same indent as next logical line
+src/application\services\auth_service.py:278:9: E125 continuation line with same indent as next logical line
+src/application\services\auth_service.py:291:5: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:12:1: F401 'typing.Tuple' imported but unused
+src/application\services\contribution_service.py:17:1: F401 'src.core.entities.contribution.FinancialReport' imported but unused
+src/application\services\contribution_service.py:17:1: F401 'src.core.entities.contribution.MonthlyContributionSummary' imported but unused
+src/application\services\contribution_service.py:63:5: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:125:9: E125 continuation line with same indent as next logical line
+src/application\services\contribution_service.py:198:9: E125 continuation line with same indent as next logical line
+src/application\services\contribution_service.py:216:5: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:292:16: E128 continuation line under-indented for visual indent
+src/application\services\contribution_service.py:298:5: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:311:5: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:348:24: E127 continuation line over-indented for visual indent
+src/application\services\contribution_service.py:352:5: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:353:5: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:354:6: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:361:5: E122 continuation line missing indentation or outdented
+src/application\services\contribution_service.py:397:34: F821 undefined name 'PaymentStatus'
+src/application\services\contribution_service.py:400:5: E122 continuation line missing indentation or outdented
+src/application\services\cotisation_service.py:18:1: F401 'src.core.entities.user.UserRole' imported but unused
+src/application\services\cotisation_service.py:21:1: F401 'src.presentation.schemas.cotisation.MemberCotisationUpdate' imported but unused
+src/application\services\cotisation_service.py:73:9: E125 continuation line with same indent as next logical line
+src/application\services\cotisation_service.py:138:9: E125 continuation line with same indent as next logical line
+src/application\services\cotisation_service.py:227:9: E125 continuation line with same indent as next logical line
+src/application\services\cotisation_service.py:239:9: E125 continuation line with same indent as next logical line
+src/application\services\cotisation_service.py:257:5: E122 continuation line missing indentation or outdented
+src/application\services\cotisation_service.py:264:5: E122 continuation line missing indentation or outdented
+src/application\services\cotisation_service.py:265:5: E122 continuation line missing indentation or outdented
+src/application\services\cotisation_service.py:266:6: E122 continuation line missing indentation or outdented
+src/application\services\dashboard_service.py:13:1: F401 'uuid.UUID' imported but unused
+src/application\services\dashboard_service.py:44:56: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/application\services\dashboard_service.py:153:55: F821 undefined name 'CotisationStatus'
+src/application\services\dashboard_service.py:250:59: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/application\services\discipline_service.py:13:1: F401 'typing.List' imported but unused
+src/application\services\discipline_service.py:19:1: F401 'src.core.entities.discipline.SEVERITY_RECOMMENDED_SANCTION' imported but unused
+src/application\services\discipline_service.py:28:1: F401 'src.core.entities.user.User' imported but unused
+src/application\services\discipline_service.py:32:1: F401 'src.presentation.schemas.discipline.DisciplineCaseUpdate' imported but unused
+src/application\services\discipline_service.py:108:5: E122 continuation line missing indentation or outdented
+src/application\services\discipline_service.py:136:5: E122 continuation line missing indentation or outdented
+src/application\services\discipline_service.py:167:5: E122 continuation line missing indentation or outdented
+src/application\services\discipline_service.py:205:5: E122 continuation line missing indentation or outdented
+src/application\services\discipline_service.py:228:9: E125 continuation line with same indent as next logical line
+src/application\services\discipline_service.py:301:9: E125 continuation line with same indent as next logical line
+src/application\services\discipline_service.py:309:5: E122 continuation line missing indentation or outdented
+src/application\services\discipline_service.py:311:5: E122 continuation line missing indentation or outdented
+src/application\services\discipline_service.py:313:5: E122 continuation line missing indentation or outdented
+src/application\services\event_service.py:20:1: F401 'src.core.entities.user.User' imported but unused
+src/application\services\event_service.py:251:5: E122 continuation line missing indentation or outdented
+src/application\services\event_service.py:338:9: E125 continuation line with same indent as next logical line
+src/application\services\event_service.py:349:9: E125 continuation line with same indent as next logical line
+src/application\services\event_service.py:380:5: E122 continuation line missing indentation or outdented
+src/application\services\financial_entry_service.py:8:1: F401 'src.core.entities.financial_entry.FinancialSummary' imported but unused
+src/application\services\financial_entry_service.py:181:5: E122 continuation line missing indentation or outdented
+src/application\services\financial_entry_service.py:208:9: F841 local variable 'summaries_data' is assigned to but never used
+src/application\services\financial_entry_service.py:249:5: E122 continuation line missing indentation or outdented
+src/application\services\financial_entry_service.py:260:5: E122 continuation line missing indentation or outdented
+src/application\services\financial_entry_service.py:274:5: E122 continuation line missing indentation or outdented
+src/application\services\material_service.py:371:9: E125 continuation line with same indent as next logical line
+src/application\services\material_service.py:612:9: E125 continuation line with same indent as next logical line
+src/application\services\material_service.py:663:5: E122 continuation line missing indentation or outdented
+src/application\services\material_service.py:664:6: E122 continuation line missing indentation or outdented
+src/application\services\material_service.py:739:5: E122 continuation line missing indentation or outdented
+src/application\services\material_service.py:740:6: E122 continuation line missing indentation or outdented
+src/application\services\material_service.py:743:5: E122 continuation line missing indentation or outdented
+src/application\services\material_service.py:744:5: E122 continuation line missing indentation or outdented
+src/application\services\material_service.py:745:6: E122 continuation line missing indentation or outdented
+src/application\services\notification_service.py:11:1: F401 'datetime.datetime' imported but unused
+src/application\services\notification_service.py:11:1: F401 'datetime.timezone' imported but unused
+src/application\services\notification_service.py:17:1: F401 'sqlmodel.col' imported but unused
+src/application\services\notification_service.py:181:9: E125 continuation line with same indent as next logical line
+src/application\services\responsable_service.py:15:1: F401 'typing.Dict' imported but unused
+src/application\services\responsable_service.py:15:1: F401 'typing.Tuple' imported but unused
+src/application\services\responsable_service.py:21:1: F401 'src.core.entities.responsable.SLUG_TO_POSTE' imported but unused
+src/application\services\responsable_service.py:21:1: F401 'src.core.entities.responsable.PosteAction' imported but unused
+src/application\services\responsable_service.py:33:1: F401 'src.core.entities.user.User' imported but unused
+src/application\services\responsable_service.py:115:5: E122 continuation line missing indentation or outdented
+src/application\services\responsable_service.py:163:9: E125 continuation line with same indent as next logical line
+src/application\services\responsable_service.py:221:9: E125 continuation line with same indent as next logical line
+src/application\services\responsable_service.py:248:9: E125 continuation line with same indent as next logical line
+src/application\services\responsable_service.py:403:9: E125 continuation line with same indent as next logical line
+src/application\services\responsable_service.py:443:5: E122 continuation line missing indentation or outdented
+src/application\services\responsable_service.py:465:9: E125 continuation line with same indent as next logical line
+src/application\services\responsable_service.py:477:9: E125 continuation line with same indent as next logical line
+src/application\services\sport_culture_service.py:198:9: E125 continuation line with same indent as next logical line
+src/application\services\sport_culture_service.py:300:9: E125 continuation line with same indent as next logical line
+src/application\services\sport_culture_service.py:556:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:557:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:558:6: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:577:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:578:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:579:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:628:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:629:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:630:6: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:636:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:662:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:665:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:666:5: E122 continuation line missing indentation or outdented
+src/application\services\sport_culture_service.py:667:6: E122 continuation line missing indentation or outdented
+src/application\services\subgroup_service.py:17:1: F401 'src.core.entities.user.User' imported but unused
+src/application\services\subgroup_service.py:105:9: E125 continuation line with same indent as next logical line
+src/application\services\subgroup_service.py:193:5: E122 continuation line missing indentation or outdented
+src/application\services\subgroup_service.py:227:9: E125 continuation line with same indent as next logical line
+src/application\services\subgroup_service.py:241:5: E122 continuation line missing indentation or outdented
+src/application\services\subgroup_service.py:279:9: F841 local variable 'created' is assigned to but never used
+src/application\services\sunday_schedule_service.py:18:1: F401 'src.core.entities.sunday_schedule.EXCEPTIONAL_MASS_TIMES' imported but unused
+src/application\services\sunday_schedule_service.py:18:1: F401 'src.core.entities.sunday_schedule.ORDINARY_POSITIONS' imported but unused
+src/application\services\sunday_schedule_service.py:18:1: F401 'src.core.entities.sunday_schedule.SOLEMN_POSITIONS' imported but unused
+src/application\services\sunday_schedule_service.py:85:5: E122 continuation line missing indentation or outdented
+src/application\services\sunday_schedule_service.py:147:5: E122 continuation line missing indentation or outdented
+src/application\services\sunday_schedule_service.py:153:5: E122 continuation line missing indentation or outdented
+src/application\services\sunday_schedule_service.py:240:9: E125 continuation line with same indent as next logical line
+src/application\services\sunday_schedule_service.py:333:9: E125 continuation line with same indent as next logical line
+src/application\services\sunday_schedule_service.py:357:9: E125 continuation line with same indent as next logical line
+src/application\services\sunday_schedule_service.py:469:5: E122 continuation line missing indentation or outdented
+src/application\services\sunday_schedule_service.py:484:5: E122 continuation line missing indentation or outdented
+src/application\services\sunday_schedule_service.py:516:5: E125 continuation line with same indent as next logical line
+src/application\services\sunday_schedule_service.py:519:121: E501 line too long (127 > 120 characters)
+src/application\services\sunday_schedule_service.py:519:121: E501 line too long (127 > 120 characters)
+src/application\services\sunday_schedule_service.py:520:5: E122 continuation line missing indentation or outdented
+src/application\services\sunday_schedule_service.py:572:5: E122 continuation line missing indentation or outdented
+src/application\services\sunday_schedule_service.py:608:5: E122 continuation line missing indentation or outdented
+src/application\services\sunday_schedule_service.py:627:9: E125 continuation line with same indent as next logical line
+src/application\services\training_service.py:344:9: E125 continuation line with same indent as next logical line
+src/application\services\training_service.py:424:9: E125 continuation line with same indent as next logical line
+src/application\services\training_service.py:538:9: E125 continuation line with same indent as next logical line
+src/application\services\training_service.py:543:9: E125 continuation line with same indent as next logical line
+src/application\services\training_service.py:569:5: E122 continuation line missing indentation or outdented
+src/application\services\training_service.py:583:5: E122 continuation line missing indentation or outdented
+src/application\services\training_service.py:584:5: E122 continuation line missing indentation or outdented
+src/application\services\training_service.py:585:6: E122 continuation line missing indentation or outdented
+src/application\services\training_service.py:589:5: E122 continuation line missing indentation or outdented
+src/application\services\training_service.py:595:5: E122 continuation line missing indentation or outdented
+src/application\services\user_service.py:16:1: F401 'typing.List' imported but unused
+src/application\services\user_service.py:16:1: F401 'typing.Tuple' imported but unused
+src/application\services\user_service.py:81:13: E125 continuation line with same indent as next logical line
+src/application\services\user_service.py:89:13: E125 continuation line with same indent as next logical line
+src/application\services\user_service.py:141:9: E125 continuation line with same indent as next logical line
+src/application\services\user_service.py:221:9: E125 continuation line with same indent as next logical line
+src/application\services\weekly_schedule_service.py:93:5: E122 continuation line missing indentation or outdented
+src/application\services\weekly_schedule_service.py:94:5: E122 continuation line missing indentation or outdented
+src/application\services\weekly_schedule_service.py:95:5: E122 continuation line missing indentation or outdented
+src/application\services\weekly_schedule_service.py:161:5: E122 continuation line missing indentation or outdented
+src/application\services\weekly_schedule_service.py:167:5: E122 continuation line missing indentation or outdented
+src/application\services\weekly_schedule_service.py:191:9: E125 continuation line with same indent as next logical line
+src/application\services\weekly_schedule_service.py:282:9: E125 continuation line with same indent as next logical line
+src/application\services\weekly_schedule_service.py:306:9: E125 continuation line with same indent as next logical line
+src/application\services\weekly_schedule_service.py:440:5: E122 continuation line missing indentation or outdented
+src/application\services\weekly_schedule_service.py:448:5: E122 continuation line missing indentation or outdented
+src/application\services\weekly_schedule_service.py:464:5: E122 continuation line missing indentation or outdented
+src/application\services\weekly_schedule_service.py:521:121: E501 line too long (131 > 120 characters)
+src/application\services\weekly_schedule_service.py:521:121: E501 line too long (131 > 120 characters)
+src/application\services\weekly_schedule_service.py:522:5: E122 continuation line missing indentation or outdented
+src/core\entities\__init__.py:1:1: F401 'src.core.entities.assignment.Assignment' imported but unused
+src/core\entities\__init__.py:1:1: F401 'src.core.entities.assignment.AssignmentStatus' imported but unused
+src/core\entities\__init__.py:1:1: F401 'src.core.entities.assignment.LiturgicalRole' imported but unused
+src/core\entities\__init__.py:2:1: F401 'src.core.entities.attendance.Attendance' imported but unused
+src/core\entities\__init__.py:2:1: F401 'src.core.entities.attendance.AttendanceStatus' imported but unused
+src/core\entities\__init__.py:2:1: F401 'src.core.entities.attendance.AttendanceType' imported but unused
+src/core\entities\__init__.py:3:1: F401 'src.core.entities.cotisation.CotisationPeriod' imported but unused
+src/core\entities\__init__.py:3:1: F401 'src.core.entities.cotisation.CotisationStatus' imported but unused
+src/core\entities\__init__.py:3:1: F401 'src.core.entities.cotisation.CotisationType' imported but unused
+src/core\entities\__init__.py:3:1: F401 'src.core.entities.cotisation.MemberCotisation' imported but unused
+src/core\entities\__init__.py:3:1: F401 'src.core.entities.cotisation.PeriodType' imported but unused
+src/core\entities\__init__.py:10:1: F401 'src.core.entities.discipline.DisciplineCase' imported but unused
+src/core\entities\__init__.py:10:1: F401 'src.core.entities.discipline.DisciplineCaseStatus' imported but unused
+src/core\entities\__init__.py:10:1: F401 'src.core.entities.discipline.OffenseCategory' imported but unused
+src/core\entities\__init__.py:10:1: F401 'src.core.entities.discipline.SanctionSeverity' imported but unused
+src/core\entities\__init__.py:10:1: F401 'src.core.entities.discipline.SanctionType' imported but unused
+src/core\entities\__init__.py:17:1: F401 'src.core.entities.event.Event' imported but unused
+src/core\entities\__init__.py:17:1: F401 'src.core.entities.event.EventParticipant' imported but unused
+src/core\entities\__init__.py:17:1: F401 'src.core.entities.event.EventStatus' imported but unused
+src/core\entities\__init__.py:17:1: F401 'src.core.entities.event.EventType' imported but unused
+src/core\entities\__init__.py:18:1: F401 'src.core.entities.notification.Notification' imported but unused
+src/core\entities\__init__.py:18:1: F401 'src.core.entities.notification.NotificationChannel' imported but unused
+src/core\entities\__init__.py:18:1: F401 'src.core.entities.notification.NotificationPreference' imported but unused
+src/core\entities\__init__.py:18:1: F401 'src.core.entities.notification.NotificationPriority' imported but unused
+src/core\entities\__init__.py:18:1: F401 'src.core.entities.notification.NotificationStatus' imported but unused
+src/core\entities\__init__.py:18:1: F401 'src.core.entities.notification.NotificationType' imported but unused
+src/core\entities\__init__.py:26:1: F401 'src.core.entities.responsable.ActionCategory' imported but unused
+src/core\entities\__init__.py:26:1: F401 'src.core.entities.responsable.ActionStatus' imported but unused
+src/core\entities\__init__.py:26:1: F401 'src.core.entities.responsable.Nomination' imported but unused
+src/core\entities\__init__.py:26:1: F401 'src.core.entities.responsable.NominationStatus' imported but unused
+src/core\entities\__init__.py:26:1: F401 'src.core.entities.responsable.PosteAction' imported but unused
+src/core\entities\__init__.py:26:1: F401 'src.core.entities.responsable.PosteResponsable' imported but unused
+src/core\entities\__init__.py:34:1: F401 'src.core.entities.subgroup.SubGroup' imported but unused
+src/core\entities\__init__.py:34:1: F401 'src.core.entities.subgroup.SubGroupMember' imported but unused
+src/core\entities\__init__.py:35:1: F401 'src.core.entities.user.User' imported but unused
+src/core\entities\__init__.py:35:1: F401 'src.core.entities.user.UserRole' imported but unused
+src/core\entities\assignment.py:61:5: E122 continuation line missing indentation or outdented
+src/core\entities\attendance.py:75:5: E122 continuation line missing indentation or outdented
+src/core\entities\attendance.py:82:5: E122 continuation line missing indentation or outdented
+src/core\entities\cotisation.py:79:5: E122 continuation line missing indentation or outdented
+src/core\entities\council_meeting.py:44:5: E122 continuation line missing indentation or outdented
+src/core\entities\discipline.py:115:5: E122 continuation line missing indentation or outdented
+src/core\entities\invitation.py:54:5: E122 continuation line missing indentation or outdented
+src/core\entities\material.py:11:1: F401 'sqlmodel.Relationship' imported but unused
+src/core\entities\material.py:98:5: E122 continuation line missing indentation or outdented
+src/core\entities\material.py:105:5: E122 continuation line missing indentation or outdented
+src/core\entities\material.py:108:5: E122 continuation line missing indentation or outdented
+src/core\entities\material.py:153:5: E122 continuation line missing indentation or outdented
+src/core\entities\material.py:156:5: E122 continuation line missing indentation or outdented
+src/core\entities\notification.py:105:5: E122 continuation line missing indentation or outdented
+src/core\entities\notification.py:109:5: E122 continuation line missing indentation or outdented
+src/core\entities\report.py:9:1: F401 'pydantic.BaseModel' imported but unused
+src/core\entities\report.py:43:5: E122 continuation line missing indentation or outdented
+src/core\entities\sport_culture.py:158:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:90:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:93:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:120:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:123:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:150:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:157:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:202:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:205:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:207:5: E122 continuation line missing indentation or outdented
+src/core\entities\sunday_schedule.py:211:6: E128 continuation line under-indented for visual indent
+src/core\entities\sunday_schedule.py:216:6: E128 continuation line under-indented for visual indent
+src/core\entities\user.py:25:5: E122 continuation line missing indentation or outdented
+src/core\entities\user.py:27:5: E122 continuation line missing indentation or outdented
+src/core\entities\user.py:29:5: E122 continuation line missing indentation or outdented
+src/core\entities\user.py:31:5: E122 continuation line missing indentation or outdented
+src/core\entities\user.py:42:5: E122 continuation line missing indentation or outdented
+src/core\entities\user.py:44:5: E122 continuation line missing indentation or outdented
+src/core\entities\weekly_schedule.py:80:5: E122 continuation line missing indentation or outdented
+src/core\entities\weekly_schedule.py:107:5: E122 continuation line missing indentation or outdented
+src/core\entities\weekly_schedule.py:130:5: E122 continuation line missing indentation or outdented
+src/core\entities\weekly_schedule.py:159:5: E122 continuation line missing indentation or outdented
+src/core\entities\weekly_schedule.py:162:5: E122 continuation line missing indentation or outdented
+src/core\entities\weekly_schedule.py:164:5: E122 continuation line missing indentation or outdented
+src/core\entities\weekly_schedule.py:168:6: E128 continuation line under-indented for visual indent
+src/core\entities\weekly_schedule.py:173:6: E128 continuation line under-indented for visual indent
+src/infrastructure\config\settings.py:74:5: E122 continuation line missing indentation or outdented
+src/infrastructure\config\settings.py:99:5: E122 continuation line missing indentation or outdented
+src/infrastructure\config\settings.py:100:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\env.py:1:1: F403 'from src.core.entities import *' used; unable to detect undefined names
+src/infrastructure\database\migrations\env.py:1:1: F401 'src.core.entities.*' imported but unused
+src/infrastructure\database\migrations\env.py:11:1: F401 'src.infrastructure.config.settings.get_settings' imported but unused
+src/infrastructure\database\migrations\versions\000_create_users_table.py:9:1: F401 'uuid.uuid4' imported but unused
+src/infrastructure\database\migrations\versions\000_create_users_table.py:42:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:43:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:44:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:45:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:50:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:51:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:52:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:53:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:55:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:56:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:57:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:58:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:62:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:63:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:64:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:66:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:67:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:68:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:75:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:76:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:77:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:80:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:81:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\000_create_users_table.py:82:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:11:1: F401 'sqlmodel' imported but unused
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:75:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:76:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:77:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:103:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:104:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:105:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:154:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:155:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:156:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:158:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:159:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:160:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:162:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:163:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:164:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\001_create_weekly_schedule_tables.py:215:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:11:1: F401 'sqlmodel' imported but unused
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:76:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:77:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:78:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:105:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:106:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:107:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:156:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:157:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:158:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:160:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:161:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:162:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:164:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:165:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:166:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\002_create_sunday_schedule_tables.py:217:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:31:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:32:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:33:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:34:7: E131 continuation line unaligned for hanging indent
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:39:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:40:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:41:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:42:7: E131 continuation line unaligned for hanging indent
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:44:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:45:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:63:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:64:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:65:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:67:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:68:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:69:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:73:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:74:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:76:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:77:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:83:121: E501 line too long (128 > 120 characters)
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:90:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:91:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:96:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:97:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:100:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:101:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:104:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:105:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\003_create_contributions_table.py:119:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:30:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:31:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:32:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:33:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:35:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:36:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:37:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:38:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:40:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:41:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:59:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:60:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:61:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:75:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:76:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:93:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:94:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:95:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:97:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:98:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:99:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:101:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:102:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:103:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:113:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:114:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:117:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:118:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:122:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:123:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:126:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:127:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:130:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:131:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:145:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:148:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:151:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:154:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:157:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\004_create_attendance_sessions_tables.py:160:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:30:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:31:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:32:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:33:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:37:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:38:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:39:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:40:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:63:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:64:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:65:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:85:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:86:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:97:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:98:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:99:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:101:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:102:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:103:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:108:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:109:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:112:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:113:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:119:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\005_create_reports_tables.py:122:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:31:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:32:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:64:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:65:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:66:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:68:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:69:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:70:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:77:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:78:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:81:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:82:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:90:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:91:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:94:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:95:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:98:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:99:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:112:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:113:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:123:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:124:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:125:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:126:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:130:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:131:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:132:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:134:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:135:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:136:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:142:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:143:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:147:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:148:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:160:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:163:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:166:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:169:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:172:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\006_create_financial_entries_tables.py:175:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:12:1: F401 'sqlalchemy.dialects.postgresql' imported but unused
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:37:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:38:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:39:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:40:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:42:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:43:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:45:9: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:63:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:64:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:65:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:67:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:68:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:69:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:72:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:73:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:75:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:76:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:81:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:82:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:85:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:86:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:89:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:90:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:93:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:94:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:97:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:98:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:108:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:109:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:111:9: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:123:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:124:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:125:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:126:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:144:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:145:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:146:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:148:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:149:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:150:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:152:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:153:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:154:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:156:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:157:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:158:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:165:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:166:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:167:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:172:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:173:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:176:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:177:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:194:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:195:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:197:9: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:201:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:202:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:203:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:204:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:206:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:207:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:208:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:209:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:224:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:225:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:226:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:230:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:231:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:236:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:237:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:240:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:241:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:244:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:245:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:248:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:249:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:260:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:261:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:262:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:263:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:271:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:272:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:273:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:275:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:276:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:277:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:280:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:281:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:282:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:287:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:288:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:291:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\007_create_training_tables.py:292:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:12:1: F401 'sqlalchemy.dialects.postgresql' imported but unused
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:32:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:33:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:35:9: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:57:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:58:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:59:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:66:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:67:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:70:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:71:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:74:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:75:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:90:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:91:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:93:9: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:99:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:100:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:101:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:102:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:104:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:105:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:106:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:107:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:123:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:124:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:125:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:127:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:128:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:129:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:137:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:138:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:141:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:142:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:159:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:160:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:161:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:162:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:165:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:166:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:167:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:169:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:170:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:171:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:173:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:174:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:175:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:182:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:183:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:186:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:187:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:201:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:202:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:203:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:204:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:206:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:207:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:209:9: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:215:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:216:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:217:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:218:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:220:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:221:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:222:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:223:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:245:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:246:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:247:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:249:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:250:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:251:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:280:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:281:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:282:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:284:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:285:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:286:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:293:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:294:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:297:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:298:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:301:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\008_create_material_tables.py:302:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:12:1: F401 'sqlalchemy.dialects.postgresql' imported but unused
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:35:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:36:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:37:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:38:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:41:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:42:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:44:9: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:69:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:70:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:71:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:74:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:75:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:81:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:82:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:85:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:86:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:89:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:90:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:93:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:94:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:104:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:105:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:107:9: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:117:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:118:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:119:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:120:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:138:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:139:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:140:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:142:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:143:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:144:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:146:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:147:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:148:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:150:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:151:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:152:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:159:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:160:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:163:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:164:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:167:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:168:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:192:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:193:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:194:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:196:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:197:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:198:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:202:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:203:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:210:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:211:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:230:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:231:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:232:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:234:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:235:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:236:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:238:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:239:5: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\009_create_sport_culture_tables.py:240:6: E122 continuation line missing indentation or outdented
+src/infrastructure\database\migrations\versions\013_create_notifications_tables.py:137:121: E501 line too long (139 > 120 characters)
+src/infrastructure\database\migrations\versions\014_create_cotisations_tables.py:78:121: E501 line too long (123 > 120 characters)
+src/infrastructure\database\migrations\versions\015_create_discipline_cases_table.py:126:121: E501 line too long (121 > 120 characters)
+src/infrastructure\database\migrations\versions\018_create_council_tables.py:79:121: E501 line too long (123 > 120 characters)
+src/infrastructure\database\session.py:2:1: F401 'typing.Optional' imported but unused
+src/infrastructure\database\session.py:5:1: F401 'sqlmodel.SQLModel' imported but unused
+src/infrastructure\database\session.py:70:121: E501 line too long (161 > 120 characters)
+src/infrastructure\repositories\assignment_repository.py:7:1: F401 'math' imported but unused
+src/infrastructure\repositories\assignment_repository.py:12:1: F401 'sqlalchemy.or_' imported but unused
+src/infrastructure\repositories\assignment_repository.py:41:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\assignment_repository.py:49:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\assignment_repository.py:81:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\assignment_repository.py:107:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\assignment_repository.py:118:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\assignment_repository.py:172:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\assignment_repository.py:175:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\assignment_repository.py:218:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_repository.py:122:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_session_repository.py:31:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_session_repository.py:43:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_session_repository.py:87:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_session_repository.py:95:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_session_repository.py:114:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_session_repository.py:125:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_session_repository.py:160:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\attendance_session_repository.py:189:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\attendance_session_repository.py:207:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\attendance_session_repository.py:213:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\attendance_session_repository.py:217:28: E127 continuation line over-indented for visual indent
+src/infrastructure\repositories\attendance_session_repository.py:254:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\attendance_session_repository.py:261:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\attendance_session_repository.py:276:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\attendance_session_repository.py:291:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\attendance_session_repository.py:297:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\contribution_repository.py:5:1: F401 'typing.Tuple' imported but unused
+src/infrastructure\repositories\contribution_repository.py:8:1: F401 'sqlalchemy.extract' imported but unused
+src/infrastructure\repositories\contribution_repository.py:89:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\contribution_repository.py:102:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\contribution_repository.py:105:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\contribution_repository.py:107:10: E131 continuation line unaligned for hanging indent
+src/infrastructure\repositories\contribution_repository.py:149:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\contribution_repository.py:167:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\contribution_repository.py:203:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\contribution_repository.py:224:24: E127 continuation line over-indented for visual indent
+src/infrastructure\repositories\contribution_repository.py:232:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\contribution_repository.py:233:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\contribution_repository.py:234:6: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\contribution_repository.py:254:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\contribution_repository.py:261:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\cotisation_repository.py:29:47: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/infrastructure\repositories\cotisation_repository.py:46:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\cotisation_repository.py:93:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\cotisation_repository.py:179:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\council_meeting_repository.py:27:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\council_meeting_repository.py:34:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\discipline_repository.py:4:1: F401 'datetime.datetime' imported but unused
+src/infrastructure\repositories\discipline_repository.py:49:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\discipline_repository.py:56:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\event_repository.py:6:1: F401 'math' imported but unused
+src/infrastructure\repositories\event_repository.py:126:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\event_repository.py:138:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\event_repository.py:172:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\event_repository.py:180:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\event_repository.py:188:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\event_repository.py:198:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\event_repository.py:220:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\event_repository.py:229:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\financial_entry_repository.py:5:1: F401 'typing.Dict' imported but unused
+src/infrastructure\repositories\financial_entry_repository.py:61:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\financial_entry_repository.py:144:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\financial_entry_repository.py:161:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\financial_entry_repository.py:162:6: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\financial_entry_repository.py:219:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\financial_entry_repository.py:221:10: E131 continuation line unaligned for hanging indent
+src/infrastructure\repositories\financial_entry_repository.py:274:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\financial_entry_repository.py:283:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\financial_entry_repository.py:283:26: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+src/infrastructure\repositories\material_repository.py:5:1: F401 'typing.Dict' imported but unused
+src/infrastructure\repositories\material_repository.py:22:1: F401 'src.core.entities.user.UserRole' imported but unused
+src/infrastructure\repositories\material_repository.py:61:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\material_repository.py:194:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\material_repository.py:242:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\material_repository.py:249:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\notification_repository.py:36:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\notification_repository.py:67:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\notification_repository.py:85:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\notification_repository.py:126:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\notification_repository.py:149:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\notification_repository.py:180:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\notification_repository.py:226:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\notification_repository.py:227:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\report_repository.py:139:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\report_repository.py:162:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\responsable_repository.py:10:1: F401 'sqlalchemy.or_' imported but unused
+src/infrastructure\repositories\responsable_repository.py:42:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\responsable_repository.py:61:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\responsable_repository.py:125:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\responsable_repository.py:240:9: F811 redefinition of unused 'or_' from line 10
+src/infrastructure\repositories\responsable_repository.py:281:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\responsable_repository.py:287:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\responsable_repository.py:300:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\responsable_repository.py:304:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\responsable_repository.py:327:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sport_culture_repository.py:95:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sport_culture_repository.py:115:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sport_culture_repository.py:123:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sport_culture_repository.py:133:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sport_culture_repository.py:172:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sport_culture_repository.py:185:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sport_culture_repository.py:221:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sport_culture_repository.py:228:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sport_culture_repository.py:251:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sport_culture_repository.py:290:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sport_culture_repository.py:330:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\subgroup_repository.py:35:50: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/infrastructure\repositories\subgroup_repository.py:63:38: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/infrastructure\repositories\subgroup_repository.py:73:42: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/infrastructure\repositories\subgroup_repository.py:81:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\subgroup_repository.py:85:38: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/infrastructure\repositories\subgroup_repository.py:97:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\subgroup_repository.py:110:38: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/infrastructure\repositories\subgroup_repository.py:132:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:31:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:39:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:43:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:48:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:63:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:71:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:99:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:102:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:138:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:167:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:178:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:182:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:192:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:200:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:209:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:213:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:218:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:237:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:280:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:297:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:306:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:317:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:323:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:328:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:344:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\sunday_schedule_repository.py:360:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\sunday_schedule_repository.py:360:20: F821 undefined name 'SundayScheduleModificationLog'
+src/infrastructure\repositories\sunday_schedule_repository.py:360:56: F821 undefined name 'SundayScheduleModificationLog'
+src/infrastructure\repositories\sunday_schedule_repository.py:362:9: F401 'src.core.entities.sunday_schedule.SundayScheduleModificationLog' imported but unused
+src/infrastructure\repositories\sunday_schedule_repository.py:371:15: F821 undefined name 'SundayScheduleModificationLog'
+src/infrastructure\repositories\training_repository.py:5:1: F401 'typing.Dict' imported but unused
+src/infrastructure\repositories\training_repository.py:22:1: F401 'src.core.entities.user.UserRole' imported but unused
+src/infrastructure\repositories\training_repository.py:32:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:84:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:126:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:133:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:139:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:154:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:162:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:172:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:176:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:181:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:194:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:228:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:263:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:269:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:270:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:271:6: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:275:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:280:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:289:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:308:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:315:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:361:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:407:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:414:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\training_repository.py:427:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\training_repository.py:438:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\user_repository.py:5:1: F401 'math' imported but unused
+src/infrastructure\repositories\weekly_schedule_repository.py:31:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:39:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:43:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\weekly_schedule_repository.py:48:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:63:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\weekly_schedule_repository.py:71:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\weekly_schedule_repository.py:99:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\weekly_schedule_repository.py:130:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:138:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:167:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\weekly_schedule_repository.py:178:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:192:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:200:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:209:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:213:5: E122 continuation line missing indentation or outdented
+src/infrastructure\repositories\weekly_schedule_repository.py:218:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:269:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:274:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:288:9: E125 continuation line with same indent as next logical line
+src/infrastructure\repositories\weekly_schedule_repository.py:293:9: E125 continuation line with same indent as next logical line
+src/infrastructure\security\brute_force.py:73:9: E125 continuation line with same indent as next logical line
+src/infrastructure\security\brute_force.py:80:9: E125 continuation line with same indent as next logical line
+src/infrastructure\security\brute_force.py:144:9: E125 continuation line with same indent as next logical line
+src/infrastructure\security\brute_force.py:178:6: E128 continuation line under-indented for visual indent
+src/infrastructure\security\brute_force.py:211:9: E125 continuation line with same indent as next logical line
+src/infrastructure\security\brute_force.py:217:9: E125 continuation line with same indent as next logical line
+src/infrastructure\security\utils.py:57:5: E122 continuation line missing indentation or outdented
+src/infrastructure\security\utils.py:58:5: E122 continuation line missing indentation or outdented
+src/infrastructure\security\utils.py:59:6: E122 continuation line missing indentation or outdented
+src/infrastructure\security\utils.py:85:5: E122 continuation line missing indentation or outdented
+src/infrastructure\security\utils.py:86:5: E122 continuation line missing indentation or outdented
+src/infrastructure\security\utils.py:87:6: E122 continuation line missing indentation or outdented
+src/infrastructure\security\utils.py:92:9: E125 continuation line with same indent as next logical line
+src/infrastructure\security\utils.py:108:5: E122 continuation line missing indentation or outdented
+src/infrastructure\security\utils.py:109:5: E122 continuation line missing indentation or outdented
+src/infrastructure\security\utils.py:110:6: E122 continuation line missing indentation or outdented
+src/infrastructure\services\email_service.py:18:1: F401 'asyncio' imported but unused
+src/infrastructure\services\email_service.py:21:1: F401 'typing.Optional' imported but unused
+src/infrastructure\services\email_service.py:69:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\email_templates.py:43:121: E501 line too long (160 > 120 characters)
+src/infrastructure\services\email_templates.py:45:121: E501 line too long (126 > 120 characters)
+src/infrastructure\services\email_templates.py:64:121: E501 line too long (198 > 120 characters)
+src/infrastructure\services\email_templates.py:73:121: E501 line too long (135 > 120 characters)
+src/infrastructure\services\email_templates.py:118:121: E501 line too long (163 > 120 characters)
+src/infrastructure\services\email_templates.py:122:121: E501 line too long (125 > 120 characters)
+src/infrastructure\services\email_templates.py:225:121: E501 line too long (163 > 120 characters)
+src/infrastructure\services\email_templates.py:229:121: E501 line too long (125 > 120 characters)
+src/infrastructure\services\email_templates.py:232:121: E501 line too long (128 > 120 characters)
+src/infrastructure\services\email_templates.py:325:121: E501 line too long (163 > 120 characters)
+src/infrastructure\services\email_templates.py:393:121: E501 line too long (163 > 120 characters)
+src/infrastructure\services\email_templates.py:441:121: E501 line too long (154 > 120 characters)
+src/infrastructure\services\email_templates.py:487:121: E501 line too long (163 > 120 characters)
+src/infrastructure\services\pdf_service.py:16:1: F401 'reportlab.lib.enums.TA_LEFT' imported but unused
+src/infrastructure\services\pdf_service.py:181:17: F541 f-string is missing placeholders
+src/infrastructure\services\storage_service.py:42:16: E221 multiple spaces before operator
+src/infrastructure\services\storage_service.py:44:13: E221 multiple spaces before operator
+src/infrastructure\services\storage_service.py:45:15: E221 multiple spaces before operator
+src/infrastructure\services\storage_service.py:46:16: E221 multiple spaces before operator
+src/infrastructure\services\storage_service.py:66:17: E221 multiple spaces before operator
+src/infrastructure\services\storage_service.py:66:24: E221 multiple spaces before operator
+src/infrastructure\services\whatsapp_service.py:5:1: F401 'typing.Optional' imported but unused
+src/infrastructure\services\whatsapp_service.py:35:9: E125 continuation line with same indent as next logical line
+src/infrastructure\services\whatsapp_service.py:49:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:68:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:71:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:77:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:94:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:105:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:108:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:114:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:119:9: E125 continuation line with same indent as next logical line
+src/infrastructure\services\whatsapp_service.py:138:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:141:5: E122 continuation line missing indentation or outdented
+src/infrastructure\services\whatsapp_service.py:147:5: E122 continuation line missing indentation or outdented
+src/infrastructure\tasks\scheduled.py:51:5: F401 'src.core.entities.notification.NotificationChannel' imported but unused
+src/infrastructure\tasks\scheduled.py:51:5: F401 'src.core.entities.notification.NotificationPriority' imported but unused
+src/infrastructure\tasks\scheduled.py:51:5: F401 'src.core.entities.notification.NotificationType' imported but unused
+src/infrastructure\tasks\scheduled.py:142:86: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src/main.py:34:1: E402 module level import not at top of file
+src/main.py:58:1: E402 module level import not at top of file
+src/main.py:59:1: E402 module level import not at top of file
+src/main.py:60:1: E402 module level import not at top of file
+src/main.py:61:1: E402 module level import not at top of file
+src/main.py:143:5: E122 continuation line missing indentation or outdented
+src/main.py:144:5: E122 continuation line missing indentation or outdented
+src/main.py:145:5: E122 continuation line missing indentation or outdented
+src/main.py:148:5: E122 continuation line missing indentation or outdented
+src/main.py:149:5: E122 continuation line missing indentation or outdented
+src/main.py:162:6: E131 continuation line unaligned for hanging indent
+src/main.py:166:6: E131 continuation line unaligned for hanging indent
+src/main.py:170:6: E131 continuation line unaligned for hanging indent
+src/main.py:174:6: E131 continuation line unaligned for hanging indent
+src/main.py:178:6: E131 continuation line unaligned for hanging indent
+src/main.py:182:6: E131 continuation line unaligned for hanging indent
+src/main.py:186:6: E131 continuation line unaligned for hanging indent
+src/main.py:190:6: E131 continuation line unaligned for hanging indent
+src/main.py:199:6: E131 continuation line unaligned for hanging indent
+src/main.py:208:6: E131 continuation line unaligned for hanging indent
+src/main.py:213:6: E131 continuation line unaligned for hanging indent
+src/main.py:217:6: E131 continuation line unaligned for hanging indent
+src/main.py:221:6: E131 continuation line unaligned for hanging indent
+src/main.py:225:6: E131 continuation line unaligned for hanging indent
+src/presentation\api\v1\activities.py:70:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\activities.py:72:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\activities.py:74:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\activities.py:76:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\activities.py:77:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\activities.py:272:6: E128 continuation line under-indented for visual indent
+src/presentation\api\v1\activities.py:478:121: E501 line too long (123 > 120 characters)
+src/presentation\api\v1\activities.py:485:121: E501 line too long (124 > 120 characters)
+src/presentation\api\v1\admin.py:17:1: F401 'fastapi.Query' imported but unused
+src/presentation\api\v1\admin.py:137:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\admin.py:138:6: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\admin.py:351:121: E501 line too long (137 > 120 characters)
+src/presentation\api\v1\assignments.py:149:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\assignments.py:152:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\assignments.py:154:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\assignments.py:156:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\assignments.py:158:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\auth.py:3:1: F401 'fastapi.Request' imported but unused
+src/presentation\api\v1\auth.py:13:1: F401 'src.presentation.schemas.auth.UserCreate' imported but unused
+src/presentation\api\v1\auth.py:60:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\auth.py:61:6: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\auth.py:141:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\communication.py:30:1: E402 module level import not at top of file
+src/presentation\api\v1\contributions.py:74:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\contributions.py:76:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\contributions.py:78:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\contributions.py:80:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\discipline.py:21:1: F401 'fastapi.HTTPException' imported but unused
+src/presentation\api\v1\discipline.py:26:1: F401 'src.core.entities.user.UserRole' imported but unused
+src/presentation\api\v1\discipline.py:29:1: F401 'src.infrastructure.repositories.responsable_repository.NominationRepository' imported but unused
+src/presentation\api\v1\discipline.py:31:1: F401 'src.presentation.dependencies.auth_deps.get_current_active_user' imported but unused
+src/presentation\api\v1\discipline.py:31:1: F401 'src.presentation.dependencies.auth_deps.get_current_admin_or_aumonier' imported but unused
+src/presentation\api\v1\financial_entries.py:16:1: F401 'src.presentation.dependencies.auth_deps.get_current_active_user' imported but unused
+src/presentation\api\v1\material.py:63:5: E125 continuation line with same indent as next logical line
+src/presentation\api\v1\poste.py:59:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\poste.py:86:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\poste.py:178:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\poste.py:180:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\reports.py:16:1: F401 'src.presentation.dependencies.auth_deps.get_current_responsable' imported but unused
+src/presentation\api\v1\reports.py:17:1: F401 'src.presentation.schemas.report.ReportPublish' imported but unused
+src/presentation\api\v1\responsables.py:228:121: E501 line too long (125 > 120 characters)
+src/presentation\api\v1\sport_culture.py:16:1: F401 'src.core.entities.sport_culture.ParticipationStatus' imported but unused
+src/presentation\api\v1\sport_culture.py:16:1: F401 'src.core.entities.sport_culture.ResultType' imported but unused
+src/presentation\api\v1\sport_culture.py:16:1: F401 'src.core.entities.sport_culture.SportType' imported but unused
+src/presentation\api\v1\sport_culture.py:57:5: E125 continuation line with same indent as next logical line
+src/presentation\api\v1\subgroups.py:102:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\sunday_schedule.py:202:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\sunday_schedule.py:204:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\sunday_schedule.py:206:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\sunday_schedule.py:440:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\sunday_schedule.py:441:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\sunday_schedule.py:442:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\training.py:9:1: F401 'typing.List' imported but unused
+src/presentation\api\v1\training.py:16:1: F401 'src.core.entities.training.ParticipationStatus' imported but unused
+src/presentation\api\v1\training.py:26:1: F401 'src.presentation.schemas.training.SessionMaterialAdd' imported but unused
+src/presentation\api\v1\training.py:26:1: F401 'src.presentation.schemas.training.SessionMaterialResponse' imported but unused
+src/presentation\api\v1\training.py:57:5: E125 continuation line with same indent as next logical line
+src/presentation\api\v1\users.py:173:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\users.py:175:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\users.py:176:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\weekly_schedule.py:136:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\weekly_schedule.py:138:5: E122 continuation line missing indentation or outdented
+src/presentation\api\v1\weekly_schedule.py:140:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:32:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:201:9: F401 'src.core.entities.responsable.PosteResponsable' imported but unused
+src/presentation\dependencies\auth_deps.py:218:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:244:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:245:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:254:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:258:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:260:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:283:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:284:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:293:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:297:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:299:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:326:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:327:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:336:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:340:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:364:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:365:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:374:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:378:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:400:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:401:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:409:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:413:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:415:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:438:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:439:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:448:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:452:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:476:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:477:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:486:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:490:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:516:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:517:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:526:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:530:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:554:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:555:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:563:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:567:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:580:121: E501 line too long (121 > 120 characters)
+src/presentation\dependencies\auth_deps.py:591:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:592:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:606:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:610:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:663:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:664:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:672:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:680:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:703:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:704:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:712:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:720:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:746:5: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:747:6: E122 continuation line missing indentation or outdented
+src/presentation\dependencies\auth_deps.py:760:13: E125 continuation line with same indent as next logical line
+src/presentation\dependencies\auth_deps.py:765:5: E122 continuation line missing indentation or outdented
+src/presentation\middleware\logging_middleware.py:66:5: E122 continuation line missing indentation or outdented
+src/presentation\middleware\logging_middleware.py:67:6: E122 continuation line missing indentation or outdented
+src/presentation\middleware\rate_limit.py:71:59: E127 continuation line over-indented for visual indent
+src/presentation\schemas\assignment.py:43:5: E122 continuation line missing indentation or outdented
+src/presentation\schemas\assignment.py:63:6: E128 continuation line under-indented for visual indent
+src/presentation\schemas\attendance_session.py:23:5: E122 continuation line missing indentation or outdented
+src/presentation\schemas\auth.py:31:6: E128 continuation line under-indented for visual indent
+src/presentation\schemas\auth.py:92:5: E122 continuation line missing indentation or outdented
+src/presentation\schemas\contribution.py:27:5: E122 continuation line missing indentation or outdented
+src/presentation\schemas\discipline.py:5:1: F401 'typing.List' imported but unused
+src/presentation\schemas\invitation.py:18:5: E122 continuation line missing indentation or outdented
+src/presentation\schemas\invitation.py:21:5: E122 continuation line missing indentation or outdented
+src/presentation\schemas\user.py:139:5: E122 continuation line missing indentation or outdented
+src/presentation\schemas\user.py:140:5: E122 continuation line missing indentation or outdented
+755   E122 continuation line missing indentation or outdented
+157   E125 continuation line with same indent as next logical line
+4     E127 continuation line over-indented for visual indent
+11    E128 continuation line under-indented for visual indent
+18    E131 continuation line unaligned for hanging indent
+6     E221 multiple spaces before operator
+6     E402 module level import not at top of file
+28    E501 line too long (127 > 120 characters)
+10    E712 comparison to True should be 'if cond is True:' or 'if cond:'
+120   F401 'src.core.entities.event.Event' imported but unused
+1     F403 'from src.core.entities import *' used; unable to detect undefined names
+1     F541 f-string is missing placeholders
+1     F811 redefinition of unused 'or_' from line 10
+5     F821 undefined name 'PaymentStatus'
+2     F841 local variable 'summaries_data' is assigned to but never used

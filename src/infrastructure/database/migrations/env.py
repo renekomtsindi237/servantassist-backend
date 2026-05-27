@@ -1,3 +1,4 @@
+from src.core.entities import *  # Import all entities to register them with SQLModel metadata
 import asyncio
 from logging.config import fileConfig
 
@@ -10,69 +11,58 @@ from sqlmodel import SQLModel
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.database.session import get_db_url
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# Alembic Config object — accès aux valeurs de alembic.ini
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-from src.core.entities import *  # Import all entities to ensure they are registered
-
 target_metadata = SQLModel.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+
+def get_migration_url() -> str:
+    """
+    URL de connexion pour les migrations Alembic.
+
+    IMPORTANT — Supabase :
+      Les migrations DOIVENT utiliser la connexion directe (port 5432),
+      PAS le pgbouncer transaction pooler (port 6543).
+      Raison : Alembic émet des SET/RESET et des DDL transactionnels qui
+      nécessitent un mode « session » complet, incompatible avec le mode
+      transaction de pgbouncer.
+
+    development → URL locale identique au runtime.
+    staging/production → SUPABASE_DB_DIRECT_URL (connexion directe).
+    """
+    return get_db_url(for_migrations=True)
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
-    """
-    url = get_db_url()
+    """Mode offline : émet les SQL sans connexion réelle."""
+    url = get_migration_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(connection=connection, target_metadata=target_metadata)
-
     with context.begin_transaction():
         context.run_migrations()
 
 
 async def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
     """
-    configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_db_url()
+    Mode online : crée un moteur async et exécute les migrations.
+    NullPool est obligatoire pour Alembic (pas de pool persistant).
+    """
+    configuration = config.get_section(config.config_ini_section, {})
+    configuration["sqlalchemy.url"] = get_migration_url()
 
     connectable = async_engine_from_config(
         configuration,

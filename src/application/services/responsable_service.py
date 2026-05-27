@@ -12,6 +12,7 @@ Regles metier :
 """
 import math
 from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -31,9 +32,9 @@ from src.core.entities.responsable import (
     PosteResponsable,
 )
 from src.core.entities.user import User, UserRole
-from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
-from src.infrastructure.repositories.responsable_repository import NominationRepository, PosteActionRepository
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.core.interfaces.repositories import ICouncilMeetingRepository
+from src.core.interfaces.repositories import INominationRepository, IPosteActionRepository
+from src.core.interfaces.repositories import IUserRepository
 from src.presentation.schemas.responsable import (
     CouncilAttendanceRecordList,
     CouncilMeetingCreate,
@@ -55,10 +56,10 @@ class ResponsableService:
 
     def __init__(
         self,
-        nomination_repo: NominationRepository,
-        action_repo: PosteActionRepository,
-        user_repo: UserRepository,
-        council_repo: CouncilMeetingRepository,
+        nomination_repo: INominationRepository,
+        action_repo: IPosteActionRepository,
+        user_repo: IUserRepository,
+        council_repo: ICouncilMeetingRepository,
     ):
         self.nomination_repo = nomination_repo
         self.action_repo = action_repo
@@ -69,7 +70,8 @@ class ResponsableService:
     #  NOMINATIONS (Aumonier / Admin)
     # ══════════════════════════════════════════════════════════════════
 
-    async def nominate(self, data: NominationCreate, nominated_by: UUID) -> NominationResponse:
+    async def nominate(self, data: NominationCreate,
+                       nominated_by: UUID) -> NominationResponse:
         """
         Nommer un servant a un poste de responsable.
 
@@ -110,7 +112,8 @@ class ResponsableService:
         # Verifier que le servant n'occupe pas deja un poste
         existing_nominations = await self.nomination_repo.get_active_by_user(data.user_id)
         if existing_nominations:
-            postes_occupes = ", ".join(n.poste.value for n in existing_nominations)
+            postes_occupes = ", ".join(
+    n.poste.value for n in existing_nominations)
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=(
@@ -129,7 +132,8 @@ class ResponsableService:
         enriched = await self.nomination_repo.enrich_nomination(created)
         return NominationResponse(**enriched)
 
-    async def revoke(self, nomination_id: UUID, revoked_by: UUID) -> NominationResponse:
+    async def revoke(self, nomination_id: UUID,
+                     revoked_by: UUID) -> NominationResponse:
         """Revoquer une nomination (l'aumonier retire le poste)."""
         nomination = await self.nomination_repo.get(nomination_id)
         if not nomination:
@@ -144,7 +148,7 @@ class ResponsableService:
             )
 
         nomination.status = NominationStatus.REVOQUEE
-        nomination.revoked_at = datetime.now(timezone.utc)
+        nomination.revoked_at = utc_now()
         nomination.revoked_by = revoked_by
         updated = await self.nomination_repo.update(nomination)
         enriched = await self.nomination_repo.enrich_nomination(updated)
@@ -156,7 +160,8 @@ class ResponsableService:
         enriched = await self.nomination_repo.enrich_nominations(nominations)
         return [NominationResponse(**e) for e in enriched]
 
-    async def get_my_nominations(self, user_id: UUID) -> List[NominationResponse]:
+    async def get_my_nominations(
+        self, user_id: UUID) -> List[NominationResponse]:
         """Mes nominations actives."""
         nominations = await self.nomination_repo.get_active_by_user(user_id)
         enriched = await self.nomination_repo.enrich_nominations(nominations)
@@ -213,7 +218,8 @@ class ResponsableService:
             postes_vacants=len(PosteResponsable) - postes_pourvus,
         )
 
-    async def get_poste_detail(self, poste: PosteResponsable) -> PosteDetailResponse:
+    async def get_poste_detail(
+        self, poste: PosteResponsable) -> PosteDetailResponse:
         """Detail d'un poste avec titulaire et missions."""
         missions_data = POSTE_MISSIONS.get(poste, {})
         slug = POSTE_TO_SLUG.get(poste, poste.value.lower())
@@ -239,7 +245,8 @@ class ResponsableService:
     #  ACTIONS DE POSTE (Responsable)
     # ══════════════════════════════════════════════════════════════════
 
-    async def _verify_responsable(self, user_id: UUID, poste: PosteResponsable) -> Nomination:
+    async def _verify_responsable(
+        self, user_id: UUID, poste: PosteResponsable) -> Nomination:
         """Verifie que l'utilisateur occupe le poste demande."""
         nomination = await self.nomination_repo.get_active_by_user_and_poste(user_id, poste)
         if not nomination:
@@ -393,7 +400,8 @@ class ResponsableService:
 
         await self.action_repo.delete(action_id)
 
-    async def get_dashboard(self, poste: PosteResponsable) -> PosteDashboardResponse:
+    async def get_dashboard(
+        self, poste: PosteResponsable) -> PosteDashboardResponse:
         """Tableau de bord d'un poste."""
         missions_data = POSTE_MISSIONS.get(poste, {})
         slug = POSTE_TO_SLUG.get(poste, poste.value.lower())
@@ -432,15 +440,17 @@ class ResponsableService:
                 "reason": "Not enough data",
             }
 
-        is_consecutive_absent = all(a.status == CouncilAttendanceStatus.ABSENT for a in attendances)
+        is_consecutive_absent = all(
+    a.status == CouncilAttendanceStatus.ABSENT for a in attendances)
 
         if is_consecutive_absent:
             # Révoquer toutes les nominations actives
             active_nominations = await self.nomination_repo.get_active_by_user(responsable_id)
             for nom in active_nominations:
                 nom.status = NominationStatus.REVOQUEE
-                nom.revoked_at = datetime.now(timezone.utc)
-                nom.revoked_by = UUID("00000000-0000-0000-0000-000000000000")  # System ID (Délégué d'office)
+                nom.revoked_at = utc_now()
+                # System ID (Délégué d'office)
+                nom.revoked_by = UUID("00000000-0000-0000-0000-000000000000")
                 nom.notes = "Destitution automatique pour 3 absences consécutives au conseil (Art 15)"
                 await self.nomination_repo.update(nom)
 
@@ -452,7 +462,8 @@ class ResponsableService:
 
         return {"responsable_id": responsable_id, "destituted": False}
 
-    async def create_council_meeting(self, data: CouncilMeetingCreate, created_by: UUID) -> CouncilMeetingResponse:
+    async def create_council_meeting(
+        self, data: CouncilMeetingCreate, created_by: UUID) -> CouncilMeetingResponse:
         """Crée une nouvelle réunion du conseil (Délégué/SG)."""
         meeting = CouncilMeeting(
             meeting_date=data.meeting_date,
@@ -463,7 +474,9 @@ class ResponsableService:
         created = await self.council_repo.create_meeting(meeting)
         return CouncilMeetingResponse.from_orm(created)
 
-    async def record_council_attendance(self, meeting_id: UUID, data: CouncilAttendanceRecordList) -> List[dict]:
+    async def record_council_attendance(
+        self, meeting_id: UUID, data: CouncilAttendanceRecordList,
+        recorded_by: UUID = None) -> List[dict]:
         """Enregistre les présences pour une réunion (SG)."""
         meeting = await self.council_repo.get_meeting(meeting_id)
         if not meeting:
@@ -477,8 +490,10 @@ class ResponsableService:
                 responsable_id=att.responsable_id,
                 status=status,
                 excuse=att.excuse,
+                recorded_by=recorded_by or meeting.created_by,
             )
-            await self.council_repo.save_attendance(attendance)
-            results.append({"responsable_id": att.responsable_id, "status": status})
+            await self.council_repo.add_attendance(attendance)
+            results.append(
+                {"responsable_id": str(att.responsable_id), "status": status.value})
 
         return results

@@ -1,7 +1,8 @@
 """
 Service pour la gestion des activités sportives et culturelles.
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
@@ -19,11 +20,11 @@ from src.core.entities.sport_culture import (
     SportCultureReport,
     SportType,
 )
-from src.infrastructure.repositories.sport_culture_repository import (
-    EventParticipationRepository,
-    EventResultRepository,
-    EventTeamRepository,
-    SportCultureEventRepository,
+from src.core.interfaces.repositories import (
+    IEventParticipationRepository,
+    IEventResultRepository,
+    IEventTeamRepository,
+    ISportCultureEventRepository,
 )
 
 
@@ -32,10 +33,10 @@ class SportCultureService:
 
     def __init__(
         self,
-        event_repo: SportCultureEventRepository,
-        participation_repo: EventParticipationRepository,
-        result_repo: EventResultRepository,
-        team_repo: EventTeamRepository,
+        event_repo: ISportCultureEventRepository,
+        participation_repo: IEventParticipationRepository,
+        result_repo: IEventResultRepository,
+        team_repo: IEventTeamRepository,
     ):
         self.event_repo = event_repo
         self.participation_repo = participation_repo
@@ -82,9 +83,30 @@ class SportCultureService:
             created_by=created_by,
         )
 
-        # TODO: Envoyer notification broadcast si broadcast_notification = True
+        event = await self.event_repo.create(event)
 
-        return await self.event_repo.create(event)
+        if broadcast_notification:
+            from src.application.services.notification_service import NotificationService
+            from src.core.entities.notification import (
+                NotificationChannel,
+                NotificationPriority,
+                NotificationType,
+            )
+            notif_service = NotificationService(self.event_repo.session)
+            await notif_service.broadcast(
+                target="all",
+                notification_type=NotificationType.GENERAL,
+                channel=NotificationChannel.IN_APP,
+                priority=NotificationPriority.NORMAL,
+                title=f"Nouvel événement : {event.title}",
+                body=(
+                    f"Le {event.date.strftime('%d/%m/%Y')} "
+                    f"à {event.start_time} — {event.location}."
+                ),
+                sent_by=event.created_by,
+            )
+
+        return event
 
     async def get_event(self, event_id: UUID) -> Optional[SportCultureEvent]:
         """Récupère un événement par son ID."""
@@ -161,6 +183,18 @@ class SportCultureService:
 
         return await self.event_repo.update(event)
 
+    async def add_event_photo(
+        self,
+        event_id: UUID,
+        photo_url: str,
+    ) -> Optional[SportCultureEvent]:
+        """Ajoute une photo à un événement sport/culture."""
+        event = await self.event_repo.get_by_id(event_id)
+        if not event:
+            return None
+        event.photos = list(event.photos or []) + [photo_url]
+        return await self.event_repo.update(event)
+
     async def delete_event(self, event_id: UUID) -> bool:
         """Supprime un événement."""
         # Vérifier qu'il n'y a pas de participations
@@ -173,7 +207,8 @@ class SportCultureService:
 
         return await self.event_repo.delete(event_id)
 
-    async def get_upcoming_events(self, limit: int = 10) -> List[SportCultureEvent]:
+    async def get_upcoming_events(
+        self, limit: int = 10) -> List[SportCultureEvent]:
         """Récupère les événements à venir."""
         return await self.event_repo.get_upcoming_events(limit)
 
@@ -194,7 +229,7 @@ class SportCultureService:
         if not event:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Event not found",
+                detail="Cet événement est introuvable.",
             )
 
         # Vérifier que le servant n'est pas déjà inscrit
@@ -202,7 +237,7 @@ class SportCultureService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Servant already registered for this event",
+                detail="Ce servant est déjà inscrit à cet événement.",
             )
 
         # Vérifier le nombre maximum de participants
@@ -211,7 +246,7 @@ class SportCultureService:
             if count >= event.max_participants:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Event is full",
+                    detail="Cet événement est complet. Le nombre maximum de participants est atteint.",
                 )
 
         participation = EventParticipation(
@@ -238,7 +273,7 @@ class SportCultureService:
         if not event:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Event not found",
+                detail="Cet événement est introuvable.",
             )
 
         # Vérifier le nombre maximum de participants
@@ -274,7 +309,8 @@ class SportCultureService:
 
         return enriched
 
-    async def get_event_participants(self, event_id: UUID) -> List[EventParticipation]:
+    async def get_event_participants(
+        self, event_id: UUID) -> List[EventParticipation]:
         """Récupère les participants d'un événement."""
         participations = await self.participation_repo.get_by_event(event_id)
 
@@ -316,7 +352,7 @@ class SportCultureService:
             return None
 
         participation.status = status
-        participation.attendance_marked_at = datetime.utcnow()
+        participation.attendance_marked_at = utc_now()
         participation.marked_by = marked_by
         if notes:
             participation.notes = notes
@@ -337,7 +373,7 @@ class SportCultureService:
 
         participation.payment_status = payment_status
         if payment_status:
-            participation.payment_date = datetime.utcnow()
+            participation.payment_date = utc_now()
         if notes:
             participation.notes = notes
 
@@ -490,8 +526,9 @@ class SportCultureService:
         # Répartition par type
         events_by_type = {}
         for event in events:
-            event_type_str = event.event_type.value
-            events_by_type[event_type_str] = events_by_type.get(event_type_str, 0) + 1
+            event_type_str = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
+            events_by_type[event_type_str] = events_by_type.get(
+                event_type_str, 0) + 1
 
         # Calculer les statistiques de participation
         total_participants = 0
@@ -520,7 +557,7 @@ class SportCultureService:
                     "id": str(event.id),
                     "title": event.title,
                     "date": event.date.isoformat(),
-                    "type": event.event_type.value,
+                    "type": event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type),
                     "participants": participants_count,
                     "present": present_count,
                     "cost": event.cost or 0.0,
@@ -528,7 +565,10 @@ class SportCultureService:
             )
 
         # Taux de participation moyen
-        average_participation_rate = (total_present / total_participants * 100) if total_participants > 0 else 0.0
+        average_participation_rate = (
+    total_present /
+    total_participants *
+     100) if total_participants > 0 else 0.0
 
         # Top participants
         # Compter les participations par servant
@@ -546,7 +586,11 @@ class SportCultureService:
                 servant_participations[servant_id]["count"] += 1
 
         # Trier par nombre de participations
-        top_participants = sorted(servant_participations.values(), key=lambda x: x["count"], reverse=True)[:10]
+        top_participants = sorted(
+    servant_participations.values(),
+    key=lambda x: x["count"],
+    reverse=True)[
+        :10]
 
         return SportCultureReport(
             id=uuid4(),
@@ -571,14 +615,16 @@ class SportCultureService:
         # Répartition par type
         events_by_type = {}
         for event in events:
-            event_type_str = event.event_type.value
-            events_by_type[event_type_str] = events_by_type.get(event_type_str, 0) + 1
+            event_type_str = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type) if hasattr(event.event_type, 'value') else str(event.event_type)
+            events_by_type[event_type_str] = events_by_type.get(
+                event_type_str, 0) + 1
 
         # Répartition par statut
         events_by_status = {}
         for event in events:
-            status_str = event.status.value
-            events_by_status[status_str] = events_by_status.get(status_str, 0) + 1
+            status_str = event.status.value if hasattr(event.status, 'value') else str(event.status)
+            events_by_status[status_str] = events_by_status.get(
+                status_str, 0) + 1
 
         # Calculer les statistiques de participation
         total_participants = 0
@@ -591,12 +637,16 @@ class SportCultureService:
                 1 for p in participations if p.status in [ParticipationStatus.PRESENT, ParticipationStatus.CONFIRME]
             )
 
-        average_participation_rate = (total_present / total_participants * 100) if total_participants > 0 else 0.0
+        average_participation_rate = (
+    total_present /
+    total_participants *
+     100) if total_participants > 0 else 0.0
 
         # Événements à venir et terminés
-        now = datetime.utcnow()
+        now = utc_now()
         upcoming_events = sum(1 for e in events if e.date >= now)
-        completed_events = sum(1 for e in events if e.status == EventStatus.TERMINE)
+        completed_events = sum(
+    1 for e in events if str(e.status) in (EventStatus.TERMINE, EventStatus.TERMINE.value))
 
         return {
             "total_events": total_events,
@@ -621,9 +671,13 @@ class SportCultureService:
         events_attended = sum(
             1 for p in participations if p.status in [ParticipationStatus.PRESENT, ParticipationStatus.CONFIRME]
         )
-        events_missed = sum(1 for p in participations if p.status == ParticipationStatus.ABSENT)
+        events_missed = sum(
+    1 for p in participations if p.status == ParticipationStatus.ABSENT)
 
-        attendance_rate = (events_attended / total_participations * 100) if total_participations > 0 else 0.0
+        attendance_rate = (
+    events_attended /
+    total_participations *
+     100) if total_participations > 0 else 0.0
 
         # Calculer le total payé
         total_paid = 0.0
@@ -638,8 +692,9 @@ class SportCultureService:
         for participation in participations:
             event = await self.event_repo.get_by_id(participation.event_id)
             if event:
-                event_type_str = event.event_type.value
-                events_by_type[event_type_str] = events_by_type.get(event_type_str, 0) + 1
+                event_type_str = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
+                events_by_type[event_type_str] = events_by_type.get(
+                    event_type_str, 0) + 1
 
         return {
             "servant_id": str(servant_id),

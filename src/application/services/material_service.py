@@ -1,7 +1,8 @@
 """
 Service pour la gestion du matériel (INTENDANTS).
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
@@ -19,12 +20,12 @@ from src.core.entities.material import (
     TaskStatus,
     TaskType,
 )
-from src.infrastructure.repositories.material_repository import (
-    AubeTaskRepository,
-    CleaningTaskRepository,
-    MaintenanceHistoryRepository,
-    MaterialItemRepository,
-    TaskAssignmentRepository,
+from src.core.interfaces.repositories import (
+    IAubeTaskRepository,
+    ICleaningTaskRepository,
+    IMaintenanceHistoryRepository,
+    IMaterialItemRepository,
+    ITaskAssignmentRepository,
 )
 
 
@@ -33,11 +34,11 @@ class MaterialService:
 
     def __init__(
         self,
-        item_repo: MaterialItemRepository,
-        cleaning_task_repo: CleaningTaskRepository,
-        assignment_repo: TaskAssignmentRepository,
-        aube_task_repo: AubeTaskRepository,
-        maintenance_repo: MaintenanceHistoryRepository,
+        item_repo: IMaterialItemRepository,
+        cleaning_task_repo: ICleaningTaskRepository,
+        assignment_repo: ITaskAssignmentRepository,
+        aube_task_repo: IAubeTaskRepository,
+        maintenance_repo: IMaintenanceHistoryRepository,
     ):
         self.item_repo = item_repo
         self.cleaning_task_repo = cleaning_task_repo
@@ -254,6 +255,22 @@ class MaterialService:
 
         return await self.cleaning_task_repo.update(task)
 
+    async def add_cleaning_task_photo(
+        self,
+        task_id: UUID,
+        photo_url: str,
+        phase: str,  # "before" | "after"
+    ) -> Optional[CleaningTask]:
+        """Ajoute une photo avant ou après à une tâche de nettoyage."""
+        task = await self.cleaning_task_repo.get_by_id(task_id)
+        if not task:
+            return None
+        if phase == "before":
+            task.photos_before = list(task.photos_before or []) + [photo_url]
+        else:
+            task.photos_after = list(task.photos_after or []) + [photo_url]
+        return await self.cleaning_task_repo.update(task)
+
     async def complete_cleaning_task(
         self,
         task_id: UUID,
@@ -266,7 +283,7 @@ class MaterialService:
             return None
 
         task.status = TaskStatus.TERMINEE
-        task.completed_at = datetime.utcnow()
+        task.completed_at = utc_now()
         if photos_after:
             task.photos_after = photos_after
         if notes:
@@ -292,7 +309,7 @@ class MaterialService:
             )
 
         task.status = TaskStatus.VALIDEE
-        task.validated_at = datetime.utcnow()
+        task.validated_at = utc_now()
         task.validated_by = validated_by
         if notes:
             task.notes = notes
@@ -319,7 +336,7 @@ class MaterialService:
         if not task:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found",
+                detail="Cette tâche est introuvable.",
             )
 
         assignment = TaskAssignment(
@@ -344,7 +361,7 @@ class MaterialService:
         if not task:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found",
+                detail="Cette tâche est introuvable.",
             )
 
         assignments = []
@@ -367,7 +384,8 @@ class MaterialService:
 
         return enriched
 
-    async def get_task_assignments(self, task_id: UUID) -> List[TaskAssignment]:
+    async def get_task_assignments(
+        self, task_id: UUID) -> List[TaskAssignment]:
         """Récupère les assignations d'une tâche."""
         assignments = await self.assignment_repo.get_by_task(task_id)
 
@@ -432,9 +450,31 @@ class MaterialService:
             created_by=created_by,
         )
 
-        # TODO: Envoyer notification broadcast si broadcast_notification = True
+        task = await self.aube_task_repo.create(task)
 
-        return await self.aube_task_repo.create(task)
+        if broadcast_notification:
+            from src.application.services.notification_service import NotificationService
+            from src.core.entities.notification import (
+                NotificationChannel,
+                NotificationPriority,
+                NotificationType,
+            )
+            notif_service = NotificationService(self.aube_task_repo.session)
+            await notif_service.broadcast(
+                target="servants",
+                notification_type=NotificationType.GENERAL,
+                channel=NotificationChannel.IN_APP,
+                priority=NotificationPriority.NORMAL,
+                title=f"Tâche d'aubes : {task.title}",
+                body=(
+                    f"Une tâche d'aubes a été planifiée le "
+                    f"{task.scheduled_date.strftime('%d/%m/%Y')} "
+                    f"à {task.scheduled_time} — {task.location}."
+                ),
+                sent_by=task.created_by,
+            )
+
+        return task
 
     async def get_aube_task(self, task_id: UUID) -> Optional[AubeTask]:
         """Récupère une tâche d'aubes par son ID."""
@@ -511,12 +551,28 @@ class MaterialService:
             return None
 
         task.status = TaskStatus.TERMINEE
-        task.completed_at = datetime.utcnow()
+        task.completed_at = utc_now()
         if photos_after:
             task.photos_after = photos_after
         if notes:
             task.notes = notes
 
+        return await self.aube_task_repo.update(task)
+
+    async def add_aube_task_photo(
+        self,
+        task_id: UUID,
+        photo_url: str,
+        phase: str,  # "before" | "after"
+    ) -> Optional[AubeTask]:
+        """Ajoute une photo avant ou après à une tâche d'aubes."""
+        task = await self.aube_task_repo.get_by_id(task_id)
+        if not task:
+            return None
+        if phase == "before":
+            task.photos_before = list(task.photos_before or []) + [photo_url]
+        else:
+            task.photos_after = list(task.photos_after or []) + [photo_url]
         return await self.aube_task_repo.update(task)
 
     async def validate_aube_task(
@@ -537,7 +593,7 @@ class MaterialService:
             )
 
         task.status = TaskStatus.VALIDEE
-        task.validated_at = datetime.utcnow()
+        task.validated_at = utc_now()
         task.validated_by = validated_by
         if notes:
             task.notes = notes
@@ -585,7 +641,8 @@ class MaterialService:
 
         return await self.maintenance_repo.create(history)
 
-    async def get_item_maintenance_history(self, item_id: UUID) -> List[MaintenanceHistory]:
+    async def get_item_maintenance_history(
+        self, item_id: UUID) -> List[MaintenanceHistory]:
         """Récupère l'historique de maintenance d'un article."""
         return await self.maintenance_repo.get_by_item(item_id)
 
@@ -606,14 +663,16 @@ class MaterialService:
         # Répartition par catégorie
         items_by_category = {}
         for item in items:
-            category = item.category.value
-            items_by_category[category] = items_by_category.get(category, 0) + 1
+            category = item.category.value if hasattr(item.category, 'value') else str(item.category)
+            items_by_category[category] = items_by_category.get(
+                category, 0) + 1
 
         # Répartition par état
         items_by_condition = {}
         for item in items:
-            condition = item.condition.value
-            items_by_condition[condition] = items_by_condition.get(condition, 0) + 1
+            condition = item.condition.value if hasattr(item.condition, 'value') else str(item.condition)
+            items_by_condition[condition] = items_by_condition.get(
+                condition, 0) + 1
 
         # Récupérer toutes les tâches de la période
         cleaning_tasks, _ = await self.cleaning_task_repo.list_tasks(
@@ -633,7 +692,9 @@ class MaterialService:
         completed_tasks = sum(
             1 for t in cleaning_tasks + aube_tasks if t.status in [TaskStatus.TERMINEE, TaskStatus.VALIDEE]
         )
-        pending_tasks = sum(1 for t in cleaning_tasks + aube_tasks if t.status == TaskStatus.PLANIFIEE)
+        pending_tasks = sum(
+    1 for t in cleaning_tasks +
+     aube_tasks if t.status == TaskStatus.PLANIFIEE)
 
         # Coût total de maintenance
         total_maintenance_cost = await self.maintenance_repo.get_total_cost(start_date, end_date)
@@ -673,7 +734,7 @@ class MaterialService:
             return "À réparer"
         elif item.condition == MaterialCondition.HORS_SERVICE:
             return "Hors service"
-        elif item.next_maintenance_date and item.next_maintenance_date <= datetime.utcnow():
+        elif item.next_maintenance_date and item.next_maintenance_date <= utc_now():
             return "Maintenance prévue dépassée"
         return "Nécessite attention"
 
@@ -685,14 +746,16 @@ class MaterialService:
         # Répartition par catégorie
         items_by_category = {}
         for item in items:
-            category = item.category.value
-            items_by_category[category] = items_by_category.get(category, 0) + 1
+            category = item.category.value if hasattr(item.category, 'value') else str(item.category)
+            items_by_category[category] = items_by_category.get(
+                category, 0) + 1
 
         # Répartition par état
         items_by_condition = {}
         for item in items:
-            condition = item.condition.value
-            items_by_condition[condition] = items_by_condition.get(condition, 0) + 1
+            condition = item.condition.value if hasattr(item.condition, 'value') else str(item.condition)
+            items_by_condition[condition] = items_by_condition.get(
+                condition, 0) + 1
 
         # Articles nécessitant maintenance
         items_needing_maintenance = len(await self.item_repo.get_items_needing_maintenance())
@@ -705,9 +768,14 @@ class MaterialService:
         completed_tasks = sum(
             1 for t in cleaning_tasks + aube_tasks if t.status in [TaskStatus.TERMINEE, TaskStatus.VALIDEE]
         )
-        pending_tasks = sum(1 for t in cleaning_tasks + aube_tasks if t.status == TaskStatus.PLANIFIEE)
+        pending_tasks = sum(
+    1 for t in cleaning_tasks +
+     aube_tasks if t.status == TaskStatus.PLANIFIEE)
 
-        completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0.0
+        completion_rate = (
+    completed_tasks /
+    total_tasks *
+     100) if total_tasks > 0 else 0.0
 
         return {
             "total_items": total_items,

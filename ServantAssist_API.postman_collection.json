@@ -1,0 +1,1171 @@
+{
+  "info": {
+    "name": "ServantAssist API",
+    "description": "Collection complète des endpoints ServantAssist — backend FastAPI.\n\n**Configuration :**\n- Variable `base_url` → `http://localhost:8000/api/v1`\n- Variable `token` → renseignée automatiquement après le login\n\n**Ordre d'exécution recommandé :**\n1. Auth → Login\n2. Admin → créer servants / parents\n3. Tester les modules métier",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000/api/v1", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "refresh_token", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" },
+    { "key": "servant_id", "value": "", "type": "string" },
+    { "key": "event_id", "value": "", "type": "string" },
+    { "key": "session_id", "value": "", "type": "string" },
+    { "key": "invitation_code", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentification",
+      "item": [
+        {
+          "name": "Login Admin (email)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.access_token);",
+                  "  pm.collectionVariables.set('refresh_token', json.refresh_token);",
+                  "  pm.test('Token reçu', () => pm.expect(json.access_token).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "renekomtsindi7@gmail.com" },
+                { "key": "password", "value": "Mbetoumou olive77" }
+              ]
+            },
+            "url": "{{base_url}}/auth/login"
+          }
+        },
+        {
+          "name": "Login Téléphone (servant/parent)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+237600000001\",\n  \"password\": \"ServTest2026!\"\n}"
+            },
+            "url": "{{base_url}}/auth/login/phone"
+          }
+        },
+        {
+          "name": "Inscription Servant",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nouveau.servant@test.com\",\n  \"password\": \"ServTest2026!\",\n  \"first_name\": \"Nouveau\",\n  \"last_name\": \"Servant\",\n  \"phone_number\": \"+237600000099\",\n  \"role\": \"SERVANT\"\n}"
+            },
+            "url": "{{base_url}}/auth/register"
+          }
+        },
+        {
+          "name": "Inscription Parent (avec code)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"parent@test.com\",\n  \"password\": \"ServTest2026!\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Parent\",\n  \"phone_number\": \"+237699000001\",\n  \"role\": \"PARENT\",\n  \"invitation_code\": \"{{invitation_code}}\"\n}"
+            },
+            "url": "{{base_url}}/auth/register"
+          }
+        },
+        {
+          "name": "Renouveler le token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.access_token);",
+                  "  pm.collectionVariables.set('refresh_token', json.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{base_url}}/auth/refresh"
+          }
+        },
+        {
+          "name": "Déconnexion",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/auth/logout"
+          }
+        },
+        {
+          "name": "Demande de réinitialisation mot de passe",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"renekomtsindi7@gmail.com\"\n}"
+            },
+            "url": "{{base_url}}/auth/forgot-password"
+          }
+        },
+        {
+          "name": "Demander un code OTP (mobile)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"renekomtsindi7@gmail.com\"\n}"
+            },
+            "url": "{{base_url}}/auth/request-reset-code"
+          }
+        },
+        {
+          "name": "Vérifier le code OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"renekomtsindi7@gmail.com\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": "{{base_url}}/auth/verify-reset-code"
+          }
+        },
+        {
+          "name": "Réinitialiser le mot de passe",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<reset_token>\",\n  \"new_password\": \"NouveauMotDePasse2026!\"\n}"
+            },
+            "url": "{{base_url}}/auth/reset-password"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Profil & Utilisateurs",
+      "item": [
+        {
+          "name": "Mon profil",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/users/me"
+          }
+        },
+        {
+          "name": "Mettre à jour mon profil",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"René\",\n  \"last_name\": \"Komtsindi\",\n  \"phone_number\": \"+237600000000\"\n}"
+            },
+            "url": "{{base_url}}/users/me"
+          }
+        },
+        {
+          "name": "Changer mon mot de passe",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"Mbetoumou olive77\",\n  \"new_password\": \"NouveauMDP2026!\"\n}"
+            },
+            "url": "{{base_url}}/users/me/change-password"
+          }
+        },
+        {
+          "name": "Lister tous les utilisateurs (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/users?page=1&page_size=20",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Détail d'un utilisateur",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Activer / Désactiver un compte (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}"
+            },
+            "url": "{{base_url}}/users/{{user_id}}/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛡️ Admin",
+      "item": [
+        {
+          "name": "Créer un Aumônier",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aumonier@servantassist.com\",\n  \"password\": \"ServTest2026!\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Baptiste\",\n  \"phone_number\": \"+237600000010\"\n}"
+            },
+            "url": "{{base_url}}/admin/users/aumonier"
+          }
+        },
+        {
+          "name": "Créer un Parent directement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"parent.direct@test.com\",\n  \"password\": \"ServTest2026!\",\n  \"first_name\": \"Marie\",\n  \"last_name\": \"Dupont\",\n  \"phone_number\": \"+237699001001\",\n  \"role\": \"PARENT\"\n}"
+            },
+            "url": "{{base_url}}/admin/users/parent"
+          }
+        },
+        {
+          "name": "Générer un code d'invitation Parent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  var json = pm.response.json();",
+                  "  pm.collectionVariables.set('invitation_code', json.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"PARENT\",\n  \"parent_name\": \"Parent Test\",\n  \"email\": \"parent@test.com\"\n}"
+            },
+            "url": "{{base_url}}/admin/invitations"
+          }
+        },
+        {
+          "name": "Lister les invitations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/admin/invitations"
+          }
+        },
+        {
+          "name": "Révoquer une invitation",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/admin/invitations/{{invitation_id}}"
+          }
+        },
+        {
+          "name": "Tableau de bord admin",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/dashboard"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎖️ Nominations & Postes",
+      "item": [
+        {
+          "name": "Lister les nominations actives",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/poste/nominations"
+          }
+        },
+        {
+          "name": "Nommer un servant à un poste",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servant_id\": \"{{servant_id}}\",\n  \"poste\": \"SECRETAIRE\",\n  \"date_debut\": \"2026-01-01\"\n}"
+            },
+            "url": "{{base_url}}/poste/nominations"
+          }
+        },
+        {
+          "name": "Révoquer une nomination",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/poste/nominations/{{nomination_id}}"
+          }
+        },
+        {
+          "name": "Responsables par poste",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/responsables"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📅 Événements",
+      "item": [
+        {
+          "name": "Lister les événements",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/activities/events?page=1&page_size=20",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Créer un événement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('event_id', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Réunion mensuelle\",\n  \"description\": \"Réunion de coordination du mois\",\n  \"event_type\": \"REUNION\",\n  \"start_datetime\": \"2026-06-01T09:00:00\",\n  \"end_datetime\": \"2026-06-01T12:00:00\",\n  \"location\": \"Salle principale\"\n}"
+            },
+            "url": "{{base_url}}/activities/events"
+          }
+        },
+        {
+          "name": "Détail d'un événement",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/activities/events/{{event_id}}"
+          }
+        },
+        {
+          "name": "Modifier un événement",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Réunion mensuelle (modifiée)\",\n  \"location\": \"Grande salle\"\n}"
+            },
+            "url": "{{base_url}}/activities/events/{{event_id}}"
+          }
+        },
+        {
+          "name": "Supprimer un événement",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/activities/events/{{event_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ Présences",
+      "item": [
+        {
+          "name": "Lister les sessions de présence",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/attendance/sessions"
+          }
+        },
+        {
+          "name": "Créer une session de présence",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('session_id', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Présence dimanche 01/06/2026\",\n  \"session_date\": \"2026-06-01\",\n  \"session_type\": \"DIMANCHE\"\n}"
+            },
+            "url": "{{base_url}}/attendance/sessions"
+          }
+        },
+        {
+          "name": "Enregistrer la présence d'un servant",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"servant_id\": \"{{servant_id}}\",\n  \"status\": \"PRESENT\"\n}"
+            },
+            "url": "{{base_url}}/attendance"
+          }
+        },
+        {
+          "name": "Rapport de présence d'une session",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/attendance/sessions/{{session_id}}/report"
+          }
+        },
+        {
+          "name": "Fermer une session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/attendance/sessions/{{session_id}}/close"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Sous-groupes",
+      "item": [
+        {
+          "name": "Lister les sous-groupes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/subgroups"
+          }
+        },
+        {
+          "name": "Créer un sous-groupe",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Groupe Alpha\",\n  \"description\": \"Premier groupe de servants\"\n}"
+            },
+            "url": "{{base_url}}/subgroups"
+          }
+        },
+        {
+          "name": "Ajouter un membre au sous-groupe",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servant_id\": \"{{servant_id}}\"\n}"
+            },
+            "url": "{{base_url}}/subgroups/{{subgroup_id}}/members"
+          }
+        },
+        {
+          "name": "Retirer un membre du sous-groupe",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/subgroups/{{subgroup_id}}/members/{{servant_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Cotisations",
+      "item": [
+        {
+          "name": "Lister les périodes de cotisation",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/cotisations/periods"
+          }
+        },
+        {
+          "name": "Créer une période",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cotisation Juin 2026\",\n  \"amount\": 5000,\n  \"start_date\": \"2026-06-01\",\n  \"end_date\": \"2026-06-30\"\n}"
+            },
+            "url": "{{base_url}}/cotisations/periods"
+          }
+        },
+        {
+          "name": "Enregistrer un paiement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period_id\": \"{{period_id}}\",\n  \"servant_id\": \"{{servant_id}}\",\n  \"amount_paid\": 5000,\n  \"payment_date\": \"2026-06-05\",\n  \"payment_method\": \"CASH\"\n}"
+            },
+            "url": "{{base_url}}/cotisations/payments"
+          }
+        },
+        {
+          "name": "Rapport de cotisations d'une période",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/cotisations/periods/{{period_id}}/report"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤝 Contributions",
+      "item": [
+        {
+          "name": "Lister les contributions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/contributions"
+          }
+        },
+        {
+          "name": "Créer une contribution",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servant_id\": \"{{servant_id}}\",\n  \"amount\": 10000,\n  \"contribution_type\": \"DON\",\n  \"date\": \"2026-06-01\",\n  \"description\": \"Don pour les fournitures\"\n}"
+            },
+            "url": "{{base_url}}/contributions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Entrées financières",
+      "item": [
+        {
+          "name": "Lister les entrées financières",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/financial-entries"
+          }
+        },
+        {
+          "name": "Créer une entrée financière",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entry_type\": \"DEPENSE\",\n  \"amount\": 25000,\n  \"description\": \"Achat de matériel de nettoyage\",\n  \"date\": \"2026-06-01\",\n  \"category\": \"MATERIEL\"\n}"
+            },
+            "url": "{{base_url}}/financial-entries"
+          }
+        },
+        {
+          "name": "Résumé financier",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/financial-entries/summary"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Rapports",
+      "item": [
+        {
+          "name": "Lister les rapports",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/reports"
+          }
+        },
+        {
+          "name": "Créer un rapport",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Rapport mensuel Mai 2026\",\n  \"content\": \"Résumé des activités du mois de mai.\",\n  \"report_type\": \"MENSUEL\",\n  \"period_start\": \"2026-05-01\",\n  \"period_end\": \"2026-05-31\"\n}"
+            },
+            "url": "{{base_url}}/reports"
+          }
+        },
+        {
+          "name": "Exporter un rapport PDF",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/reports/{{report_id}}/export/pdf"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚖️ Discipline",
+      "item": [
+        {
+          "name": "Lister les cas disciplinaires",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/discipline"
+          }
+        },
+        {
+          "name": "Ouvrir un cas disciplinaire",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servant_id\": \"{{servant_id}}\",\n  \"reason\": \"Absences répétées non justifiées\",\n  \"severity\": \"MINEURE\",\n  \"incident_date\": \"2026-05-20\"\n}"
+            },
+            "url": "{{base_url}}/discipline"
+          }
+        },
+        {
+          "name": "Appliquer une sanction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sanction_type\": \"AVERTISSEMENT\",\n  \"description\": \"Premier avertissement verbal\"\n}"
+            },
+            "url": "{{base_url}}/discipline/{{case_id}}/sanctions"
+          }
+        },
+        {
+          "name": "Clôturer un cas",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolution\": \"Cas résolu après discussion avec le servant\"\n}"
+            },
+            "url": "{{base_url}}/discipline/{{case_id}}/close"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚽ Sport & Culture",
+      "item": [
+        {
+          "name": "Lister les événements sportifs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/sport-culture/events"
+          }
+        },
+        {
+          "name": "Créer un événement sportif",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tournoi de football\",\n  \"event_type\": \"SPORT\",\n  \"date\": \"2026-07-15\",\n  \"location\": \"Terrain municipal\",\n  \"description\": \"Tournoi annuel de football inter-groupes\",\n  \"max_participants\": 30\n}"
+            },
+            "url": "{{base_url}}/sport-culture/events"
+          }
+        },
+        {
+          "name": "S'inscrire à un événement",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/sport-culture/events/{{sport_event_id}}/register"
+          }
+        },
+        {
+          "name": "Enregistrer les résultats",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servant_id\": \"{{servant_id}}\",\n  \"score\": 85,\n  \"rank\": 1,\n  \"notes\": \"Excellent joueur\"\n}"
+            },
+            "url": "{{base_url}}/sport-culture/events/{{sport_event_id}}/results"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎓 Formations",
+      "item": [
+        {
+          "name": "Lister les sessions de formation",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/training/sessions"
+          }
+        },
+        {
+          "name": "Créer une session de formation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Formation liturgie avancée\",\n  \"description\": \"Approfondissement des rites liturgiques\",\n  \"trainer\": \"Père Michel\",\n  \"scheduled_date\": \"2026-06-10\",\n  \"duration_hours\": 3,\n  \"max_participants\": 20\n}"
+            },
+            "url": "{{base_url}}/training/sessions"
+          }
+        },
+        {
+          "name": "S'inscrire à une formation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/training/sessions/{{training_session_id}}/register"
+          }
+        },
+        {
+          "name": "Ajouter un support de formation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Livret du servant d'autel\",\n  \"material_type\": \"DOCUMENT\",\n  \"description\": \"Manuel de référence complet\",\n  \"url\": \"https://example.com/livret.pdf\"\n}"
+            },
+            "url": "{{base_url}}/training/materials"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Matériel",
+      "item": [
+        {
+          "name": "Lister le matériel",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/material/items"
+          }
+        },
+        {
+          "name": "Ajouter un article",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aubes taille M\",\n  \"category\": \"VETEMENT\",\n  \"quantity\": 10,\n  \"condition\": \"BON\",\n  \"description\": \"Aubes blanches pour servants\"\n}"
+            },
+            "url": "{{base_url}}/material/items"
+          }
+        },
+        {
+          "name": "Modifier un article",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 8,\n  \"condition\": \"USAGE\"\n}"
+            },
+            "url": "{{base_url}}/material/items/{{material_id}}"
+          }
+        },
+        {
+          "name": "Créer une tâche de nettoyage",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Nettoyage sacristie\",\n  \"description\": \"Nettoyer et ranger la sacristie\",\n  \"frequency\": \"HEBDOMADAIRE\",\n  \"scheduled_date\": \"2026-06-07\"\n}"
+            },
+            "url": "{{base_url}}/material/cleaning-tasks"
+          }
+        },
+        {
+          "name": "Affecter une tâche à un servant",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servant_id\": \"{{servant_id}}\"\n}"
+            },
+            "url": "{{base_url}}/material/cleaning-tasks/{{task_id}}/assign"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📣 Communication",
+      "item": [
+        {
+          "name": "Mes notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/communication/notifications"
+          }
+        },
+        {
+          "name": "Marquer une notification comme lue",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/communication/notifications/{{notification_id}}/read"
+          }
+        },
+        {
+          "name": "Diffuser un message (admin/aumônier)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Annonce importante\",\n  \"message\": \"La réunion de ce dimanche est avancée à 8h.\",\n  \"target_roles\": [\"SERVANT\", \"PARENT\"],\n  \"priority\": \"HAUTE\"\n}"
+            },
+            "url": "{{base_url}}/communication/broadcast"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗓️ Planning",
+      "item": [
+        {
+          "name": "Planning hebdomadaire",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/weekly-schedule"
+          }
+        },
+        {
+          "name": "Créer une entrée planning",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"day_of_week\": \"DIMANCHE\",\n  \"time_start\": \"09:00\",\n  \"time_end\": \"12:00\",\n  \"activity\": \"Grand-messe\",\n  \"servant_ids\": [\"{{servant_id}}\"]\n}"
+            },
+            "url": "{{base_url}}/weekly-schedule"
+          }
+        },
+        {
+          "name": "Planning du dimanche",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/sunday-schedule"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏆 Affectations & Classement",
+      "item": [
+        {
+          "name": "Lister les affectations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/assignments"
+          }
+        },
+        {
+          "name": "Créer une affectation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servant_id\": \"{{servant_id}}\",\n  \"event_id\": \"{{event_id}}\",\n  \"role\": \"CEREMONIAIRE\"\n}"
+            },
+            "url": "{{base_url}}/assignments"
+          }
+        },
+        {
+          "name": "Classement des servants",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/classement"
+          }
+        },
+        {
+          "name": "Dossier d'un servant",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/dossier/{{servant_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔑 Clés API",
+      "item": [
+        {
+          "name": "Lister mes clés API",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api-keys"
+          }
+        },
+        {
+          "name": "Créer une clé API",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Application mobile\",\n  \"description\": \"Clé pour l'app Flutter\"\n}"
+            },
+            "url": "{{base_url}}/api-keys"
+          }
+        },
+        {
+          "name": "Révoquer une clé API",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api-keys/{{api_key_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Système",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8000/health"
+          }
+        },
+        {
+          "name": "Documentation OpenAPI",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8000/api/docs"
+          }
+        },
+        {
+          "name": "Métriques Prometheus",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "http://localhost:8000/metrics"
+          }
+        },
+        {
+          "name": "🔒 Test RBAC - Accès interdit (servant → admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/admin/invitations",
+            "description": "Doit retourner 403 si le token est celui d'un servant"
+          }
+        },
+        {
+          "name": "🔒 Test sans token (401)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/me",
+            "description": "Doit retourner 401 — aucun header Authorization"
+          }
+        },
+        {
+          "name": "🔒 Test token invalide (401)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer token_invalide_ici" }],
+            "url": "{{base_url}}/users/me",
+            "description": "Doit retourner 401"
+          }
+        }
+      ]
+    }
+  ]
+}

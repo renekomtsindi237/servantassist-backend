@@ -16,6 +16,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
+from sqlalchemy import Column, String
 from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
@@ -71,13 +72,17 @@ class Attendance(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="users.id", index=True)
     # Evenement associe (optionnel)
-    event_id: Optional[UUID] = Field(default=None, foreign_key="events.id", index=True)
+    event_id: Optional[UUID] = Field(
+    default=None, foreign_key="events.id", index=True)
     # Type et date
-    attendance_type: AttendanceType = Field(index=True)
+    attendance_type: AttendanceType = Field(sa_column=Column(String(50), nullable=False, index=True))
     attendance_date: datetime = Field(index=True)
     title: Optional[str] = Field(default=None, max_length=200)
     # Statut
-    status: AttendanceStatus = Field(default=AttendanceStatus.PRESENT, index=True)
+    status: AttendanceStatus = Field(
+        default=AttendanceStatus.PRESENT,
+        sa_column=Column(String(50), nullable=False, server_default="PRESENT", index=True),
+    )
     # Justification
     justification: Optional[str] = Field(default=None, max_length=1000)
     justified_at: Optional[datetime] = Field(default=None)

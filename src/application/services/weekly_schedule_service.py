@@ -11,6 +11,7 @@ Règles métier :
 """
 import math
 from datetime import datetime, timedelta, timezone
+from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -23,8 +24,8 @@ from src.core.entities.weekly_schedule import (
     WeeklyScheduleSlot,
     WeeklyScheduleTemplate,
 )
-from src.infrastructure.repositories.user_repository import UserRepository
-from src.infrastructure.repositories.weekly_schedule_repository import WeeklyScheduleRepository
+from src.core.interfaces.repositories import IUserRepository
+from src.core.interfaces.repositories import IWeeklyScheduleRepository
 from src.presentation.schemas.user import PaginatedResponse
 from src.presentation.schemas.weekly_schedule import (
     SlotServantCreate,
@@ -52,7 +53,8 @@ def parse_mass_time(mass_time: str) -> tuple[int, int]:
     return hours, minutes
 
 
-def is_within_mass_window(slot_date: datetime, mass_time: str, current_time: Optional[datetime] = None) -> bool:
+def is_within_mass_window(slot_date: datetime, mass_time: str,
+                          current_time: Optional[datetime] = None) -> bool:
     """
     Vérifie si l'heure actuelle est dans la fenêtre de modification autorisée.
 
@@ -68,7 +70,7 @@ def is_within_mass_window(slot_date: datetime, mass_time: str, current_time: Opt
         bool: True si dans la fenêtre autorisée
     """
     if current_time is None:
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
 
     # Mapping des enums (si c'est une chaîne, on compare à la valeur de l'enum)
     # On supporte les valeurs brutes ("06h15") ou les clés d'enum ("MATIN")
@@ -87,8 +89,18 @@ def is_within_mass_window(slot_date: datetime, mass_time: str, current_time: Opt
     # Parser l'heure de la messe
     hours, minutes = parse_mass_time(time_str)
 
+    # Normaliser slot_date en naif UTC (utc_now() est toujours naif)
+    naive_date = slot_date.replace(tzinfo=None) if slot_date.tzinfo else slot_date
+    if current_time.tzinfo:
+        current_time = current_time.replace(tzinfo=None)
+
     # Créer le datetime de début de la messe
-    mass_start = slot_date.replace(hour=hours, minute=minutes, second=0, microsecond=0)
+    mass_start = naive_date.replace(
+        hour=hours,
+        minute=minutes,
+        second=0,
+        microsecond=0,
+    )
 
     # Fenêtre : 1h avant → 2h après le début (1h de messe + 1h après)
     window_start = mass_start - timedelta(hours=1)
@@ -102,8 +114,8 @@ class WeeklyScheduleService:
 
     def __init__(
         self,
-        schedule_repository: WeeklyScheduleRepository,
-        user_repository: UserRepository,
+        schedule_repository: IWeeklyScheduleRepository,
+        user_repository: IUserRepository,
     ):
         self.schedule_repo = schedule_repository
         self.user_repo = user_repository
@@ -152,12 +164,15 @@ class WeeklyScheduleService:
                             if not user:
                                 raise HTTPException(
                                     status_code=status.HTTP_404_NOT_FOUND,
-                                    detail=f"Utilisateur {servant_data.servant_id} introuvable.",
+                                    detail=f"Utilisateur {
+    servant_data.servant_id} introuvable.",
                                 )
                             if user.role != UserRole.SERVANT:
                                 raise HTTPException(
                                     status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail=f"{user.first_name} {user.last_name} n'est pas un servant.",
+                                    detail=f"{
+    user.first_name} {
+        user.last_name} n'est pas un servant.",
                                 )
 
                         assignment = SlotServantAssignment(
@@ -179,7 +194,8 @@ class WeeklyScheduleService:
     #  LECTURE
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_template(self, template_id: UUID) -> WeeklyScheduleTemplateResponse:
+    async def get_template(
+        self, template_id: UUID) -> WeeklyScheduleTemplateResponse:
         """Récupère un modèle par son ID avec tous ses créneaux."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -263,13 +279,14 @@ class WeeklyScheduleService:
             template.notes = data.notes
 
         template.updated_by = updated_by
-        template.updated_at = datetime.now(timezone.utc)
+        template.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_template(template_id, template)
         enriched = await self.schedule_repo.enrich_template(updated)
         return WeeklyScheduleTemplateResponse(**enriched)
 
-    async def publish_template(self, template_id: UUID, published_by: UUID) -> WeeklyScheduleTemplateResponse:
+    async def publish_template(
+        self, template_id: UUID, published_by: UUID) -> WeeklyScheduleTemplateResponse:
         """Publie un modèle (le rend visible par tous)."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -286,13 +303,14 @@ class WeeklyScheduleService:
 
         template.status = ScheduleStatus.PUBLISHED
         template.updated_by = published_by
-        template.updated_at = datetime.now(timezone.utc)
+        template.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_template(template_id, template)
         enriched = await self.schedule_repo.enrich_template(updated)
         return WeeklyScheduleTemplateResponse(**enriched)
 
-    async def archive_template(self, template_id: UUID, archived_by: UUID) -> WeeklyScheduleTemplateResponse:
+    async def archive_template(
+        self, template_id: UUID, archived_by: UUID) -> WeeklyScheduleTemplateResponse:
         """Archive un modèle."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -303,7 +321,7 @@ class WeeklyScheduleService:
 
         template.status = ScheduleStatus.ARCHIVED
         template.updated_by = archived_by
-        template.updated_at = datetime.now(timezone.utc)
+        template.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_template(template_id, template)
         enriched = await self.schedule_repo.enrich_template(updated)
@@ -348,7 +366,7 @@ class WeeklyScheduleService:
         if data.notes is not None:
             slot.notes = data.notes
 
-        slot.updated_at = datetime.now(timezone.utc)
+        slot.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_slot(slot_id, slot)
         enriched = await self.schedule_repo.enrich_slot(updated)
@@ -397,7 +415,8 @@ class WeeklyScheduleService:
 
         # Calculer la date du créneau (jour de la semaine dans la période du template)
         # Le slot.day est un enum (LUNDI, MARDI, etc.)
-        # On doit trouver le jour correspondant dans la période start_date -> end_date
+        # On doit trouver le jour correspondant dans la période start_date ->
+        # end_date
         from src.core.entities.weekly_schedule import WeekDay
 
         # Mapping des jours
@@ -424,14 +443,17 @@ class WeeklyScheduleService:
         if not slot_date:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Le jour {slot.day.value} n'existe pas dans la période du classement.",
+                detail=f"Le jour {
+    slot.day.value} n'existe pas dans la période du classement.",
             )
 
         # Validation temporelle stricte : 1h avant → 1h après la messe
         if not is_within_mass_window(slot_date, slot.mass_time):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",
+                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
+    slot.mass_time} le {
+        slot.day.value}.",
             )
 
         # Valider le servant si fourni
@@ -445,7 +467,9 @@ class WeeklyScheduleService:
             if user.role != UserRole.SERVANT:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"{user.first_name} {user.last_name} n'est pas un servant.",
+                    detail=f"{
+    user.first_name} {
+        user.last_name} n'est pas un servant.",
                 )
 
         assignment = SlotServantAssignment(
@@ -496,11 +520,14 @@ class WeeklyScheduleService:
                     current_date += timedelta(days=1)
 
                 if slot_date:
-                    # Validation temporelle stricte : 1h avant → 1h après la messe
+                    # Validation temporelle stricte : 1h avant → 1h après la
+                    # messe
                     if not is_within_mass_window(slot_date, slot.mass_time):
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",
+                            detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
+    slot.mass_time} le {
+        slot.day.value}.",
                         )
 
         deleted = await self.schedule_repo.delete_assignment(assignment_id)

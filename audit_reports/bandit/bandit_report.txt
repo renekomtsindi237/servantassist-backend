@@ -1,0 +1,52 @@
+Run started:2026-03-26 18:52:20.153349+00:00
+
+Test results:
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'bearer'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: src/application\services\auth_service.py:231:15
+230	        return Token(access_token=access_token,
+231	                     refresh_token=refresh_token, token_type="bearer")
+232	
+233	    async def refresh_token(self, refresh_token: str) -> Token:
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'refresh'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: src/application\services\auth_service.py:253:46
+252	            token_type: str = payload.get("type")
+253	            if email is None or token_type != "refresh":
+254	                raise credentials_exception
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'reset'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: src/application\services\auth_service.py:295:46
+294	            token_type: str = payload.get("type")
+295	            if email is None or token_type != "reset":
+296	                raise credentials_exception
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 28903
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 1
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 3
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 3
+		High: 0
+Files skipped (0):

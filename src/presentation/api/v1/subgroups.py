@@ -98,7 +98,8 @@ async def create_subgroup(
 async def list_subgroups(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
-    active_only: bool = Query(True, description="Afficher uniquement les sous-groupes actifs"),
+    active_only: bool = Query(
+    True, description="Afficher uniquement les sous-groupes actifs"),
 ):
     """
     Lister les sous-groupes.

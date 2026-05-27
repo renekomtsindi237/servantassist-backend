@@ -10,6 +10,7 @@ Règles métier :
 """
 import math
 from datetime import datetime, timedelta, timezone
+from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -27,8 +28,8 @@ from src.core.entities.sunday_schedule import (
     SundayScheduleTemplate,
 )
 from src.core.entities.user import UserRole
-from src.infrastructure.repositories.sunday_schedule_repository import SundayScheduleRepository
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.core.interfaces.repositories import ISundayScheduleRepository
+from src.core.interfaces.repositories import IUserRepository
 from src.presentation.schemas.sunday_schedule import (
     GenerateExceptionalScheduleRequest,
     GenerateOrdinaryScheduleRequest,
@@ -58,7 +59,8 @@ def parse_mass_time(mass_time: str) -> tuple[int, int]:
     return hours, minutes
 
 
-def is_within_mass_window(schedule_date: datetime, mass_time: str, current_time: Optional[datetime] = None) -> bool:
+def is_within_mass_window(schedule_date: datetime, mass_time: str,
+                          current_time: Optional[datetime] = None) -> bool:
     """
     Vérifie si l'heure actuelle est dans la fenêtre de modification autorisée.
 
@@ -74,13 +76,19 @@ def is_within_mass_window(schedule_date: datetime, mass_time: str, current_time:
         bool: True si dans la fenêtre autorisée
     """
     if current_time is None:
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
 
     # Parser l'heure de la messe
     hours, minutes = parse_mass_time(mass_time)
 
+    # Normaliser en naif UTC (utc_now() est toujours naif)
+    naive_date = schedule_date.replace(tzinfo=None) if schedule_date.tzinfo else schedule_date
+    if current_time.tzinfo:
+        current_time = current_time.replace(tzinfo=None)
+
     # Créer le datetime de début de la messe
-    mass_start = schedule_date.replace(hour=hours, minute=minutes, second=0, microsecond=0)
+    mass_start = naive_date.replace(
+        hour=hours, minute=minutes, second=0, microsecond=0)
 
     # Fenêtre : 1h avant → 2h après le début (1h de messe + 1h après)
     window_start = mass_start - timedelta(hours=1)
@@ -94,8 +102,8 @@ class SundayScheduleService:
 
     def __init__(
         self,
-        schedule_repository: SundayScheduleRepository,
-        user_repository: UserRepository,
+        schedule_repository: ISundayScheduleRepository,
+        user_repository: IUserRepository,
     ):
         self.schedule_repo = schedule_repository
         self.user_repo = user_repository
@@ -141,12 +149,15 @@ class SundayScheduleService:
                             if not user:
                                 raise HTTPException(
                                     status_code=status.HTTP_404_NOT_FOUND,
-                                    detail=f"Utilisateur {assignment_data.servant_id} introuvable.",
+                                    detail=f"Utilisateur {
+    assignment_data.servant_id} introuvable.",
                                 )
                             if user.role != UserRole.SERVANT:
                                 raise HTTPException(
                                     status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail=f"{user.first_name} {user.last_name} n'est pas un servant.",
+                                    detail=f"{
+    user.first_name} {
+        user.last_name} n'est pas un servant.",
                                 )
 
                         assignment = SundayMassAssignment(
@@ -231,7 +242,8 @@ class SundayScheduleService:
     #  LECTURE
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_template(self, template_id: UUID) -> SundayScheduleTemplateResponse:
+    async def get_template(
+        self, template_id: UUID) -> SundayScheduleTemplateResponse:
         """Récupère un modèle par son ID avec toutes ses messes."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -317,13 +329,14 @@ class SundayScheduleService:
             template.notes = data.notes
 
         template.updated_by = updated_by
-        template.updated_at = datetime.now(timezone.utc)
+        template.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_template(template_id, template)
         enriched = await self.schedule_repo.enrich_template(updated)
         return SundayScheduleTemplateResponse(**enriched)
 
-    async def publish_template(self, template_id: UUID, published_by: UUID) -> SundayScheduleTemplateResponse:
+    async def publish_template(
+        self, template_id: UUID, published_by: UUID) -> SundayScheduleTemplateResponse:
         """Publie un modèle (le rend visible par tous)."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -340,13 +353,14 @@ class SundayScheduleService:
 
         template.status = SundayScheduleStatus.PUBLISHED
         template.updated_by = published_by
-        template.updated_at = datetime.now(timezone.utc)
+        template.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_template(template_id, template)
         enriched = await self.schedule_repo.enrich_template(updated)
         return SundayScheduleTemplateResponse(**enriched)
 
-    async def archive_template(self, template_id: UUID, archived_by: UUID) -> SundayScheduleTemplateResponse:
+    async def archive_template(
+        self, template_id: UUID, archived_by: UUID) -> SundayScheduleTemplateResponse:
         """Archive un modèle."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -357,7 +371,7 @@ class SundayScheduleService:
 
         template.status = SundayScheduleStatus.ARCHIVED
         template.updated_by = archived_by
-        template.updated_at = datetime.now(timezone.utc)
+        template.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_template(template_id, template)
         enriched = await self.schedule_repo.enrich_template(updated)
@@ -406,7 +420,7 @@ class SundayScheduleService:
         if data.notes is not None:
             mass.notes = data.notes
 
-        mass.updated_at = datetime.now(timezone.utc)
+        mass.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_mass(mass_id, mass)
         enriched = await self.schedule_repo.enrich_mass(updated)
@@ -457,7 +471,8 @@ class SundayScheduleService:
         if not is_within_mass_window(template.schedule_date, mass.mass_time):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {mass.mass_time}.",
+                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
+    mass.mass_time}.",
             )
 
         # Valider le servant si fourni
@@ -471,7 +486,9 @@ class SundayScheduleService:
             if user.role != UserRole.SERVANT:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"{user.first_name} {user.last_name} n'est pas un servant.",
+                    detail=f"{
+    user.first_name} {
+        user.last_name} n'est pas un servant.",
                 )
 
         assignment = SundayMassAssignment(
@@ -501,10 +518,12 @@ class SundayScheduleService:
             template = await self.schedule_repo.get_template(mass.template_id)
             if template:
                 # Validation temporelle stricte : 1h avant → 1h après la messe
-                if not is_within_mass_window(template.schedule_date, mass.mass_time):
+                if not is_within_mass_window(
+                    template.schedule_date, mass.mass_time):
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {mass.mass_time}.",
+                        detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
+    mass.mass_time}.",
                     )
 
         deleted = await self.schedule_repo.delete_assignment(assignment_id)
@@ -555,7 +574,8 @@ class SundayScheduleService:
         if not is_within_mass_window(template.schedule_date, mass.mass_time):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Le marquage de présence n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {mass.mass_time}.",
+                detail=f"Le marquage de présence n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
+    mass.mass_time}.",
             )
 
         # Récupérer l'utilisateur qui marque
@@ -572,9 +592,9 @@ class SundayScheduleService:
         # Mettre à jour
         assignment.is_present = is_present
         assignment.presence_marked_by = marked_by
-        assignment.presence_marked_at = datetime.now(timezone.utc)
+        assignment.presence_marked_at = utc_now()
         assignment.last_modified_by = marked_by
-        assignment.updated_at = datetime.now(timezone.utc)
+        assignment.updated_at = utc_now()
 
         updated = await self.schedule_repo.update_assignment(assignment_id, assignment)
 
@@ -590,7 +610,10 @@ class SundayScheduleService:
             mass_slot_id=mass.id,
             assignment_id=assignment_id,
             action=ModificationAction.PRESENCE_MARKED if is_present else ModificationAction.ABSENCE_MARKED,
-            description=f"Présence {'confirmée' if is_present else 'marquée absente'} pour {servant_name} ({assignment.position.value}) à la messe de {mass.mass_time}",
+            description=f"Présence {
+    'confirmée' if is_present else 'marquée absente'} pour {servant_name} ({
+        assignment.position.value}) à la messe de {
+            mass.mass_time}",
             modified_by=marked_by,
             modified_by_name=f"{user.first_name} {user.last_name}",
             ip_address=ip_address,
@@ -606,7 +629,8 @@ class SundayScheduleService:
     #  HISTORIQUE
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_modification_history(self, template_id: UUID, limit: int = 100) -> List:
+    async def get_modification_history(
+        self, template_id: UUID, limit: int = 100) -> List:
         """Récupère l'historique des modifications d'un classement."""
         from src.presentation.schemas.sunday_schedule import ModificationLogResponse
 

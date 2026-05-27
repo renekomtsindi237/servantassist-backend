@@ -1,5 +1,10 @@
 """
 Repository pour les dossiers disciplinaires.
+
+Chiffrement PII (Loi 2024/017 Cameroun) :
+  Les champs de description (offense, verdict, convocation) sont chiffrés
+  car ils constituent des données sensibles pouvant révéler le comportement
+  personnel et les antécédents disciplinaires d'un mineur.
 """
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -17,10 +22,14 @@ from src.core.entities.discipline import (
     SanctionType,
 )
 from src.core.entities.user import User
+from src.infrastructure.security.encrypted_model_mixin import EncryptedModelMixin
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name")
 
 
-class DisciplineCaseRepository:
-    """Operations sur les dossiers disciplinaires."""
+class DisciplineCaseRepository(EncryptedModelMixin):
+    ENCRYPTED_FIELDS = ("offense_description", "verdict_notes", "convocation_notes")
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -30,7 +39,10 @@ class DisciplineCaseRepository:
     async def get(self, case_id: UUID) -> Optional[DisciplineCase]:
         stmt = select(DisciplineCase).where(DisciplineCase.id == case_id)
         result = await self.session.exec(stmt)
-        return result.first()
+        case = result.first()
+        if case:
+            self._decrypt_model(case)
+        return case
 
     async def list_paginated(
         self,
@@ -45,21 +57,26 @@ class DisciplineCaseRepository:
         stmt = select(DisciplineCase)
 
         if accused_user_id:
-            stmt = stmt.where(DisciplineCase.accused_user_id == accused_user_id)
+            stmt = stmt.where(
+    DisciplineCase.accused_user_id == accused_user_id)
         if status:
             stmt = stmt.where(DisciplineCase.status == status)
         if severity:
             stmt = stmt.where(DisciplineCase.severity == severity)
         if offense_category:
-            stmt = stmt.where(DisciplineCase.offense_category == offense_category)
+            stmt = stmt.where(
+    DisciplineCase.offense_category == offense_category)
 
         count_stmt = select(func.count()).select_from(stmt.subquery())
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(DisciplineCase.created_at.desc())
+        stmt = stmt.offset(offset).limit(page_size).order_by(
+            DisciplineCase.created_at.desc())
         result = await self.session.exec(stmt)
-        return result.all(), total
+        cases = list(result.all())
+        self._decrypt_list(cases)
+        return cases, total
 
     async def list_by_user(self, user_id: UUID) -> List[DisciplineCase]:
         stmt = (
@@ -68,7 +85,9 @@ class DisciplineCaseRepository:
             .order_by(DisciplineCase.created_at.desc())
         )
         result = await self.session.exec(stmt)
-        return result.all()
+        cases = list(result.all())
+        self._decrypt_list(cases)
+        return cases
 
     async def count_sanctions_by_user(self, user_id: UUID) -> Dict[str, int]:
         """Compte les sanctions par type pour un utilisateur."""
@@ -107,18 +126,23 @@ class DisciplineCaseRepository:
     # ── Enrichissement ─────────────────────────────────────────────────
 
     async def enrich_case(self, case: DisciplineCase) -> Dict:
-        """Enrichit un dossier avec les noms."""
+        """Enrichit un dossier avec les noms (décrypte les PII des User chargés)."""
         accused_stmt = select(User).where(User.id == case.accused_user_id)
         accused = (await self.session.exec(accused_stmt)).first()
+        if accused:
+            decrypt_str_fields(accused, _USER_PII)
 
         reporter_stmt = select(User).where(User.id == case.reported_by)
         reporter = (await self.session.exec(reporter_stmt)).first()
+        if reporter:
+            decrypt_str_fields(reporter, _USER_PII)
 
         verdict_by_name = None
         if case.verdict_by:
             vb_stmt = select(User).where(User.id == case.verdict_by)
             vb = (await self.session.exec(vb_stmt)).first()
             if vb:
+                decrypt_str_fields(vb, _USER_PII)
                 verdict_by_name = f"{vb.first_name} {vb.last_name}"
 
         return {
@@ -154,15 +178,21 @@ class DisciplineCaseRepository:
     # ── Ecriture ──────────────────────────────────────────────────────
 
     async def create(self, case: DisciplineCase) -> DisciplineCase:
+        self._encrypt_model(case)
         self.session.add(case)
         await self.session.commit()
         await self.session.refresh(case)
+        self._decrypt_model(case)
+        self.session.expunge(case)
         return case
 
     async def update(self, case: DisciplineCase) -> DisciplineCase:
+        self._encrypt_model(case)
         self.session.add(case)
         await self.session.commit()
         await self.session.refresh(case)
+        self._decrypt_model(case)
+        self.session.expunge(case)
         return case
 
     async def delete(self, case_id: UUID) -> bool:

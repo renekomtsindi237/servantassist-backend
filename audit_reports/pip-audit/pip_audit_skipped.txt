@@ -1,0 +1,2 @@
+pip-audit: SKIPPED — network unavailable (PyPI/OSV DB unreachable)
+mypy: 539 errors in 58/169 files — see mypy_report.txt

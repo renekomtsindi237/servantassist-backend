@@ -48,6 +48,10 @@ FROM base AS production
 
 COPY . .
 
+# Pre-compile all Python source files so the runtime filesystem can be read-only.
+# Python will find __pycache__/*.pyc and skip re-writing them at import time.
+RUN python -m compileall -q src/
+
 # Create non-root user
 RUN useradd -m -u 1000 -s /bin/bash appuser && \
     chown -R appuser:appuser /app
@@ -59,11 +63,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["gunicorn", "src.main:app", \
-     "--workers", "4", \
-     "--worker-class", "uvicorn.workers.UvicornWorker", \
-     "--bind", "0.0.0.0:8000", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "--timeout", "120", \
-     "--graceful-timeout", "30"]
+COPY gunicorn.conf.py .
+
+CMD ["gunicorn", "src.main:app", "--config", "gunicorn.conf.py"]

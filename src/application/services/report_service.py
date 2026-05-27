@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
 from src.core.entities.report import Report, ReportAttachment, ReportStatus, ReportType
-from src.infrastructure.repositories.report_repository import AttachmentRepository, ReportRepository
+from src.core.interfaces.repositories import IAttachmentRepository, IReportRepository
 from src.infrastructure.security.utils import SecurityUtils
 
 
@@ -15,8 +15,8 @@ class ReportService:
 
     def __init__(
         self,
-        report_repo: ReportRepository,
-        attachment_repo: AttachmentRepository,
+        report_repo: IReportRepository,
+        attachment_repo: IAttachmentRepository,
     ):
         self.report_repo = report_repo
         self.attachment_repo = attachment_repo
@@ -91,7 +91,8 @@ class ReportService:
 
         # Vérifier que le rapport est en brouillon
         if report.status != ReportStatus.DRAFT:
-            raise ValueError("Seuls les rapports en brouillon peuvent être modifiés")
+            raise ValueError(
+                "Seuls les rapports en brouillon peuvent être modifiés")
 
         # Mise à jour des champs
         if title is not None:
@@ -119,7 +120,8 @@ class ReportService:
 
         # Vérifier que le rapport est en brouillon
         if report.status != ReportStatus.DRAFT:
-            raise ValueError("Seuls les rapports en brouillon peuvent être supprimés")
+            raise ValueError(
+                "Seuls les rapports en brouillon peuvent être supprimés")
 
         return await self.report_repo.delete(report_id)
 
@@ -178,7 +180,8 @@ class ReportService:
 
         # Vérifier que le rapport est en brouillon
         if report.status != ReportStatus.DRAFT:
-            raise ValueError("Les pièces jointes ne peuvent être ajoutées qu'aux rapports en brouillon")
+            raise ValueError(
+                "Les pièces jointes ne peuvent être ajoutées qu'aux rapports en brouillon")
 
         attachment = ReportAttachment(
             id=uuid4(),
@@ -205,6 +208,7 @@ class ReportService:
         # Vérifier que le rapport est en brouillon
         report = await self.report_repo.get_by_id(attachment.report_id)
         if report and report.status != ReportStatus.DRAFT:
-            raise ValueError("Les pièces jointes ne peuvent être supprimées que des rapports en brouillon")
+            raise ValueError(
+                "Les pièces jointes ne peuvent être supprimées que des rapports en brouillon")
 
         return await self.attachment_repo.delete(attachment_id)

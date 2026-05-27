@@ -10,6 +10,7 @@ Regles du reglement interieur :
 """
 import math
 from datetime import datetime, timedelta, timezone
+from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -26,9 +27,13 @@ from src.core.entities.discipline import (
     SanctionType,
 )
 from src.core.entities.user import User, UserRole
-from src.infrastructure.repositories.attendance_repository import AttendanceRepository
-from src.infrastructure.repositories.discipline_repository import DisciplineCaseRepository
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.core.events.domain_events import DisciplineCaseOpened, DisciplineSanctionIssued
+from src.core.interfaces.repositories import (
+    IAttendanceRepository,
+    IDisciplineCaseRepository,
+    IUserRepository,
+)
+from src.infrastructure.events.bus import event_bus
 from src.presentation.schemas.discipline import (
     DisciplineCaseCreate,
     DisciplineCaseResponse,
@@ -45,9 +50,9 @@ class DisciplineService:
 
     def __init__(
         self,
-        case_repo: DisciplineCaseRepository,
-        user_repo: UserRepository,
-        attendance_repo: AttendanceRepository,
+        case_repo: IDisciplineCaseRepository,
+        user_repo: IUserRepository,
+        attendance_repo: IAttendanceRepository,
     ):
         self.case_repo = case_repo
         self.user_repo = user_repo
@@ -57,7 +62,8 @@ class DisciplineService:
     #  OUVRIR UN DOSSIER
     # ══════════════════════════════════════════════════════════════════
 
-    async def open_case(self, data: DisciplineCaseCreate, reported_by: UUID) -> DisciplineCaseResponse:
+    async def open_case(self, data: DisciplineCaseCreate,
+                        reported_by: UUID) -> DisciplineCaseResponse:
         """Ouvrir un dossier disciplinaire."""
         user = await self.user_repo.get(data.accused_user_id)
         if not user:
@@ -71,18 +77,25 @@ class DisciplineService:
                 detail="Seuls les servants peuvent faire l'objet d'un dossier disciplinaire.",
             )
 
-        severity = data.severity or OFFENSE_DEFAULT_SEVERITY.get(data.offense_category, SanctionSeverity.MINEUR)
+        severity = data.severity or OFFENSE_DEFAULT_SEVERITY.get(
+            data.offense_category, SanctionSeverity.MINEUR)
 
         case = DisciplineCase(
             accused_user_id=data.accused_user_id,
             reported_by=reported_by,
             offense_category=data.offense_category,
             offense_description=data.offense_description,
-            offense_date=data.offense_date or datetime.now(timezone.utc),
+            offense_date=data.offense_date or utc_now(),
             severity=severity,
             status=DisciplineCaseStatus.SIGNALE,
         )
         created = await self.case_repo.create(case)
+        await event_bus.publish(DisciplineCaseOpened(
+            case_id=created.id,
+            accused_user_id=data.accused_user_id,
+            opened_by_id=reported_by,
+            offense_category=data.offense_category.value,
+        ))
         enriched = await self.case_repo.enrich_case(created)
         return DisciplineCaseResponse(**enriched)
 
@@ -90,7 +103,8 @@ class DisciplineService:
     #  CONVOQUER AU CONSEIL DE DISCIPLINE
     # ══════════════════════════════════════════════════════════════════
 
-    async def convoke(self, case_id: UUID, data: DisciplineConvocation) -> DisciplineCaseResponse:
+    async def convoke(self, case_id: UUID,
+                      data: DisciplineConvocation) -> DisciplineCaseResponse:
         """Convoquer un servant au conseil de discipline."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -101,13 +115,14 @@ class DisciplineService:
         if case.status != DisciplineCaseStatus.SIGNALE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Impossible de convoquer : statut actuel = {case.status.value}.",
+                detail=f"Impossible de convoquer : statut actuel = {
+    case.status.value}.",
             )
 
         case.status = DisciplineCaseStatus.CONVOQUE
         case.convocation_date = data.convocation_date
         case.convocation_notes = data.convocation_notes
-        case.updated_at = datetime.now(timezone.utc)
+        case.updated_at = utc_now()
 
         updated = await self.case_repo.update(case)
         enriched = await self.case_repo.enrich_case(updated)
@@ -128,11 +143,12 @@ class DisciplineService:
         if case.status != DisciplineCaseStatus.CONVOQUE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Impossible d'ouvrir l'audience : statut actuel = {case.status.value}.",
+                detail=f"Impossible d'ouvrir l'audience : statut actuel = {
+    case.status.value}.",
             )
 
         case.status = DisciplineCaseStatus.EN_AUDIENCE
-        case.updated_at = datetime.now(timezone.utc)
+        case.updated_at = utc_now()
 
         updated = await self.case_repo.update(case)
         enriched = await self.case_repo.enrich_case(updated)
@@ -142,7 +158,8 @@ class DisciplineService:
     #  RENDRE LE VERDICT
     # ══════════════════════════════════════════════════════════════════
 
-    async def render_verdict(self, case_id: UUID, data: DisciplineVerdict, verdict_by: UUID) -> DisciplineCaseResponse:
+    async def render_verdict(self, case_id: UUID, data: DisciplineVerdict,
+                             verdict_by: UUID) -> DisciplineCaseResponse:
         """Rendre le verdict du conseil de discipline."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -157,24 +174,32 @@ class DisciplineService:
         ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Impossible de rendre un verdict : statut actuel = {case.status.value}.",
+                detail=f"Impossible de rendre un verdict : statut actuel = {
+    case.status.value}.",
             )
 
         case.status = DisciplineCaseStatus.VERDICT_RENDU
         case.sanction_type = data.sanction_type
         case.verdict_notes = data.verdict_notes
-        case.verdict_date = datetime.now(timezone.utc)
+        case.verdict_date = utc_now()
         case.verdict_by = verdict_by
 
         if data.sanction_type == SanctionType.SUSPENSION_TEMPORAIRE:
             days = data.suspension_days or 30
             case.suspension_days = days
-            case.suspension_start = datetime.now(timezone.utc)
-            case.suspension_end = datetime.now(timezone.utc) + timedelta(days=days)
+            case.suspension_start = utc_now()
+            case.suspension_end = datetime.now(
+                timezone.utc) + timedelta(days=days)
 
-        case.updated_at = datetime.now(timezone.utc)
+        case.updated_at = utc_now()
 
         updated = await self.case_repo.update(case)
+        await event_bus.publish(DisciplineSanctionIssued(
+            case_id=case_id,
+            accused_user_id=case.accused_user_id,
+            sanction_type=data.sanction_type.value,
+            issued_by_id=verdict_by,
+        ))
         enriched = await self.case_repo.enrich_case(updated)
         return DisciplineCaseResponse(**enriched)
 
@@ -193,7 +218,8 @@ class DisciplineService:
         if case.status != DisciplineCaseStatus.VERDICT_RENDU:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Impossible d'executer : verdict non rendu (statut = {case.status.value}).",
+                detail=f"Impossible d'executer : verdict non rendu (statut = {
+    case.status.value}).",
             )
 
         case.status = DisciplineCaseStatus.EXECUTE
@@ -203,10 +229,10 @@ class DisciplineService:
             user = await self.user_repo.get(case.accused_user_id)
             if user:
                 user.is_active = False
-                user.updated_at = datetime.now(timezone.utc)
+                user.updated_at = utc_now()
                 await self.user_repo.update(user.id, user)
 
-        case.updated_at = datetime.now(timezone.utc)
+        case.updated_at = utc_now()
         updated = await self.case_repo.update(case)
         enriched = await self.case_repo.enrich_case(updated)
         return DisciplineCaseResponse(**enriched)
@@ -215,7 +241,8 @@ class DisciplineService:
     #  CLASSER SANS SUITE
     # ══════════════════════════════════════════════════════════════════
 
-    async def dismiss_case(self, case_id: UUID, notes: Optional[str] = None) -> DisciplineCaseResponse:
+    async def dismiss_case(
+        self, case_id: UUID, notes: Optional[str] = None) -> DisciplineCaseResponse:
         """Classer un dossier sans suite."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -236,8 +263,8 @@ class DisciplineService:
         case.sanction_type = SanctionType.AUCUNE
         if notes:
             case.verdict_notes = notes
-        case.verdict_date = datetime.now(timezone.utc)
-        case.updated_at = datetime.now(timezone.utc)
+        case.verdict_date = utc_now()
+        case.updated_at = utc_now()
 
         updated = await self.case_repo.update(case)
         enriched = await self.case_repo.enrich_case(updated)
@@ -287,16 +314,20 @@ class DisciplineService:
             total_pages=total_pages,
         )
 
-    async def get_user_discipline_stats(self, user_id: UUID) -> DisciplineStatsResponse:
+    async def get_user_discipline_stats(
+        self, user_id: UUID) -> DisciplineStatsResponse:
         counts = await self.case_repo.count_sanctions_by_user(user_id)
         active = await self.case_repo.count_active_cases(user_id)
 
         return DisciplineStatsResponse(
             user_id=user_id,
             total_cases=sum(counts.values()) + active,
-            avertissements_verbaux=counts.get(SanctionType.AVERTISSEMENT_VERBAL.value, 0),
-            avertissements_ecrits=counts.get(SanctionType.AVERTISSEMENT_ECRIT.value, 0),
-            suspensions=counts.get(SanctionType.SUSPENSION_TEMPORAIRE.value, 0),
+            avertissements_verbaux=counts.get(
+    SanctionType.AVERTISSEMENT_VERBAL.value, 0),
+            avertissements_ecrits=counts.get(
+    SanctionType.AVERTISSEMENT_ECRIT.value, 0),
+            suspensions=counts.get(
+    SanctionType.SUSPENSION_TEMPORAIRE.value, 0),
             cases_en_cours=active,
         )
 
@@ -308,20 +339,22 @@ class DisciplineService:
         """
         # Récupérer les 2 dernières réunions hebdomadaires
         attendances, _ = await self.attendance_repo.list_paginated(
-            user_id=user_id, attendance_type=AttendanceType.WEEKLY, page_size=2
+            user_id=user_id, attendance_type=AttendanceType.REUNION_ORDINAIRE, page_size=2
         )
 
         consecutive_absences = (
-            all(a.status == AttendanceStatus.ABSENT for a in attendances) if len(attendances) >= 2 else False
+            all(a.status == AttendanceStatus.ABSENT for a in attendances) if len(
+                attendances) >= 2 else False
         )
 
         # Vérifier l'absence continue sur 6 mois
-        six_months_ago = datetime.now(timezone.utc) - timedelta(days=180)
+        six_months_ago = utc_now() - timedelta(days=180)
         recent_activity, _ = await self.attendance_repo.list_paginated(
             user_id=user_id, start_date=six_months_ago, page_size=1
         )
 
-        continuous_absence = len(recent_activity) == 0  # Aucune présence enregistrée en 6 mois
+        # Aucune présence enregistrée en 6 mois
+        continuous_absence = len(recent_activity) == 0
 
         return {
             "user_id": user_id,

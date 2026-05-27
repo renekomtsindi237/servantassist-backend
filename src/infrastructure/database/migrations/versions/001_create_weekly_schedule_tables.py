@@ -71,7 +71,10 @@ def upgrade() -> None:
         sa.Column("notes", sa.String(length=500), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(["template_id"], ["weekly_schedule_templates.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["template_id"],
+    ["weekly_schedule_templates.id"],
+     ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -96,7 +99,10 @@ def upgrade() -> None:
         sa.Column("is_present", sa.Boolean(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(["slot_id"], ["weekly_schedule_slots.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["slot_id"],
+    ["weekly_schedule_slots.id"],
+     ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
             ["servant_id"],
             ["users.id"],
@@ -144,9 +150,18 @@ def upgrade() -> None:
         sa.Column("user_agent", sa.String(length=500), nullable=True),
         sa.Column("old_value", sa.String(length=1000), nullable=True),
         sa.Column("new_value", sa.String(length=1000), nullable=True),
-        sa.ForeignKeyConstraint(["template_id"], ["weekly_schedule_templates.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["slot_id"], ["weekly_schedule_slots.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(["assignment_id"], ["slot_servant_assignments.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(
+    ["template_id"],
+    ["weekly_schedule_templates.id"],
+     ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["slot_id"],
+    ["weekly_schedule_slots.id"],
+     ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(
+    ["assignment_id"],
+    ["slot_servant_assignments.id"],
+     ondelete="SET NULL"),
         sa.ForeignKeyConstraint(
             ["modified_by"],
             ["users.id"],
@@ -196,7 +211,9 @@ def downgrade() -> None:
         table_name="slot_servant_assignments",
     )
     op.drop_table("slot_servant_assignments")
-    op.drop_index(op.f("ix_weekly_schedule_slots_template_id"), table_name="weekly_schedule_slots")
+    op.drop_index(
+    op.f("ix_weekly_schedule_slots_template_id"),
+     table_name="weekly_schedule_slots")
     op.drop_table("weekly_schedule_slots")
     op.drop_index(
         op.f("ix_weekly_schedule_templates_status"),

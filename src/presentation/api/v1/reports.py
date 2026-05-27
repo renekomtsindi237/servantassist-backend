@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.report_service import ReportService
@@ -13,6 +13,7 @@ from src.core.entities.report import ReportStatus, ReportType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.report_repository import AttachmentRepository, ReportRepository
+from src.infrastructure.services.storage_service import StorageService
 from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_responsable, require_secretaire
 from src.presentation.schemas.report import (
     AttachmentCreate,
@@ -34,6 +35,27 @@ def get_report_service(
     report_repo = ReportRepository(session)
     attachment_repo = AttachmentRepository(session)
     return ReportService(report_repo, attachment_repo)
+
+
+async def _is_secretaire(current_user: User, session: AsyncSession) -> bool:
+    if current_user.role.value != "SERVANT":
+        return False
+
+    from src.core.entities.responsable import PosteResponsable
+    from src.infrastructure.repositories.responsable_repository import NominationRepository
+
+    nom_repo = NominationRepository(session)
+    nominations = await nom_repo.get_active_by_user(current_user.id)
+    return any(
+        nom.poste
+        in (
+            PosteResponsable.SECRETAIRE_GENERAL,
+            PosteResponsable.SECRETAIRE_GENERAL_ADJOINT,
+            PosteResponsable.SECRETAIRE,
+            PosteResponsable.SECRETAIRE_ADJOINT,
+        )
+        for nom in nominations
+    )
 
 
 # ── Endpoints CRUD ────────────────────────────────────────────────────────
@@ -321,6 +343,51 @@ async def get_my_reports(
 
 # ── Endpoints pièces jointes ──────────────────────────────────────────────
 @router.post(
+    "/{report_id}/attachments/upload",
+    response_model=AttachmentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload d'une pièce jointe",
+    description=(
+        "Upload multipart d'un fichier et l'attache au rapport. "
+        "Routage automatique : image → images/reports/, document → documents/reports/. "
+        "Max 10 Mo."
+    ),
+)
+async def upload_attachment(
+    report_id: UUID,
+    file: Annotated[UploadFile, File(description="Fichier à attacher (image ou document PDF/DOC/DOCX, max 10 Mo)")],
+    current_user: Annotated[User, Depends(require_secretaire)],
+    service: Annotated[ReportService, Depends(get_report_service)],
+):
+    """Upload un fichier et crée la pièce jointe associée au rapport."""
+    report = await service.get_report(report_id)
+    if not report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rapport introuvable")
+
+    file_data = await file.read()
+    content_type = file.content_type or "application/octet-stream"
+    storage = StorageService()
+    try:
+        file_url = await storage.upload_report_attachment(
+            report_id=str(report_id),
+            file_data=file_data,
+            content_type=content_type,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+    attachment = await service.add_attachment(
+        report_id=report_id,
+        filename=file.filename or "fichier",
+        file_url=file_url,
+        file_type=content_type,
+        file_size=len(file_data),
+        uploaded_by=current_user.id,
+    )
+    return attachment
+
+
+@router.post(
     "/{report_id}/attachments",
     response_model=AttachmentResponse,
     status_code=status.HTTP_201_CREATED,
@@ -369,6 +436,7 @@ async def get_attachments(
     report_id: UUID,
     current_user: Annotated[User, Depends(get_current_active_user)],
     service: Annotated[ReportService, Depends(get_report_service)],
+    session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
     """Récupère les pièces jointes d'un rapport."""
     # Vérifier que le rapport existe
@@ -377,6 +445,13 @@ async def get_attachments(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Rapport introuvable",
+        )
+
+    is_secretaire = await _is_secretaire(current_user, session)
+    if not is_secretaire and report.status != ReportStatus.PUBLISHED:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vous ne pouvez consulter que les rapports publies",
         )
 
     attachments = await service.get_attachments(report_id)
@@ -407,3 +482,51 @@ async def delete_attachment(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+
+
+# ── Export PDF ────────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/{report_id}/export/pdf",
+    summary="Exporter un rapport en PDF",
+    description="Télécharge le rapport au format PDF.",
+)
+async def export_report_pdf(
+    report_id: UUID,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    service: Annotated[ReportService, Depends(get_report_service)],
+):
+    """Génère et retourne le rapport sous forme de fichier PDF."""
+    report = await service.get_report(report_id)
+    if not report:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Rapport introuvable",
+        )
+    if report.status.value != "PUBLISHED":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seuls les rapports publiés peuvent être exportés.",
+        )
+
+    from src.infrastructure.services.pdf_service import PDFService
+
+    pdf_svc = PDFService()
+    pdf_bytes = pdf_svc.generate_report(
+        title=report.title,
+        report_type=report.type.value if hasattr(report.type, "value") else str(report.type),
+        report_date=report.report_date,
+        location=report.location,
+        content=report.content,
+        author_name=str(report.created_by),
+        participants=report.participants or [],
+        decisions=report.decisions,
+        action_items=report.action_items,
+    )
+    filename = f"rapport_{report_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

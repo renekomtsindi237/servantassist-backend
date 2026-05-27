@@ -9,6 +9,7 @@ Regles du reglement interieur :
 """
 import math
 from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional
 from uuid import UUID
 
@@ -16,8 +17,8 @@ from fastapi import HTTPException, status
 
 from src.core.entities.cotisation import CotisationPeriod, CotisationStatus, CotisationType, MemberCotisation
 from src.core.entities.user import UserRole
-from src.infrastructure.repositories.cotisation_repository import CotisationPeriodRepository, MemberCotisationRepository
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.core.interfaces.repositories import ICotisationPeriodRepository, IMemberCotisationRepository
+from src.core.interfaces.repositories import IUserRepository
 from src.presentation.schemas.cotisation import (
     CotisationBilanResponse,
     CotisationPeriodCreate,
@@ -35,9 +36,9 @@ class CotisationService:
 
     def __init__(
         self,
-        period_repo: CotisationPeriodRepository,
-        payment_repo: MemberCotisationRepository,
-        user_repo: UserRepository,
+        period_repo: ICotisationPeriodRepository,
+        payment_repo: IMemberCotisationRepository,
+        user_repo: IUserRepository,
     ):
         self.period_repo = period_repo
         self.payment_repo = payment_repo
@@ -47,7 +48,8 @@ class CotisationService:
     #  PERIODES
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_period(self, data: CotisationPeriodCreate, created_by: UUID) -> CotisationPeriodResponse:
+    async def create_period(self, data: CotisationPeriodCreate,
+                            created_by: UUID) -> CotisationPeriodResponse:
         if data.end_date <= data.start_date:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -68,7 +70,8 @@ class CotisationService:
         created = await self.period_repo.create(period)
         return await self._build_period_response(created)
 
-    async def update_period(self, period_id: UUID, data: CotisationPeriodUpdate) -> CotisationPeriodResponse:
+    async def update_period(
+        self, period_id: UUID, data: CotisationPeriodUpdate) -> CotisationPeriodResponse:
         period = await self.period_repo.get(period_id)
         if not period:
             raise HTTPException(
@@ -85,7 +88,7 @@ class CotisationService:
             period.end_date = data.end_date
         if data.is_active is not None:
             period.is_active = data.is_active
-        period.updated_at = datetime.now(timezone.utc)
+        period.updated_at = utc_now()
 
         updated = await self.period_repo.update(period)
         return await self._build_period_response(updated)
@@ -132,7 +135,8 @@ class CotisationService:
             )
         await self.period_repo.delete(period_id)
 
-    async def _build_period_response(self, period: CotisationPeriod) -> CotisationPeriodResponse:
+    async def _build_period_response(
+        self, period: CotisationPeriod) -> CotisationPeriodResponse:
         stats = await self.payment_repo.get_period_stats(period.id)
         rate = 0.0
         if stats["total_members"] > 0:
@@ -162,7 +166,8 @@ class CotisationService:
     #  PAIEMENTS
     # ══════════════════════════════════════════════════════════════════
 
-    async def record_payment(self, data: MemberCotisationCreate, recorded_by: UUID) -> MemberCotisationResponse:
+    async def record_payment(self, data: MemberCotisationCreate,
+                             recorded_by: UUID) -> MemberCotisationResponse:
         """Enregistrer un paiement de cotisation."""
         period = await self.period_repo.get(data.period_id)
         if not period:
@@ -191,11 +196,11 @@ class CotisationService:
                 existing.status = CotisationStatus.PAYE
             else:
                 existing.status = CotisationStatus.PAYE_PARTIELLEMENT
-            existing.payment_date = datetime.now(timezone.utc)
+            existing.payment_date = utc_now()
             existing.payment_method = data.payment_method or existing.payment_method
             existing.notes = data.notes or existing.notes
             existing.recorded_by = recorded_by
-            existing.updated_at = datetime.now(timezone.utc)
+            existing.updated_at = utc_now()
             updated = await self.payment_repo.update(existing)
             enriched = await self.payment_repo.enrich_cotisation(updated)
             return MemberCotisationResponse(**enriched)
@@ -210,7 +215,7 @@ class CotisationService:
             user_id=data.user_id,
             amount_paid=data.amount_paid,
             status=payment_status,
-            payment_date=datetime.now(timezone.utc),
+            payment_date=utc_now(),
             payment_method=data.payment_method,
             notes=data.notes,
             recorded_by=recorded_by,
@@ -219,7 +224,8 @@ class CotisationService:
         enriched = await self.payment_repo.enrich_cotisation(created)
         return MemberCotisationResponse(**enriched)
 
-    async def get_period_payments(self, period_id: UUID) -> List[MemberCotisationResponse]:
+    async def get_period_payments(
+        self, period_id: UUID) -> List[MemberCotisationResponse]:
         period = await self.period_repo.get(period_id)
         if not period:
             raise HTTPException(
@@ -230,7 +236,8 @@ class CotisationService:
         enriched = await self.payment_repo.enrich_cotisations(payments)
         return [MemberCotisationResponse(**e) for e in enriched]
 
-    async def get_user_payments(self, user_id: UUID) -> List[MemberCotisationResponse]:
+    async def get_user_payments(
+        self, user_id: UUID) -> List[MemberCotisationResponse]:
         payments = await self.payment_repo.list_by_user(user_id)
         enriched = await self.payment_repo.enrich_cotisations(payments)
         return [MemberCotisationResponse(**e) for e in enriched]
@@ -247,12 +254,17 @@ class CotisationService:
         period_response = await self._build_period_response(period)
         payments = await self.payment_repo.list_by_period(period_id)
         enriched_payments = await self.payment_repo.enrich_cotisations(payments)
-        payment_responses = [MemberCotisationResponse(**e) for e in enriched_payments]
+        payment_responses = [
+    MemberCotisationResponse(
+        **e) for e in enriched_payments]
 
         total_expected = period.amount_expected * period_response.total_members
         total_collected = period_response.total_amount_collected
         total_remaining = max(0, total_expected - total_collected)
-        taux = (total_collected / total_expected * 100) if total_expected > 0 else 0
+        taux = (
+    total_collected /
+    total_expected *
+     100) if total_expected > 0 else 0
 
         return CotisationBilanResponse(
             period=period_response,

@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.sunday_schedule_service import SundayScheduleService
@@ -193,13 +193,17 @@ async def generate_exceptional_template(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-@router.get("/", response_model=PaginatedResponse[SundayScheduleTemplateSummary])
+@router.get("/",
+            response_model=PaginatedResponse[SundayScheduleTemplateSummary])
 async def list_templates(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_charge_classement_dimanche)],
-    status_filter: Optional[SundayScheduleStatus] = Query(None, alias="status", description="Filtrer par statut"),
-    start_date: Optional[datetime] = Query(None, description="Modèles à partir de cette date"),
-    end_date: Optional[datetime] = Query(None, description="Modèles jusqu'à cette date"),
+    status_filter: Optional[SundayScheduleStatus] = Query(
+    None, alias="status", description="Filtrer par statut"),
+    start_date: Optional[datetime] = Query(
+    None, description="Modèles à partir de cette date"),
+    end_date: Optional[datetime] = Query(
+    None, description="Modèles jusqu'à cette date"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -369,7 +373,8 @@ async def add_assignment_to_mass(
     return await service.add_assignment_to_mass(mass_id, data, assigned_by=current_user.id)
 
 
-@router.delete("/assignments/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/assignments/{assignment_id}",
+               status_code=status.HTTP_204_NO_CONTENT)
 async def remove_assignment(
     assignment_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -396,6 +401,7 @@ async def remove_assignment(
 async def mark_presence(
     assignment_id: UUID,
     data: MarkPresenceRequest,
+    request: Request,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
@@ -408,12 +414,12 @@ async def mark_presence(
     de la messe. Toutes les modifications sont tracées dans l'historique.
     """
     service = _get_service(session)
-    # TODO: Récupérer l'IP address de la requête
+    ip_address = request.client.host if request.client else None
     return await service.mark_presence(
         assignment_id,
         data.is_present,
         marked_by=current_user.id,
-        ip_address=None,
+        ip_address=ip_address,
     )
 
 
@@ -430,7 +436,11 @@ async def get_modification_history(
     template_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_sunday_schedule_history_access)],
-    limit: int = Query(100, ge=1, le=500, description="Nombre maximum d'entrées"),
+    limit: int = Query(
+    100,
+    ge=1,
+    le=500,
+     description="Nombre maximum d'entrées"),
 ):
     """
     Récupérer l'historique complet des modifications d'un classement.

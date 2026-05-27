@@ -3,26 +3,21 @@ Schemas pour le module Users (gestion des profils et administration).
 """
 import re
 from datetime import datetime
-from typing import Generic, List, Optional, TypeVar
+from typing import Dict, Generic, List, Optional, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from src.core.entities.user import UserRole
+from src.core.entities.user import UserRole, ServantPosition
 
-# ── Pagination generique ─────────────────────────────────────────────────
-T = TypeVar("T")
-
-
-class PaginatedResponse(BaseModel, Generic[T]):
-    """Reponse paginee generique, reutilisable par tous les modules."""
-
-    items: List[T]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
-
+# PaginatedResponse est défini une seule fois dans common.py et
+# ré-exporté ici pour la compatibilité descendante de tous les imports existants.
+from src.presentation.schemas.common import (  # noqa: F401
+    PageLinks,
+    PaginatedResponse,
+    ResourceLink,
+    build_paginated_response,
+)
 
 # ── Profil utilisateur (lecture) ─────────────────────────────────────────
 class UserProfileResponse(BaseModel):
@@ -33,14 +28,19 @@ class UserProfileResponse(BaseModel):
     first_name: str
     last_name: str
     role: UserRole
+    position: Optional[ServantPosition] = None
     is_active: bool
     phone_number: Optional[str] = None
     profile_photo_url: Optional[str] = None
+    parent_id: Optional[UUID] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    links: Optional[Dict[str, ResourceLink]] = Field(
+        default=None,
+        description="Liens vers les ressources liées (HATEOAS léger)",
+    )
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 # ── Mise a jour du profil (self-service) ─────────────────────────────────
@@ -56,7 +56,8 @@ class UserProfileUpdate(BaseModel):
     def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and v != "":
             if not re.match(r"^\+\d{1,3}\d{6,14}$", v):
-                raise ValueError("Le numero de telephone doit etre au format +237xxxxxxxxx")
+                raise ValueError(
+                    "Le numero de telephone doit etre au format +237xxxxxxxxx")
         return v
 
 
@@ -71,13 +72,17 @@ class ChangePasswordRequest(BaseModel):
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
         if len(v) < 8:
-            raise ValueError("Le mot de passe doit contenir au moins 8 caracteres")
+            raise ValueError(
+                "Le mot de passe doit contenir au moins 8 caracteres")
         if not re.search(r"[A-Z]", v):
-            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
+            raise ValueError(
+                "Le mot de passe doit contenir au moins une majuscule")
         if not re.search(r"[a-z]", v):
-            raise ValueError("Le mot de passe doit contenir au moins une minuscule")
+            raise ValueError(
+                "Le mot de passe doit contenir au moins une minuscule")
         if not re.search(r"\d", v):
-            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
+            raise ValueError(
+                "Le mot de passe doit contenir au moins un chiffre")
         return v
 
 
@@ -90,13 +95,15 @@ class UserAdminUpdate(BaseModel):
     phone_number: Optional[str] = None
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = None
+    position: Optional[ServantPosition] = None
 
     @field_validator("phone_number")
     @classmethod
     def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and v != "":
             if not re.match(r"^\+\d{1,3}\d{6,14}$", v):
-                raise ValueError("Le numero de telephone doit etre au format +237xxxxxxxxx")
+                raise ValueError(
+                    "Le numero de telephone doit etre au format +237xxxxxxxxx")
         return v
 
 
@@ -109,13 +116,17 @@ class UserAdminResetPassword(BaseModel):
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
         if len(v) < 8:
-            raise ValueError("Le mot de passe doit contenir au moins 8 caracteres")
+            raise ValueError(
+                "Le mot de passe doit contenir au moins 8 caracteres")
         if not re.search(r"[A-Z]", v):
-            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
+            raise ValueError(
+                "Le mot de passe doit contenir au moins une majuscule")
         if not re.search(r"[a-z]", v):
-            raise ValueError("Le mot de passe doit contenir au moins une minuscule")
+            raise ValueError(
+                "Le mot de passe doit contenir au moins une minuscule")
         if not re.search(r"\d", v):
-            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
+            raise ValueError(
+                "Le mot de passe doit contenir au moins un chiffre")
         return v
 
 
@@ -125,6 +136,9 @@ class UserListFilters(BaseModel):
 
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
-    search: Optional[str] = Field(None, max_length=100, description="Recherche par nom ou email")
+    search: Optional[str] = Field(
+    None,
+    max_length=100,
+     description="Recherche par nom ou email")
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)

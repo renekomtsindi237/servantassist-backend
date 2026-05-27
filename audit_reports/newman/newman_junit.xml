@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="ServantAssist API Tests" tests="27" time="0.912">
+  <testsuite name="00_Health / GET /health" id="1049b3bb-1e94-43b5-a862-325260432602" timestamp="2026-03-26T20:56:23.060Z" tests="3" failures="0" errors="0" time="0.046">
+    <testcase name="Status 200" time="0.046" classname="00HealthGetHealth"/>
+    <testcase name="Response time &lt; 500ms" time="0.046" classname="00HealthGetHealth"/>
+    <testcase name="Has status field" time="0.046" classname="00HealthGetHealth"/>
+  </testsuite>
+  <testsuite name="01_Auth / POST /auth/login — Admin" id="d3e7cd39-0970-4969-946f-865031414ad2" timestamp="2026-03-26T20:56:23.060Z" tests="3" failures="0" errors="0" time="0.216">
+    <testcase name="Status 200" time="0.216" classname="01AuthPostAuthLoginAdmin"/>
+    <testcase name="Has access_token" time="0.216" classname="01AuthPostAuthLoginAdmin"/>
+    <testcase name="Response time &lt; 1000ms" time="0.216" classname="01AuthPostAuthLoginAdmin"/>
+  </testsuite>
+  <testsuite name="01_Auth / POST /auth/login — Wrong Password → 401" id="92e45ee6-1add-4af1-b94e-be520af33682" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="0" errors="0" time="0.220">
+    <testcase name="Status 401 on wrong password" time="0.220" classname="01AuthPostAuthLoginWrongPassword401"/>
+    <testcase name="No token in error response" time="0.220" classname="01AuthPostAuthLoginWrongPassword401"/>
+  </testsuite>
+  <testsuite name="01_Auth / POST /auth/login — Missing Fields → 422" id="53a94ecc-93f0-43c2-9fc2-ac60c9e1dc4a" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="1" errors="0" time="0.008">
+    <testcase name="Status 422 on validation error" time="0.008" classname="01AuthPostAuthLoginMissingFields422">
+      <failure type="AssertionFailure" message="expected response to have status code 422 but got 429">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 01_Auth / POST /auth/login — Missing Fields → 422.]]>
+        <![CDATA[Test description: Status 422 on validation error.]]>
+        <![CDATA[Error message: expected response to have status code 422 but got 429.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 422 but got 429
+   at Object.eval sandbox-script.js:1:4).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="01_Auth / POST /auth/refresh" id="8b2723fd-447d-4710-ab6f-71ad7bb29244" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="0" errors="0" time="0.010">
+    <testcase name="Status 200" time="0.010" classname="01AuthPostAuthRefresh"/>
+    <testcase name="New access_token returned" time="0.010" classname="01AuthPostAuthRefresh"/>
+  </testsuite>
+  <testsuite name="01_Auth / POST /auth/forgot-password" id="60ef8390-d7f5-4da3-9590-3eba31d3774a" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="0" errors="0" time="0.008">
+    <testcase name="Non-divulgation: 200 even if email not found" time="0.008" classname="01AuthPostAuthForgotPassword"/>
+    <testcase name="No user info leaked in response" time="0.008" classname="01AuthPostAuthForgotPassword"/>
+  </testsuite>
+  <testsuite name="02_Security / GET /users — No Auth → 401" id="19512fe4-2a64-466b-b714-3dd2d56fc07a" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="0" errors="0" time="0.016">
+    <testcase name="Status 401 without auth" time="0.016" classname="02SecurityGetUsersNoAuth401"/>
+    <testcase name="Error message present" time="0.016" classname="02SecurityGetUsersNoAuth401"/>
+  </testsuite>
+  <testsuite name="02_Security / GET /users — Invalid JWT → 401" id="b1d8432a-f5ba-426b-8e7e-009848fbe9db" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="0" errors="0" time="0.017">
+    <testcase name="Status 401 on invalid JWT" time="0.017" classname="02SecurityGetUsersInvalidJwt401"/>
+  </testsuite>
+  <testsuite name="02_Security / Security Headers Check" id="ef910c8d-f40a-4eb6-b254-22c81570e785" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="0" errors="0" time="0.010">
+    <testcase name="Response time &lt; 500ms" time="0.010" classname="02SecuritySecurityHeadersCheck"/>
+    <testcase name="Content-Type header present" time="0.010" classname="02SecuritySecurityHeadersCheck"/>
+  </testsuite>
+  <testsuite name="03_Users / GET /users/me" id="595bfda7-20c0-427c-a5d9-a541efc86d60" timestamp="2026-03-26T20:56:23.060Z" tests="3" failures="0" errors="0" time="0.013">
+    <testcase name="Status 200" time="0.013" classname="03UsersGetUsersMe"/>
+    <testcase name="User data returned" time="0.013" classname="03UsersGetUsersMe"/>
+    <testcase name="No password hash in response" time="0.013" classname="03UsersGetUsersMe"/>
+  </testsuite>
+  <testsuite name="03_Users / GET /users — Admin list" id="7cac070a-98bf-4578-b66e-a78b19d7a7de" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="0" errors="0" time="0.023">
+    <testcase name="Status 200" time="0.023" classname="03UsersGetUsersAdminList"/>
+    <testcase name="Returns array or paginated result" time="0.023" classname="03UsersGetUsersAdminList"/>
+  </testsuite>
+  <testsuite name="04_Events / POST /events — Create" id="be11599e-f088-4255-80fc-21e48236559f" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="2" errors="0" time="0.012">
+    <testcase name="Status 200 or 201" time="0.012" classname="04EventsPostEventsCreate">
+      <failure type="AssertionFailure" message="expected 422 to be one of [ 200, 201 ]">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 04_Events / POST /events — Create.]]>
+        <![CDATA[Test description: Status 200 or 201.]]>
+        <![CDATA[Error message: expected 422 to be one of [ 200, 201 ].]]>
+        <![CDATA[Stacktrace: AssertionError: expected 422 to be one of [ 200, 201 ]
+   at Object.eval sandbox-script.js:1:12).]]>
+      </failure>
+    </testcase>
+    <testcase name="Event ID returned" time="0.012" classname="04EventsPostEventsCreate">
+      <failure type="AssertionFailure" message="expected { detail: [ { …(5) }, { …(5) } ] } to have property 'id'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 04_Events / POST /events — Create.]]>
+        <![CDATA[Test description: Event ID returned.]]>
+        <![CDATA[Error message: expected { detail: [ { …(5) }, { …(5) } ] } to have property 'id'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { detail: [ { …(5) }, { …(5) } ] } to have property 'id'
+   at Object.eval sandbox-script.js:2:12).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="04_Events / GET /events — List" id="0852ce23-ee2e-47d7-afd3-4fb154c4509b" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="2" errors="1" time="0.000">
+    <system-err><![CDATA[Iteration: 0
+RequestError: Error: Invalid URI "http:///?page=1&size=10"
+    at Request.init (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\postman-runtime\node_modules\postman-request\request.js:399:31)
+    at new Request (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\postman-runtime\node_modules\postman-request\request.js:226:8)
+    at request (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\postman-runtime\node_modules\postman-request\index.js:46:10)
+    at C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\postman-runtime\lib\requester\request-wrapper.js:79:23
+    at wrapper (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\async\dist\async.js:273:20)
+    at next (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\async\dist\async.js:5797:24)
+    at C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\async\dist\async.js:329:20
+    at setCertificate (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\postman-runtime\lib\requester\request-wrapper.js:50:20)
+    at C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\postman-runtime\lib\requester\request-wrapper.js:74:13
+    at nextTask (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\async\dist\async.js:5791:13)
+    at next (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\async\dist\async.js:5799:13)
+    at C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\async\dist\async.js:329:20
+    at setProxy (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\postman-runtime\lib\requester\request-wrapper.js:31:9)
+    at C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\postman-runtime\lib\requester\request-wrapper.js:71:13
+    at nextTask (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\async\dist\async.js:5791:13)
+    at Object.waterfall (C:\Users\User\AppData\Roaming\npm\node_modules\newman\node_modules\async\dist\async.js:5802:9)
+
+---
+]]></system-err>
+    <testcase name="Status 200" time="0.000" classname="04EventsGetEventsList">
+      <failure type="AssertionFailure" message="expected PostmanResponse{ …(5) } to have property 'code'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 04_Events / GET /events — List.]]>
+        <![CDATA[Test description: Status 200.]]>
+        <![CDATA[Error message: expected PostmanResponse{ …(5) } to have property 'code'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected PostmanResponse{ …(5) } to have property 'code'
+   at Object.eval sandbox-script.js:1:13).]]>
+      </failure>
+    </testcase>
+    <testcase name="Response time &lt; 1000ms" time="0.000" classname="04EventsGetEventsList">
+      <failure type="AssertionFailure" message="expected undefined to be a number or a date">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 04_Events / GET /events — List.]]>
+        <![CDATA[Test description: Response time < 1000ms.]]>
+        <![CDATA[Error message: expected undefined to be a number or a date.]]>
+        <![CDATA[Stacktrace: AssertionError: expected undefined to be a number or a date
+   at Object.eval sandbox-script.js:2:13).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="04_Events / GET /events/{event_id}" id="0ddb02b6-99e8-4e71-99be-127d6cf70794" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="1" errors="0" time="0.012">
+    <testcase name="Status 200" time="0.012" classname="04EventsGetEventsEventId"/>
+    <testcase name="Event data complete" time="0.012" classname="04EventsGetEventsEventId">
+      <failure type="AssertionFailure" message="expected { items: [], total: +0, page: 1, …(2) } to have property 'id'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 04_Events / GET /events/{event_id}.]]>
+        <![CDATA[Test description: Event data complete.]]>
+        <![CDATA[Error message: expected { items: [], total: +0, page: 1, …(2) } to have property 'id'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { items: [], total: +0, page: 1, …(2) } to have property 'id'
+   at Object.eval sandbox-script.js:2:14).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="04_Events / GET /events/nonexistent → 404" id="e08d36fb-6e43-442c-8af1-18e12d9dd4c4" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="0" errors="0" time="0.010">
+    <testcase name="Status 404" time="0.010" classname="04EventsGetEventsNonexistent404"/>
+  </testsuite>
+  <testsuite name="04_Events / DELETE /events/{event_id}" id="9c833994-abad-48c5-a433-ad0452082516" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="1" errors="0" time="0.007">
+    <testcase name="Status 200 or 204" time="0.007" classname="04EventsDeleteEventsEventId">
+      <failure type="AssertionFailure" message="expected 405 to be one of [ 200, 204 ]">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 04_Events / DELETE /events/{event_id}.]]>
+        <![CDATA[Test description: Status 200 or 204.]]>
+        <![CDATA[Error message: expected 405 to be one of [ 200, 204 ].]]>
+        <![CDATA[Stacktrace: AssertionError: expected 405 to be one of [ 200, 204 ]
+   at Object.eval sandbox-script.js:1:16).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="05_Assignments / GET /assignments/me" id="48040854-1d82-41ef-b1ec-484c0761f84f" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="0" errors="0" time="0.010">
+    <testcase name="Status 200" time="0.010" classname="05AssignmentsGetAssignmentsMe"/>
+    <testcase name="Returns list" time="0.010" classname="05AssignmentsGetAssignmentsMe"/>
+  </testsuite>
+  <testsuite name="05_Assignments / GET /assignments/me/upcoming" id="df50c113-f248-4eb5-b602-5c75c710129f" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="1" errors="0" time="0.043">
+    <testcase name="Status 200" time="0.043" classname="05AssignmentsGetAssignmentsMeUpcoming">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 05_Assignments / GET /assignments/me/upcoming.]]>
+        <![CDATA[Test description: Status 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 500
+   at Object.eval sandbox-script.js:1:18).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="06_Attendance / GET /attendance/my" id="8045a56c-f5d8-484a-b164-cded9e28931f" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="1" errors="0" time="0.030">
+    <testcase name="Status 200" time="0.030" classname="06AttendanceGetAttendanceMy">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 06_Attendance / GET /attendance/my.]]>
+        <![CDATA[Test description: Status 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 500
+   at Object.eval sandbox-script.js:1:19).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="06_Attendance / GET /attendance/my/stats" id="434c59fd-23a8-4397-bdd8-7ac03c16359b" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="2" errors="0" time="0.035">
+    <testcase name="Status 200" time="0.035" classname="06AttendanceGetAttendanceMyStats">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 06_Attendance / GET /attendance/my/stats.]]>
+        <![CDATA[Test description: Status 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 500
+   at Object.eval sandbox-script.js:1:20).]]>
+      </failure>
+    </testcase>
+    <testcase name="Stats fields present" time="0.035" classname="06AttendanceGetAttendanceMyStats">
+      <failure type="AssertionFailure" message="expected { …(3) } to satisfy [Function]">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 06_Attendance / GET /attendance/my/stats.]]>
+        <![CDATA[Test description: Stats fields present.]]>
+        <![CDATA[Error message: expected { …(3) } to satisfy [Function].]]>
+        <![CDATA[Stacktrace: AssertionError: expected { …(3) } to satisfy [Function]
+   at Object.eval sandbox-script.js:2:20).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="07_Dashboard / GET /dashboard/summary" id="f8d9d530-7eaf-4c6b-9a96-90f3cc92db8b" timestamp="2026-03-26T20:56:23.060Z" tests="2" failures="1" errors="0" time="0.033">
+    <testcase name="Status 200" time="0.033" classname="07DashboardGetDashboardSummary">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 07_Dashboard / GET /dashboard/summary.]]>
+        <![CDATA[Test description: Status 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 500
+   at Object.eval sandbox-script.js:1:21).]]>
+      </failure>
+    </testcase>
+    <testcase name="Response time &lt; 2000ms" time="0.033" classname="07DashboardGetDashboardSummary"/>
+  </testsuite>
+  <testsuite name="07_Dashboard / GET /dashboard/attendance" id="08978da3-2817-4312-a680-d6375edd5b6c" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="1" errors="0" time="0.032">
+    <testcase name="Status 200" time="0.032" classname="07DashboardGetDashboardAttendance">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 07_Dashboard / GET /dashboard/attendance.]]>
+        <![CDATA[Test description: Status 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 500
+   at Object.eval sandbox-script.js:1:22).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="07_Dashboard / GET /dashboard — Servant role → 403" id="a17f40c6-fbab-41e9-a986-496ebc92094c" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="0" errors="0" time="0.013">
+    <testcase name="Skipped: no servant token" time="0.013" classname="07DashboardGetDashboardServantRole403"/>
+  </testsuite>
+  <testsuite name="08_Cotisations / GET /cotisations/periods" id="3e40ac29-169d-4c9b-b7b8-194f7eb89b66" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="0" errors="0" time="0.019">
+    <testcase name="Status 200" time="0.019" classname="08CotisationsGetCotisationsPeriods"/>
+  </testsuite>
+  <testsuite name="08_Cotisations / GET /cotisations/my" id="ecf3f0e4-abe5-432f-a170-e23f88b3ae21" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="0" errors="0" time="0.018">
+    <testcase name="Status 200" time="0.018" classname="08CotisationsGetCotisationsMy"/>
+  </testsuite>
+  <testsuite name="09_Notifications / GET /communication — Notifications list" id="626db938-e340-4e3c-a4a4-5760cab6afac" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="0" errors="0" time="0.006">
+    <testcase name="Status 200 or 404" time="0.006" classname="09NotificationsGetCommunicationNotificationsList"/>
+  </testsuite>
+  <testsuite name="10_Reports / GET /reports — List" id="89a1ca29-45f1-4f09-8312-f8846e1511a7" timestamp="2026-03-26T20:56:23.060Z" tests="1" failures="1" errors="0" time="0.045">
+    <testcase name="Status 200 or 405" time="0.045" classname="10ReportsGetReportsList">
+      <failure type="AssertionFailure" message="expected 500 to be one of [ 200, 405 ]">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: sa-audit-2026.]]>
+        <![CDATA[Collection name: ServantAssist API Tests.]]>
+        <![CDATA[Request name: 10_Reports / GET /reports — List.]]>
+        <![CDATA[Test description: Status 200 or 405.]]>
+        <![CDATA[Error message: expected 500 to be one of [ 200, 405 ].]]>
+        <![CDATA[Stacktrace: AssertionError: expected 500 to be one of [ 200, 405 ]
+   at Object.eval sandbox-script.js:1:27).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

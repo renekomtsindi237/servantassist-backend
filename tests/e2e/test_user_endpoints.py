@@ -114,6 +114,75 @@ class TestChangePassword:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  GET /directory — Répertoire (tout utilisateur authentifié)
+# ═══════════════════════════════════════════════════════════════════════════
+@pytest.mark.e2e
+class TestListDirectory:
+    async def test_servant_can_access_directory(
+        self, client: AsyncClient, servant_user: User, admin_user: User, parent_user: User
+    ):
+        resp = await client.get(
+            "/api/v1/users/directory", headers=make_auth_header(servant_user)
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "items" in body
+        assert "total" in body
+
+    async def test_parent_can_access_directory(
+        self, client: AsyncClient, parent_user: User, servant_user: User
+    ):
+        resp = await client.get(
+            "/api/v1/users/directory", headers=make_auth_header(parent_user)
+        )
+        assert resp.status_code == 200
+
+    async def test_admin_can_access_directory(
+        self, client: AsyncClient, admin_user: User, servant_user: User
+    ):
+        resp = await client.get(
+            "/api/v1/users/directory", headers=make_auth_header(admin_user)
+        )
+        assert resp.status_code == 200
+
+    async def test_unauthenticated_401(self, client: AsyncClient):
+        resp = await client.get("/api/v1/users/directory")
+        assert resp.status_code == 401
+
+    async def test_filter_by_role(
+        self, client: AsyncClient, servant_user: User, parent_user: User, admin_user: User
+    ):
+        resp = await client.get(
+            "/api/v1/users/directory?role=SERVANT", headers=make_auth_header(servant_user)
+        )
+        assert resp.status_code == 200
+        for item in resp.json()["items"]:
+            assert item["role"] == "SERVANT"
+
+    async def test_pagination_defaults(
+        self, client: AsyncClient, servant_user: User, admin_user: User, parent_user: User
+    ):
+        resp = await client.get(
+            "/api/v1/users/directory?page=1&page_size=1",
+            headers=make_auth_header(servant_user),
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert len(body["items"]) == 1
+        assert body["total"] >= 1
+
+    async def test_returns_only_active_by_default(
+        self, client: AsyncClient, servant_user: User, inactive_user: User
+    ):
+        resp = await client.get(
+            "/api/v1/users/directory", headers=make_auth_header(servant_user)
+        )
+        assert resp.status_code == 200
+        ids = [item["id"] for item in resp.json()["items"]]
+        assert str(inactive_user.id) not in ids
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  GET / — Liste paginee (admin)
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.e2e

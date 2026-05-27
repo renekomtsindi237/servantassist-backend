@@ -26,10 +26,18 @@ def upgrade() -> None:
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column("report_date", sa.DateTime(), nullable=False),
         sa.Column("location", sa.String(200), nullable=False),
-        sa.Column("participants", postgresql.JSON(), nullable=False, server_default="[]"),
+        sa.Column(
+    "participants",
+    postgresql.JSON(),
+    nullable=False,
+     server_default="[]"),
         sa.Column("decisions", sa.Text(), nullable=True),
         sa.Column("action_items", sa.Text(), nullable=True),
-        sa.Column("status", sa.String(50), nullable=False, server_default="BROUILLON"),
+        sa.Column(
+    "status",
+    sa.String(50),
+    nullable=False,
+     server_default="BROUILLON"),
         sa.Column("created_by", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("published_at", sa.DateTime(), nullable=True),
         sa.Column(
@@ -51,7 +59,10 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["created_by"],
+    ["users.id"],
+     ondelete="CASCADE"),
     )
 
     # Index pour améliorer les performances
@@ -70,7 +81,11 @@ def upgrade() -> None:
         sa.Column("file_url", sa.String(500), nullable=False),
         sa.Column("file_type", sa.String(100), nullable=False),
         sa.Column("file_size", sa.Integer(), nullable=False),
-        sa.Column("uploaded_by", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column(
+    "uploaded_by",
+    postgresql.UUID(
+        as_uuid=True),
+         nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(),
@@ -78,18 +93,34 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(["report_id"], ["reports.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["uploaded_by"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["report_id"],
+    ["reports.id"],
+     ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["uploaded_by"],
+    ["users.id"],
+     ondelete="CASCADE"),
     )
 
     # Index pour les pièces jointes
-    op.create_index("ix_report_attachments_report_id", "report_attachments", ["report_id"])
-    op.create_index("ix_report_attachments_uploaded_by", "report_attachments", ["uploaded_by"])
+    op.create_index(
+    "ix_report_attachments_report_id",
+    "report_attachments",
+     ["report_id"])
+    op.create_index(
+    "ix_report_attachments_uploaded_by",
+    "report_attachments",
+     ["uploaded_by"])
 
 
 def downgrade() -> None:
-    op.drop_index("ix_report_attachments_uploaded_by", table_name="report_attachments")
-    op.drop_index("ix_report_attachments_report_id", table_name="report_attachments")
+    op.drop_index(
+    "ix_report_attachments_uploaded_by",
+     table_name="report_attachments")
+    op.drop_index(
+    "ix_report_attachments_report_id",
+     table_name="report_attachments")
     op.drop_table("report_attachments")
 
     op.drop_index("ix_reports_created_at", table_name="reports")

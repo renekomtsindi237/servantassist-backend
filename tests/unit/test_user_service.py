@@ -248,7 +248,8 @@ class TestAdminResetPassword:
     async def test_reset_password(self, db_session, admin_user, servant_user):
         service = _make_service(db_session)
         await service.admin_reset_password(servant_user.id, UserAdminResetPassword(new_password="ResetPass1"))
-        assert SecurityUtils.verify_password("ResetPass1", servant_user.hashed_password)
+        updated = await UserRepository(db_session).get(servant_user.id)
+        assert SecurityUtils.verify_password("ResetPass1", updated.hashed_password)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

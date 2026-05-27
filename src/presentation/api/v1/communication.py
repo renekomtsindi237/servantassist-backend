@@ -15,14 +15,18 @@ Endpoints :
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+import logging
 
 from src.application.services.notification_service import NotificationService
 from src.core.entities.notification import NotificationChannel, NotificationStatus, NotificationType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
+
+logger = logging.getLogger(__name__)
 from src.presentation.schemas.notification import (
     BroadcastResponse,
     NotificationBroadcast,
@@ -37,8 +41,9 @@ from src.presentation.schemas.notification import (
 router = APIRouter()
 
 
-def _get_service(session: AsyncSession) -> NotificationService:
-    return NotificationService(session)
+def _get_service(session: AsyncSession, request: Request = None) -> NotificationService:
+    ws_manager = getattr(request.app.state, "ws_manager", None) if request else None
+    return NotificationService(session, ws_manager=ws_manager)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -54,11 +59,12 @@ def _get_service(session: AsyncSession) -> NotificationService:
 )
 async def send_notification(
     data: NotificationSend,
+    request: Request,
     current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
     """Envoie une notification a un utilisateur specifique."""
-    service = _get_service(session)
+    service = _get_service(session, request)
     notification = await service.send_notification(
         recipient_id=data.recipient_id,
         notification_type=data.notification_type,
@@ -82,6 +88,7 @@ async def send_notification(
 )
 async def broadcast_notification(
     data: NotificationBroadcast,
+    request: Request,
     current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
@@ -95,7 +102,7 @@ async def broadcast_notification(
     - ``responsables`` : servants avec nomination active
     - ``subgroup:<uuid>`` : membres d'un sous-groupe
     """
-    service = _get_service(session)
+    service = _get_service(session, request)
     result = await service.broadcast(
         target=data.target,
         notification_type=data.notification_type,
@@ -124,7 +131,8 @@ async def get_my_notifications(
     current_user: Annotated[User, Depends(get_current_active_user)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     notification_type: Optional[NotificationType] = Query(default=None),
-    status_filter: Optional[NotificationStatus] = Query(default=None, alias="status"),
+    status_filter: Optional[NotificationStatus] = Query(
+        default=None, alias="status"),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
@@ -248,7 +256,8 @@ async def get_notification_history(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     notification_type: Optional[NotificationType] = Query(default=None),
     channel: Optional[NotificationChannel] = Query(default=None),
-    status_filter: Optional[NotificationStatus] = Query(default=None, alias="status"),
+    status_filter: Optional[NotificationStatus] = Query(
+        default=None, alias="status"),
     broadcast_id: Optional[UUID] = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -263,3 +272,63 @@ async def get_notification_history(
         limit=limit,
         offset=offset,
     )
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  WebSocket — Notifications temps réel
+# ══════════════════════════════════════════════════════════════════════════
+
+
+@router.websocket("/ws")
+async def websocket_notifications(
+    websocket: WebSocket,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    token: str = Query(..., description="JWT access token"),
+):
+    """
+    Connexion WebSocket pour les notifications temps réel.
+
+    Le client envoie son JWT via le query parameter `token`.
+    Il reçoit en push les notifications IN_APP qui lui sont destinées.
+
+    Exemple de connexion :
+        ws://localhost:8000/api/v1/communication/ws?token=<access_token>
+
+    Format des messages reçus :
+        {
+          "id": "uuid",
+          "type": "GENERAL|AFFECTATION|...",
+          "title": "...",
+          "body": "...",
+          "created_at": "iso8601"
+        }
+    """
+    from src.presentation.dependencies.auth_deps import validate_ws_token
+
+    # Valider le JWT avant d'accepter la connexion
+    try:
+        user = await validate_ws_token(token, session)
+    except Exception:
+        await websocket.close(code=4001, reason="Token invalide ou expiré.")
+        return
+
+    ws_manager = getattr(websocket.app.state, "ws_manager", None)
+    if ws_manager is None:
+        await websocket.close(code=4000, reason="WebSocket non disponible.")
+        return
+
+    user_id = str(user.id)
+    await ws_manager.connect(websocket, user_id)
+    try:
+        # Garder la connexion ouverte — ping/pong natif géré par uvicorn
+        while True:
+            # Attendre un message texte (heartbeat ou commande client)
+            data = await websocket.receive_text()
+            # Répondre au ping client si besoin
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        pass
+    finally:
+        await ws_manager.disconnect(websocket, user_id)
+        logger.info("WebSocket closed for user_id=%s", user_id)

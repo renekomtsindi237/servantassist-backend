@@ -23,13 +23,15 @@ class CouncilMeetingRepository:
     async def get_meeting(self, meeting_id: UUID) -> Optional[CouncilMeeting]:
         return await self.session.get(CouncilMeeting, meeting_id)
 
-    async def add_attendance(self, attendance: CouncilAttendance) -> CouncilAttendance:
+    async def add_attendance(
+        self, attendance: CouncilAttendance) -> CouncilAttendance:
         self.session.add(attendance)
         await self.session.commit()
         await self.session.refresh(attendance)
         return attendance
 
-    async def get_responsable_attendances(self, responsable_id: UUID, limit: int = 3) -> List[CouncilAttendance]:
+    async def get_responsable_attendances(
+        self, responsable_id: UUID, limit: int = 3) -> List[CouncilAttendance]:
         """Récupère les dernières présences d'un responsable."""
         stmt = (
             select(CouncilAttendance)

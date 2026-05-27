@@ -1,20 +1,28 @@
 """
-Repository pour le suivi de presence.
+Repository pour le suivi de présence.
+
+Chiffrement PII (Loi 2024/017 Cameroun) :
+  Le champ justification peut contenir des raisons de santé ou personnelles —
+  il est chiffré (Art. 5 données sensibles, santé).
 """
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import func
+from sqlalchemy import String, cast, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from src.core.entities.attendance import Attendance, AttendanceStatus, AttendanceType
 from src.core.entities.user import User
+from src.infrastructure.security.encrypted_model_mixin import EncryptedModelMixin
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name")
 
 
-class AttendanceRepository:
-    """Operations sur les enregistrements de presence."""
+class AttendanceRepository(EncryptedModelMixin):
+    ENCRYPTED_FIELDS = ("justification",)
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -24,7 +32,10 @@ class AttendanceRepository:
     async def get(self, attendance_id: UUID) -> Optional[Attendance]:
         stmt = select(Attendance).where(Attendance.id == attendance_id)
         result = await self.session.exec(stmt)
-        return result.first()
+        att = result.first()
+        if att:
+            self._decrypt_model(att)
+        return att
 
     async def get_by_user_date_type(
         self, user_id: UUID, attendance_date: datetime, attendance_type: AttendanceType
@@ -57,7 +68,7 @@ class AttendanceRepository:
         if attendance_type:
             stmt = stmt.where(Attendance.attendance_type == attendance_type)
         if status:
-            stmt = stmt.where(Attendance.status == status)
+            stmt = stmt.where(cast(Attendance.status, String) == status.value)
         if start_date:
             stmt = stmt.where(Attendance.attendance_date >= start_date)
         if end_date:
@@ -69,9 +80,12 @@ class AttendanceRepository:
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(Attendance.attendance_date.desc())
+        stmt = stmt.offset(offset).limit(page_size).order_by(
+            Attendance.attendance_date.desc())
         result = await self.session.exec(stmt)
-        return result.all(), total
+        atts = list(result.all())
+        self._decrypt_list(atts)
+        return atts, total
 
     async def get_user_stats(
         self,
@@ -85,7 +99,7 @@ class AttendanceRepository:
         for s in AttendanceStatus:
             stmt = select(func.count()).where(
                 Attendance.user_id == user_id,
-                Attendance.status == s,
+                cast(Attendance.status, String) == s.value,
             )
             if start_date:
                 stmt = stmt.where(Attendance.attendance_date >= start_date)
@@ -99,6 +113,8 @@ class AttendanceRepository:
 
     async def enrich_attendance(self, attendance: Attendance) -> Dict:
         user = (await self.session.exec(select(User).where(User.id == attendance.user_id))).first()
+        if user:
+            decrypt_str_fields(user, _USER_PII)
 
         return {
             "id": attendance.id,
@@ -117,21 +133,28 @@ class AttendanceRepository:
             "user_last_name": user.last_name if user else None,
         }
 
-    async def enrich_attendances(self, attendances: List[Attendance]) -> List[Dict]:
+    async def enrich_attendances(
+        self, attendances: List[Attendance]) -> List[Dict]:
         return [await self.enrich_attendance(a) for a in attendances]
 
     # ── Ecriture ──────────────────────────────────────────────────────
 
     async def create(self, attendance: Attendance) -> Attendance:
+        self._encrypt_model(attendance)
         self.session.add(attendance)
         await self.session.commit()
         await self.session.refresh(attendance)
+        self._decrypt_model(attendance)
+        self.session.expunge(attendance)
         return attendance
 
     async def update(self, attendance: Attendance) -> Attendance:
+        self._encrypt_model(attendance)
         self.session.add(attendance)
         await self.session.commit()
         await self.session.refresh(attendance)
+        self._decrypt_model(attendance)
+        self.session.expunge(attendance)
         return attendance
 
     async def delete(self, attendance_id: UUID) -> bool:

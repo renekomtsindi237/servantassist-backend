@@ -8,16 +8,21 @@ Règles métier :
 - Traçabilité complète de tous les enregistrements
 """
 import math
-from datetime import datetime
+import logging
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional, Tuple
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
 from src.core.entities.attendance_session import AttendanceRecord, AttendanceSession, AttendanceStatus
-from src.core.entities.user import UserRole
-from src.infrastructure.repositories.attendance_session_repository import AttendanceSessionRepository
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.core.entities.notification import Notification, NotificationChannel, NotificationPriority, NotificationType
+from src.core.entities.user import User, UserRole
+from src.core.interfaces.repositories import IAttendanceSessionRepository
+from src.core.interfaces.repositories import IUserRepository
+from src.infrastructure.repositories.notification_repository import NotificationRepository
+from src.infrastructure.services.email_service import EmailService
 from src.presentation.schemas.attendance_session import (
     AttendanceRecordCreate,
     AttendanceRecordResponse,
@@ -31,28 +36,36 @@ from src.presentation.schemas.attendance_session import (
 )
 from src.presentation.schemas.user import PaginatedResponse
 
+logger = logging.getLogger(__name__)
+
 
 class AttendanceSessionService:
     """Logique métier des sessions d'appel."""
 
     def __init__(
         self,
-        attendance_repo: AttendanceSessionRepository,
-        user_repo: UserRepository,
+        attendance_repo: IAttendanceSessionRepository,
+        user_repo: IUserRepository,
+        notification_repo: Optional[NotificationRepository] = None,
+        email_service: Optional[EmailService] = None,
     ):
         self.attendance_repo = attendance_repo
         self.user_repo = user_repo
+        self.notification_repo = notification_repo
+        self.email_service = email_service or EmailService()
 
     # ══════════════════════════════════════════════════════════════════
     #  SESSIONS
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_session(self, data: AttendanceSessionCreate, conducted_by: UUID) -> AttendanceSessionResponse:
+    async def create_session(self, data: AttendanceSessionCreate,
+                             conducted_by: UUID) -> AttendanceSessionResponse:
         """Crée une nouvelle session d'appel."""
         session = AttendanceSession(
             session_date=data.session_date,
             session_time=data.session_time,
             location=data.location,
+            session_type=data.session_type,
             conducted_by=conducted_by,
             notes=data.notes,
         )
@@ -108,6 +121,109 @@ class AttendanceSessionService:
     #  RECORDS
     # ══════════════════════════════════════════════════════════════════
 
+    # ══════════════════════════════════════════════════════════════════
+    #  SEUILS D'ABSENCE — NOTIFICATIONS AUTOMATIQUES
+    # ══════════════════════════════════════════════════════════════════
+
+    async def _handle_absence_thresholds(
+        self,
+        servant: User,
+        session: AttendanceSession,
+    ) -> None:
+        """Vérifie les seuils 3/5 absences et déclenche les alertes."""
+        if self.notification_repo is None:
+            return
+
+        stats = await self.attendance_repo.calculate_servant_stats(servant.id)
+        total_absences = stats.absent_count
+
+        session_date_str = session.session_date.strftime("%d/%m/%Y") if session.session_date else "—"
+
+        # ── 3 absences : avertissement au servant ─────────────────────
+        if total_absences == 3:
+            try:
+                await self.email_service.send_absence_warning_email(
+                    to_email=servant.email,
+                    servant_first_name=servant.first_name,
+                    servant_last_name=servant.last_name,
+                    absent_count=3,
+                    session_date=session_date_str,
+                )
+            except Exception as exc:
+                logger.warning("Absence warning email failed: %s", exc)
+
+            notif = Notification(
+                id=uuid4(),
+                recipient_id=servant.id,
+                notification_type=NotificationType.AVERTISSEMENT_ABSENCE,
+                channel=NotificationChannel.IN_APP,
+                priority=NotificationPriority.HIGH,
+                title="⚠️ Avertissement — 3 absences enregistrées",
+                body=(
+                    f"Vous avez cumulé 3 absences non justifiées. "
+                    f"Un email d'avertissement vous a été envoyé. "
+                    f"Attention : 5 absences entraîneront la convocation de vos parents."
+                ),
+            )
+            self.notification_repo.session.add(notif)
+            await self.notification_repo.session.commit()
+            logger.info("Avertissement 3 absences créé pour servant=%s", servant.id)
+
+        # ── 5 absences : convocation des parents ──────────────────────
+        elif total_absences == 5:
+            # Notification in-app au servant
+            notif_servant = Notification(
+                id=uuid4(),
+                recipient_id=servant.id,
+                notification_type=NotificationType.CONVOCATION_PARENT,
+                channel=NotificationChannel.IN_APP,
+                priority=NotificationPriority.URGENT,
+                title="🔴 Convocation des parents — 5 absences",
+                body=(
+                    f"Vous avez atteint 5 absences. Vos parents ont été convoqués "
+                    f"pour un entretien avec l'Aumônier et le Censeur."
+                ),
+            )
+            self.notification_repo.session.add(notif_servant)
+
+            # Email + notification in-app au parent si lié
+            if servant.parent_id:
+                parent = await self.user_repo.get(servant.parent_id)
+                if parent:
+                    try:
+                        await self.email_service.send_parent_convocation_email(
+                            to_email=parent.email,
+                            parent_first_name=parent.first_name,
+                            servant_first_name=servant.first_name,
+                            servant_last_name=servant.last_name,
+                            absent_count=5,
+                        )
+                    except Exception as exc:
+                        logger.warning("Parent convocation email failed: %s", exc)
+
+                    notif_parent = Notification(
+                        id=uuid4(),
+                        recipient_id=parent.id,
+                        notification_type=NotificationType.CONVOCATION_PARENT,
+                        channel=NotificationChannel.IN_APP,
+                        priority=NotificationPriority.URGENT,
+                        title=f"Convocation — {servant.first_name} {servant.last_name}",
+                        body=(
+                            f"Votre enfant {servant.first_name} {servant.last_name} "
+                            f"a cumulé 5 absences. Vous êtes convoqué(e) pour un entretien "
+                            f"avec l'Aumônier et le Censeur. Un email vous a été envoyé."
+                        ),
+                    )
+                    self.notification_repo.session.add(notif_parent)
+            else:
+                logger.info(
+                    "Servant %s a 5 absences mais aucun parent lié — pas d'email de convocation.",
+                    servant.id,
+                )
+
+            await self.notification_repo.session.commit()
+            logger.info("Convocation 5 absences créée pour servant=%s", servant.id)
+
     async def mark_attendance(
         self, session_id: UUID, data: AttendanceRecordCreate, recorded_by: UUID
     ) -> AttendanceRecordResponse:
@@ -131,15 +247,20 @@ class AttendanceSessionService:
         if servant.role != UserRole.SERVANT:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{servant.first_name} {servant.last_name} n'est pas un servant.",
+                detail=f"{
+    servant.first_name} {
+        servant.last_name} n'est pas un servant.",
             )
 
-        # Vérifier qu'il n'existe pas déjà un enregistrement pour ce servant dans cette session
+        # Vérifier qu'il n'existe pas déjà un enregistrement pour ce servant
+        # dans cette session
         existing = await self.attendance_repo.get_record_by_session_and_servant(session_id, data.servant_id)
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"La présence de {servant.first_name} {servant.last_name} est déjà enregistrée dans cette session.",
+                detail=f"La présence de {
+    servant.first_name} {
+        servant.last_name} est déjà enregistrée dans cette session.",
             )
 
         record = AttendanceRecord(
@@ -152,10 +273,15 @@ class AttendanceSessionService:
         )
 
         created = await self.attendance_repo.create_record(record)
+
+        if data.status == AttendanceStatus.ABSENT:
+            await self._handle_absence_thresholds(servant, session)
+
         enriched = await self.attendance_repo.enrich_record(created)
         return AttendanceRecordResponse(**enriched)
 
-    async def update_attendance(self, record_id: UUID, data: AttendanceRecordUpdate) -> AttendanceRecordResponse:
+    async def update_attendance(
+        self, record_id: UUID, data: AttendanceRecordUpdate) -> AttendanceRecordResponse:
         """Met à jour un enregistrement de présence."""
         record = await self.attendance_repo.get_record(record_id)
         if not record:
@@ -164,14 +290,23 @@ class AttendanceSessionService:
                 detail="Enregistrement introuvable.",
             )
 
-        if data.status is not None:
-            record.status = data.status
+        new_status = data.status
+        if new_status is not None:
+            record.status = new_status
         if data.arrival_time is not None:
             record.arrival_time = data.arrival_time
         if data.notes is not None:
             record.notes = data.notes
 
         updated = await self.attendance_repo.update_record(record_id, record)
+
+        if new_status == AttendanceStatus.ABSENT:
+            servant = await self.user_repo.get(record.servant_id)
+            if servant:
+                session = await self.attendance_repo.get_session(record.session_id)
+                if session:
+                    await self._handle_absence_thresholds(servant, session)
+
         enriched = await self.attendance_repo.enrich_record(updated)
         return AttendanceRecordResponse(**enriched)
 
@@ -197,7 +332,8 @@ class AttendanceSessionService:
         stats = await self.attendance_repo.calculate_servant_stats(servant_id, start_date, end_date)
         return ServantAttendanceStatsResponse(**stats.model_dump())
 
-    async def generate_report(self, request: AttendanceReportRequest, generated_by: UUID) -> AttendanceReportResponse:
+    async def generate_report(self, request: AttendanceReportRequest,
+                              generated_by: UUID) -> AttendanceReportResponse:
         """Génère un rapport de présence."""
         # Récupérer toutes les sessions de la période
         sessions, _ = await self.attendance_repo.list_sessions(
@@ -220,14 +356,19 @@ class AttendanceSessionService:
 
         for servant in servants:
             stats = await self.attendance_repo.calculate_servant_stats(servant.id, request.start_date, request.end_date)
-            servants_stats.append(ServantAttendanceStatsResponse(**stats.model_dump()))
+            servants_stats.append(
+    ServantAttendanceStatsResponse(
+        **stats.model_dump()))
             total_attendance_rate += stats.attendance_rate
 
-        average_attendance_rate = total_attendance_rate / len(servants) if servants else 0
+        average_attendance_rate = total_attendance_rate / \
+            len(servants) if servants else 0
 
         # Récupérer le générateur
         generator = await self.user_repo.get(generated_by)
-        generated_by_name = f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
+        generated_by_name = f"{
+    generator.first_name} {
+        generator.last_name}" if generator else "Inconnu"
 
         return AttendanceReportResponse(
             start_date=request.start_date,
@@ -238,12 +379,31 @@ class AttendanceSessionService:
             servants_stats=servants_stats,
             generated_by=generated_by,
             generated_by_name=generated_by_name,
-            generated_at=datetime.utcnow(),
+            generated_at=utc_now(),
         )
 
     # ══════════════════════════════════════════════════════════════════
     #  LISTE DES SERVANTS
     # ══════════════════════════════════════════════════════════════════
+
+    async def get_all_servants_stats(self) -> list[dict]:
+        """Stats agrégées pour tous les servants actifs."""
+        servants = await self.attendance_repo.get_all_servants()
+        result = []
+        for servant in servants:
+            stats = await self.attendance_repo.calculate_servant_stats(servant.id)
+            result.append({
+                "servant_id": str(servant.id),
+                "servant_name": f"{servant.first_name} {servant.last_name}",
+                "absent_count": stats.absent_count,
+                "present_count": stats.present_count,
+                "late_count": stats.late_count,
+                "excused_count": stats.excused_count,
+                "total_sessions": stats.total_sessions,
+                "attendance_rate": stats.attendance_rate,
+                "consecutive_absences": stats.consecutive_absences,
+            })
+        return result
 
     async def get_servants_list(self) -> List[ServantListItem]:
         """Récupère la liste complète des servants pour l'appel."""
@@ -260,3 +420,35 @@ class AttendanceSessionService:
             )
             for s in servants
         ]
+
+    # ══════════════════════════════════════════════════════════════════
+    #  APPEL AUTOMATIQUE
+    # ══════════════════════════════════════════════════════════════════
+
+    async def init_roll_call(
+        self, session_id: UUID, recorded_by: UUID
+    ) -> AttendanceSessionResponse:
+        """Initialise l'appel en créant un enregistrement ABSENT pour chaque servant actif."""
+        session = await self.attendance_repo.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session introuvable.")
+
+        servants = await self.attendance_repo.get_all_servants()
+        for servant in servants:
+            if not servant.is_active:
+                continue
+            existing = await self.attendance_repo.get_record_by_session_and_servant(
+                session_id, servant.id
+            )
+            if not existing:
+                record = AttendanceRecord(
+                    session_id=session_id,
+                    servant_id=servant.id,
+                    status=AttendanceStatus.ABSENT,
+                    recorded_by=recorded_by,
+                )
+                self.attendance_repo.session.add(record)
+
+        await self.attendance_repo.session.commit()
+        enriched = await self.attendance_repo.enrich_session(session)
+        return AttendanceSessionResponse(**enriched)

@@ -1,45 +1,114 @@
 """
-Repository pour l'entite User.
-Fournit les operations CRUD + recherche + pagination + filtrage par role.
+Repository pour l'entité User.
+Fournit les opérations CRUD + recherche + pagination + filtrage par rôle.
+
+Chiffrement PII (Loi 2024/017 Cameroun) :
+  Les champs nominatifs sont chiffrés en AES-256-GCM avant tout stockage et
+  déchiffrés après lecture via EncryptedModelMixin. Les lookups email/téléphone
+  utilisent les colonnes HMAC (opaque pour l'hébergeur étranger).
 """
 import math
 from typing import List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import set_committed_value
 from sqlmodel import select
 
 from src.core.entities.user import User, UserRole
 from src.core.interfaces.repository import IRepository
+from src.infrastructure.security.encrypted_model_mixin import EncryptedModelMixin
+from src.infrastructure.security.field_encryption import get_encryptor
+
+_PII_FIELDS = ("first_name", "last_name", "email", "phone_number")
+_PII_DATE_FIELDS = ("birth_date", "baptism_date")
 
 
-class UserRepository(IRepository[User]):
+class UserRepository(EncryptedModelMixin, IRepository[User]):
+    ENCRYPTED_FIELDS = _PII_FIELDS
+    HMAC_INDEX_MAP = {"email": "email_hmac", "phone_number": "phone_hmac"}
+
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    # ── Override : les dates ISO nécessitent un traitement spécial ────
+
+    def _encrypt_model(self, model: User) -> None:
+        from datetime import datetime as dt
+        enc = get_encryptor()
+
+        # HMAC d'abord (sur le plaintext)
+        for plain_field, hmac_col in self.HMAC_INDEX_MAP.items():
+            val = getattr(model, plain_field, None)
+            setattr(model, hmac_col, enc.hmac_index(val))
+
+        # Chiffrement des champs texte
+        for field in self.ENCRYPTED_FIELDS:
+            val = getattr(model, field, None)
+            if val is not None:
+                setattr(model, field, enc.encrypt(str(val)))
+
+        # Chiffrement des dates (stockées comme ISO-8601 string)
+        for field in _PII_DATE_FIELDS:
+            val = getattr(model, field, None)
+            if val is not None and not isinstance(val, str):
+                setattr(model, field, enc.encrypt(val.isoformat()))
+
+    def _decrypt_model(self, model: User) -> None:
+        from datetime import datetime as dt
+        enc = get_encryptor()
+
+        for field in self.ENCRYPTED_FIELDS:
+            val = getattr(model, field, None)
+            if val:
+                try:
+                    set_committed_value(model, field, enc.decrypt(val))
+                except (ValueError, Exception):
+                    pass
+
+        for field in _PII_DATE_FIELDS:
+            val = getattr(model, field, None)
+            if val and isinstance(val, str):
+                try:
+                    set_committed_value(model, field, dt.fromisoformat(enc.decrypt(val)))
+                except (ValueError, Exception):
+                    pass
+
     # ── Lecture ────────────────────────────────────────────────────────
+
     async def get(self, id: UUID) -> Optional[User]:
-        statement = select(User).where(User.id == id)
-        result = await self.session.exec(statement)
-        return result.first()
+        result = await self.session.exec(select(User).where(User.id == id))
+        user = result.first()
+        if user:
+            self._decrypt_model(user)
+        return user
 
     async def get_by_email(self, email: str) -> Optional[User]:
-        statement = select(User).where(User.email == email)
-        result = await self.session.exec(statement)
-        return result.first()
+        email_hmac = get_encryptor().hmac_index(email)
+        result = await self.session.exec(
+            select(User).where(User.email_hmac == email_hmac)
+        )
+        user = result.first()
+        if user:
+            self._decrypt_model(user)
+        return user
 
     async def get_by_phone(self, phone_number: str) -> Optional[User]:
-        """Recherche par numero de telephone (pour login PARENT/SERVANT)."""
-        statement = select(User).where(User.phone_number == phone_number)
-        result = await self.session.exec(statement)
-        return result.first()
+        phone_hmac = get_encryptor().hmac_index(phone_number)
+        result = await self.session.exec(
+            select(User).where(User.phone_hmac == phone_hmac)
+        )
+        user = result.first()
+        if user:
+            self._decrypt_model(user)
+        return user
 
-    # ── Listing avec pagination et filtres ────────────────────────────
     async def list(self) -> List[User]:
-        statement = select(User)
-        result = await self.session.exec(statement)
-        return result.all()
+        result = await self.session.exec(select(User))
+        users = list(result.all())
+        self._decrypt_list(users)
+        return users
 
     async def list_paginated(
         self,
@@ -51,67 +120,61 @@ class UserRepository(IRepository[User]):
         page_size: int = 20,
     ) -> Tuple[List[User], int]:
         """
-        Liste paginee avec filtres optionnels.
-
-        Retourne (users, total_count).
+        Liste paginée avec filtres. La recherche textuelle est effectuée
+        en mémoire après déchiffrement (correct pour un groupe paroissial).
         """
-        statement = select(User)
-
-        # Filtrage par role
+        stmt = select(User)
         if role is not None:
-            statement = statement.where(User.role == role)
-
-        # Filtrage par statut actif
+            stmt = stmt.where(User.role == role)
         if is_active is not None:
-            statement = statement.where(User.is_active == is_active)
+            stmt = stmt.where(User.is_active == is_active)
 
-        # Recherche textuelle (nom, prenom, email)
+        result = await self.session.exec(stmt)
+        all_users = list(result.all())
+        self._decrypt_list(all_users)
+
         if search:
-            search_term = f"%{search.lower()}%"
-            statement = statement.where(
-                or_(
-                    func.lower(User.first_name).like(search_term),
-                    func.lower(User.last_name).like(search_term),
-                    func.lower(User.email).like(search_term),
-                )
-            )
+            term = search.lower()
+            all_users = [
+                u for u in all_users
+                if term in (u.first_name or "").lower()
+                or term in (u.last_name or "").lower()
+                or term in (u.email or "").lower()
+            ]
 
-        # Compter le total avant pagination
-        count_stmt = select(func.count()).select_from(statement.subquery())
-        count_result = await self.session.exec(count_stmt)
-        total = count_result.one()
-
-        # Pagination
+        total = len(all_users)
+        all_users.sort(key=lambda u: u.created_at, reverse=True)
         offset = (page - 1) * page_size
-        statement = statement.offset(offset).limit(page_size).order_by(User.created_at.desc())
-
-        result = await self.session.exec(statement)
-        users = result.all()
-
-        return users, total
+        return all_users[offset: offset + page_size], total
 
     async def count_by_role(self, role: UserRole) -> int:
-        """Compte le nombre d'utilisateurs ayant un role donne."""
-        statement = select(func.count()).where(User.role == role)
-        result = await self.session.exec(statement)
+        result = await self.session.exec(
+            select(func.count()).where(User.role == role)
+        )
         return result.one()
 
-    # ── Ecriture ──────────────────────────────────────────────────────
+    # ── Écriture ──────────────────────────────────────────────────────
+
     async def create(self, user: User) -> User:
+        self._encrypt_model(user)
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
+        self._decrypt_model(user)
+        self.session.expunge(user)
         return user
 
     async def update(self, id: UUID, entity: User) -> User:
+        self._encrypt_model(entity)
         self.session.add(entity)
         await self.session.commit()
         await self.session.refresh(entity)
+        self._decrypt_model(entity)
+        self.session.expunge(entity)
         return entity
 
     async def delete(self, id: UUID) -> bool:
-        statement = select(User).where(User.id == id)
-        result = await self.session.exec(statement)
+        result = await self.session.exec(select(User).where(User.id == id))
         user = result.first()
         if user:
             await self.session.delete(user)
@@ -119,18 +182,20 @@ class UserRepository(IRepository[User]):
             return True
         return False
 
-    async def email_exists(self, email: str, exclude_id: Optional[UUID] = None) -> bool:
-        """Verifie si un email est deja utilise (en excluant un utilisateur donne)."""
-        statement = select(User).where(User.email == email)
+    async def email_exists(self, email: str,
+                           exclude_id: Optional[UUID] = None) -> bool:
+        email_hmac = get_encryptor().hmac_index(email)
+        stmt = select(User).where(User.email_hmac == email_hmac)
         if exclude_id:
-            statement = statement.where(User.id != exclude_id)
-        result = await self.session.exec(statement)
+            stmt = stmt.where(User.id != exclude_id)
+        result = await self.session.exec(stmt)
         return result.first() is not None
 
-    async def phone_exists(self, phone_number: str, exclude_id: Optional[UUID] = None) -> bool:
-        """Verifie si un numero de telephone est deja utilise."""
-        statement = select(User).where(User.phone_number == phone_number)
+    async def phone_exists(self, phone_number: str,
+                           exclude_id: Optional[UUID] = None) -> bool:
+        phone_hmac = get_encryptor().hmac_index(phone_number)
+        stmt = select(User).where(User.phone_hmac == phone_hmac)
         if exclude_id:
-            statement = statement.where(User.id != exclude_id)
-        result = await self.session.exec(statement)
+            stmt = stmt.where(User.id != exclude_id)
+        result = await self.session.exec(stmt)
         return result.first() is not None

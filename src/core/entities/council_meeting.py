@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
+from sqlalchemy import Column, String
 from sqlmodel import Field, SQLModel
 
 
@@ -40,7 +41,10 @@ class CouncilAttendance(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     meeting_id: UUID = Field(foreign_key="council_meetings.id", index=True)
     responsable_id: UUID = Field(foreign_key="users.id", index=True)
-    status: CouncilAttendanceStatus = Field(default=CouncilAttendanceStatus.PRESENT)
+    status: CouncilAttendanceStatus = Field(
+        default=CouncilAttendanceStatus.PRESENT,
+        sa_column=Column(String(20), nullable=False, server_default="PRESENT"),
+    )
     excuse: Optional[str] = Field(default=None, max_length=500)
     recorded_at: datetime = Field(default_factory=datetime.utcnow)
     recorded_by: UUID = Field(foreign_key="users.id")

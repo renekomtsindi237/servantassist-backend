@@ -57,7 +57,8 @@ class AssignmentBase(SQLModel):
 
     event_id: UUID = Field(foreign_key="events.id", index=True)
     user_id: UUID = Field(foreign_key="users.id", index=True)
-    liturgical_role: LiturgicalRole = Field(default=LiturgicalRole.SERVANT_GENERAL)
+    liturgical_role: LiturgicalRole = Field(
+    default=LiturgicalRole.SERVANT_GENERAL)
     status: AssignmentStatus = Field(default=AssignmentStatus.PENDING)
     notes: Optional[str] = Field(default=None, max_length=500)
 
@@ -68,6 +69,7 @@ class Assignment(AssignmentBase, table=True):
     __tablename__ = "assignments"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    assigned_by: UUID = Field(foreign_key="users.id")  # Qui a cree l'affectation
+    # Qui a cree l'affectation
+    assigned_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

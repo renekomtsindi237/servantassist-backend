@@ -1,0 +1,153 @@
+
+════════════════════════════════════════════════════════════
+  1. AUTHENTIFICATION
+════════════════════════════════════════════════════════════
+  ✅ [200] Login admin valide — token=ok
+  ✅ [401] Login mauvais MDP → 401
+  ✅ [401] Login email inconnu → 401
+  ✅ [200] Forgot password (email existant) → 200 silencieux
+  ✅ [200] Forgot password (email inexistant) → 200 silencieux
+  ✅ [400] Reset password token invalide → 4xx
+
+════════════════════════════════════════════════════════════
+  2. PROFIL UTILISATEUR
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /users/me — renekomtsindi7@gmail.com
+  ✅ [200] PATCH /users/me (mise à jour profil)
+  ✅ [401] GET /users/me sans token → 401/403
+  ✅ [400] PATCH /users/me/password (même MDP → 400)
+
+════════════════════════════════════════════════════════════
+  3. GESTION DES MEMBRES (Admin)
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /users/ (liste paginée) — total=1
+  ✅ [200] GET /users/ filtre role=SERVANT
+  ✅ [200] GET /users/ filtre is_active=true
+  ✅ [200] GET /users/ recherche textuelle (URL-encodé)
+  ✅ [201] POST /auth/register servant — id=ok
+  ❌ [403] Login servant créé
+  ❌ [401] GET /users/ refusé pour servant → 403
+
+════════════════════════════════════════════════════════════
+  4. CODES D'INVITATION (Admin)
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /admin/invitations — count=5
+  ✅ [201] POST /admin/invitations (créer code) — code=INV-15110C7157DE
+  ✅ [200] Code apparaît dans la liste
+  ❌ [401] GET /admin/invitations refusé servant → 403
+  ✅ [400] POST invitation rôle ADMIN → 400
+  ✅ [200] PATCH toggle-status invitation
+  ❌ [404] Register parent avec code invitation — code=INV-15110C7157DE id=absent
+  ✅ [404] Register avec code déjà utilisé → 4xx
+
+════════════════════════════════════════════════════════════
+  5. DASHBOARD
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /dashboard/summary (admin) — servants=1
+  ✅ [200] GET /dashboard/summary (servant → 403)
+
+════════════════════════════════════════════════════════════
+  6. RAPPORTS
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /reports/ (liste) — items=0
+  ✅ [403] POST /reports/ admin → 403 (réservé Secrétaire)
+
+════════════════════════════════════════════════════════════
+  7. ÉVÉNEMENTS LITURGIQUES
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /events/ (liste) — items=1
+  ✅ [201] POST /events/ (créer événement) — id=ok
+  ✅ [200] GET /events/{id} (servant)
+  ✅ [204] DELETE /events/{id} (admin)
+
+════════════════════════════════════════════════════════════
+  8. PRÉSENCES
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /attendance/ (liste)
+  ✅ [200] GET /attendance-sessions/ (liste)
+
+════════════════════════════════════════════════════════════
+  9. MATÉRIEL LITURGIQUE
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /material/items/ (liste) — items=0
+  ✅ [201] POST /material/items (créer article) — id=ok
+  ✅ [200] GET /material/items/{id} (servant)
+  ✅ [204] DELETE /material/items/{id} (admin)
+
+════════════════════════════════════════════════════════════
+  10. TRÉSORERIE
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /financial-entries/ (liste)
+  ✅ [200] GET /cotisations/periods (liste)
+  ✅ [200] GET /cotisations/my (self-service)
+  ✅ [200] GET /contributions/ (liste)
+
+════════════════════════════════════════════════════════════
+  11. FORMATION
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /training/sessions (liste) — items=0
+  ❌ [422] POST /training/sessions (admin sans nomination → 403)
+
+════════════════════════════════════════════════════════════
+  12. DISCIPLINE
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /discipline/ (liste)
+  ❌ [422] POST /discipline/ (créer cas) — id=absent ou refusé
+
+════════════════════════════════════════════════════════════
+  13. SPORT & CULTURE
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /sport-culture/events (liste) — items=0
+  ❌ [422] POST /sport-culture/events (créer événement) — id=absent
+
+════════════════════════════════════════════════════════════
+  14. COMMUNICATION
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /communication/me (mes notifications) — count=0
+  ✅ [200] GET /communication/me/stats
+  ❌ [422] POST /communication/notify (envoyer notification)
+  ✅ [200] GET /communication/history (admin)
+
+════════════════════════════════════════════════════════════
+  15. PLANNINGS
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /weekly-schedule/ (liste)
+  ✅ [200] GET /sunday-schedule/ (liste)
+
+════════════════════════════════════════════════════════════
+  16. SÉCURITÉ & CAS LIMITES
+════════════════════════════════════════════════════════════
+  ✅ [401] Token invalide → 401
+  ✅ [404] GET user inexistant → 404
+  ✅ [422] POST events payload invalide → 422
+  ✅ [400] Register email déjà existant → 409/400
+  ✅ [400] Admin ne peut pas se supprimer → 400/403
+
+════════════════════════════════════════════════════════════
+  17. CLÉS API
+════════════════════════════════════════════════════════════
+  ✅ [200] GET /api-keys/ (liste)
+  ✅ [201] POST /api-keys/ (créer clé) — raw_key=ok
+  ✅ [204] DELETE /api-keys/{id} (révoquer clé)
+
+════════════════════════════════════════════════════════════
+  18. NETTOYAGE DES DONNÉES DE TEST
+════════════════════════════════════════════════════════════
+  ✅ [200] Nettoyage utilisateurs de test — supprimés: ['servant']
+
+════════════════════════════════════════════════════════════
+  RÉSULTATS : 56/64 tests passés
+════════════════════════════════════════════════════════════
+
+  ❌ Échecs (8) :
+     [403] Login servant créé
+     [401] GET /users/ refusé pour servant → 403
+     [401] GET /admin/invitations refusé servant → 403
+     [404] Register parent avec code invitation — code=INV-15110C7157DE id=absent
+     [422] POST /training/sessions (admin sans nomination → 403)
+     [422] POST /discipline/ (créer cas) — id=absent ou refusé
+     [422] POST /sport-culture/events (créer événement) — id=absent
+     [422] POST /communication/notify (envoyer notification)
+
+  Taux de réussite : 87.5%
+

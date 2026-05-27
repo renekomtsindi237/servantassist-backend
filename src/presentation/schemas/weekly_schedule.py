@@ -30,7 +30,8 @@ class SlotServantCreate(BaseModel):
         """Valide qu'au moins servant_id ou servant_name est fourni."""
         servant_id = info.data.get("servant_id")
         if not servant_id and not v:
-            raise ValueError("Au moins servant_id ou servant_name doit être fourni")
+            raise ValueError(
+                "Au moins servant_id ou servant_name doit être fourni")
         return v
 
 
@@ -72,7 +73,8 @@ class WeeklyScheduleSlotCreate(BaseModel):
         """Valide que l'horaire de messe est disponible pour le jour donné."""
         day = info.data.get("day")
         if day == WeekDay.SAMEDI and v in [MassTime.MIDI, MassTime.SOIR]:
-            raise ValueError("Le samedi, seule la messe du matin (6h15) est disponible")
+            raise ValueError(
+                "Le samedi, seule la messe du matin (6h15) est disponible")
         return v
 
 

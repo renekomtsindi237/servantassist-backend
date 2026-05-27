@@ -1,0 +1,149 @@
+name: CD — Production
+
+# Déclenchement UNIQUEMENT manuel — jamais automatique
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Tag de l'image à déployer (ex: sha-a1b2c3d, ou 'staging')"
+        required: true
+        default: staging
+      confirm:
+        description: "Taper 'DEPLOY' pour confirmer le déploiement en production"
+        required: true
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/servantassist-backend
+
+jobs:
+  # ── Garde : vérifie la confirmation avant tout ──────────────────────────
+  gate:
+    name: Vérification confirmation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier le mot de confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+            echo "❌ Confirmation invalide. Taper exactement 'DEPLOY' pour déployer en production."
+            exit 1
+          fi
+          echo "✅ Confirmation validée — déploiement production autorisé"
+
+  # ── Déploiement production ──────────────────────────────────────────────
+  deploy:
+    name: Deploy → Production
+    needs: gate
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+
+    steps:
+      - name: Mask secrets
+        run: |
+          echo "::add-mask::${{ secrets.PROD_HOST }}"
+          echo "::add-mask::${{ secrets.PROD_USER }}"
+          echo "::add-mask::${{ secrets.PROD_SSH_KEY }}"
+          echo "::add-mask::${{ secrets.GHCR_READ_TOKEN }}"
+
+      - name: Save current image tag (rollback reference)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            DC="docker compose -f /opt/servantassist/servantassist-backend/docker-compose.production.yml"
+            CURRENT=$($DC ps -q backend 2>/dev/null | head -1)
+            if [ -n "$CURRENT" ]; then
+              IMAGE=$(docker inspect --format='{{.Config.Image}}' "$CURRENT" 2>/dev/null || echo "")
+              echo "$IMAGE" > /opt/servantassist/.rollback_image_prod
+              echo "==> Image de rollback sauvegardée : $IMAGE"
+            fi
+
+      - name: Deploy via SSH (rolling update)
+        id: deploy
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          IMAGE_TAG: ${{ github.event.inputs.image_tag }}
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          envs: GHCR_USERNAME,GHCR_READ_TOKEN,IMAGE_TAG
+          script: |
+            set -euo pipefail
+            DC="docker compose -f /opt/servantassist/servantassist-backend/docker-compose.production.yml"
+
+            echo "==> Mise à jour du code (production)"
+            cd /opt/servantassist/servantassist-backend
+            git pull origin main
+
+            echo "==> Pull de l'image : ${IMAGE_TAG}"
+            printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+            IMAGE_REF="ghcr.io/${{ github.repository }}/servantassist-backend:${IMAGE_TAG}"
+            docker pull "${IMAGE_REF}"
+
+            echo "==> Migrations Alembic (production)"
+            $DC --profile migrate run --rm migrate
+
+            echo "==> Rolling update production (3 → 4 → 3)"
+            $DC up -d --scale backend=4 --no-recreate
+            sleep 30
+
+            OLD=$($DC ps -q backend | tail -3)
+            for C in $OLD; do
+              docker stop --time=30 "$C" && docker rm "$C"
+              sleep 10
+            done
+
+            $DC up -d --scale backend=3 --no-recreate
+            echo "✅ Production déployée : ${IMAGE_TAG}"
+
+      - name: Health check production
+        id: healthcheck
+        run: |
+          sleep 20
+          for i in 1 2 3 4 5; do
+            curl -fsS "${{ vars.PRODUCTION_URL }}/api/v1/health" && break
+            [ $i -eq 5 ] && echo "❌ Health check échoué" && exit 1
+            sleep 15
+          done
+          echo "✅ Production opérationnelle"
+
+      - name: Rollback automatique si health check échoue
+        if: failure() && steps.deploy.outcome == 'success'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            DC="docker compose -f /opt/servantassist/servantassist-backend/docker-compose.production.yml"
+            ROLLBACK_IMAGE=$(cat /opt/servantassist/.rollback_image_prod 2>/dev/null || echo "")
+
+            if [ -z "$ROLLBACK_IMAGE" ]; then
+              echo "⚠️  Aucune image de rollback disponible — intervention manuelle requise"
+              exit 1
+            fi
+
+            echo "==> 🔄 ROLLBACK PRODUCTION vers : $ROLLBACK_IMAGE"
+            docker pull "$ROLLBACK_IMAGE"
+            REGISTRY_IMAGE="$ROLLBACK_IMAGE" $DC up -d --force-recreate --scale backend=3 backend
+
+            sleep 20
+            curl -fsS "http://localhost:8000/health" \
+              && echo "✅ Rollback production réussi" \
+              || echo "❌ CRITIQUE — Rollback échoué, intervention immédiate requise"

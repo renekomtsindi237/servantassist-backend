@@ -187,11 +187,13 @@ async def test_cannot_modify_other_secretaire_report(client, db_session, aumonie
     from src.core.entities.report import Report, ReportStatus, ReportType
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole
+    from src.infrastructure.repositories.user_repository import UserRepository
     from src.infrastructure.security.utils import SecurityUtils
     from tests.conftest import make_access_token
 
-    # Créer deux secrétaires
-    secretaire1 = User(
+    # Créer deux secrétaires via le repository (pour que email_hmac soit renseigné)
+    _repo = UserRepository(db_session)
+    secretaire1 = await _repo.create(User(
         id=uuid4(),
         email="secretaire1@test.com",
         hashed_password=SecurityUtils.get_password_hash("TestPass1"),
@@ -200,10 +202,8 @@ async def test_cannot_modify_other_secretaire_report(client, db_session, aumonie
         role=UserRole.SERVANT,
         is_active=True,
         phone_number="+237600000031",
-    )
-    db_session.add(secretaire1)
-
-    secretaire2 = User(
+    ))
+    secretaire2 = await _repo.create(User(
         id=uuid4(),
         email="secretaire2@test.com",
         hashed_password=SecurityUtils.get_password_hash("TestPass1"),
@@ -212,9 +212,7 @@ async def test_cannot_modify_other_secretaire_report(client, db_session, aumonie
         role=UserRole.SERVANT,
         is_active=True,
         phone_number="+237600000032",
-    )
-    db_session.add(secretaire2)
-    await db_session.commit()
+    ))
 
     # Nominations
     nom1 = Nomination(
@@ -364,11 +362,12 @@ async def test_secretaire_adjoint_has_same_permissions(client, db_session, aumon
     """Test que le SECRETAIRE_ADJOINT a les mêmes permissions."""
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole
+    from src.infrastructure.repositories.user_repository import UserRepository
     from src.infrastructure.security.utils import SecurityUtils
     from tests.conftest import make_access_token
 
-    # Créer un secrétaire adjoint
-    secretaire_adj = User(
+    # Créer un secrétaire adjoint via le repository (pour que email_hmac soit renseigné)
+    secretaire_adj = await UserRepository(db_session).create(User(
         id=uuid4(),
         email="secretaire.adj@test.com",
         hashed_password=SecurityUtils.get_password_hash("TestPass1"),
@@ -377,9 +376,7 @@ async def test_secretaire_adjoint_has_same_permissions(client, db_session, aumon
         role=UserRole.SERVANT,
         is_active=True,
         phone_number="+237600000033",
-    )
-    db_session.add(secretaire_adj)
-    await db_session.commit()
+    ))
 
     # Nomination
     nomination = Nomination(

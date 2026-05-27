@@ -2,6 +2,7 @@
 Repository pour le module Communication / Notifications.
 """
 from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import Optional
 from uuid import UUID
 
@@ -32,7 +33,8 @@ class NotificationRepository:
         await self.session.refresh(notification)
         return notification
 
-    async def create_many(self, notifications: list[Notification]) -> list[Notification]:
+    async def create_many(
+        self, notifications: list[Notification]) -> list[Notification]:
         """Insere un lot de notifications (broadcast)."""
         for n in notifications:
             self.session.add(n)
@@ -62,13 +64,15 @@ class NotificationRepository:
         stmt = select(Notification).where(Notification.recipient_id == user_id)
 
         if notification_type:
-            stmt = stmt.where(Notification.notification_type == notification_type)
+            stmt = stmt.where(
+    Notification.notification_type == notification_type)
         if status:
             stmt = stmt.where(Notification.status == status)
         if channel:
             stmt = stmt.where(Notification.channel == channel)
 
-        stmt = stmt.order_by(col(Notification.created_at).desc()).offset(offset).limit(limit)
+        stmt = stmt.order_by(col(Notification.created_at).desc()).offset(
+            offset).limit(limit)
         result = await self.session.exec(stmt)
         return list(result.all())
 
@@ -78,7 +82,9 @@ class NotificationRepository:
         *,
         status: Optional[NotificationStatus] = None,
     ) -> int:
-        stmt = select(func.count()).select_from(Notification).where(Notification.recipient_id == user_id)
+        stmt = select(
+    func.count()).select_from(Notification).where(
+        Notification.recipient_id == user_id)
         if status:
             stmt = stmt.where(Notification.status == status)
         result = await self.session.exec(stmt)
@@ -117,7 +123,8 @@ class NotificationRepository:
         stmt = select(Notification)
 
         if notification_type:
-            stmt = stmt.where(Notification.notification_type == notification_type)
+            stmt = stmt.where(
+    Notification.notification_type == notification_type)
         if channel:
             stmt = stmt.where(Notification.channel == channel)
         if status:
@@ -125,7 +132,8 @@ class NotificationRepository:
         if broadcast_id:
             stmt = stmt.where(Notification.broadcast_id == broadcast_id)
 
-        stmt = stmt.order_by(col(Notification.created_at).desc()).offset(offset).limit(limit)
+        stmt = stmt.order_by(col(Notification.created_at).desc()).offset(
+            offset).limit(limit)
         result = await self.session.exec(stmt)
         return list(result.all())
 
@@ -138,7 +146,8 @@ class NotificationRepository:
     ) -> int:
         stmt = select(func.count()).select_from(Notification)
         if notification_type:
-            stmt = stmt.where(Notification.notification_type == notification_type)
+            stmt = stmt.where(
+    Notification.notification_type == notification_type)
         if channel:
             stmt = stmt.where(Notification.channel == channel)
         if status:
@@ -162,16 +171,17 @@ class NotificationRepository:
             notification.error_message = error_message
         else:
             notification.status = NotificationStatus.SENT
-            notification.sent_at = datetime.now(timezone.utc)
-        notification.updated_at = datetime.now(timezone.utc)
+            notification.sent_at = utc_now()
+        notification.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(notification)
         return notification
 
-    async def mark_read(self, notification_ids: list[UUID], user_id: UUID) -> int:
+    async def mark_read(
+        self, notification_ids: list[UUID], user_id: UUID) -> int:
         """Marque des notifications IN_APP comme lues. Retourne le nombre mis a jour."""
         count = 0
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         for nid in notification_ids:
             notification = await self.get_by_id(nid)
             if notification and notification.recipient_id == user_id and notification.status != NotificationStatus.READ:
@@ -213,7 +223,10 @@ class NotificationRepository:
         """Enrichit une notification avec le nom de l'envoyeur."""
         data = notification.model_dump()
         if notification.sent_by:
-            stmt = select(User.first_name, User.last_name).where(User.id == notification.sent_by)
+            stmt = select(
+    User.first_name,
+    User.last_name).where(
+        User.id == notification.sent_by)
             result = await self.session.exec(stmt)
             row = result.first()
             if row:
@@ -233,7 +246,8 @@ class NotificationPreferenceRepository:
         self.session = session
 
     async def get_by_user(self, user_id: UUID) -> list[NotificationPreference]:
-        stmt = select(NotificationPreference).where(NotificationPreference.user_id == user_id)
+        stmt = select(NotificationPreference).where(
+            NotificationPreference.user_id == user_id)
         result = await self.session.exec(stmt)
         return list(result.all())
 
@@ -276,7 +290,7 @@ class NotificationPreferenceRepository:
                 pref.whatsapp_enabled = whatsapp_enabled
             if in_app_enabled is not None:
                 pref.in_app_enabled = in_app_enabled
-            pref.updated_at = datetime.now(timezone.utc)
+            pref.updated_at = utc_now()
 
         await self.session.commit()
         await self.session.refresh(pref)

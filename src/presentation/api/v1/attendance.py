@@ -24,12 +24,12 @@ from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.attendance_service import AttendanceService
 from src.core.entities.attendance import AttendanceStatus, AttendanceType
-from src.core.entities.user import User
+from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.attendance_repository import AttendanceRepository
 from src.infrastructure.repositories.user_repository import UserRepository
@@ -113,7 +113,7 @@ async def get_my_attendances(
     """
     Mon historique de presence.
 
-    **Accessible a :** Tout utilisateur authentifie.
+    **Accessible a :** Admin/Aumonier ou proprietaire de l'enregistrement.
     """
     service = _get_service(session)
     return await service.list_attendances(
@@ -151,7 +151,8 @@ async def list_attendances(
     current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
     user_id: Optional[UUID] = Query(None),
     attendance_type: Optional[AttendanceType] = Query(None),
-    attendance_status: Optional[AttendanceStatus] = Query(None, alias="status"),
+    attendance_status: Optional[AttendanceStatus] = Query(
+        None, alias="status"),
     start_date: Optional[datetime] = Query(None),
     end_date: Optional[datetime] = Query(None),
     event_id: Optional[UUID] = Query(None),
@@ -208,7 +209,13 @@ async def get_attendance(
     **Accessible a :** Tout utilisateur authentifie.
     """
     service = _get_service(session)
-    return await service.get_attendance(attendance_id)
+    attendance = await service.get_attendance(attendance_id)
+    if current_user.role not in (UserRole.ADMIN, UserRole.AUMÔNIER) and attendance.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acces refuse a cet enregistrement de presence.",
+        )
+    return attendance
 
 
 @router.patch("/{attendance_id}", response_model=AttendanceResponse)
@@ -228,3 +235,67 @@ async def update_attendance(
     """
     service = _get_service(session)
     return await service.update_attendance(attendance_id, data)
+
+
+# ── Export PDF ────────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/export/pdf",
+    summary="Exporter le rapport de présence en PDF",
+    description="Télécharge le rapport de présence d'un servant pour une période donnée.",
+)
+async def export_attendance_pdf(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    user_id: Optional[UUID] = Query(None, description="ID du servant (admin seulement)"),
+    start_date: Optional[datetime] = Query(None, description="Date de début"),
+    end_date: Optional[datetime] = Query(None, description="Date de fin"),
+):
+    """Génère le rapport de présence PDF pour un servant sur une période."""
+    from src.core.entities.user import UserRole
+    from src.infrastructure.services.pdf_service import PDFService
+
+    # Les non-admin ne peuvent exporter que leurs propres données
+    target_id = user_id if user_id and current_user.role in (UserRole.ADMIN, UserRole.AUMONIER) else current_user.id
+    svc = _get_service(session)
+    result = await svc.list_attendances(
+        user_id=target_id,
+        start_date=start_date,
+        end_date=end_date,
+        page_size=500,
+    )
+    stats = await svc.get_user_stats(target_id, start_date=start_date, end_date=end_date)
+    target_user = await UserRepository(session).get(target_id)
+    servant_name = (
+        f"{target_user.first_name} {target_user.last_name}" if target_user else str(target_id)
+    )
+    period_label = "Toute période"
+    if start_date and end_date:
+        period_label = f"{start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}"
+    elif start_date:
+        period_label = f"Depuis le {start_date.strftime('%d/%m/%Y')}"
+
+    session_dicts = [
+        {
+            "date": a.attendance_date if hasattr(a, "attendance_date") else None,
+            "event_title": str(getattr(a, "event_id", "")),
+            "role": str(getattr(a, "attendance_type", "")),
+            "status": str(getattr(a, "status", "")),
+        }
+        for a in result.items
+    ]
+    pdf_svc = PDFService()
+    pdf_bytes = pdf_svc.generate_attendance_report(
+        servant_name=servant_name,
+        sessions=session_dicts,
+        period_label=period_label,
+        total_present=int(getattr(stats, "total_present", 0) or 0),
+        total_absent=int(getattr(stats, "total_absent", 0) or 0),
+    )
+    filename = f"presence_{target_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

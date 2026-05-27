@@ -9,6 +9,7 @@ Responsabilites :
 - Statistiques
 """
 from datetime import datetime, timezone
+import logging
 from typing import Optional
 from uuid import UUID, uuid4
 
@@ -28,24 +29,22 @@ from src.infrastructure.repositories.notification_repository import (
     NotificationRepository,
 )
 from src.infrastructure.services.email_service import EmailService
-from src.infrastructure.services.email_templates import (
-    render_absence_parent_notification,
-    render_assignment_notification,
-    render_event_reminder,
-    render_general_notification,
-)
 from src.infrastructure.services.whatsapp_service import WhatsAppService
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationService:
     """Service de gestion des notifications."""
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, ws_manager=None):
         self.session = session
         self.repo = NotificationRepository(session)
         self.pref_repo = NotificationPreferenceRepository(session)
         self.email_service = EmailService()
         self.whatsapp_service = WhatsAppService()
+        # Gestionnaire WebSocket optionnel (injecté depuis la requête FastAPI)
+        self._ws_manager = ws_manager
 
     # ══════════════════════════════════════════════════════════════════════
     #  Envoi individuel
@@ -85,11 +84,27 @@ class NotificationService:
         )
         notification = await self.repo.create(notification)
 
+        # Push WebSocket temps réel si le gestionnaire est disponible
+        if self._ws_manager is not None and channel == NotificationChannel.IN_APP:
+            try:
+                await self._ws_manager.send_to_user(
+                    str(recipient_id),
+                    {
+                        "id": str(notification.id),
+                        "type": notification_type.value,
+                        "title": title,
+                        "body": body,
+                        "created_at": notification.created_at.isoformat() if notification.created_at else None,
+                    },
+                )
+            except Exception as exc:
+                logger.debug("WebSocket push failed (non-fatal): %s", exc)
+
         # Envoi effectif selon le canal
         error = None
         if channel == NotificationChannel.IN_APP:
             # Les notifications in-app sont directement marquees comme envoyees
-            pass
+            error = None
         elif channel == NotificationChannel.EMAIL:
             error = await self._send_email(notification)
         elif channel == NotificationChannel.WHATSAPP:
@@ -110,20 +125,76 @@ class NotificationService:
         if not user:
             return "Destinataire introuvable"
 
-        # Generer le contenu email
-        subject, html = render_general_notification(
+        try:
+            sent = await self._dispatch_email(notification, user)
+            return None if sent else "SMTP non configure ou envoi echoue"
+        except Exception as exc:
+            logger.warning(
+                "Notification email send failed | notification_id=%s | recipient_id=%s | error=%s",
+                str(notification.id),
+                str(notification.recipient_id),
+                str(exc),
+            )
+            return str(exc)[:500]
+
+    async def _dispatch_email(self, notification: Notification, user: User) -> bool:
+        """Selectionne le template email selon le type de notification."""
+        nt = notification.notification_type
+
+        if nt == NotificationType.AFFECTATION:
+            return await self.email_service.send_assignment_notification(
+                to_email=user.email,
+                user_first_name=user.first_name,
+                event_title=notification.title,
+                event_date="",  # enrichi par l'appelant si besoin
+                liturgical_role=notification.body,
+            )
+
+        if nt == NotificationType.RAPPEL_EVENEMENT:
+            return await self.email_service.send_event_reminder(
+                to_email=user.email,
+                user_first_name=user.first_name,
+                event_title=notification.title,
+                event_date="",
+                liturgical_role="",
+            )
+
+        if nt == NotificationType.ABSENCE_PARENT:
+            return await self.email_service.send_absence_parent_notification(
+                to_email=user.email,
+                parent_first_name=user.first_name,
+                child_first_name="",
+                child_last_name="",
+                event_title=notification.title,
+                event_date="",
+            )
+
+        if nt == NotificationType.AVERTISSEMENT_ABSENCE:
+            return await self.email_service.send_general_notification(
+                to_email=user.email,
+                user_first_name=user.first_name,
+                title=notification.title,
+                body=notification.body,
+            )
+
+        if nt == NotificationType.CONVOCATION_PARENT:
+            return await self.email_service.send_general_notification(
+                to_email=user.email,
+                user_first_name=user.first_name,
+                title=notification.title,
+                body=notification.body,
+            )
+
+        # DISCIPLINE, COTISATION, NOMINATION, GENERAL → template general
+        return await self.email_service.send_general_notification(
+            to_email=user.email,
             user_first_name=user.first_name,
             title=notification.title,
             body=notification.body,
         )
 
-        try:
-            sent = await self.email_service.send_email(user.email, subject, html)
-            return None if sent else "SMTP non configure ou envoi echoue"
-        except Exception as exc:
-            return str(exc)[:500]
-
-    async def _send_whatsapp(self, notification: Notification) -> Optional[str]:
+    async def _send_whatsapp(
+        self, notification: Notification) -> Optional[str]:
         """Envoie la notification par WhatsApp. Retourne le message d'erreur si echec."""
         stmt = select(User).where(User.id == notification.recipient_id)
         result = await self.session.exec(stmt)
@@ -141,6 +212,12 @@ class NotificationService:
             )
             return None if sent else "WhatsApp non configure ou envoi echoue"
         except Exception as exc:
+            logger.warning(
+                "Notification WhatsApp send failed | notification_id=%s | recipient_id=%s | error=%s",
+                str(notification.id),
+                str(notification.recipient_id),
+                str(exc),
+            )
             return str(exc)[:500]
 
     # ══════════════════════════════════════════════════════════════════════

@@ -1,0 +1,176 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# ServantAssist — Docker Compose DEV (dédié)
+# Usage:
+#   Démarrer : docker compose -f docker-compose.dev.yml up -d
+#   Logs     : docker compose -f docker-compose.dev.yml logs -f backend
+#   Stop     : docker compose -f docker-compose.dev.yml down
+#   Migrate  : docker compose -f docker-compose.dev.yml --profile migrate run --rm migrate
+# ──────────────────────────────────────────────────────────────────────────────
+version: "3.9"
+
+services:
+  # ── PostgreSQL ───────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: servantassist-dev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-servantassist}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-servantassist_password}
+      POSTGRES_DB: ${POSTGRES_DB:-servantassist_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-servantassist} -d ${POSTGRES_DB:-servantassist_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: servantassist-dev-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (DEV) ────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-dev-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env.dev
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-servantassist}:${POSTGRES_PASSWORD:-servantassist_password}@db:5432/${POSTGRES_DB:-servantassist_db}"
+      REDIS_URL: "redis://redis:6379/0"
+      APP_ENV: development
+      APP_DEBUG: "True"
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── Celery Worker ────────────────────────────────────────────────────────
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-dev-celery-worker
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    env_file:
+      - .env.dev
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-servantassist}:${POSTGRES_PASSWORD:-servantassist_password}@db:5432/${POSTGRES_DB:-servantassist_db}"
+      REDIS_URL: "redis://redis:6379/0"
+      APP_ENV: development
+    command: celery -A src.infrastructure.tasks.celery_app worker --loglevel=info --concurrency=2
+
+  # ── Celery Beat ──────────────────────────────────────────────────────────
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-dev-celery-beat
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - celery-worker
+    volumes:
+      - .:/app
+    env_file:
+      - .env.dev
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-servantassist}:${POSTGRES_PASSWORD:-servantassist_password}@db:5432/${POSTGRES_DB:-servantassist_db}"
+      REDIS_URL: "redis://redis:6379/0"
+      APP_ENV: development
+    command: celery -A src.infrastructure.tasks.celery_app beat --loglevel=info
+
+  # ── Flower (Celery UI) ───────────────────────────────────────────────────
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-dev-flower
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env.dev
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+    command: celery -A src.infrastructure.tasks.celery_app flower --port=5555
+
+  # ── Migrations (profil "migrate") ───────────────────────────────────────
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: servantassist-dev-migrate
+    profiles: [migrate]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.dev
+    environment:
+      APP_ENV: development
+      APP_DEBUG: "False"
+    command: alembic upgrade head
+
+  # ── Outils Dev ───────────────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: servantassist-dev-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@servantassist.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    volumes:
+      - pgadmin_dev:/var/lib/pgadmin
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: servantassist-dev-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+
+volumes:
+  pgdata_dev:
+  pgadmin_dev:

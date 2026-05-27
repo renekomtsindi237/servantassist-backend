@@ -115,10 +115,12 @@ async def test_cannot_access_other_censeur_sessions(client, db_session, aumonier
     from src.core.entities.attendance_session import AttendanceSession
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole
+    from src.infrastructure.repositories.user_repository import UserRepository
     from src.infrastructure.security.utils import SecurityUtils
 
-    # Créer deux censeurs
-    censeur1 = User(
+    # Créer deux censeurs via le repository (pour que email_hmac soit renseigné)
+    _repo = UserRepository(db_session)
+    censeur1 = await _repo.create(User(
         id=uuid4(),
         email="censeur1@test.com",
         hashed_password=SecurityUtils.get_password_hash("TestPass1"),
@@ -127,10 +129,8 @@ async def test_cannot_access_other_censeur_sessions(client, db_session, aumonier
         role=UserRole.SERVANT,
         is_active=True,
         phone_number="+237600000021",
-    )
-    db_session.add(censeur1)
-
-    censeur2 = User(
+    ))
+    censeur2 = await _repo.create(User(
         id=uuid4(),
         email="censeur2@test.com",
         hashed_password=SecurityUtils.get_password_hash("TestPass1"),
@@ -139,9 +139,7 @@ async def test_cannot_access_other_censeur_sessions(client, db_session, aumonier
         role=UserRole.SERVANT,
         is_active=True,
         phone_number="+237600000022",
-    )
-    db_session.add(censeur2)
-    await db_session.commit()
+    ))
 
     # Nominations
     nom1 = Nomination(
@@ -346,11 +344,12 @@ async def test_censeur_adjoint_has_same_permissions(client, db_session, aumonier
     """Test que le CENSEUR_ADJOINT a les mêmes permissions."""
     from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
     from src.core.entities.user import User, UserRole
+    from src.infrastructure.repositories.user_repository import UserRepository
     from src.infrastructure.security.utils import SecurityUtils
     from tests.conftest import make_access_token
 
-    # Créer un censeur adjoint
-    censeur_adj = User(
+    # Créer un censeur adjoint via le repository (pour que email_hmac soit renseigné)
+    censeur_adj = await UserRepository(db_session).create(User(
         id=uuid4(),
         email="censeur.adj@test.com",
         hashed_password=SecurityUtils.get_password_hash("TestPass1"),
@@ -359,9 +358,7 @@ async def test_censeur_adjoint_has_same_permissions(client, db_session, aumonier
         role=UserRole.SERVANT,
         is_active=True,
         phone_number="+237600000023",
-    )
-    db_session.add(censeur_adj)
-    await db_session.commit()
+    ))
 
     # Nomination
     nomination = Nomination(

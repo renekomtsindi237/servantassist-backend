@@ -18,10 +18,12 @@ Administration (admin requis) :
     DELETE /{user_id}           Supprimer un utilisateur
 """
 from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import Annotated, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.user_service import UserService
@@ -115,13 +117,12 @@ async def upload_my_photo(
     try:
         # Supprimer l'ancienne photo si elle existe
         if current_user.profile_photo_url:
-            await storage.delete_profile_photo(current_user.profile_photo_url)
+            await storage.delete_file(current_user.profile_photo_url)
 
         photo_url = await storage.upload_profile_photo(
             user_id=str(current_user.id),
             file_data=file_data,
             content_type=file.content_type or "image/jpeg",
-            filename=file.filename or "photo.jpg",
         )
     except ValueError as exc:
         raise HTTPException(
@@ -131,7 +132,7 @@ async def upload_my_photo(
 
     # Mettre a jour le profil
     current_user.profile_photo_url = photo_url
-    current_user.updated_at = datetime.now(timezone.utc)
+    current_user.updated_at = utc_now()
     user_repo = UserRepository(session)
     updated_user = await user_repo.update(current_user.id, current_user)
     return updated_user
@@ -152,12 +153,42 @@ async def delete_my_photo(
         )
 
     storage = StorageService()
-    await storage.delete_profile_photo(current_user.profile_photo_url)
+    await storage.delete_file(current_user.profile_photo_url)
 
     current_user.profile_photo_url = None
-    current_user.updated_at = datetime.now(timezone.utc)
+    current_user.updated_at = utc_now()
     user_repo = UserRepository(session)
     await user_repo.update(current_user.id, current_user)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  RÉPERTOIRE — accessible à tout utilisateur authentifié
+# ══════════════════════════════════════════════════════════════════════════
+
+
+@router.get("/directory", response_model=PaginatedResponse[UserProfileResponse])
+async def list_directory(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    role: Optional[UserRole] = Query(None, description="Filtrer par rôle"),
+    is_active: Optional[bool] = Query(True, description="Filtrer par statut actif"),
+    search: Optional[str] = Query(None, max_length=100, description="Recherche par nom"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+):
+    """
+    Répertoire des membres — accessible à tout utilisateur authentifié.
+
+    Utile pour les pages «Membres», sélecteurs de servant, etc.
+    """
+    service = _get_user_service(session)
+    return await service.list_users(
+        role=role,
+        is_active=is_active,
+        search=search,
+        page=page,
+        page_size=page_size,
+    )
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -170,8 +201,12 @@ async def list_users(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_admin_user)],
     role: Optional[UserRole] = Query(None, description="Filtrer par role"),
-    is_active: Optional[bool] = Query(None, description="Filtrer par statut actif"),
-    search: Optional[str] = Query(None, max_length=100, description="Recherche par nom ou email"),
+    is_active: Optional[bool] = Query(
+    None, description="Filtrer par statut actif"),
+    search: Optional[str] = Query(
+    None,
+    max_length=100,
+     description="Recherche par nom ou email"),
     page: int = Query(1, ge=1, description="Numero de page"),
     page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
 ):
@@ -203,6 +238,22 @@ async def get_user(
     """Detail d'un utilisateur. Admin uniquement."""
     service = _get_user_service(session)
     return await service.get_user(user_id)
+
+
+class LinkParentRequest(BaseModel):
+    parent_id: Optional[UUID]
+
+
+@router.patch("/{user_id}/link-parent", response_model=UserProfileResponse)
+async def link_parent(
+    user_id: UUID,
+    data: LinkParentRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_admin_user)],
+):
+    """Lier ou délier un servant à un parent. Admin uniquement."""
+    service = _get_user_service(session)
+    return await service.link_parent(user_id, data.parent_id)
 
 
 @router.patch("/{user_id}", response_model=UserProfileResponse)
@@ -243,7 +294,8 @@ async def activate_user(
     return await service.activate_user(user_id)
 
 
-@router.post("/{user_id}/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{user_id}/reset-password",
+             status_code=status.HTTP_204_NO_CONTENT)
 async def admin_reset_password(
     user_id: UUID,
     data: UserAdminResetPassword,

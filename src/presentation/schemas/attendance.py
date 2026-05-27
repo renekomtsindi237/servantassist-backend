@@ -5,9 +5,10 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from src.core.entities.attendance import AttendanceStatus, AttendanceType
+from src.core.utils import to_naive_utc
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enregistrement de presence
@@ -24,6 +25,11 @@ class AttendanceCreate(BaseModel):
     status: AttendanceStatus = AttendanceStatus.PRESENT
     event_id: Optional[UUID] = None
     justification: Optional[str] = Field(None, max_length=1000)
+
+    @field_validator("attendance_date")
+    @classmethod
+    def normalize_attendance_date(cls, v: datetime) -> datetime:
+        return to_naive_utc(v)
 
 
 class AttendanceBatchItem(BaseModel):
@@ -42,6 +48,11 @@ class AttendanceBatchCreate(BaseModel):
     title: Optional[str] = Field(None, max_length=200)
     event_id: Optional[UUID] = None
     entries: List[AttendanceBatchItem]
+
+    @field_validator("attendance_date")
+    @classmethod
+    def normalize_attendance_date(cls, v: datetime) -> datetime:
+        return to_naive_utc(v)
 
 
 class AttendanceUpdate(BaseModel):

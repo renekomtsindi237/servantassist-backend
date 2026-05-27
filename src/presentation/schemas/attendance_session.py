@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
-from src.core.entities.attendance_session import AttendanceStatus
+from src.core.entities.attendance_session import AttendanceStatus, SessionType
 
 # ══════════════════════════════════════════════════════════════════
 #  CRÉATION
@@ -21,6 +21,7 @@ class AttendanceSessionCreate(BaseModel):
     session_date: datetime = Field(description="Date de la session (samedi)")
     session_time: str = Field(default="07h30", description="Heure de la session")
     location: str = Field(default="Sacristie", description="Lieu de l'appel")
+    session_type: SessionType = Field(default=SessionType.REUNION_HEBDOMADAIRE)
     notes: Optional[str] = None
 
     @field_validator("notes", mode="before")
@@ -102,6 +103,7 @@ class AttendanceSessionResponse(BaseModel):
     session_date: datetime
     session_time: str
     location: str
+    session_type: SessionType = SessionType.REUNION_HEBDOMADAIRE
     conducted_by: UUID
     conducted_by_name: str  # Enrichi
     notes: Optional[str] = None
@@ -145,7 +147,8 @@ class AttendanceReportRequest(BaseModel):
 
     start_date: datetime
     end_date: datetime
-    servant_ids: Optional[list[UUID]] = None  # Filtrer par servants spécifiques
+    # Filtrer par servants spécifiques
+    servant_ids: Optional[list[UUID]] = None
 
 
 class AttendanceReportResponse(BaseModel):

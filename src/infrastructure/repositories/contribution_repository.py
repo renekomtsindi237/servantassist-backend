@@ -1,7 +1,8 @@
 """
 Repository pour la gestion des contributions financières.
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID
 
@@ -10,6 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.entities.contribution import Contribution, MonthlyContributionSummary, PaymentMode, PaymentStatus
 from src.core.entities.user import User, UserRole
+from src.infrastructure.security.field_encryption import decrypt_str_fields
+
+_USER_PII = ("first_name", "last_name")
 
 
 class ContributionRepository:
@@ -85,7 +89,8 @@ class ContributionRepository:
         end_date: Optional[datetime] = None,
     ) -> List[Contribution]:
         """Récupère toutes les contributions d'un servant."""
-        query = select(Contribution).where(Contribution.servant_id == servant_id)
+        query = select(Contribution).where(
+    Contribution.servant_id == servant_id)
 
         if start_date:
             query = query.where(Contribution.payment_date >= start_date)
@@ -97,9 +102,13 @@ class ContributionRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
-    async def get_monthly_contributions(self, month: int, year: int) -> List[Contribution]:
+    async def get_monthly_contributions(
+        self, month: int, year: int) -> List[Contribution]:
         """Récupère toutes les contributions d'un mois."""
-        query = select(Contribution).where(and_(Contribution.month == month, Contribution.year == year))
+        query = select(Contribution).where(
+    and_(
+        Contribution.month == month,
+         Contribution.year == year))
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
@@ -107,7 +116,8 @@ class ContributionRepository:
     #  MODIFICATION
     # ══════════════════════════════════════════════════════════════════
 
-    async def update(self, contribution_id: UUID, contribution: Contribution) -> Optional[Contribution]:
+    async def update(self, contribution_id: UUID,
+                     contribution: Contribution) -> Optional[Contribution]:
         """Met à jour une contribution."""
         existing = await self.get(contribution_id)
         if not existing:
@@ -116,7 +126,7 @@ class ContributionRepository:
         for key, value in contribution.model_dump(exclude_unset=True).items():
             setattr(existing, key, value)
 
-        existing.updated_at = datetime.utcnow()
+        existing.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(existing)
         return existing
@@ -139,7 +149,8 @@ class ContributionRepository:
     #  STATISTIQUES ET RAPPORTS
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_monthly_summary(self, servant_id: UUID, month: int, year: int) -> MonthlyContributionSummary:
+    async def get_monthly_summary(
+        self, servant_id: UUID, month: int, year: int) -> MonthlyContributionSummary:
         """Génère le résumé mensuel pour un servant."""
         # Récupérer les contributions du mois
         contributions = await self.session.execute(
@@ -156,6 +167,8 @@ class ContributionRepository:
         # Récupérer le servant
         servant_result = await self.session.execute(select(User).where(User.id == servant_id))
         servant = servant_result.scalar_one_or_none()
+        if servant:
+            decrypt_str_fields(servant, _USER_PII)
         servant_name = f"{servant.first_name} {servant.last_name}" if servant else "Inconnu"
 
         # Calculer les montants
@@ -188,9 +201,13 @@ class ContributionRepository:
     async def get_all_servants(self) -> List[User]:
         """Récupère tous les servants."""
         result = await self.session.execute(select(User).where(User.role == UserRole.SERVANT).order_by(User.last_name))
-        return list(result.scalars().all())
+        servants = list(result.scalars().all())
+        for s in servants:
+            decrypt_str_fields(s, _USER_PII)
+        return servants
 
-    async def calculate_period_stats(self, start_date: datetime, end_date: datetime) -> dict:
+    async def calculate_period_stats(
+        self, start_date: datetime, end_date: datetime) -> dict:
         """Calcule les statistiques pour une période."""
         # Récupérer tous les servants
         servants = await self.get_all_servants()
@@ -210,14 +227,18 @@ class ContributionRepository:
         total_collected = sum(c.amount for c in contributions)
 
         # Calculer le montant attendu (approximatif basé sur le nombre de mois)
-        months_diff = (end_date.year - start_date.year) * 12 + end_date.month - start_date.month + 1
+        months_diff = (end_date.year - start_date.year) * 12 + \
+                       end_date.month - start_date.month + 1
         total_expected = len(servants) * 500 * months_diff  # Approximation
 
         # Compter les servants à jour et en retard
         servants_paid = len(set(c.servant_id for c in contributions))
         servants_late = len(servants) - servants_paid
 
-        collection_rate = (total_collected / total_expected * 100) if total_expected > 0 else 0
+        collection_rate = (
+    total_collected /
+    total_expected *
+     100) if total_expected > 0 else 0
 
         return {
             "total_expected": total_expected,
@@ -236,11 +257,15 @@ class ContributionRepository:
         # Récupérer le servant
         servant_result = await self.session.execute(select(User).where(User.id == contribution.servant_id))
         servant = servant_result.scalar_one_or_none()
+        if servant:
+            decrypt_str_fields(servant, _USER_PII)
         servant_name = f"{servant.first_name} {servant.last_name}" if servant else "Inconnu"
 
         # Récupérer l'enregistreur
         recorder_result = await self.session.execute(select(User).where(User.id == contribution.recorded_by))
         recorder = recorder_result.scalar_one_or_none()
+        if recorder:
+            decrypt_str_fields(recorder, _USER_PII)
         recorded_by_name = f"{recorder.first_name} {recorder.last_name}" if recorder else "Inconnu"
 
         return {

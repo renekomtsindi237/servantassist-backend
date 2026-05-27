@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.training_service import TrainingService
@@ -22,6 +22,7 @@ from src.infrastructure.repositories.training_repository import (
     TrainingParticipationRepository,
     TrainingSessionRepository,
 )
+from src.infrastructure.services.storage_service import StorageService
 from src.presentation.dependencies.auth_deps import get_current_user, require_charge_liturgie
 from src.presentation.schemas.training import (
     SessionMaterialAdd,
@@ -53,13 +54,15 @@ router = APIRouter()
 # ══════════════════════════════════════════════════════════════════
 
 
-def get_training_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> TrainingService:
+def get_training_service(db: Annotated[AsyncSession, Depends(
+    get_db_session)]) -> TrainingService:
     """Dépendance pour obtenir le service de formation."""
     session_repo = TrainingSessionRepository(db)
     participation_repo = TrainingParticipationRepository(db)
     material_repo = TrainingMaterialRepository(db)
     session_material_repo = SessionMaterialRepository(db)
-    return TrainingService(session_repo, participation_repo, material_repo, session_material_repo)
+    return TrainingService(session_repo, participation_repo,
+                           material_repo, session_material_repo)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -150,7 +153,7 @@ async def get_training_session(
     if not session:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training session not found",
+            detail="Cette session de formation est introuvable.",
         )
     return session
 
@@ -188,7 +191,7 @@ async def update_training_session(
     if not session:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training session not found",
+            detail="Cette session de formation est introuvable.",
         )
     return session
 
@@ -209,7 +212,7 @@ async def delete_training_session(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training session not found",
+            detail="Cette session de formation est introuvable.",
         )
 
 
@@ -334,7 +337,7 @@ async def mark_participant_attendance(
     if not participation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Participation not found",
+            detail="Cette participation est introuvable.",
         )
     return participation
 
@@ -361,7 +364,7 @@ async def evaluate_participant(
     if not participation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Participation not found",
+            detail="Cette participation est introuvable.",
         )
     return participation
 
@@ -382,7 +385,7 @@ async def cancel_participation(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Participation not found",
+            detail="Cette participation est introuvable.",
         )
 
 
@@ -436,6 +439,57 @@ async def get_servant_training_stats(
 # ══════════════════════════════════════════════════════════════════
 #  ENDPOINTS - MATÉRIELS PÉDAGOGIQUES
 # ══════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/materials/upload",
+    response_model=TrainingMaterialResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload d'un matériel pédagogique",
+    description=(
+        "Upload multipart d'un fichier pédagogique (CHARGE_LITURGIE uniquement). "
+        "Routage automatique : image → images/training/, document → documents/training/. "
+        "Max 10 Mo."
+    ),
+)
+async def upload_training_material(
+    file: Annotated[UploadFile, File(description="Fichier pédagogique (PDF, DOC, DOCX, image, max 10 Mo)")],
+    title: str = Form(...),
+    description: str = Form(...),
+    type: MaterialType = Form(...),
+    level: TrainingLevel = Form(TrainingLevel.TOUS),
+    is_public: bool = Form(True),
+    tags: Optional[str] = Form(None, description="Tags séparés par des virgules"),
+    current_user: User = Depends(require_charge_liturgie),
+    service: TrainingService = Depends(get_training_service),
+):
+    """Upload un fichier et crée le matériel pédagogique associé."""
+    file_data = await file.read()
+    content_type = file.content_type or "application/octet-stream"
+    storage = StorageService()
+    try:
+        file_url = await storage.upload_training_material(
+            training_id=str(current_user.id),
+            file_data=file_data,
+            content_type=content_type,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+    tags_list = [t.strip() for t in tags.split(",")] if tags else []
+    material = await service.create_material(
+        title=title,
+        description=description,
+        type=type,
+        file_url=file_url,
+        file_type=content_type,
+        file_size=len(file_data),
+        level=level,
+        tags=tags_list,
+        is_public=is_public,
+        uploaded_by=current_user.id,
+    )
+    return material
 
 
 @router.post(
@@ -516,7 +570,7 @@ async def get_training_material(
     if not material:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training material not found",
+            detail="Ce support de formation est introuvable.",
         )
     return material
 
@@ -547,7 +601,7 @@ async def update_training_material(
     if not material:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training material not found",
+            detail="Ce support de formation est introuvable.",
         )
     return material
 
@@ -568,13 +622,59 @@ async def delete_training_material(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training material not found",
+            detail="Ce support de formation est introuvable.",
         )
 
 
 # ══════════════════════════════════════════════════════════════════
 #  ENDPOINTS - RAPPORTS
 # ══════════════════════════════════════════════════════════════════
+
+
+@router.get(
+    "/participations/{participation_id}/certificate",
+    summary="Télécharger le certificat PDF",
+    description="Génère et retourne le certificat de formation en PDF.",
+)
+async def download_certificate(
+    participation_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: TrainingService = Depends(get_training_service),
+):
+    """Génère le certificat PDF pour une participation validée."""
+    participation = await service.get_participation(participation_id)
+    if not participation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Participation introuvable.",
+        )
+    if not participation.certificate_issued:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Aucun certificat n'a encore été délivré pour cette participation.",
+        )
+
+    # Récupérer la session de formation pour le titre
+    session = await service.get_session(participation.session_id)
+    session_title = session.title if session else "Formation"
+    session_date = session.date if session and hasattr(session, "date") else participation.created_at
+
+    from src.infrastructure.services.pdf_service import PDFService
+
+    pdf_svc = PDFService()
+    pdf_bytes = pdf_svc.generate_certificate(
+        participant_first_name=str(participation.user_id),  # enrichi si user chargé
+        participant_last_name="",
+        training_title=session_title,
+        training_date=session_date,
+        score=float(participation.evaluation_score) if participation.evaluation_score else None,
+    )
+    filename = f"certificat_{participation_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.post(

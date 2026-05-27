@@ -39,7 +39,8 @@ class AssignmentBatchCreate(BaseModel):
     """Schema pour creer plusieurs affectations en une seule requete."""
 
     event_id: UUID
-    assignments: List[AssignmentBatchItem] = Field(..., min_length=1, description="Au moins une affectation")
+    assignments: List[AssignmentBatchItem] = Field(
+    ..., min_length=1, description="Au moins une affectation")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -58,7 +59,8 @@ class AssignmentUpdate(BaseModel):
 class AssignmentStatusUpdate(BaseModel):
     """Mise a jour du statut par le servant lui-meme (self-service)."""
 
-    status: AssignmentStatus = Field(..., description="ACCEPTED ou DECLINED uniquement")
+    status: AssignmentStatus = Field(...,
+     description="ACCEPTED ou DECLINED uniquement")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

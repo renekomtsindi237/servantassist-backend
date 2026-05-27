@@ -1,11 +1,12 @@
 """
 Repository pour la gestion des rapports (SECRETAIRE).
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import String, and_, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.entities.report import Report, ReportAttachment, ReportStatus, ReportType
@@ -75,7 +76,7 @@ class ReportRepository:
 
     async def update(self, report: Report) -> Report:
         """Met à jour un rapport."""
-        report.updated_at = datetime.utcnow()
+        report.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(report)
         return report
@@ -97,8 +98,8 @@ class ReportRepository:
             return None
 
         report.status = ReportStatus.PUBLISHED
-        report.published_at = datetime.utcnow()
-        report.updated_at = datetime.utcnow()
+        report.published_at = utc_now()
+        report.updated_at = utc_now()
 
         await self.session.commit()
         await self.session.refresh(report)
@@ -111,7 +112,7 @@ class ReportRepository:
             return None
 
         report.status = ReportStatus.ARCHIVED
-        report.updated_at = datetime.utcnow()
+        report.updated_at = utc_now()
 
         await self.session.commit()
         await self.session.refresh(report)
@@ -135,7 +136,10 @@ class ReportRepository:
         result = await self.session.execute(query)
         reports = list(result.scalars().all())
 
-        count_query = select(func.count(Report.id)).where(Report.created_by == user_id)
+        count_query = select(
+    func.count(
+        Report.id)).where(
+            Report.created_by == user_id)
         count_result = await self.session.execute(count_query)
         total = count_result.scalar_one()
 
@@ -155,7 +159,8 @@ class AttachmentRepository:
         await self.session.refresh(attachment)
         return attachment
 
-    async def get_by_id(self, attachment_id: UUID) -> Optional[ReportAttachment]:
+    async def get_by_id(
+        self, attachment_id: UUID) -> Optional[ReportAttachment]:
         """Récupère une pièce jointe par son ID."""
         result = await self.session.execute(select(ReportAttachment).where(ReportAttachment.id == attachment_id))
         return result.scalar_one_or_none()

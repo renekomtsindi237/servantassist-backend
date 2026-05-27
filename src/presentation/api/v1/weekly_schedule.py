@@ -127,13 +127,17 @@ async def create_template(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-@router.get("/", response_model=PaginatedResponse[WeeklyScheduleTemplateSummary])
+@router.get("/",
+            response_model=PaginatedResponse[WeeklyScheduleTemplateSummary])
 async def list_templates(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_charge_classement_semaine)],
-    status_filter: Optional[ScheduleStatus] = Query(None, alias="status", description="Filtrer par statut"),
-    start_date: Optional[datetime] = Query(None, description="Modèles à partir de cette date"),
-    end_date: Optional[datetime] = Query(None, description="Modèles jusqu'à cette date"),
+    status_filter: Optional[ScheduleStatus] = Query(
+    None, alias="status", description="Filtrer par statut"),
+    start_date: Optional[datetime] = Query(
+    None, description="Modèles à partir de cette date"),
+    end_date: Optional[datetime] = Query(
+    None, description="Modèles jusqu'à cette date"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -303,7 +307,8 @@ async def add_servant_to_slot(
     return await service.add_servant_to_slot(slot_id, data, assigned_by=current_user.id)
 
 
-@router.delete("/assignments/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/assignments/{assignment_id}",
+               status_code=status.HTTP_204_NO_CONTENT)
 async def remove_servant_from_slot(
     assignment_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],

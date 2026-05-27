@@ -7,6 +7,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
+from sqlalchemy import Column, String
 from sqlmodel import Field, SQLModel
 
 
@@ -48,13 +49,16 @@ class FinancialEntry(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     date: datetime
     amount: float = Field(gt=0)
-    category: EntryCategory
-    source: EntrySource
+    category: EntryCategory = Field(sa_column=Column(String(50), nullable=False))
+    source: EntrySource = Field(sa_column=Column(String(50), nullable=False))
     reference: Optional[str] = None
     description: str
     recorded_by: UUID = Field(foreign_key="users.id")
     verified_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
-    verification_status: VerificationStatus = VerificationStatus.PENDING
+    verification_status: VerificationStatus = Field(
+        default=VerificationStatus.PENDING,
+        sa_column=Column(String(50), nullable=False, server_default="EN_ATTENTE"),
+    )
     verification_date: Optional[datetime] = None
     notes: Optional[str] = None
     watermark_logo: str = "logo_servant.jpeg"

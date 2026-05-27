@@ -12,14 +12,21 @@ Regles :
 - Les emails et telephones restent uniques.
 """
 import math
-from datetime import datetime, timezone
 from typing import List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import HTTPException, status
 
 from src.core.entities.user import User, UserRole
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.core.utils import utc_now
+from src.core.events.domain_events import (
+    PasswordReset,
+    UserActivated,
+    UserDeactivated,
+    UserDeleted,
+)
+from src.core.interfaces.repositories import IUserRepository
+from src.infrastructure.events.bus import event_bus
 from src.infrastructure.security.utils import SecurityUtils
 from src.presentation.schemas.user import (
     ChangePasswordRequest,
@@ -32,7 +39,7 @@ from src.presentation.schemas.user import (
 
 
 class UserService:
-    def __init__(self, user_repository: UserRepository):
+    def __init__(self, user_repository: IUserRepository):
         self.user_repository = user_repository
 
     # ══════════════════════════════════════════════════════════════════
@@ -43,7 +50,8 @@ class UserService:
         """Retourne le profil de l'utilisateur connecte."""
         return user
 
-    async def update_profile(self, user: User, data: UserProfileUpdate) -> User:
+    async def update_profile(self, user: User,
+                             data: UserProfileUpdate) -> User:
         """
         Mise a jour du profil par l'utilisateur lui-meme.
         Seuls first_name, last_name, phone_number sont modifiables.
@@ -66,30 +74,34 @@ class UserService:
         if data.phone_number is not None:
             user.phone_number = data.phone_number if data.phone_number != "" else None
 
-        user.updated_at = datetime.now(timezone.utc)
+        user.updated_at = utc_now()
         return await self.user_repository.update(user.id, user)
 
-    async def change_password(self, user: User, data: ChangePasswordRequest) -> None:
+    async def change_password(self, user: User,
+                              data: ChangePasswordRequest) -> None:
         """
         Changement de mot de passe par l'utilisateur.
         L'ancien mot de passe est requis pour verification.
         """
         # Verifier l'ancien mot de passe
-        if not SecurityUtils.verify_password(data.current_password, user.hashed_password):
+        if not SecurityUtils.verify_password(
+            data.current_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Le mot de passe actuel est incorrect.",
             )
 
         # Verifier que le nouveau mot de passe est different
-        if SecurityUtils.verify_password(data.new_password, user.hashed_password):
+        if SecurityUtils.verify_password(
+            data.new_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Le nouveau mot de passe doit etre different de l'ancien.",
             )
 
-        user.hashed_password = SecurityUtils.get_password_hash(data.new_password)
-        user.updated_at = datetime.now(timezone.utc)
+        user.hashed_password = SecurityUtils.get_password_hash(
+            data.new_password)
+        user.updated_at = utc_now()
         await self.user_repository.update(user.id, user)
 
     # ══════════════════════════════════════════════════════════════════
@@ -132,7 +144,8 @@ class UserService:
             )
         return user
 
-    async def admin_update_user(self, user_id: UUID, data: UserAdminUpdate, admin: User) -> User:
+    async def admin_update_user(
+        self, user_id: UUID, data: UserAdminUpdate, admin: User) -> User:
         """
         Mise a jour d'un utilisateur par l'admin.
         Peut modifier email, nom, prenom, telephone, statut actif.
@@ -163,6 +176,8 @@ class UserService:
             user.first_name = data.first_name
         if data.last_name is not None:
             user.last_name = data.last_name
+        if data.position is not None:
+            user.position = data.position
 
         # Activation / desactivation
         if data.is_active is not None and data.is_active != user.is_active:
@@ -174,8 +189,27 @@ class UserService:
                 )
             user.is_active = data.is_active
 
-        user.updated_at = datetime.now(timezone.utc)
+        user.updated_at = utc_now()
         return await self.user_repository.update(user.id, user)
+
+    async def link_parent(self, servant_id: UUID, parent_id: Optional[UUID]) -> User:
+        """Lie ou délie un servant à un parent."""
+        servant = await self.get_user(servant_id)
+        if servant.role != UserRole.SERVANT:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Seul un SERVANT peut être lié à un parent.",
+            )
+        if parent_id is not None:
+            parent = await self.get_user(parent_id)
+            if parent.role != UserRole.PARENT:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="L'utilisateur cible doit avoir le rôle PARENT.",
+                )
+        servant.parent_id = parent_id
+        servant.updated_at = utc_now()
+        return await self.user_repository.update(servant.id, servant)
 
     async def deactivate_user(self, user_id: UUID, admin: User) -> User:
         """Desactive un compte utilisateur."""
@@ -194,8 +228,10 @@ class UserService:
             )
 
         user.is_active = False
-        user.updated_at = datetime.now(timezone.utc)
-        return await self.user_repository.update(user.id, user)
+        user.updated_at = utc_now()
+        result = await self.user_repository.update(user.id, user)
+        await event_bus.publish(UserDeactivated(user_id=user_id, deactivated_by_id=admin.id))
+        return result
 
     async def activate_user(self, user_id: UUID) -> User:
         """Reactive un compte utilisateur."""
@@ -208,15 +244,20 @@ class UserService:
             )
 
         user.is_active = True
-        user.updated_at = datetime.now(timezone.utc)
-        return await self.user_repository.update(user.id, user)
+        user.updated_at = utc_now()
+        result = await self.user_repository.update(user.id, user)
+        await event_bus.publish(UserActivated(user_id=user_id))
+        return result
 
-    async def admin_reset_password(self, user_id: UUID, data: UserAdminResetPassword) -> None:
+    async def admin_reset_password(
+        self, user_id: UUID, data: UserAdminResetPassword) -> None:
         """Reinitialisation forcee du mot de passe par l'admin."""
         user = await self.get_user(user_id)
-        user.hashed_password = SecurityUtils.get_password_hash(data.new_password)
-        user.updated_at = datetime.now(timezone.utc)
+        user.hashed_password = SecurityUtils.get_password_hash(
+            data.new_password)
+        user.updated_at = utc_now()
         await self.user_repository.update(user.id, user)
+        await event_bus.publish(PasswordReset(user_id=user_id))
 
     async def delete_user(self, user_id: UUID, admin: User) -> None:
         """
@@ -248,3 +289,4 @@ class UserService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Erreur lors de la suppression de l'utilisateur.",
             )
+        await event_bus.publish(UserDeleted(user_id=user_id, deleted_by_id=admin.id))

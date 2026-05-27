@@ -7,7 +7,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlalchemy import Column
+from sqlalchemy import Column, String
 from sqlmodel import JSON, Field, SQLModel
 
 
@@ -34,15 +34,20 @@ class Report(SQLModel, table=True):
     __tablename__ = "reports"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    type: ReportType
+    type: ReportType = Field(sa_column=Column(String(50), nullable=False))
     title: str
     content: str
     report_date: datetime
     location: str
-    participants: list[str] = Field(default_factory=list, sa_column=Column(JSON))  # Liste des noms
+    participants: list[str] = Field(
+    default_factory=list,
+     sa_column=Column(JSON))  # Liste des noms
     decisions: Optional[str] = None
     action_items: Optional[str] = None
-    status: ReportStatus = ReportStatus.DRAFT
+    status: ReportStatus = Field(
+        default=ReportStatus.DRAFT,
+        sa_column=Column(String(50), nullable=False, server_default="BROUILLON"),
+    )
     created_by: UUID = Field(foreign_key="users.id")
     published_at: Optional[datetime] = None
     watermark_logo: str = "logo_servant.jpeg"

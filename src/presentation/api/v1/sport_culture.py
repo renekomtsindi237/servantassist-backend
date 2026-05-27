@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.sport_culture_service import SportCultureService
@@ -22,6 +22,7 @@ from src.infrastructure.repositories.sport_culture_repository import (
     EventTeamRepository,
     SportCultureEventRepository,
 )
+from src.infrastructure.services.storage_service import StorageService
 from src.presentation.dependencies.auth_deps import get_current_user, require_charge_sport_culture
 from src.presentation.schemas.sport_culture import (
     EventParticipationBatchCreate,
@@ -53,13 +54,15 @@ router = APIRouter()
 # ══════════════════════════════════════════════════════════════════
 
 
-def get_sport_culture_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> SportCultureService:
+def get_sport_culture_service(
+    db: Annotated[AsyncSession, Depends(get_db_session)]) -> SportCultureService:
     """Dépendance pour obtenir le service sport/culture."""
     event_repo = SportCultureEventRepository(db)
     participation_repo = EventParticipationRepository(db)
     result_repo = EventResultRepository(db)
     team_repo = EventTeamRepository(db)
-    return SportCultureService(event_repo, participation_repo, result_repo, team_repo)
+    return SportCultureService(
+        event_repo, participation_repo, result_repo, team_repo)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -170,7 +173,7 @@ async def get_event(
     if not event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found",
+            detail="Cet événement est introuvable.",
         )
 
     # Enrichir avec les compteurs
@@ -216,7 +219,7 @@ async def update_event(
     if not event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found",
+            detail="Cet événement est introuvable.",
         )
 
     # Enrichir avec les compteurs
@@ -246,7 +249,7 @@ async def delete_event(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found",
+            detail="Cet événement est introuvable.",
         )
 
 
@@ -282,6 +285,45 @@ async def get_upcoming_events(
         skip=0,
         limit=limit,
     )
+
+
+# ══════════════════════════════════════════════════════════════════
+#  ENDPOINTS - PHOTOS ÉVÉNEMENTS
+# ══════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/events/{event_id}/photos",
+    response_model=SportCultureEventResponse,
+    summary="Ajouter une photo à un événement",
+    description=(
+        "Upload une photo et l'ajoute à la galerie de l'événement "
+        "(CHARGE_SPORT_CULTURE uniquement). Format JPEG/PNG/WebP, max 5 Mo."
+    ),
+)
+async def upload_event_photo(
+    event_id: UUID,
+    file: Annotated[UploadFile, File(description="Photo de l'événement (JPEG, PNG, WebP, max 5 Mo)")],
+    current_user: User = Depends(require_charge_sport_culture),
+    service: SportCultureService = Depends(get_sport_culture_service),
+):
+    """Upload une photo et l'associe à l'événement."""
+    event = await service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Événement introuvable")
+
+    storage = StorageService()
+    try:
+        photo_url = await storage.upload_sport_culture_photo(
+            event_id=str(event_id),
+            file_data=await file.read(),
+            content_type=file.content_type or "image/jpeg",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+    updated = await service.add_event_photo(event_id, photo_url)
+    return updated
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -379,7 +421,7 @@ async def mark_participant_attendance(
     if not participation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Participation not found",
+            detail="Cette participation est introuvable.",
         )
     return participation
 
@@ -405,7 +447,7 @@ async def mark_participant_payment(
     if not participation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Participation not found",
+            detail="Cette participation est introuvable.",
         )
     return participation
 
@@ -426,7 +468,7 @@ async def cancel_participation(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Participation not found",
+            detail="Cette participation est introuvable.",
         )
 
 
@@ -511,7 +553,7 @@ async def add_event_result(
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found",
+            detail="Cet événement est introuvable.",
         )
     return result
 
@@ -548,7 +590,7 @@ async def delete_result(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Result not found",
+            detail="Ce résultat est introuvable.",
         )
 
 
@@ -581,7 +623,7 @@ async def create_event_team(
     if not team:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found",
+            detail="Cet événement est introuvable.",
         )
     return team
 
@@ -624,7 +666,7 @@ async def update_team(
     if not team:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Team not found",
+            detail="Cette équipe est introuvable.",
         )
     return team
 
@@ -645,7 +687,7 @@ async def delete_team(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Team not found",
+            detail="Cette équipe est introuvable.",
         )
 
 

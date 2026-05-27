@@ -1,0 +1,2589 @@
+src\infrastructure\security\utils.py:29: error: Returning Any from function
+declared to return "bool"  [no-any-return]
+            return pwd_context.verify(plain_password, hashed_password)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\security\utils.py:33: error: Returning Any from function
+declared to return "str"  [no-any-return]
+            return pwd_context.hash(password)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\security\utils.py:60: error: Returning Any from function
+declared to return "str"  [no-any-return]
+            return encoded_jwt
+            ^~~~~~~~~~~~~~~~~~
+src\infrastructure\security\utils.py:88: error: Returning Any from function
+declared to return "str"  [no-any-return]
+            return encoded_jwt
+            ^~~~~~~~~~~~~~~~~~
+src\infrastructure\security\utils.py:111: error: Returning Any from function
+declared to return "str"  [no-any-return]
+            return encoded_jwt
+            ^~~~~~~~~~~~~~~~~~
+src\infrastructure\security\utils.py:119: error: Returning Any from function
+declared to return "str"  [no-any-return]
+            return nh3.clean(content, tags=set())
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\core\entities\weekly_schedule.py:64: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class WeeklyScheduleTemplate(WeeklyScheduleTemplateBase, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\weekly_schedule.py:87: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class WeeklyScheduleSlot(WeeklyScheduleSlotBase, table=True):
+    ^
+src\core\entities\weekly_schedule.py:116: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class SlotServantAssignment(SlotServantAssignmentBase, table=True):
+    ^
+src\core\entities\weekly_schedule.py:152: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class WeeklyScheduleModificationLog(SQLModel, table=True):
+    ^
+src\core\entities\sunday_schedule.py:104: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class SundayScheduleTemplate(SundayScheduleTemplateBase, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\sunday_schedule.py:129: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class SundayMassSlot(SundayMassSlotBase, table=True):
+    ^
+src\core\entities\sunday_schedule.py:161: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class SundayMassAssignment(SundayMassAssignmentBase, table=True):
+    ^
+src\core\entities\sunday_schedule.py:195: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class SundayScheduleModificationLog(SQLModel, table=True):
+    ^
+src\core\entities\financial_entry.py:41: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class FinancialEntry(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\financial_entry.py:125: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class Discrepancy(SQLModel, table=True):
+    ^
+src\core\entities\council_meeting.py:12: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class CouncilMeeting(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\council_meeting.py:33: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class CouncilAttendance(SQLModel, table=True):
+    ^
+src\core\entities\contribution.py:32: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class Contribution(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\attendance_session.py:24: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class AttendanceSession(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\attendance_session.py:41: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class AttendanceRecord(SQLModel, table=True):
+    ^
+src\core\entities\user.py:34: error: Unexpected keyword argument "table" for
+"__init_subclass__" of "object"  [call-arg]
+    class User(UserBase, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\subgroup.py:25: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class SubGroup(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\subgroup.py:53: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class SubGroupMember(SQLModel, table=True):
+    ^
+src\core\entities\responsable.py:106: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class Nomination(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\responsable.py:132: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class PosteAction(SQLModel, table=True):
+    ^
+src\core\entities\notification.py:78: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class Notification(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\notification.py:125: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class NotificationPreference(SQLModel, table=True):
+    ^
+src\core\entities\invitation.py:23: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class InvitationCode(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\event.py:59: error: Unexpected keyword argument "table" for
+"__init_subclass__" of "object"  [call-arg]
+    class Event(EventBase, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\event.py:101: error: Unexpected keyword argument "table" for
+"__init_subclass__" of "object"  [call-arg]
+    class EventParticipant(SQLModel, table=True):
+    ^
+src\core\entities\discipline.py:89: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class DisciplineCase(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\cotisation.py:65: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class CotisationPeriod(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\cotisation.py:100: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class MemberCotisation(SQLModel, table=True):
+    ^
+src\core\entities\attendance.py:58: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class Attendance(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\assignment.py:66: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class Assignment(AssignmentBase, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\presentation\middleware\rate_limit.py:49: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src\presentation\middleware\rate_limit.py:128: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src\presentation\middleware\rate_limit.py:146: error: Returning Any from
+function declared to return "tuple[bool, int]"  [no-any-return]
+            return self._memory_backend.is_allowed(key, max_requests, wind...
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\security\brute_force.py:129: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src\infrastructure\security\brute_force.py:196: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src\infrastructure\security\brute_force.py:214: error: Returning Any from
+function declared to return "tuple[bool, int | None]"  [no-any-return]
+            return self._memory_backend.check_locked(identifier)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\security\brute_force.py:220: error: Returning Any from
+function declared to return "tuple[bool, int, int | None]"  [no-any-return]
+            return self._memory_backend.record_failure(identifier)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\security\brute_force.py:231: error: Returning Any from
+function declared to return "int"  [no-any-return]
+            return self._memory_backend.get_remaining_attempts(identifier)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:43: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        WeeklyScheduleTemplate.id == template_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:63: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        WeeklyScheduleSlot.template_id == template_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:71: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SlotServantAssignment.slot_id == slot.id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:96: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(WeeklyScheduleTemplate.status == statu...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:99: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        WeeklyScheduleTemplate.start_date >= start_date)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:101: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(WeeklyScheduleTemplate.end_date <= end...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\weekly_schedule_repository.py:109: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(WeeklyScheduleTemplate.start_date.desc(...
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:120: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(WeeklyScheduleTemplate.status == ScheduleStatus.PUB...
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\weekly_schedule_repository.py:121: error:
+"datetime" has no attribute "desc"  [attr-defined]
+                .order_by(WeeklyScheduleTemplate.start_date.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:148: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...session.execute(select(WeeklyScheduleSlot).where(WeeklyScheduleSlot.id...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\weekly_schedule_repository.py:167: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SlotServantAssignment.slot_id == slot_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:182: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(WeeklyScheduleSlot.template_id == template_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:213: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SlotServantAssignment.id == assignment_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:222: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(SlotServantAssignment.slot_id == slot_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:223: error:
+Argument 1 to "order_by" of "GenerativeSelect" has incompatible type "datetime";
+expected
+"Literal[_NoArg.NO_ARG] | str | ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement"
+ [arg-type]
+                .order_by(SlotServantAssignment.created_at)
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:243: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == template.c...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\weekly_schedule_repository.py:266: error:
+Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+            return enriched
+            ^~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:279: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == assignment...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\weekly_schedule_repository.py:285: error:
+Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+            return enriched
+            ^~~~~~~~~~~~~~~
+src\infrastructure\repositories\weekly_schedule_repository.py:296: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == template.c...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\user_repository.py:24: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:25: error: Returning Any
+from function declared to return "User | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:29: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:30: error: Returning Any
+from function declared to return "User | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:35: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:36: error: Returning Any
+from function declared to return "User | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:41: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:42: error: Returning Any
+from function declared to return "list[User]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:81: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            count_result = await self.session.exec(count_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:87: error: "datetime" has no
+attribute "desc"  [attr-defined]
+                page_size).order_by(User.created_at.desc())
+                                    ^~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:89: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:97: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:98: error: Returning Any
+from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:115: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:129: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\user_repository.py:138: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:43: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SundayScheduleTemplate.id == template_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:63: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SundayMassSlot.template_id == template_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:71: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SundayMassAssignment.mass_slot_id == mass.id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:96: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(SundayScheduleTemplate.status == statu...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:99: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SundayScheduleTemplate.schedule_date >= start_date)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:102: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SundayScheduleTemplate.schedule_date <= end_date)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:110: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(SundayScheduleTemplate.schedule_date.de...
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:121: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(SundayScheduleTemplate.status == SundayScheduleStat...
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:122: error:
+"datetime" has no attribute "desc"  [attr-defined]
+                .order_by(SundayScheduleTemplate.schedule_date.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:148: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...elf.session.execute(select(SundayMassSlot).where(SundayMassSlot.id == ...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:167: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SundayMassAssignment.mass_slot_id == mass_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:182: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SundayMassSlot.template_id == template_id).order_by(
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:213: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SundayMassAssignment.id == assignment_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:222: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(SundayMassAssignment.mass_slot_id == mass_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:250: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == template.c...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:273: error:
+Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+            return enriched
+            ^~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:286: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == assignment...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:293: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == assignment...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:302: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == assignment...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:312: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    select(User).where(User.id == assignment.presence_mark...
+                                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:320: error:
+Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+            return enriched
+            ^~~~~~~~~~~~~~~
+src\infrastructure\repositories\sunday_schedule_repository.py:331: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == template.c...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:360: error: Name
+"SundayScheduleModificationLog" is not defined  [name-defined]
+            self, log: "SundayScheduleModificationLog") -> "SundaySchedule...
+                       ^
+src\infrastructure\repositories\sunday_schedule_repository.py:371: error: Name
+"SundayScheduleModificationLog" is not defined  [name-defined]
+        ) -> List["SundayScheduleModificationLog"]:
+                  ^
+src\infrastructure\repositories\sunday_schedule_repository.py:377: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(SundayScheduleModificationLog.template_id == templa...
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sunday_schedule_repository.py:378: error:
+"datetime" has no attribute "desc"  [attr-defined]
+                .order_by(SundayScheduleModificationLog.modified_at.desc()...
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:24: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:25: error: Returning Any
+from function declared to return "SubGroup | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:29: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:30: error: Returning Any
+from function declared to return "SubGroup | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:37: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:38: error: Returning Any
+from function declared to return "list[SubGroup]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:65: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:66: error: Returning Any
+from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:77: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:78: error: Returning Any
+from function declared to return "list[SubGroupMember]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:87: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:88: error: Returning Any
+from function declared to return "SubGroupMember | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:112: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:113: error: Returning
+Any from function declared to return "SubGroupMember | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\subgroup_repository.py:116: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            user = (await self.session.exec(select(User).where(User.id == ...
+                          ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:38: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:39: error: Returning
+Any from function declared to return "Nomination | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:48: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:49: error: Returning
+Any from function declared to return "Nomination | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:57: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:58: error: Returning
+Any from function declared to return "list[Nomination]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:68: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:69: error: Returning
+Any from function declared to return "Nomination | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:76: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                .order_by(Nomination.nominated_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:78: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:79: error: Returning
+Any from function declared to return "list[Nomination]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:87: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            stmt = select(Nomination).order_by(Nomination.nominated_at.des...
+                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:92: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:93: error: Returning
+Any from function declared to return "list[Nomination]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:100: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            user_result = await self.session.exec(user_stmt)
+                                ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:153: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:154: error: Returning
+Any from function declared to return "PosteAction | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:178: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            count_result = await self.session.exec(count_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:183: error:
+"datetime" has no attribute "desc"  [attr-defined]
+                PosteAction.created_at.desc())
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:185: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:209: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            count_result = await self.session.exec(count_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:215: error:
+"datetime" has no attribute "desc"  [attr-defined]
+                PosteAction.created_at.desc())
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:217: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:244: error: Argument
+1 to "or_" has incompatible type "bool"; expected
+"Literal[False] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    PosteAction.created_by == user_id,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:245: error: Argument
+2 to "or_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    PosteAction.status == ActionStatus.PUBLIE,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:258: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            count_result = await self.session.exec(count_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:264: error:
+"datetime" has no attribute "desc"  [attr-defined]
+                PosteAction.created_at.desc())
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:266: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:282: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            PosteAction.created_at.desc())
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:283: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:284: error: Returning
+Any from function declared to return "list[PosteAction]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:295: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                result = await self.session.exec(stmt)
+                               ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:305: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            PosteAction.created_at.desc()).limit(limit)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:307: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:308: error: Returning
+Any from function declared to return "list[PosteAction]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:316: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            author_result = await self.session.exec(author_stmt)
+                                  ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:323: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                t_result = await self.session.exec(t_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:334: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                e_result = await self.session.exec(e_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\responsable_repository.py:417: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:49: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:50: error: Returning
+Any from function declared to return "Notification | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:75: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:89: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:90: error: Returning
+Any from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:100: error:
+"NotificationStatus" has no attribute "in_"  [attr-defined]
+                    Notification.status.in_(
+                    ^~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:108: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:109: error:
+Returning Any from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:136: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:154: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:155: error:
+Returning Any from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:212: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                result = await self.session.exec(stmt)
+                               ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:229: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                result = await self.session.exec(stmt)
+                               ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:233: error:
+Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+            return data
+            ^~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:250: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:262: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\notification_repository.py:263: error:
+Returning Any from function declared to return "NotificationPreference | None" 
+[no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\invitation_repository.py:33: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\invitation_repository.py:34: error: Returning
+Any from function declared to return "InvitationCode | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\invitation_repository.py:39: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\invitation_repository.py:40: error: Returning
+Any from function declared to return "InvitationCode | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\invitation_repository.py:47: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                .order_by(InvitationCode.created_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\invitation_repository.py:49: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\invitation_repository.py:50: error: Returning
+Any from function declared to return "list[InvitationCode]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:35: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...elf.session.execute(select(FinancialEntry).where(FinancialEntry.id == ...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\financial_entry_repository.py:51: error:
+Argument 1 to "count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            count_query = select(func.count(FinancialEntry.id))
+                                            ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:68: error:
+Argument 1 to "and_" has incompatible type "*list[bool]"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(and_(*filters))
+                                          ^~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:68: error:
+Argument 1 to "and_" has incompatible type "*list[bool]"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(and_(*filters))
+                                          ^~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:69: error:
+Argument 1 to "and_" has incompatible type "*list[bool]"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                count_query = count_query.where(and_(*filters))
+                                                      ^~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:69: error:
+Argument 1 to "and_" has incompatible type "*list[bool]"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                count_query = count_query.where(and_(*filters))
+                                                      ^~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:72: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(FinancialEntry.date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:134: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(FinancialEntry.recorded_by == user_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:135: error:
+"datetime" has no attribute "desc"  [attr-defined]
+                .order_by(FinancialEntry.created_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:145: error:
+Argument 1 to "count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            FinancialEntry.id)).where(
+            ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:146: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                FinancialEntry.recorded_by == user_id)
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:159: error:
+Argument 1 to "count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            total_query = select(func.count(FinancialEntry.id), func.sum(F...
+                                            ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:161: error:
+Argument 1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        FinancialEntry.date >= start_date,
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:162: error:
+Argument 2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+         FinancialEntry.date <= end_date)
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:168: error:
+Argument 1 to "count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            verified_query = select(func.count(FinancialEntry.id), func.su...
+                                               ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:170: error:
+Argument 1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.date >= start_date,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:171: error:
+Argument 2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.date <= end_date,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:172: error:
+Argument 3 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.verification_status == VerificationStat...
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\financial_entry_repository.py:179: error:
+Argument 1 to "count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            pending_query = select(func.count(FinancialEntry.id), func.sum...
+                                              ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:181: error:
+Argument 1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.date >= start_date,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:182: error:
+Argument 2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.date <= end_date,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:183: error:
+Argument 3 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.verification_status == VerificationStat...
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\financial_entry_repository.py:190: error:
+Argument 1 to "count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            rejected_query = select(func.count(FinancialEntry.id), func.su...
+                                               ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:192: error:
+Argument 1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.date >= start_date,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:193: error:
+Argument 2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.date <= end_date,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:194: error:
+Argument 3 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    FinancialEntry.verification_status == VerificationStat...
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\financial_entry_repository.py:220: error:
+Argument 1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+            FinancialEntry.date >= start_date,
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:221: error:
+Argument 2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+             FinancialEntry.date <= end_date))
+             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:241: error:
+Unsupported operand types for + ("object" and "int")  [operator]
+                stats["entry_count"] += 1
+                ^
+src\infrastructure\repositories\financial_entry_repository.py:242: error:
+Unsupported operand types for + ("object" and "float")  [operator]
+                stats["total_amount"] += entry.amount
+                ^
+src\infrastructure\repositories\financial_entry_repository.py:245: error:
+Unsupported operand types for + ("object" and "float")  [operator]
+                    stats["verified_amount"] += entry.amount
+                    ^
+src\infrastructure\repositories\financial_entry_repository.py:247: error:
+Unsupported operand types for + ("object" and "float")  [operator]
+                    stats["pending_amount"] += entry.amount
+                    ^
+src\infrastructure\repositories\financial_entry_repository.py:267: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...t self.session.execute(select(Discrepancy).where(Discrepancy.id == dis...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\financial_entry_repository.py:274: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        Discrepancy.entry_id == entry_id).order_by(
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:275: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            Discrepancy.detected_at.desc())
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:283: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        Discrepancy.resolved == False).order_by(
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\financial_entry_repository.py:284: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            Discrepancy.detected_at.desc())
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:28: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:29: error: Returning Any
+from function declared to return "Event | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:41: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:42: error: Returning Any
+from function declared to return "list[Event]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:77: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            count_result = await self.session.exec(count_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:83: error: "datetime" has
+no attribute "desc"  [attr-defined]
+                page_size).order_by(Event.start_time.desc())
+                                    ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:85: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:108: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            part_result = await self.session.exec(part_stmt)
+                                ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:113: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:128: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:129: error: Returning Any
+from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:141: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:148: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+                user_result = await self.session.exec(user_stmt)
+                                    ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:184: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:185: error: Returning Any
+from function declared to return "EventParticipant | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:194: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:195: error: Returning Any
+from function declared to return "EventParticipant | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:209: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:222: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:229: error: "UUID" has no
+attribute "in_"  [attr-defined]
+        Event.id.in_(event_ids)).order_by(
+        ^~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:231: error: "AsyncSession"
+has no attribute "exec"  [attr-defined]
+            events_result = await self.session.exec(events_stmt)
+                                  ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\event_repository.py:232: error: Returning Any
+from function declared to return "list[Event]"  [no-any-return]
+            return events_result.all()
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:32: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:33: error: Returning
+Any from function declared to return "DisciplineCase | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:59: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            total = (await self.session.exec(count_stmt)).one()
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:63: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                DisciplineCase.created_at.desc())
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:64: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:71: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                .order_by(DisciplineCase.created_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:73: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:74: error: Returning
+Any from function declared to return "list[DisciplineCase]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:85: error:
+"DisciplineCaseStatus" has no attribute "in_"  [attr-defined]
+                    DisciplineCase.status.in_(
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:92: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                result = await self.session.exec(stmt)
+                               ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:105: error:
+"DisciplineCaseStatus" has no attribute "in_"  [attr-defined]
+                DisciplineCase.status.in_(active_statuses),
+                ^~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:107: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:108: error: Returning
+Any from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:115: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            accused = (await self.session.exec(accused_stmt)).first()
+                             ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:118: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            reporter = (await self.session.exec(reporter_stmt)).first()
+                              ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\discipline_repository.py:123: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                vb = (await self.session.exec(vb_stmt)).first()
+                            ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\council_meeting_repository.py:39: error:
+"datetime" has no attribute "desc"  [attr-defined]
+                .order_by(CouncilAttendance.recorded_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\council_meeting_repository.py:42: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\council_meeting_repository.py:43: error:
+Returning Any from function declared to return "list[CouncilAttendance]" 
+[no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:23: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:24: error: Returning
+Any from function declared to return "CotisationPeriod | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:30: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                .order_by(CotisationPeriod.start_date.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:32: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:33: error: Returning
+Any from function declared to return "list[CotisationPeriod]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:51: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            total = (await self.session.exec(count_stmt)).one()
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:55: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                CotisationPeriod.start_date.desc())
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:56: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:89: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:90: error: Returning
+Any from function declared to return "MemberCotisation | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:98: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:99: error: Returning
+Any from function declared to return "MemberCotisation | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:105: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                .order_by(MemberCotisation.created_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:107: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:108: error: Returning
+Any from function declared to return "list[MemberCotisation]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:114: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                .order_by(MemberCotisation.created_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:116: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:117: error: Returning
+Any from function declared to return "list[MemberCotisation]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:122: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                await self.session.exec(
+                      ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:131: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                await self.session.exec(
+                      ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:139: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                await self.session.exec(
+                      ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:154: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            user = (await self.session.exec(select(User).where(User.id == ...
+                          ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\cotisation_repository.py:157: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                await self.session.exec(select(CotisationPeriod).where(Cot...
+                      ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:38: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... self.session.execute(select(Contribution).where(Contribution.id == co...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\contribution_repository.py:65: error: Argument
+1 to "and_" has incompatible type "*list[bool]"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(and_(*conditions))
+                                          ^~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:65: error: Argument
+1 to "and_" has incompatible type "*list[bool]"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(and_(*conditions))
+                                          ^~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:73: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(Contribution.payment_date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:89: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        Contribution.servant_id == servant_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:92: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(Contribution.payment_date >= start_dat...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:94: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(Contribution.payment_date <= end_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:96: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(Contribution.payment_date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:106: error: Argument
+1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+            Contribution.month == month,
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:107: error: Argument
+2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+             Contribution.year == year))
+             ^~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:155: error: Argument
+1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        Contribution.servant_id == servant_id,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:156: error: Argument
+2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        Contribution.month == month,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:157: error: Argument
+3 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        Contribution.year == year,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:164: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == servant_id...
+                                                        ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:199: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.role == UserRole...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\contribution_repository.py:212: error: Argument
+1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        Contribution.payment_date >= start_date,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:213: error: Argument
+2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        Contribution.payment_date <= end_date,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\contribution_repository.py:251: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == contributi...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\contribution_repository.py:258: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == contributi...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:45: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ....session.execute(select(AttendanceSession).where(AttendanceSession.id ...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:66: error:
+Argument 1 to "and_" has incompatible type "*list[bool]"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(and_(*conditions))
+                                          ^~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:66: error:
+Argument 1 to "and_" has incompatible type "*list[bool]"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(and_(*conditions))
+                                          ^~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:74: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(AttendanceSession.session_date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:110: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...f.session.execute(select(AttendanceRecord).where(AttendanceRecord.id =...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:118: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    AttendanceRecord.session_id == session_id,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:119: error:
+Argument 2 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                    AttendanceRecord.servant_id == servant_id,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:129: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(AttendanceRecord.session_id == session_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:130: error:
+Argument 1 to "order_by" of "GenerativeSelect" has incompatible type "datetime";
+expected
+"Literal[_NoArg.NO_ARG] | str | ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement"
+ [arg-type]
+                .order_by(AttendanceRecord.created_at)
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:143: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                AttendanceRecord.servant_id == servant_id)
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:146: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(AttendanceSession.session_date >= star...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:148: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(AttendanceSession.session_date <= end_...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:150: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(AttendanceSession.session_date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:186: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == servant_id...
+                                                        ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:196: error:
+Argument 1 to "count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            query = select(func.count(AttendanceSession.id))
+                                      ^~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_session_repository.py:198: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(AttendanceSession.session_date >= star...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:200: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(AttendanceSession.session_date <= end_...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:241: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.role == UserRole...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:251: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == record.ser...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:258: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == record.rec...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_session_repository.py:273: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == session.co...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\attendance_repository.py:26: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_repository.py:27: error: Returning
+Any from function declared to return "Attendance | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_repository.py:38: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_repository.py:39: error: Returning
+Any from function declared to return "Attendance | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_repository.py:69: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            total = (await self.session.exec(count_stmt)).one()
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_repository.py:73: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                Attendance.attendance_date.desc())
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_repository.py:74: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_repository.py:95: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+                result = await self.session.exec(stmt)
+                               ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\attendance_repository.py:102: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            user = (await self.session.exec(select(User).where(User.id == ...
+                          ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:30: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:31: error: Returning
+Any from function declared to return "Assignment | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:34: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            statement = select(Assignment).order_by(Assignment.created_at....
+                                                    ^~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\assignment_repository.py:35: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:36: error: Returning
+Any from function declared to return "list[Assignment]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:42: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            Assignment.created_at.desc())
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:43: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:44: error: Returning
+Any from function declared to return "list[Assignment]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:51: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:52: error: Returning
+Any from function declared to return "list[Assignment]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:93: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            count_result = await self.session.exec(count_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:99: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                page_size).order_by(Assignment.created_at.desc())
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:101: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:114: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:115: error: Returning
+Any from function declared to return "Assignment | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:126: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:127: error: Returning
+Any from function declared to return "Assignment | None"  [no-any-return]
+            return result.first()
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:135: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:136: error: Returning
+Any from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:144: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:145: error: Returning
+Any from function declared to return "int"  [no-any-return]
+            return result.one()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:158: error:
+"AssignmentStatus" has no attribute "in_"  [attr-defined]
+                    Assignment.status.in_(
+                    ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:168: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:169: error: Returning
+Any from function declared to return "list[Assignment]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:177: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:178: error: Returning
+Any from function declared to return "list[Assignment]"  [no-any-return]
+            return result.all()
+            ^~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:189: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            user_result = await self.session.exec(user_stmt)
+                                ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:194: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            event_result = await self.session.exec(event_stmt)
+                                 ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:238: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(statement)
+                           ^~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\assignment_repository.py:249: error:
+"AsyncSession" has no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\core\entities\training.py:51: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class TrainingSession(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\training.py:80: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class TrainingParticipation(SQLModel, table=True):
+    ^
+src\core\entities\training.py:105: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class TrainingMaterial(SQLModel, table=True):
+    ^
+src\core\entities\training.py:130: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class SessionMaterial(SQLModel, table=True):
+    ^
+src\core\entities\sport_culture.py:70: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class SportCultureEvent(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\sport_culture.py:98: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class EventParticipation(SQLModel, table=True):
+    ^
+src\core\entities\sport_culture.py:121: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class EventResult(SQLModel, table=True):
+    ^
+src\core\entities\sport_culture.py:142: error: Unexpected keyword argument
+"table" for "__init_subclass__" of "object"  [call-arg]
+    class EventTeam(SQLModel, table=True):
+    ^
+src\core\entities\report.py:29: error: Unexpected keyword argument "table" for
+"__init_subclass__" of "object"  [call-arg]
+    class Report(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\report.py:55: error: Unexpected keyword argument "table" for
+"__init_subclass__" of "object"  [call-arg]
+    class ReportAttachment(SQLModel, table=True):
+    ^
+src\core\entities\material.py:58: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class MaterialItem(SQLModel, table=True):
+    ^
+C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\mypy\typeshed\stdlib\builtins.pyi:138: note: "__init_subclass__" of "object" defined here
+src\core\entities\material.py:83: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class CleaningTask(SQLModel, table=True):
+    ^
+src\core\entities\material.py:116: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class TaskAssignment(SQLModel, table=True):
+    ^
+src\core\entities\material.py:133: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class AubeTask(SQLModel, table=True):
+    ^
+src\core\entities\material.py:165: error: Unexpected keyword argument "table"
+for "__init_subclass__" of "object"  [call-arg]
+    class MaintenanceHistory(SQLModel, table=True):
+    ^
+src\application\services\dashboard_service.py:45: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt_users)
+                           ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:53: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            total_events = (await self.session.exec(stmt_events)).one() or...
+                                  ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:57: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            total_assign = (await self.session.exec(stmt_assign)).one() or...
+                                  ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:61: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            result_att = await self.session.exec(stmt_att)
+                               ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:65: error: Generator has
+incompatible item type "int"; expected "bool"  [misc]
+                1 for a in all_att
+                ^
+src\application\services\dashboard_service.py:68: error:
+"type[AttendanceStatus]" has no attribute "RETARD"  [attr-defined]
+                    AttendanceStatus.RETARD,
+                    ^~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:104: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:122: error:
+"type[AttendanceStatus]" has no attribute "RETARD"  [attr-defined]
+    ...         if status in (AttendanceStatus.PRESENT, AttendanceStatus.RETA...
+                                                        ^~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:153: error: Name
+"CotisationStatus" is not defined  [name-defined]
+    ...  async def get_cotisation_status(self) -> Optional[CotisationStatus]:
+                                                           ^
+src\application\services\dashboard_service.py:159: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:178: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            result_cot = await self.session.exec(stmt_cot)
+                               ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:214: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:221: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+                result_a = await self.session.exec(stmt_a)
+                                 ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:252: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+            result_s = await self.session.exec(stmt_s)
+                             ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:259: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+                result_att = await self.session.exec(stmt_att)
+                                   ^~~~~~~~~~~~~~~~~
+src\application\services\dashboard_service.py:263: error: Generator has
+incompatible item type "int"; expected "bool"  [misc]
+                    1 for a in att_records
+                    ^
+src\application\services\dashboard_service.py:266: error:
+"type[AttendanceStatus]" has no attribute "RETARD"  [attr-defined]
+                        AttendanceStatus.RETARD,
+                        ^~~~~~~~~~~~~~~~~~~~~~~
+src\presentation\dependencies\auth_deps.py:214: error: "list[Nomination]" has
+no attribute "poste"  [attr-defined]
+            if nomination.poste.value != required_poste:
+               ^~~~~~~~~~~~~~~~
+src\presentation\dependencies\auth_deps.py:218: error: "list[Nomination]" has
+no attribute "poste"  [attr-defined]
+        nomination.poste.value}.",
+        ^~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:41: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...lf.session.execute(select(TrainingSession).where(TrainingSession.id ==...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\training_repository.py:59: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingSession.level == level)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:61: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingSession.status == status)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:63: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingSession.date >= start_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:65: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingSession.date <= end_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:67: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingSession.trainer_id == trainer_...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:75: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            query = query.order_by(TrainingSession.date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:109: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                TrainingSession.created_by == user_id)
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:117: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            query = query.order_by(TrainingSession.date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:129: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == training_s...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\training_repository.py:140: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+            TrainingParticipation.session_id == training_session.id)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:176: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        TrainingParticipation.id == participation_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:186: error: Argument 1
+to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        TrainingParticipation.session_id == session_id,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:187: error: Argument 2
+to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        TrainingParticipation.servant_id == servant_id,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:198: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(TrainingParticipation.session_id == session_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:199: error: Argument 1
+to "order_by" of "GenerativeSelect" has incompatible type "datetime"; expected
+"Literal[_NoArg.NO_ARG] | str | ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement"
+ [arg-type]
+                .order_by(TrainingParticipation.registration_date)
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:213: error: Argument 2
+to "join" of "Select" has incompatible type "bool"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | OnClauseRole"
+ [arg-type]
+                .join(TrainingSession, TrainingParticipation.session_id ==...
+                                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\training_repository.py:214: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(TrainingParticipation.servant_id == servant_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:218: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingSession.date >= start_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:220: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingSession.date <= end_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:222: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            query = query.order_by(TrainingSession.date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:253: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == servant_id...
+                                                        ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:289: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        TrainingSession.id == last_participation.session_id)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:311: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == participat...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\training_repository.py:336: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...f.session.execute(select(TrainingMaterial).where(TrainingMaterial.id =...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\training_repository.py:353: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingMaterial.type == type)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:355: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingMaterial.level == level)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:357: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(TrainingMaterial.is_public == is_publi...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:360: error: "str" has no
+attribute "ilike"  [attr-defined]
+                    TrainingMaterial.title.ilike(
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:361: error: "str" has no
+attribute "ilike"  [attr-defined]
+        f"%{search}%") | TrainingMaterial.description.ilike(
+                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:371: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            query = query.order_by(TrainingMaterial.created_at.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:410: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == material.u...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\training_repository.py:438: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        SessionMaterial.session_id == session_id).order_by(
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:439: error: Argument 1
+to "order_by" of "GenerativeSelect" has incompatible type "int"; expected
+"Literal[_NoArg.NO_ARG] | str | ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement"
+ [arg-type]
+            SessionMaterial.order)
+            ^~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\training_repository.py:445: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...lf.session.execute(select(SessionMaterial).where(SessionMaterial.id ==...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:38: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ....session.execute(select(SportCultureEvent).where(SportCultureEvent.id ...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:55: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(SportCultureEvent.event_type == event_...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:57: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(SportCultureEvent.status == status)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:59: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(SportCultureEvent.date >= start_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:61: error: Argument
+1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(SportCultureEvent.date <= end_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:69: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(SportCultureEvent.date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:100: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(SportCultureEvent.date >= now)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:101: error:
+"EventStatus" has no attribute "in_"  [attr-defined]
+                .where(SportCultureEvent.status.in_([EventStatus.PLANIFIE,...
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:102: error:
+Argument 1 to "order_by" of "GenerativeSelect" has incompatible type "datetime";
+expected
+"Literal[_NoArg.NO_ARG] | str | ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement"
+ [arg-type]
+                .order_by(SportCultureEvent.date)
+                          ^~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:135: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...session.execute(select(EventParticipation).where(EventParticipation.id...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:142: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(EventParticipation.event_id == event_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:143: error:
+Argument 1 to "order_by" of "GenerativeSelect" has incompatible type "datetime";
+expected
+"Literal[_NoArg.NO_ARG] | str | ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement"
+ [arg-type]
+                .order_by(EventParticipation.registration_date)
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:157: error:
+Argument 2 to "join" of "Select" has incompatible type "bool"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | OnClauseRole"
+ [arg-type]
+                .join(SportCultureEvent, EventParticipation.event_id == Sp...
+                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:158: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(EventParticipation.servant_id == servant_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:162: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(SportCultureEvent.date >= start_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:164: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(SportCultureEvent.date <= end_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:166: error:
+"datetime" has no attribute "desc"  [attr-defined]
+            query = query.order_by(SportCultureEvent.date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:177: error:
+Argument 1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        EventParticipation.event_id == event_id,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:178: error:
+Argument 2 to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        EventParticipation.servant_id == servant_id,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:204: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... self.session.execute(select(func.count()).where(EventParticipation.ev...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:212: error:
+Argument 1 to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        EventParticipation.event_id == event_id,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:213: error:
+"ParticipationStatus" has no attribute "in_"  [attr-defined]
+                        EventParticipation.status.in_(
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:224: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == participat...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:251: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        EventResult.event_id == event_id).order_by(
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:252: error:
+Argument 1 to "order_by" of "GenerativeSelect" has incompatible type "datetime";
+expected
+"Literal[_NoArg.NO_ARG] | str | ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement"
+ [arg-type]
+            EventResult.created_at)
+            ^~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:258: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...t self.session.execute(select(EventResult).where(EventResult.id == res...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:283: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...ait self.session.execute(select(EventTeam).where(EventTeam.id == team_...
+                                                        ^~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:290: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+        EventTeam.event_id == event_id).order_by(
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\sport_culture_repository.py:314: error:
+Argument 1 to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == team.capta...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\sport_culture_repository.py:325: error: "UUID"
+has no attribute "in_"  [attr-defined]
+    ... = await self.session.execute(select(User).where(User.id.in_(member_id...
+                                                        ^~~~~~~~~~~
+src\infrastructure\repositories\report_repository.py:29: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... await self.session.execute(select(Report).where(Report.id == report_i...
+                                                        ^~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\report_repository.py:44: error: Argument 1 to
+"count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            count_query = select(func.count(Report.id))
+                                            ^~~~~~~~~
+src\infrastructure\repositories\report_repository.py:58: error: Argument 1 to
+"and_" has incompatible type "*list[bool]"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(and_(*filters))
+                                          ^~~~~~~
+src\infrastructure\repositories\report_repository.py:58: error: Argument 1 to
+"and_" has incompatible type "*list[bool]"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(and_(*filters))
+                                          ^~~~~~~
+src\infrastructure\repositories\report_repository.py:59: error: Argument 1 to
+"and_" has incompatible type "*list[bool]"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                count_query = count_query.where(and_(*filters))
+                                                      ^~~~~~~
+src\infrastructure\repositories\report_repository.py:59: error: Argument 1 to
+"and_" has incompatible type "*list[bool]"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                count_query = count_query.where(and_(*filters))
+                                                      ^~~~~~~
+src\infrastructure\repositories\report_repository.py:62: error: "datetime" has
+no attribute "desc"  [attr-defined]
+            query = query.order_by(Report.report_date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\report_repository.py:129: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(Report.created_by == user_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\report_repository.py:130: error: "datetime" has
+no attribute "desc"  [attr-defined]
+                .order_by(Report.created_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\report_repository.py:140: error: Argument 1 to
+"count" has incompatible type "UUID"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None"
+ [arg-type]
+            Report.id)).where(
+            ^~~~~~~~~
+src\infrastructure\repositories\report_repository.py:141: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                Report.created_by == user_id)
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\report_repository.py:164: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...f.session.execute(select(ReportAttachment).where(ReportAttachment.id =...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\report_repository.py:171: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(ReportAttachment.report_id == report_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\report_repository.py:172: error: "datetime" has
+no attribute "desc"  [attr-defined]
+                .order_by(ReportAttachment.created_at.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:40: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... self.session.execute(select(MaterialItem).where(MaterialItem.id == it...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\material_repository.py:56: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(MaterialItem.category == category)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:58: error: Argument 1 to
+"where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(MaterialItem.condition == condition)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:61: error: "str" has no
+attribute "ilike"  [attr-defined]
+        MaterialItem.name.ilike(
+        ^~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:62: error: "str" has no
+attribute "ilike"  [attr-defined]
+            f"%{search}%") | MaterialItem.description.ilike(
+                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:102: error:
+"MaterialCondition" has no attribute "in_"  [attr-defined]
+                    | (MaterialItem.condition.in_([MaterialCondition.A_NET...
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:123: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... self.session.execute(select(CleaningTask).where(CleaningTask.id == ta...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\material_repository.py:140: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(CleaningTask.task_type == task_type)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:142: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(CleaningTask.status == status)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:144: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(CleaningTask.scheduled_date >= start_d...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:146: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(CleaningTask.scheduled_date <= end_dat...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:154: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            query = query.order_by(CleaningTask.scheduled_date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:205: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...elf.session.execute(select(TaskAssignment).where(TaskAssignment.task_i...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\material_repository.py:218: error: Argument 2
+to "join" of "Select" has incompatible type "bool"; expected
+"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | OnClauseRole"
+ [arg-type]
+                .join(CleaningTask, TaskAssignment.task_id == CleaningTask...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:219: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(TaskAssignment.servant_id == servant_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:223: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(CleaningTask.scheduled_date >= start_d...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:225: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(CleaningTask.scheduled_date <= end_dat...
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:232: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...elf.session.execute(select(TaskAssignment).where(TaskAssignment.id == ...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\material_repository.py:245: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ... = await self.session.execute(select(User).where(User.id == assignment...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src\infrastructure\repositories\material_repository.py:270: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+    ...wait self.session.execute(select(AubeTask).where(AubeTask.id == task_i...
+                                                        ^~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:287: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(AubeTask.task_type == task_type)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:289: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(AubeTask.status == status)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:291: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(AubeTask.scheduled_date >= start_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:293: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                query = query.where(AubeTask.scheduled_date <= end_date)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:301: error: "datetime"
+has no attribute "desc"  [attr-defined]
+            query = query.order_by(AubeTask.scheduled_date.desc())
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:344: error: Argument 1
+to "where" of "Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                .where(MaintenanceHistory.item_id == item_id)
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:345: error: "datetime"
+has no attribute "desc"  [attr-defined]
+                .order_by(MaintenanceHistory.performed_date.desc())
+                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:358: error: Argument 1
+to "and_" has incompatible type "bool"; expected
+"Literal[True] | ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        MaintenanceHistory.performed_date >= start_date,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:359: error: Argument 2
+to "and_" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                        MaintenanceHistory.performed_date <= end_date,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\infrastructure\repositories\material_repository.py:360: error: "float" has
+no attribute "isnot"  [attr-defined]
+                        MaintenanceHistory.cost.isnot(None),
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\responsable_service.py:368: error: Incompatible types
+in assignment (expression has type "UUID", target has type "str")  [assignment]
+                update_dict["target_user_id"] = data.target_user_id
+                                                ^~~~~~~~~~~~~~~~~~~
+src\application\services\responsable_service.py:370: error: Incompatible types
+in assignment (expression has type "UUID", target has type "str")  [assignment]
+                update_dict["target_event_id"] = data.target_event_id
+                                                 ^~~~~~~~~~~~~~~~~~~~
+src\application\services\responsable_service.py:372: error: Incompatible types
+in assignment (expression has type "float", target has type "str")  [assignment]
+                update_dict["amount"] = data.amount
+                                        ^~~~~~~~~~~
+src\application\services\responsable_service.py:374: error: Incompatible types
+in assignment (expression has type "datetime", target has type "str") 
+[assignment]
+                update_dict["action_date"] = data.action_date
+                                             ^~~~~~~~~~~~~~~~
+src\application\services\responsable_service.py:474: error: Returning Any from
+function declared to return "CouncilMeetingResponse"  [no-any-return]
+            return CouncilMeetingResponse.from_orm(created)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\responsable_service.py:492: error:
+"CouncilMeetingRepository" has no attribute "save_attendance"; maybe
+"add_attendance"?  [attr-defined]
+                await self.council_repo.save_attendance(attendance)
+                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\notification_service.py:123: error: "AsyncSession" has
+no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\application\services\notification_service.py:184: error: "AsyncSession" has
+no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\application\services\notification_service.py:309: error: "AsyncSession" has
+no attribute "exec"  [attr-defined]
+            result = await self.session.exec(stmt)
+                           ^~~~~~~~~~~~~~~~~
+src\application\services\notification_service.py:436: error: Returning Any from
+function declared to return "dict[Any, Any]"  [no-any-return]
+            return pref.model_dump()
+            ^~~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\discipline_service.py:325: error:
+"type[AttendanceType]" has no attribute "WEEKLY"  [attr-defined]
+                user_id=user_id, attendance_type=AttendanceType.WEEKLY, pa...
+                                                 ^~~~~~~~~~~~~~~~~~~~~
+src\application\services\contribution_service.py:397: error: Name
+"PaymentStatus" is not defined  [name-defined]
+                if summary.status == PaymentStatus.LATE:
+                                     ^~~~~~~~~~~~~
+src\application\services\auth_service.py:171: error: Argument 1 to "where" of
+"Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                stmt = select(User).where(User.role == UserRole.ADMIN)
+                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\auth_service.py:172: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+                result = await self.user_repository.session.exec(stmt)
+                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\auth_service.py:189: error: Argument 1 to "where" of
+"Select" has incompatible type "bool"; expected
+"ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"
+ [arg-type]
+                stmt = select(User).where(User.role == UserRole.AUMÔNIER)
+                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\auth_service.py:190: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+                result = await self.user_repository.session.exec(stmt)
+                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\application\services\attendance_session_service.py:234: error: Incompatible
+types in assignment (expression has type "float", variable has type "int") 
+[assignment]
+                total_attendance_rate += stats.attendance_rate
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\presentation\api\v1\financial_entries.py:429: error:
+"FinancialEntryService" has no attribute "get_financial_summary"  [attr-defined]
+        summary = await service.get_financial_summary(
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src\presentation\api\v1\attendance.py:254: error: "type[UserRole]" has no
+attribute "AUMONIER"  [attr-defined]
+    ...ser_id and current_user.role in (UserRole.ADMIN, UserRole.AUMONIER) el...
+                                                        ^~~~~~~~~~~~~~~~~
+src\presentation\api\v1\admin.py:384: error: "Result[Any]" has no attribute
+"rowcount"  [attr-defined]
+        if result.rowcount == 0:
+           ^~~~~~~~~~~~~~~
+src\presentation\api\v1\activities.py:303: error: Unexpected keyword argument
+"status" for "list_events" of "EventService"  [call-arg]
+        events_page = await service.list_events(status=EventStatus.PUBLIE,...
+                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src\application\services\event_service.py:125: note: "list_events" of "EventService" defined here
+src\presentation\api\v1\activities.py:493: error: "AsyncSession" has no
+attribute "exec"  [attr-defined]
+        result = await session.exec(stmt)
+                       ^~~~~~~~~~~~
+src\application\services\training_service.py:635: error: Need type annotation
+for "sessions_by_level" (hint: "sessions_by_level: dict[<type>, <type>] = ...") 
+[var-annotated]
+            sessions_by_level = {}
+            ^~~~~~~~~~~~~~~~~
+src\application\services\sport_culture_service.py:94: error:
+"SportCultureService" has no attribute "session"  [attr-defined]
+                notif_service = NotificationService(self.session)
+                                                    ^~~~~~~~~~~~
+src\application\services\sport_culture_service.py:514: error: Need type
+annotation for "events_by_type" (hint:
+"events_by_type: dict[<type>, <type>] = ...")  [var-annotated]
+            events_by_type = {}
+            ^~~~~~~~~~~~~~
+src\application\services\sport_culture_service.py:573: error: Unsupported
+operand types for + ("object" and "int")  [operator]
+                    servant_participations[servant_id]["count"] += 1
+                    ^
+src\application\services\sport_culture_service.py:578: error: Argument "key" to
+"sorted" has incompatible type "Callable[[dict[str, object]], object]"; expected
+"Callable[[dict[str, object]], SupportsDunderLT[Any] | SupportsDunderGT[Any]]" 
+[arg-type]
+        key=lambda x: x["count"],
+            ^
+src\application\services\sport_culture_service.py:578: error: Incompatible
+return value type (got "object", expected
+"SupportsDunderLT[Any] | SupportsDunderGT[Any]")  [return-value]
+        key=lambda x: x["count"],
+                      ^~~~~~~~~~
+src\application\services\sport_culture_service.py:603: error: Need type
+annotation for "events_by_type" (hint:
+"events_by_type: dict[<type>, <type>] = ...")  [var-annotated]
+            events_by_type = {}
+            ^~~~~~~~~~~~~~
+src\application\services\sport_culture_service.py:610: error: Need type
+annotation for "events_by_status" (hint:
+"events_by_status: dict[<type>, <type>] = ...")  [var-annotated]
+            events_by_status = {}
+            ^~~~~~~~~~~~~~~~
+src\application\services\sport_culture_service.py:678: error: Need type
+annotation for "events_by_type" (hint:
+"events_by_type: dict[<type>, <type>] = ...")  [var-annotated]
+            events_by_type = {}
+            ^~~~~~~~~~~~~~
+src\application\services\material_service.py:445: error: "MaterialService" has
+no attribute "session"  [attr-defined]
+                notif_service = NotificationService(self.session)
+                                                    ^~~~~~~~~~~~
+src\application\services\material_service.py:631: error: Need type annotation
+for "items_by_category" (hint: "items_by_category: dict[<type>, <type>] = ...") 
+[var-annotated]
+            items_by_category = {}
+            ^~~~~~~~~~~~~~~~~
+src\application\services\material_service.py:638: error: Need type annotation
+for "items_by_condition" (hint:
+"items_by_condition: dict[<type>, <type>] = ...")  [var-annotated]
+            items_by_condition = {}
+            ^~~~~~~~~~~~~~~~~~
+src\application\services\material_service.py:714: error: Need type annotation
+for "items_by_category" (hint: "items_by_category: dict[<type>, <type>] = ...") 
+[var-annotated]
+            items_by_category = {}
+            ^~~~~~~~~~~~~~~~~
+src\application\services\material_service.py:721: error: Need type annotation
+for "items_by_condition" (hint:
+"items_by_condition: dict[<type>, <type>] = ...")  [var-annotated]
+            items_by_condition = {}
+            ^~~~~~~~~~~~~~~~~~
+src\main.py:258: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+Found 539 errors in 58 files (checked 169 source files)

@@ -28,7 +28,12 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("quantity", sa.Integer(), nullable=False),
         sa.Column("size", sa.String(length=50), nullable=True),
-        sa.Column("condition", sa.String(length=50), nullable=False, server_default="BON"),
+        sa.Column(
+    "condition",
+    sa.String(
+        length=50),
+        nullable=False,
+         server_default="BON"),
         sa.Column("location", sa.String(length=200), nullable=False),
         sa.Column("purchase_date", sa.DateTime(), nullable=True),
         sa.Column("last_maintenance_date", sa.DateTime(), nullable=True),
@@ -48,15 +53,27 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["created_by"],
+    ["users.id"],
+     ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.CheckConstraint("quantity >= 0", name="check_quantity_positive"),
     )
 
     # Index pour améliorer les performances
-    op.create_index("idx_material_items_category", "material_items", ["category"])
-    op.create_index("idx_material_items_condition", "material_items", ["condition"])
-    op.create_index("idx_material_items_created_by", "material_items", ["created_by"])
+    op.create_index(
+    "idx_material_items_category",
+    "material_items",
+     ["category"])
+    op.create_index(
+    "idx_material_items_condition",
+    "material_items",
+     ["condition"])
+    op.create_index(
+    "idx_material_items_created_by",
+    "material_items",
+     ["created_by"])
 
     # ── Table cleaning_tasks ──────────────────────────────────────────
     op.create_table(
@@ -69,12 +86,25 @@ def upgrade() -> None:
         sa.Column("scheduled_time", sa.String(length=10), nullable=False),
         sa.Column("location", sa.String(length=200), nullable=False),
         sa.Column("items", sa.JSON(), nullable=False, server_default="[]"),
-        sa.Column("status", sa.String(length=50), nullable=False, server_default="PLANIFIEE"),
+        sa.Column(
+    "status",
+    sa.String(
+        length=50),
+        nullable=False,
+         server_default="PLANIFIEE"),
         sa.Column("completed_at", sa.DateTime(), nullable=True),
         sa.Column("validated_at", sa.DateTime(), nullable=True),
         sa.Column("validated_by", sa.UUID(), nullable=True),
-        sa.Column("photos_before", sa.JSON(), nullable=False, server_default="[]"),
-        sa.Column("photos_after", sa.JSON(), nullable=False, server_default="[]"),
+        sa.Column(
+    "photos_before",
+    sa.JSON(),
+    nullable=False,
+     server_default="[]"),
+        sa.Column(
+    "photos_after",
+    sa.JSON(),
+    nullable=False,
+     server_default="[]"),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("created_by", sa.UUID(), nullable=False),
         sa.Column(
@@ -89,16 +119,28 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["validated_by"], ["users.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(
+    ["created_by"],
+    ["users.id"],
+     ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["validated_by"],
+    ["users.id"],
+     ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
 
     # Index pour améliorer les performances
     op.create_index("idx_cleaning_tasks_type", "cleaning_tasks", ["task_type"])
     op.create_index("idx_cleaning_tasks_status", "cleaning_tasks", ["status"])
-    op.create_index("idx_cleaning_tasks_date", "cleaning_tasks", ["scheduled_date"])
-    op.create_index("idx_cleaning_tasks_created_by", "cleaning_tasks", ["created_by"])
+    op.create_index(
+    "idx_cleaning_tasks_date",
+    "cleaning_tasks",
+     ["scheduled_date"])
+    op.create_index(
+    "idx_cleaning_tasks_created_by",
+    "cleaning_tasks",
+     ["created_by"])
 
     # ── Table task_assignments ────────────────────────────────────────
     op.create_table(
@@ -113,18 +155,37 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.Column("notified", sa.Boolean(), nullable=False, server_default="false"),
+        sa.Column(
+    "notified",
+    sa.Boolean(),
+    nullable=False,
+     server_default="false"),
         sa.Column("notified_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["task_id"], ["cleaning_tasks.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["servant_id"], ["users.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["assigned_by"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["task_id"],
+    ["cleaning_tasks.id"],
+     ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["servant_id"],
+    ["users.id"],
+     ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["assigned_by"],
+    ["users.id"],
+     ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("task_id", "servant_id", name="uq_task_servant"),
     )
 
     # Index pour améliorer les performances
-    op.create_index("idx_task_assignments_task", "task_assignments", ["task_id"])
-    op.create_index("idx_task_assignments_servant", "task_assignments", ["servant_id"])
+    op.create_index(
+    "idx_task_assignments_task",
+    "task_assignments",
+     ["task_id"])
+    op.create_index(
+    "idx_task_assignments_servant",
+    "task_assignments",
+     ["servant_id"])
 
     # ── Table aube_tasks ──────────────────────────────────────────────
     op.create_table(
@@ -136,13 +197,30 @@ def upgrade() -> None:
         sa.Column("scheduled_time", sa.String(length=10), nullable=False),
         sa.Column("location", sa.String(length=200), nullable=False),
         sa.Column("aube_count", sa.Integer(), nullable=False),
-        sa.Column("aube_sizes", sa.JSON(), nullable=False, server_default="[]"),
-        sa.Column("status", sa.String(length=50), nullable=False, server_default="PLANIFIEE"),
+        sa.Column(
+    "aube_sizes",
+    sa.JSON(),
+    nullable=False,
+     server_default="[]"),
+        sa.Column(
+    "status",
+    sa.String(
+        length=50),
+        nullable=False,
+         server_default="PLANIFIEE"),
         sa.Column("completed_at", sa.DateTime(), nullable=True),
         sa.Column("validated_at", sa.DateTime(), nullable=True),
         sa.Column("validated_by", sa.UUID(), nullable=True),
-        sa.Column("photos_before", sa.JSON(), nullable=False, server_default="[]"),
-        sa.Column("photos_after", sa.JSON(), nullable=False, server_default="[]"),
+        sa.Column(
+    "photos_before",
+    sa.JSON(),
+    nullable=False,
+     server_default="[]"),
+        sa.Column(
+    "photos_after",
+    sa.JSON(),
+    nullable=False,
+     server_default="[]"),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column(
             "broadcast_notification",
@@ -163,8 +241,14 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["validated_by"], ["users.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(
+    ["created_by"],
+    ["users.id"],
+     ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["validated_by"],
+    ["users.id"],
+     ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
         sa.CheckConstraint("aube_count > 0", name="check_aube_count_positive"),
     )
@@ -192,16 +276,31 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.ForeignKeyConstraint(["item_id"], ["material_items.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["performed_by"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["item_id"],
+    ["material_items.id"],
+     ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+    ["performed_by"],
+    ["users.id"],
+     ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.CheckConstraint("cost >= 0", name="check_cost_positive"),
     )
 
     # Index pour améliorer les performances
-    op.create_index("idx_maintenance_history_item", "maintenance_history", ["item_id"])
-    op.create_index("idx_maintenance_history_date", "maintenance_history", ["performed_date"])
-    op.create_index("idx_maintenance_history_performed_by", "maintenance_history", ["performed_by"])
+    op.create_index(
+    "idx_maintenance_history_item",
+    "maintenance_history",
+     ["item_id"])
+    op.create_index(
+    "idx_maintenance_history_date",
+    "maintenance_history",
+     ["performed_date"])
+    op.create_index(
+    "idx_maintenance_history_performed_by",
+    "maintenance_history",
+     ["performed_by"])
 
 
 def downgrade() -> None:

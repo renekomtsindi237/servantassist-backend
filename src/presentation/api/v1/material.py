@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.material_service import MaterialService
@@ -23,6 +23,7 @@ from src.infrastructure.repositories.material_repository import (
     MaterialItemRepository,
     TaskAssignmentRepository,
 )
+from src.infrastructure.services.storage_service import StorageService
 from src.presentation.dependencies.auth_deps import get_current_user, require_intendant
 from src.presentation.schemas.material import (
     AubeTaskComplete,
@@ -58,14 +59,16 @@ router = APIRouter()
 # ══════════════════════════════════════════════════════════════════
 
 
-def get_material_service(db: Annotated[AsyncSession, Depends(get_db_session)]) -> MaterialService:
+def get_material_service(db: Annotated[AsyncSession, Depends(
+    get_db_session)]) -> MaterialService:
     """Dépendance pour obtenir le service de matériel."""
     item_repo = MaterialItemRepository(db)
     cleaning_task_repo = CleaningTaskRepository(db)
     assignment_repo = TaskAssignmentRepository(db)
     aube_task_repo = AubeTaskRepository(db)
     maintenance_repo = MaintenanceHistoryRepository(db)
-    return MaterialService(item_repo, cleaning_task_repo, assignment_repo, aube_task_repo, maintenance_repo)
+    return MaterialService(item_repo, cleaning_task_repo,
+                           assignment_repo, aube_task_repo, maintenance_repo)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -149,7 +152,7 @@ async def get_material_item(
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Material item not found",
+            detail="Cet article de matériel est introuvable.",
         )
     return item
 
@@ -185,9 +188,59 @@ async def update_material_item(
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Material item not found",
+            detail="Cet article de matériel est introuvable.",
         )
     return item
+
+
+@router.post(
+    "/items/{item_id}/photo",
+    response_model=MaterialItemResponse,
+    summary="Photo d'un article",
+    description="Upload ou remplace la photo d'un article de matériel (INTENDANT uniquement)",
+)
+async def upload_material_photo(
+    item_id: UUID,
+    file: Annotated[UploadFile, File(description="Photo de l'article (JPEG, PNG ou WebP, max 5 Mo)")],
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: User = Depends(require_intendant),
+    service: MaterialService = Depends(get_material_service),
+):
+    """
+    Upload ou remplace la photo d'un article de matériel.
+
+    **Formats acceptés :** JPEG, PNG, WebP — **Taille max :** 5 Mo
+
+    Si une photo existe déjà pour cet article, elle sera supprimée et remplacée.
+    """
+    item = await service.get_item(item_id)
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Article introuvable.",
+        )
+
+    storage = StorageService()
+    file_data = await file.read()
+
+    try:
+        # Supprimer l'ancienne photo si elle existe
+        if item.photo_url:
+            await storage.delete_file(item.photo_url)
+
+        photo_url = await storage.upload_material_photo(
+            material_id=str(item_id),
+            file_data=file_data,
+            content_type=file.content_type or "image/jpeg",
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+    updated = await service.update_item(item_id=item_id, photo_url=photo_url)
+    return updated
 
 
 @router.delete(
@@ -206,7 +259,7 @@ async def delete_material_item(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Material item not found",
+            detail="Cet article de matériel est introuvable.",
         )
 
 
@@ -327,7 +380,7 @@ async def get_cleaning_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cleaning task not found",
+            detail="Cette tâche d'entretien est introuvable.",
         )
 
     # Enrichir avec les assignations
@@ -373,7 +426,7 @@ async def update_cleaning_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cleaning task not found",
+            detail="Cette tâche d'entretien est introuvable.",
         )
 
     # Enrichir avec les assignations
@@ -412,7 +465,7 @@ async def complete_cleaning_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cleaning task not found",
+            detail="Cette tâche d'entretien est introuvable.",
         )
 
     # Enrichir avec les assignations
@@ -451,7 +504,7 @@ async def validate_cleaning_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cleaning task not found",
+            detail="Cette tâche d'entretien est introuvable.",
         )
 
     # Enrichir avec les assignations
@@ -485,8 +538,83 @@ async def delete_cleaning_task(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cleaning task not found",
+            detail="Cette tâche d'entretien est introuvable.",
         )
+
+
+# ══════════════════════════════════════════════════════════════════
+#  ENDPOINTS - PHOTOS TÂCHES DE NETTOYAGE
+# ══════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/cleaning-tasks/{task_id}/photos/before",
+    response_model=CleaningTaskResponse,
+    summary="Photo avant — tâche nettoyage",
+    description="Ajoute une photo avant intervention. Format JPEG/PNG/WebP, max 5 Mo.",
+)
+async def upload_cleaning_task_photo_before(
+    task_id: UUID,
+    file: Annotated[UploadFile, File(description="Photo avant intervention (JPEG, PNG, WebP, max 5 Mo)")],
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: User = Depends(get_current_user),
+    service: MaterialService = Depends(get_material_service),
+):
+    task = await service.get_cleaning_task(task_id)
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
+    storage = StorageService()
+    try:
+        photo_url = await storage.upload_task_photo(
+            task_id=str(task_id),
+            file_data=await file.read(),
+            content_type=file.content_type or "image/jpeg",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    updated = await service.add_cleaning_task_photo(task_id, photo_url, phase="before")
+    assignments = await service.get_task_assignments(updated.id)
+    task_dict = updated.model_dump()
+    task_dict["assigned_servants"] = [
+        {"id": str(a.id), "servant_id": str(a.servant_id), "servant_name": a.servant_name}
+        for a in assignments
+    ]
+    return CleaningTaskResponse(**task_dict)
+
+
+@router.post(
+    "/cleaning-tasks/{task_id}/photos/after",
+    response_model=CleaningTaskResponse,
+    summary="Photo après — tâche nettoyage",
+    description="Ajoute une photo après intervention. Format JPEG/PNG/WebP, max 5 Mo.",
+)
+async def upload_cleaning_task_photo_after(
+    task_id: UUID,
+    file: Annotated[UploadFile, File(description="Photo après intervention (JPEG, PNG, WebP, max 5 Mo)")],
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: User = Depends(get_current_user),
+    service: MaterialService = Depends(get_material_service),
+):
+    task = await service.get_cleaning_task(task_id)
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
+    storage = StorageService()
+    try:
+        photo_url = await storage.upload_task_photo(
+            task_id=str(task_id),
+            file_data=await file.read(),
+            content_type=file.content_type or "image/jpeg",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    updated = await service.add_cleaning_task_photo(task_id, photo_url, phase="after")
+    assignments = await service.get_task_assignments(updated.id)
+    task_dict = updated.model_dump()
+    task_dict["assigned_servants"] = [
+        {"id": str(a.id), "servant_id": str(a.servant_id), "servant_name": a.servant_name}
+        for a in assignments
+    ]
+    return CleaningTaskResponse(**task_dict)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -576,7 +704,7 @@ async def remove_assignment(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Assignment not found",
+            detail="Cette affectation est introuvable.",
         )
 
 
@@ -662,7 +790,7 @@ async def get_aube_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aube task not found",
+            detail="Cette tâche d'aube est introuvable.",
         )
     return task
 
@@ -695,7 +823,7 @@ async def update_aube_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aube task not found",
+            detail="Cette tâche d'aube est introuvable.",
         )
     return task
 
@@ -721,7 +849,7 @@ async def complete_aube_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aube task not found",
+            detail="Cette tâche d'aube est introuvable.",
         )
     return task
 
@@ -747,7 +875,7 @@ async def validate_aube_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aube task not found",
+            detail="Cette tâche d'aube est introuvable.",
         )
     return task
 
@@ -768,8 +896,71 @@ async def delete_aube_task(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aube task not found",
+            detail="Cette tâche d'aube est introuvable.",
         )
+
+
+# ══════════════════════════════════════════════════════════════════
+#  ENDPOINTS - PHOTOS TÂCHES D'AUBES
+# ══════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/aube-tasks/{task_id}/photos/before",
+    response_model=AubeTaskResponse,
+    summary="Photo avant — tâche d'aubes",
+    description="Ajoute une photo avant intervention. Format JPEG/PNG/WebP, max 5 Mo.",
+)
+async def upload_aube_task_photo_before(
+    task_id: UUID,
+    file: Annotated[UploadFile, File(description="Photo avant intervention (JPEG, PNG, WebP, max 5 Mo)")],
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: User = Depends(get_current_user),
+    service: MaterialService = Depends(get_material_service),
+):
+    task = await service.get_aube_task(task_id)
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
+    storage = StorageService()
+    try:
+        photo_url = await storage.upload_task_photo(
+            task_id=str(task_id),
+            file_data=await file.read(),
+            content_type=file.content_type or "image/jpeg",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    updated = await service.add_aube_task_photo(task_id, photo_url, phase="before")
+    return updated
+
+
+@router.post(
+    "/aube-tasks/{task_id}/photos/after",
+    response_model=AubeTaskResponse,
+    summary="Photo après — tâche d'aubes",
+    description="Ajoute une photo après intervention. Format JPEG/PNG/WebP, max 5 Mo.",
+)
+async def upload_aube_task_photo_after(
+    task_id: UUID,
+    file: Annotated[UploadFile, File(description="Photo après intervention (JPEG, PNG, WebP, max 5 Mo)")],
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: User = Depends(get_current_user),
+    service: MaterialService = Depends(get_material_service),
+):
+    task = await service.get_aube_task(task_id)
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
+    storage = StorageService()
+    try:
+        photo_url = await storage.upload_task_photo(
+            task_id=str(task_id),
+            file_data=await file.read(),
+            content_type=file.content_type or "image/jpeg",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    updated = await service.add_aube_task_photo(task_id, photo_url, phase="after")
+    return updated
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -803,7 +994,7 @@ async def add_maintenance_history(
     if not history:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Material item not found",
+            detail="Cet article de matériel est introuvable.",
         )
     return history
 

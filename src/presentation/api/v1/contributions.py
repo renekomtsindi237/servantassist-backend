@@ -70,10 +70,14 @@ async def record_payment(
     description="Liste paginée des contributions avec filtres",
 )
 async def list_contributions(
-    servant_id: Optional[UUID] = Query(None, description="Filtrer par servant"),
-    month: Optional[int] = Query(None, ge=1, le=12, description="Filtrer par mois"),
-    year: Optional[int] = Query(None, ge=2020, description="Filtrer par année"),
-    payment_mode: Optional[PaymentMode] = Query(None, description="Filtrer par mode de paiement"),
+    servant_id: Optional[UUID] = Query(
+    None, description="Filtrer par servant"),
+    month: Optional[int] = Query(
+    None, ge=1, le=12, description="Filtrer par mois"),
+    year: Optional[int] = Query(
+    None, ge=2020, description="Filtrer par année"),
+    payment_mode: Optional[PaymentMode] = Query(
+    None, description="Filtrer par mode de paiement"),
     page: int = Query(1, ge=1, description="Numéro de page"),
     page_size: int = Query(50, ge=1, le=100, description="Taille de page"),
     current_user: User = Depends(get_current_user),

@@ -1,7 +1,8 @@
 """
 Repository pour la gestion des entrées financières (COMMISSAIRE_AUX_COMPTES).
 """
-from datetime import datetime
+from datetime import datetime, timezone
+from src.core.utils import utc_now
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -57,7 +58,8 @@ class FinancialEntryRepository:
         if source:
             filters.append(FinancialEntry.source == source)
         if verification_status:
-            filters.append(FinancialEntry.verification_status == verification_status)
+            filters.append(
+    FinancialEntry.verification_status == verification_status)
         if start_date:
             filters.append(FinancialEntry.date >= start_date)
         if end_date:
@@ -84,7 +86,7 @@ class FinancialEntryRepository:
 
     async def update(self, entry: FinancialEntry) -> FinancialEntry:
         """Met à jour une entrée."""
-        entry.updated_at = datetime.utcnow()
+        entry.updated_at = utc_now()
         await self.session.commit()
         await self.session.refresh(entry)
         return entry
@@ -113,9 +115,9 @@ class FinancialEntryRepository:
 
         entry.verification_status = status
         entry.verified_by = verified_by
-        entry.verification_date = datetime.utcnow()
+        entry.verification_date = utc_now()
         entry.notes = notes
-        entry.updated_at = datetime.utcnow()
+        entry.updated_at = utc_now()
 
         await self.session.commit()
         await self.session.refresh(entry)
@@ -139,7 +141,10 @@ class FinancialEntryRepository:
         result = await self.session.execute(query)
         entries = list(result.scalars().all())
 
-        count_query = select(func.count(FinancialEntry.id)).where(FinancialEntry.recorded_by == user_id)
+        count_query = select(
+    func.count(
+        FinancialEntry.id)).where(
+            FinancialEntry.recorded_by == user_id)
         count_result = await self.session.execute(count_query)
         total = count_result.scalar_one()
 
@@ -153,7 +158,9 @@ class FinancialEntryRepository:
         """Calcule les statistiques pour une période."""
         # Total
         total_query = select(func.count(FinancialEntry.id), func.sum(FinancialEntry.amount)).where(
-            and_(FinancialEntry.date >= start_date, FinancialEntry.date <= end_date)
+            and_(
+    FinancialEntry.date >= start_date,
+     FinancialEntry.date <= end_date)
         )
         total_result = await self.session.execute(total_query)
         total_count, total_amount = total_result.one()
@@ -209,7 +216,10 @@ class FinancialEntryRepository:
     ) -> List[dict]:
         """Résumé par catégorie."""
         # Récupération de toutes les entrées de la période
-        query = select(FinancialEntry).where(and_(FinancialEntry.date >= start_date, FinancialEntry.date <= end_date))
+        query = select(FinancialEntry).where(
+    and_(
+        FinancialEntry.date >= start_date,
+         FinancialEntry.date <= end_date))
 
         result = await self.session.execute(query)
         entries = result.scalars().all()
@@ -261,14 +271,18 @@ class DiscrepancyRepository:
     async def get_by_entry(self, entry_id: UUID) -> List[Discrepancy]:
         """Récupère les écarts d'une entrée."""
         result = await self.session.execute(
-            select(Discrepancy).where(Discrepancy.entry_id == entry_id).order_by(Discrepancy.detected_at.desc())
+            select(Discrepancy).where(
+    Discrepancy.entry_id == entry_id).order_by(
+        Discrepancy.detected_at.desc())
         )
         return list(result.scalars().all())
 
     async def list_unresolved(self) -> List[Discrepancy]:
         """Liste les écarts non résolus."""
         result = await self.session.execute(
-            select(Discrepancy).where(Discrepancy.resolved == False).order_by(Discrepancy.detected_at.desc())
+            select(Discrepancy).where(
+    Discrepancy.resolved == False).order_by(
+        Discrepancy.detected_at.desc())
         )
         return list(result.scalars().all())
 
