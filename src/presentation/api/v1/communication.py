@@ -15,16 +15,32 @@ Endpoints :
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import logging
 
 from src.application.services.notification_service import NotificationService
-from src.core.entities.notification import NotificationChannel, NotificationStatus, NotificationType
+from src.core.entities.notification import (
+    NotificationChannel,
+    NotificationStatus,
+    NotificationType,
+)
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_admin_or_aumonier,
+)
 
 logger = logging.getLogger(__name__)
 from src.presentation.schemas.notification import (
@@ -131,8 +147,7 @@ async def get_my_notifications(
     current_user: Annotated[User, Depends(get_current_active_user)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     notification_type: Optional[NotificationType] = Query(default=None),
-    status_filter: Optional[NotificationStatus] = Query(
-        default=None, alias="status"),
+    status_filter: Optional[NotificationStatus] = Query(default=None, alias="status"),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
@@ -256,8 +271,7 @@ async def get_notification_history(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     notification_type: Optional[NotificationType] = Query(default=None),
     channel: Optional[NotificationChannel] = Query(default=None),
-    status_filter: Optional[NotificationStatus] = Query(
-        default=None, alias="status"),
+    status_filter: Optional[NotificationStatus] = Query(default=None, alias="status"),
     broadcast_id: Optional[UUID] = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),

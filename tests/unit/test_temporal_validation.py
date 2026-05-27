@@ -10,7 +10,10 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from src.application.services.sunday_schedule_service import is_within_mass_window, parse_mass_time
+from src.application.services.sunday_schedule_service import (
+    is_within_mass_window,
+    parse_mass_time,
+)
 
 
 class TestParseMassTime:

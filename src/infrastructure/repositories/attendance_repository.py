@@ -80,8 +80,11 @@ class AttendanceRepository(EncryptedModelMixin):
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(
-            Attendance.attendance_date.desc())
+        stmt = (
+            stmt.offset(offset)
+            .limit(page_size)
+            .order_by(Attendance.attendance_date.desc())
+        )
         result = await self.session.exec(stmt)
         atts = list(result.all())
         self._decrypt_list(atts)
@@ -112,7 +115,9 @@ class AttendanceRepository(EncryptedModelMixin):
     # ── Enrichissement ─────────────────────────────────────────────────
 
     async def enrich_attendance(self, attendance: Attendance) -> Dict:
-        user = (await self.session.exec(select(User).where(User.id == attendance.user_id))).first()
+        user = (
+            await self.session.exec(select(User).where(User.id == attendance.user_id))
+        ).first()
         if user:
             decrypt_str_fields(user, _USER_PII)
 
@@ -133,8 +138,7 @@ class AttendanceRepository(EncryptedModelMixin):
             "user_last_name": user.last_name if user else None,
         }
 
-    async def enrich_attendances(
-        self, attendances: List[Attendance]) -> List[Dict]:
+    async def enrich_attendances(self, attendances: List[Attendance]) -> List[Dict]:
         return [await self.enrich_attendance(a) for a in attendances]
 
     # ── Ecriture ──────────────────────────────────────────────────────

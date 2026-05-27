@@ -165,7 +165,8 @@ class EmailService:
         # SMTP non configure : fallback log
         if not self._is_smtp_configured:
             logger.warning(
-                "SMTP non configure — email non envoye | to={to} | " "Configurez SMTP_USER et SMTP_PASSWORD dans .env",
+                "SMTP non configure — email non envoye | to={to} | "
+                "Configurez SMTP_USER et SMTP_PASSWORD dans .env",
                 to=to_email,
             )
             self._log_email(to_email, subject, html_body)

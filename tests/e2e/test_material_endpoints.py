@@ -7,7 +7,12 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 
-from src.core.entities.material import MaterialCategory, MaterialCondition, TaskStatus, TaskType
+from src.core.entities.material import (
+    MaterialCategory,
+    MaterialCondition,
+    TaskStatus,
+    TaskType,
+)
 
 # ══════════════════════════════════════════════════════════════════
 #  TESTS - ARTICLES DE MATÉRIEL

@@ -91,8 +91,7 @@ class ReportService:
 
         # Vérifier que le rapport est en brouillon
         if report.status != ReportStatus.DRAFT:
-            raise ValueError(
-                "Seuls les rapports en brouillon peuvent être modifiés")
+            raise ValueError("Seuls les rapports en brouillon peuvent être modifiés")
 
         # Mise à jour des champs
         if title is not None:
@@ -120,8 +119,7 @@ class ReportService:
 
         # Vérifier que le rapport est en brouillon
         if report.status != ReportStatus.DRAFT:
-            raise ValueError(
-                "Seuls les rapports en brouillon peuvent être supprimés")
+            raise ValueError("Seuls les rapports en brouillon peuvent être supprimés")
 
         return await self.report_repo.delete(report_id)
 
@@ -181,7 +179,8 @@ class ReportService:
         # Vérifier que le rapport est en brouillon
         if report.status != ReportStatus.DRAFT:
             raise ValueError(
-                "Les pièces jointes ne peuvent être ajoutées qu'aux rapports en brouillon")
+                "Les pièces jointes ne peuvent être ajoutées qu'aux rapports en brouillon"
+            )
 
         attachment = ReportAttachment(
             id=uuid4(),
@@ -209,6 +208,7 @@ class ReportService:
         report = await self.report_repo.get_by_id(attachment.report_id)
         if report and report.status != ReportStatus.DRAFT:
             raise ValueError(
-                "Les pièces jointes ne peuvent être supprimées que des rapports en brouillon")
+                "Les pièces jointes ne peuvent être supprimées que des rapports en brouillon"
+            )
 
         return await self.attachment_repo.delete(attachment_id)

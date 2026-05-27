@@ -20,7 +20,10 @@ from tests.conftest import VALID_PASSWORD
 
 # ── Helper ───────────────────────────────────────────────────────────────
 
-async def _create_servant(db_session: AsyncSession, email: str = "servant_auth@test.com") -> User:
+
+async def _create_servant(
+    db_session: AsyncSession, email: str = "servant_auth@test.com"
+) -> User:
     """Crée un servant en passant par le repository (email_hmac renseigné)."""
     repo = UserRepository(db_session)
     user = User(
@@ -54,10 +57,12 @@ async def _create_admin(db_session: AsyncSession) -> User:
 #  Login par email (OAuth2 form data)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.integration
 class TestEmailLogin:
-
-    async def test_login_success_returns_tokens(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_login_success_returns_tokens(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         await _create_admin(db_session)
         response = await client.post(
             "/api/v1/auth/login",
@@ -69,7 +74,9 @@ class TestEmailLogin:
         assert "refresh_token" in body
         assert body["token_type"] == "bearer"
 
-    async def test_login_wrong_password_returns_401(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_login_wrong_password_returns_401(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         await _create_admin(db_session)
         response = await client.post(
             "/api/v1/auth/login",
@@ -84,7 +91,9 @@ class TestEmailLogin:
         )
         assert response.status_code == 401
 
-    async def test_servant_cannot_login_via_email_form(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_servant_cannot_login_via_email_form(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         """
         SERVANT et PARENT ne doivent pas pouvoir se connecter via /login (réservé ADMIN/AUMÔNIER).
         Ils utilisent /login/phone.
@@ -97,7 +106,9 @@ class TestEmailLogin:
         # Le service refuse les rôles qui ne peuvent pas utiliser l'email login
         assert response.status_code in (401, 403)
 
-    async def test_login_inactive_user_returns_4xx(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_login_inactive_user_returns_4xx(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         repo = UserRepository(db_session)
         user = User(
             id=uuid4(),
@@ -120,10 +131,12 @@ class TestEmailLogin:
 #  Login par téléphone
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.integration
 class TestPhoneLogin:
-
-    async def test_phone_login_servant_success(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_phone_login_servant_success(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         await _create_servant(db_session)
         response = await client.post(
             "/api/v1/auth/login/phone",
@@ -134,7 +147,9 @@ class TestPhoneLogin:
         assert "access_token" in body
         assert "refresh_token" in body
 
-    async def test_phone_login_wrong_password(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_phone_login_wrong_password(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         await _create_servant(db_session)
         response = await client.post(
             "/api/v1/auth/login/phone",
@@ -154,9 +169,9 @@ class TestPhoneLogin:
 #  Inscription (SERVANT — sans invitation)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.integration
 class TestRegister:
-
     async def test_register_servant_success(self, client: AsyncClient):
         response = await client.post(
             "/api/v1/auth/register",
@@ -217,10 +232,12 @@ class TestRegister:
 #  Refresh token
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.integration
 class TestRefreshToken:
-
-    async def test_refresh_returns_new_tokens(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_refresh_returns_new_tokens(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         await _create_admin(db_session)
         login = await client.post(
             "/api/v1/auth/login",
@@ -264,9 +281,9 @@ class TestRefreshToken:
 #  Logout
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.integration
 class TestLogout:
-
     async def test_logout_success(self, client: AsyncClient, db_session: AsyncSession):
         await _create_servant(db_session)
         login = await client.post(

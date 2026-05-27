@@ -75,8 +75,18 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_cotisation_periods_cotisation_type"), "cotisation_periods", ["cotisation_type"], unique=False)
-    op.create_index(op.f("ix_cotisation_periods_is_active"), "cotisation_periods", ["is_active"], unique=False)
+    op.create_index(
+        op.f("ix_cotisation_periods_cotisation_type"),
+        "cotisation_periods",
+        ["cotisation_type"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_cotisation_periods_is_active"),
+        "cotisation_periods",
+        ["is_active"],
+        unique=False,
+    )
 
     op.create_table(
         "member_cotisations",
@@ -118,22 +128,42 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.func.now(),
         ),
-        sa.ForeignKeyConstraint(["period_id"], ["cotisation_periods.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["period_id"], ["cotisation_periods.id"], ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["recorded_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_member_cotisations_period_id"), "member_cotisations", ["period_id"], unique=False)
-    op.create_index(op.f("ix_member_cotisations_user_id"), "member_cotisations", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_member_cotisations_period_id"),
+        "member_cotisations",
+        ["period_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_member_cotisations_user_id"),
+        "member_cotisations",
+        ["user_id"],
+        unique=False,
+    )
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_member_cotisations_user_id"), table_name="member_cotisations")
-    op.drop_index(op.f("ix_member_cotisations_period_id"), table_name="member_cotisations")
+    op.drop_index(
+        op.f("ix_member_cotisations_user_id"), table_name="member_cotisations"
+    )
+    op.drop_index(
+        op.f("ix_member_cotisations_period_id"), table_name="member_cotisations"
+    )
     op.drop_table("member_cotisations")
 
-    op.drop_index(op.f("ix_cotisation_periods_is_active"), table_name="cotisation_periods")
-    op.drop_index(op.f("ix_cotisation_periods_cotisation_type"), table_name="cotisation_periods")
+    op.drop_index(
+        op.f("ix_cotisation_periods_is_active"), table_name="cotisation_periods"
+    )
+    op.drop_index(
+        op.f("ix_cotisation_periods_cotisation_type"), table_name="cotisation_periods"
+    )
     op.drop_table("cotisation_periods")
 
     sa.Enum(name="cotisationstatus").drop(op.get_bind(), checkfirst=True)

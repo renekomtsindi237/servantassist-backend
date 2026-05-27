@@ -67,7 +67,9 @@ class TestProfilePhotoUpload:
         )
         assert resp.status_code == 200
 
-    async def test_upload_replaces_existing(self, client: AsyncClient, servant_user: User):
+    async def test_upload_replaces_existing(
+        self, client: AsyncClient, servant_user: User
+    ):
         """Un second upload remplace la photo existante."""
         _, data1, ct = _make_fake_image("image/jpeg", 1024)
         _, data2, ct2 = _make_fake_image("image/png", 2048)
@@ -88,7 +90,9 @@ class TestProfilePhotoUpload:
 
         assert url1 != url2
 
-    async def test_invalid_content_type_rejected(self, client: AsyncClient, servant_user: User):
+    async def test_invalid_content_type_rejected(
+        self, client: AsyncClient, servant_user: User
+    ):
         """Type de fichier non autorise -> 400."""
         resp = await client.post(
             "/api/v1/users/me/photo",
@@ -97,7 +101,9 @@ class TestProfilePhotoUpload:
         )
         assert resp.status_code == 400
 
-    async def test_file_too_large_rejected(self, client: AsyncClient, servant_user: User):
+    async def test_file_too_large_rejected(
+        self, client: AsyncClient, servant_user: User
+    ):
         """Fichier trop gros (>5Mo) -> 400."""
         large_data = b"\x00" * (6 * 1024 * 1024)  # 6 Mo
         resp = await client.post(

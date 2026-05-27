@@ -9,11 +9,22 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.financial_entry_service import FinancialEntryService
-from src.core.entities.financial_entry import EntryCategory, EntrySource, VerificationStatus
+from src.core.entities.financial_entry import (
+    EntryCategory,
+    EntrySource,
+    VerificationStatus,
+)
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.financial_entry_repository import DiscrepancyRepository, FinancialEntryRepository
-from src.presentation.dependencies.auth_deps import get_current_active_user, require_commissaire, require_commissaire_strict
+from src.infrastructure.repositories.financial_entry_repository import (
+    DiscrepancyRepository,
+    FinancialEntryRepository,
+)
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    require_commissaire,
+    require_commissaire_strict,
+)
 from src.presentation.schemas.financial_entry import (
     AuditReportRequest,
     AuditReportResponse,
@@ -286,7 +297,9 @@ async def generate_audit_report(
 
     # Récupérer les résumés par catégorie via le service (utilise la session
     # existante)
-    summaries_data = await service.get_summary_by_category(data.start_date, data.end_date)
+    summaries_data = await service.get_summary_by_category(
+        data.start_date, data.end_date
+    )
     summaries = [FinancialSummaryResponse(**s) for s in summaries_data]
 
     return AuditReportResponse(
@@ -447,7 +460,9 @@ async def export_financial_pdf(
         {
             "date": e.date,
             "description": e.description,
-            "category": e.category.value if hasattr(e.category, "value") else str(e.category),
+            "category": e.category.value
+            if hasattr(e.category, "value")
+            else str(e.category),
             "type": e.source.value if hasattr(e.source, "value") else str(e.source),
             "amount": float(e.amount),
         }

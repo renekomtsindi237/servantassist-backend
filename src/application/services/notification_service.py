@@ -94,7 +94,9 @@ class NotificationService:
                         "type": notification_type.value,
                         "title": title,
                         "body": body,
-                        "created_at": notification.created_at.isoformat() if notification.created_at else None,
+                        "created_at": notification.created_at.isoformat()
+                        if notification.created_at
+                        else None,
                     },
                 )
             except Exception as exc:
@@ -193,8 +195,7 @@ class NotificationService:
             body=notification.body,
         )
 
-    async def _send_whatsapp(
-        self, notification: Notification) -> Optional[str]:
+    async def _send_whatsapp(self, notification: Notification) -> Optional[str]:
         """Envoie la notification par WhatsApp. Retourne le message d'erreur si echec."""
         stmt = select(User).where(User.id == notification.recipient_id)
         result = await self.session.exec(stmt)

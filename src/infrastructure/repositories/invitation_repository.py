@@ -63,15 +63,15 @@ class InvitationCodeRepository(EncryptedModelMixin):
         self._decrypt_list(invs)
         return invs
 
-    async def update(self, invitation_id: UUID,
-                     invitation_code: InvitationCode) -> InvitationCode:
+    async def update(
+        self, invitation_id: UUID, invitation_code: InvitationCode
+    ) -> InvitationCode:
         self._encrypt_model(invitation_code)
         await self.session.merge(invitation_code)
         await self.session.commit()
         return await self.get_by_id(invitation_id)
 
-    async def mark_as_used(self, code: str,
-                           user_id: UUID) -> Optional[InvitationCode]:
+    async def mark_as_used(self, code: str, user_id: UUID) -> Optional[InvitationCode]:
         invitation = await self.get_by_code(code)
         if not invitation:
             return None

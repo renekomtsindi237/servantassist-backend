@@ -46,7 +46,8 @@ class AttendanceService:
     # ══════════════════════════════════════════════════════════════════
 
     async def record_attendance(
-        self, data: AttendanceCreate, recorded_by: UUID) -> AttendanceResponse:
+        self, data: AttendanceCreate, recorded_by: UUID
+    ) -> AttendanceResponse:
         user = await self.user_repo.get(data.user_id)
         if not user:
             raise HTTPException(
@@ -83,8 +84,9 @@ class AttendanceService:
     #  ENREGISTREMENT PAR LOT (APPEL NOMINAL)
     # ══════════════════════════════════════════════════════════════════
 
-    async def record_batch(self, data: AttendanceBatchCreate,
-                           recorded_by: UUID) -> AttendanceBatchResponse:
+    async def record_batch(
+        self, data: AttendanceBatchCreate, recorded_by: UUID
+    ) -> AttendanceBatchResponse:
         created_list: List[AttendanceResponse] = []
         errors: List[str] = []
 
@@ -100,7 +102,8 @@ class AttendanceService:
                 )
                 if existing:
                     errors.append(
-                        f"{user.first_name} {user.last_name} : deja enregistre.")
+                        f"{user.first_name} {user.last_name} : deja enregistre."
+                    )
                     continue
 
                 attendance = Attendance(
@@ -133,7 +136,8 @@ class AttendanceService:
     # ══════════════════════════════════════════════════════════════════
 
     async def update_attendance(
-        self, attendance_id: UUID, data: AttendanceUpdate) -> AttendanceResponse:
+        self, attendance_id: UUID, data: AttendanceUpdate
+    ) -> AttendanceResponse:
         attendance = await self.attendance_repo.get(attendance_id)
         if not attendance:
             raise HTTPException(
@@ -219,7 +223,9 @@ class AttendanceService:
                 detail="Utilisateur introuvable.",
             )
 
-        counts = await self.attendance_repo.get_user_stats(user_id, start_date=start_date, end_date=end_date)
+        counts = await self.attendance_repo.get_user_stats(
+            user_id, start_date=start_date, end_date=end_date
+        )
         total = sum(counts.values())
         presents = counts.get(AttendanceStatus.PRESENT.value, 0)
         taux = (presents / total * 100) if total > 0 else 0
@@ -231,8 +237,7 @@ class AttendanceService:
             total_entries=total,
             presents=presents,
             absents=counts.get(AttendanceStatus.ABSENT.value, 0),
-            absents_justifies=counts.get(
-    AttendanceStatus.ABSENT_JUSTIFIE.value, 0),
+            absents_justifies=counts.get(AttendanceStatus.ABSENT_JUSTIFIE.value, 0),
             retards=counts.get(AttendanceStatus.EN_RETARD.value, 0),
             excuses=counts.get(AttendanceStatus.EXCUSE.value, 0),
             taux_presence=round(taux, 1),

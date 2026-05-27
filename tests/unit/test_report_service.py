@@ -375,7 +375,9 @@ async def test_archive_draft_fails(service, mock_report_repo, sample_report):
 
 # ── Tests pièces jointes ──────────────────────────────────────────────────
 @pytest.mark.asyncio
-async def test_add_attachment_success(service, mock_report_repo, mock_attachment_repo, sample_report):
+async def test_add_attachment_success(
+    service, mock_report_repo, mock_attachment_repo, sample_report
+):
     """Test ajout d'une pièce jointe."""
     attachment = ReportAttachment(
         id=uuid4(),
@@ -456,7 +458,9 @@ async def test_get_attachments(service, mock_attachment_repo):
 
 
 @pytest.mark.asyncio
-async def test_delete_attachment_success(service, mock_report_repo, mock_attachment_repo, sample_report):
+async def test_delete_attachment_success(
+    service, mock_report_repo, mock_attachment_repo, sample_report
+):
     """Test suppression d'une pièce jointe."""
     attachment = ReportAttachment(
         id=uuid4(),
@@ -478,7 +482,9 @@ async def test_delete_attachment_success(service, mock_report_repo, mock_attachm
 
 
 @pytest.mark.asyncio
-async def test_delete_attachment_from_published_fails(service, mock_report_repo, mock_attachment_repo):
+async def test_delete_attachment_from_published_fails(
+    service, mock_report_repo, mock_attachment_repo
+):
     """Test qu'on ne peut pas supprimer une pièce jointe d'un rapport publié."""
     published_report = Report(
         id=uuid4(),

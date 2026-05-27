@@ -13,9 +13,9 @@ from httpx import AsyncClient
 #  Endpoint racine  GET /
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.e2e
 class TestRootEndpoint:
-
     async def test_root_returns_200(self, main_client: AsyncClient):
         response = await main_client.get("/")
         assert response.status_code == 200
@@ -37,9 +37,9 @@ class TestRootEndpoint:
 #  Readiness probe  GET /ready
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.e2e
 class TestReadinessProbe:
-
     async def test_ready_returns_200_with_sqlite(self, main_client: AsyncClient):
         response = await main_client.get("/ready")
         assert response.status_code == 200
@@ -53,9 +53,9 @@ class TestReadinessProbe:
 #  Health check  GET /health
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.e2e
 class TestHealthCheck:
-
     async def test_health_returns_200_or_degraded(self, main_client: AsyncClient):
         response = await main_client.get("/health")
         # 200 = healthy/degraded (Redis absent en test = dégradé mais pas unhealthy)
@@ -91,9 +91,9 @@ class TestHealthCheck:
 #  Version API  GET /api/v1/version
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.e2e
 class TestApiVersion:
-
     async def test_version_returns_200(self, main_client: AsyncClient):
         response = await main_client.get("/api/v1/version")
         assert response.status_code == 200
@@ -126,9 +126,9 @@ class TestApiVersion:
 #  Versioning middleware — en-têtes X-API-Version et X-Request-ID
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.e2e
 class TestVersioningHeaders:
-
     async def test_every_response_has_x_api_version(self, main_client: AsyncClient):
         response = await main_client.get("/api/v1/version")
         assert "x-api-version" in response.headers
@@ -138,7 +138,9 @@ class TestVersioningHeaders:
         assert "x-request-id" in response.headers
         assert len(response.headers["x-request-id"]) > 0
 
-    async def test_x_request_id_propagated_when_provided(self, main_client: AsyncClient):
+    async def test_x_request_id_propagated_when_provided(
+        self, main_client: AsyncClient
+    ):
         my_id = "test-trace-id-abc123"
         response = await main_client.get("/", headers={"X-Request-ID": my_id})
         assert response.headers.get("x-request-id") == my_id
@@ -155,9 +157,9 @@ class TestVersioningHeaders:
 #  Protection des routes — authentification requise
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.e2e
 class TestAuthProtection:
-
     async def test_users_list_requires_auth(self, main_client: AsyncClient):
         # FastAPI peut répondre 307 (redirect trailing-slash) puis 401 en suivant
         response = await main_client.get("/api/v1/users/", follow_redirects=True)

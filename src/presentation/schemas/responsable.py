@@ -10,7 +10,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.responsable import ActionCategory, ActionStatus, NominationStatus, PosteResponsable
+from src.core.entities.responsable import (
+    ActionCategory,
+    ActionStatus,
+    NominationStatus,
+    PosteResponsable,
+)
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Nominations

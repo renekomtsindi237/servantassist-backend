@@ -7,7 +7,12 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 
-from src.core.entities.training import MaterialType, ParticipationStatus, TrainingLevel, TrainingStatus
+from src.core.entities.training import (
+    MaterialType,
+    ParticipationStatus,
+    TrainingLevel,
+    TrainingStatus,
+)
 
 # ══════════════════════════════════════════════════════════════════
 #  TESTS - SESSIONS DE FORMATION

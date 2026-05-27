@@ -103,12 +103,12 @@ class Notification(SQLModel, table=True):
     related_entity_type: Optional[str] = Field(default=None, max_length=50)
     related_entity_id: Optional[UUID] = Field(default=None)
     # Statut
-    status: NotificationStatus = Field(
-    default=NotificationStatus.PENDING, index=True)
+    status: NotificationStatus = Field(default=NotificationStatus.PENDING, index=True)
     error_message: Optional[str] = Field(default=None, max_length=1000)
     # Envoyeur
     sent_by: Optional[UUID] = Field(
-    default=None, foreign_key="users.id")  # None = systeme
+        default=None, foreign_key="users.id"
+    )  # None = systeme
     # Dates
     sent_at: Optional[datetime] = Field(default=None)
     read_at: Optional[datetime] = Field(default=None)

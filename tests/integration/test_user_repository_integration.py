@@ -35,6 +35,7 @@ def _make_user(
 def reset_encryptor_singleton():
     """Réinitialise le singleton entre chaque test pour éviter les effets de bord."""
     import src.infrastructure.security.field_encryption as fe
+
     original = fe._encryptor_instance
     fe._encryptor_instance = None
     yield
@@ -101,10 +102,12 @@ async def test_db_stores_ciphertext_not_plaintext(db_session):
     user = _make_user(email="secret@test.com")
     created = await repo.create(user)
 
-    row = (await db_session.execute(
-        text("SELECT first_name, last_name, email FROM users WHERE id = :uid"),
-        {"uid": created.id.hex},
-    )).one()
+    row = (
+        await db_session.execute(
+            text("SELECT first_name, last_name, email FROM users WHERE id = :uid"),
+            {"uid": created.id.hex},
+        )
+    ).one()
 
     assert row.first_name != "Intégration", "first_name stocké en clair !"
     assert row.last_name != "Test", "last_name stocké en clair !"
@@ -121,10 +124,12 @@ async def test_email_hmac_stored_in_index_column(db_session):
     repo = UserRepository(db_session)
     created = await repo.create(_make_user(email="hmacidx@test.com"))
 
-    row = (await db_session.execute(
-        text("SELECT email_hmac FROM users WHERE id = :uid"),
-        {"uid": created.id.hex},
-    )).one()
+    row = (
+        await db_session.execute(
+            text("SELECT email_hmac FROM users WHERE id = :uid"),
+            {"uid": created.id.hex},
+        )
+    ).one()
 
     enc = get_encryptor()
     expected_hmac = enc.hmac_index("hmacidx@test.com")
@@ -140,10 +145,14 @@ async def test_two_users_different_ciphertexts(db_session):
     u1 = await repo.create(_make_user(email="u1@test.com", phone="+237600000001"))
     u2 = await repo.create(_make_user(email="u2@test.com", phone="+237600000002"))
 
-    rows = (await db_session.execute(
-        text("SELECT first_name FROM users WHERE id IN (:id1, :id2)"),
-        {"id1": u1.id.hex, "id2": u2.id.hex},
-    )).all()
+    rows = (
+        await db_session.execute(
+            text("SELECT first_name FROM users WHERE id IN (:id1, :id2)"),
+            {"id1": u1.id.hex, "id2": u2.id.hex},
+        )
+    ).all()
 
     fn1, fn2 = rows[0].first_name, rows[1].first_name
-    assert fn1 != fn2, "Même ciphertext pour deux utilisateurs → le nonce n'est pas aléatoire !"
+    assert (
+        fn1 != fn2
+    ), "Même ciphertext pour deux utilisateurs → le nonce n'est pas aléatoire !"

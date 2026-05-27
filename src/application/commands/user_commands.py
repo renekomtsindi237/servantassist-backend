@@ -25,6 +25,7 @@ class RegisterUserCommand:
     Crée un nouvel utilisateur.
     Point d'entrée CQRS propre — délègue à AuthService.
     """
+
     # Données de création injectées à l'exécution
     pass  # Voir AuthService.register_user() — déjà complet
 
@@ -32,6 +33,7 @@ class RegisterUserCommand:
 @dataclass
 class ResetPasswordCommand:
     """Réinitialise le mot de passe d'un utilisateur (admin only)."""
+
     user_id: UUID
     new_password: str
     admin: User
@@ -46,6 +48,7 @@ class ResetPasswordCommand:
 @dataclass
 class DeactivateUserCommand:
     """Désactive un compte utilisateur."""
+
     user_id: UUID
     admin: User
 
@@ -56,6 +59,7 @@ class DeactivateUserCommand:
 @dataclass
 class ActivateUserCommand:
     """Active un compte utilisateur."""
+
     user_id: UUID
 
     async def execute(self, service: UserService) -> User:
@@ -65,6 +69,7 @@ class ActivateUserCommand:
 @dataclass
 class DeleteUserCommand:
     """Supprime un compte utilisateur."""
+
     user_id: UUID
     admin: User
 

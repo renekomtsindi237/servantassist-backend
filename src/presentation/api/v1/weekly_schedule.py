@@ -29,8 +29,13 @@ from src.core.entities.user import User
 from src.core.entities.weekly_schedule import ScheduleStatus
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.infrastructure.repositories.weekly_schedule_repository import WeeklyScheduleRepository
-from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_charge_classement_semaine
+from src.infrastructure.repositories.weekly_schedule_repository import (
+    WeeklyScheduleRepository,
+)
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_charge_classement_semaine,
+)
 from src.presentation.schemas.user import PaginatedResponse
 from src.presentation.schemas.weekly_schedule import (
     SlotServantCreate,
@@ -127,17 +132,19 @@ async def create_template(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-@router.get("/",
-            response_model=PaginatedResponse[WeeklyScheduleTemplateSummary])
+@router.get("/", response_model=PaginatedResponse[WeeklyScheduleTemplateSummary])
 async def list_templates(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_charge_classement_semaine)],
     status_filter: Optional[ScheduleStatus] = Query(
-    None, alias="status", description="Filtrer par statut"),
+        None, alias="status", description="Filtrer par statut"
+    ),
     start_date: Optional[datetime] = Query(
-    None, description="Modèles à partir de cette date"),
+        None, description="Modèles à partir de cette date"
+    ),
     end_date: Optional[datetime] = Query(
-    None, description="Modèles jusqu'à cette date"),
+        None, description="Modèles jusqu'à cette date"
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -307,8 +314,7 @@ async def add_servant_to_slot(
     return await service.add_servant_to_slot(slot_id, data, assigned_by=current_user.id)
 
 
-@router.delete("/assignments/{assignment_id}",
-               status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/assignments/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_servant_from_slot(
     assignment_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],

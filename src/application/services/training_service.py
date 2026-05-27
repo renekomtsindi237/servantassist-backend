@@ -216,7 +216,9 @@ class TrainingService:
     #  GESTION DES PARTICIPATIONS
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_participation(self, participation_id: UUID) -> Optional[TrainingParticipation]:
+    async def get_participation(
+        self, participation_id: UUID
+    ) -> Optional[TrainingParticipation]:
         """Récupère une participation par son ID."""
         return await self.participation_repo.get_by_id(participation_id)
 
@@ -244,7 +246,9 @@ class TrainingService:
             )
 
         # Vérifier que le servant n'est pas déjà inscrit
-        existing = await self.participation_repo.get_by_session_and_servant(session_id, servant_id)
+        existing = await self.participation_repo.get_by_session_and_servant(
+            session_id, servant_id
+        )
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -342,14 +346,17 @@ class TrainingService:
         return await self.participation_repo.enrich_participation(updated)
 
     async def get_session_participants(
-        self, session_id: UUID) -> List[TrainingParticipation]:
+        self, session_id: UUID
+    ) -> List[TrainingParticipation]:
         """Récupère les participants d'une session."""
         participations = await self.participation_repo.list_by_session(session_id)
 
         # Enrichir les participations
         enriched = []
         for participation in participations:
-            enriched_participation = await self.participation_repo.enrich_participation(participation)
+            enriched_participation = await self.participation_repo.enrich_participation(
+                participation
+            )
             enriched.append(enriched_participation)
 
         return enriched
@@ -361,12 +368,16 @@ class TrainingService:
         end_date: Optional[datetime] = None,
     ) -> List[TrainingParticipation]:
         """Récupère les participations d'un servant."""
-        participations = await self.participation_repo.list_by_servant(servant_id, start_date, end_date)
+        participations = await self.participation_repo.list_by_servant(
+            servant_id, start_date, end_date
+        )
 
         # Enrichir les participations
         enriched = []
         for participation in participations:
-            enriched_participation = await self.participation_repo.enrich_participation(participation)
+            enriched_participation = await self.participation_repo.enrich_participation(
+                participation
+            )
             enriched.append(enriched_participation)
 
         return enriched
@@ -382,7 +393,9 @@ class TrainingService:
         end_date: Optional[datetime] = None,
     ) -> TrainingStats:
         """Récupère les statistiques d'un servant."""
-        return await self.participation_repo.get_servant_stats(servant_id, start_date, end_date)
+        return await self.participation_repo.get_servant_stats(
+            servant_id, start_date, end_date
+        )
 
     # ══════════════════════════════════════════════════════════════════
     #  GESTION DES MATÉRIELS
@@ -421,8 +434,7 @@ class TrainingService:
         created = await self.material_repo.create(material)
         return await self.material_repo.enrich_material(created)
 
-    async def get_material(
-        self, material_id: UUID) -> Optional[TrainingMaterial]:
+    async def get_material(self, material_id: UUID) -> Optional[TrainingMaterial]:
         """Récupère un matériel par son ID."""
         material = await self.material_repo.get_by_id(material_id)
         if material:
@@ -535,13 +547,11 @@ class TrainingService:
 
         return await self.session_material_repo.create(session_material)
 
-    async def get_session_materials(
-        self, session_id: UUID) -> List[SessionMaterial]:
+    async def get_session_materials(self, session_id: UUID) -> List[SessionMaterial]:
         """Récupère les matériels d'une session."""
         return await self.session_material_repo.get_by_session(session_id)
 
-    async def remove_material_from_session(
-        self, session_material_id: UUID) -> bool:
+    async def remove_material_from_session(self, session_material_id: UUID) -> bool:
         """Retire un matériel d'une session."""
         return await self.session_material_repo.delete(session_material_id)
 
@@ -567,7 +577,8 @@ class TrainingService:
         )
 
         completed_sessions = sum(
-    1 for s in sessions if s.status == TrainingStatus.TERMINEE)
+            1 for s in sessions if s.status == TrainingStatus.TERMINEE
+        )
 
         # Récupérer toutes les participations
         all_participations = []
@@ -578,25 +589,27 @@ class TrainingService:
         total_participants = len(all_participations)
 
         # Calculer le taux de présence moyen
-        attended = sum(1 for p in all_participations if p.status ==
-                       ParticipationStatus.PRESENT)
+        attended = sum(
+            1 for p in all_participations if p.status == ParticipationStatus.PRESENT
+        )
         average_attendance_rate = (
-    attended /
-    total_participants *
-     100) if total_participants > 0 else 0.0
+            (attended / total_participants * 100) if total_participants > 0 else 0.0
+        )
 
         # Calculer la note moyenne
         scores = [
-    p.evaluation_score for p in all_participations if p.evaluation_score is not None]
-        average_evaluation_score = sum(
-            scores) / len(scores) if scores else None
+            p.evaluation_score
+            for p in all_participations
+            if p.evaluation_score is not None
+        ]
+        average_evaluation_score = sum(scores) / len(scores) if scores else None
 
         # Compter les certificats
-        certificates_issued = sum(
-    1 for p in all_participations if p.certificate_issued)
+        certificates_issued = sum(1 for p in all_participations if p.certificate_issued)
 
         # Top performers (meilleurs participants)
         from collections import defaultdict
+
         user_stats: dict = defaultdict(
             lambda: {"scores": [], "attended": 0, "total": 0, "user_id": None}
         )
@@ -612,14 +625,10 @@ class TrainingService:
         top_performers = []
         for stats in user_stats.values():
             avg_score = (
-                sum(stats["scores"]) / len(stats["scores"])
-                if stats["scores"]
-                else 0.0
+                sum(stats["scores"]) / len(stats["scores"]) if stats["scores"] else 0.0
             )
             attendance_rate = (
-                stats["attended"] / stats["total"] * 100
-                if stats["total"]
-                else 0.0
+                stats["attended"] / stats["total"] * 100 if stats["total"] else 0.0
             )
             top_performers.append(
                 {
@@ -635,9 +644,12 @@ class TrainingService:
         # Répartition par niveau
         sessions_by_level = {}
         for session in sessions:
-            level_str = session.level.value if hasattr(session.level, 'value') else str(session.level)
-            sessions_by_level[level_str] = sessions_by_level.get(
-                level_str, 0) + 1
+            level_str = (
+                session.level.value
+                if hasattr(session.level, "value")
+                else str(session.level)
+            )
+            sessions_by_level[level_str] = sessions_by_level.get(level_str, 0) + 1
 
         return TrainingReport(
             id=uuid4(),

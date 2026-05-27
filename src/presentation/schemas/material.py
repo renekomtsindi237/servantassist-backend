@@ -7,7 +7,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.material import MaterialCategory, MaterialCondition, TaskStatus, TaskType
+from src.core.entities.material import (
+    MaterialCategory,
+    MaterialCondition,
+    TaskStatus,
+    TaskType,
+)
 
 
 # ── Schémas de création - Articles ───────────────────────────────────

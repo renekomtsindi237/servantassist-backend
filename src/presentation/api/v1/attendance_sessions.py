@@ -12,10 +12,17 @@ from fastapi import APIRouter, Depends, Query, status
 from src.application.services.attendance_session_service import AttendanceSessionService
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.attendance_session_repository import AttendanceSessionRepository
+from src.infrastructure.repositories.attendance_session_repository import (
+    AttendanceSessionRepository,
+)
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.services.email_service import EmailService
-from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_user, require_censeur, require_censeur_strict
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_user,
+    require_censeur,
+    require_censeur_strict,
+)
 
 logger = logging.getLogger(__name__)
 from src.presentation.schemas.attendance_session import (
@@ -43,7 +50,10 @@ async def get_attendance_service(
     session=Depends(get_db_session),
 ) -> AttendanceSessionService:
     """Injecte le service d'appels."""
-    from src.infrastructure.repositories.notification_repository import NotificationRepository
+    from src.infrastructure.repositories.notification_repository import (
+        NotificationRepository,
+    )
+
     attendance_repo = AttendanceSessionRepository(session)
     user_repo = UserRepository(session)
     notification_repo = NotificationRepository(session)

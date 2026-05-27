@@ -69,15 +69,13 @@ class RedisBruteForceProtection:
     def _key_locked(self, identifier: str) -> str:
         return f"{self._PREFIX}{identifier}:locked"
 
-    async def check_locked(
-        self, identifier: str) -> Tuple[bool, Optional[int]]:
+    async def check_locked(self, identifier: str) -> Tuple[bool, Optional[int]]:
         ttl = await self._redis.ttl(self._key_locked(identifier))
         if ttl and ttl > 0:
             return True, ttl
         return False, None
 
-    async def record_failure(
-        self, identifier: str) -> Tuple[bool, int, Optional[int]]:
+    async def record_failure(self, identifier: str) -> Tuple[bool, int, Optional[int]]:
         key = self._key_count(identifier)
         count = await self._redis.incr(key)
         # Expirer le compteur apres 1h d'inactivite
@@ -140,8 +138,7 @@ class InMemoryBruteForceProtection:
 
         return False, None
 
-    def record_failure(
-        self, identifier: str) -> Tuple[bool, int, Optional[int]]:
+    def record_failure(self, identifier: str) -> Tuple[bool, int, Optional[int]]:
         now = time.monotonic()
         attempt = self._attempts.get(identifier)
 
@@ -174,8 +171,11 @@ class InMemoryBruteForceProtection:
 
     def cleanup(self, max_age: int = 3600) -> None:
         now = time.monotonic()
-        to_delete = [k for k, v in self._attempts.items() if now -
-     v.last_attempt > max_age and v.locked_until < now]
+        to_delete = [
+            k
+            for k, v in self._attempts.items()
+            if now - v.last_attempt > max_age and v.locked_until < now
+        ]
         for k in to_delete:
             del self._attempts[k]
 
@@ -205,16 +205,15 @@ class BruteForceProtection:
             logger.info("Brute-force protection: backend Redis active")
         else:
             logger.warning(
-                "Brute-force protection: Redis non disponible, fallback in-memory")
+                "Brute-force protection: Redis non disponible, fallback in-memory"
+            )
 
-    async def check_locked(
-        self, identifier: str) -> Tuple[bool, Optional[int]]:
+    async def check_locked(self, identifier: str) -> Tuple[bool, Optional[int]]:
         if self._use_redis and self._redis_backend:
             return await self._redis_backend.check_locked(identifier)
         return self._memory_backend.check_locked(identifier)
 
-    async def record_failure(
-        self, identifier: str) -> Tuple[bool, int, Optional[int]]:
+    async def record_failure(self, identifier: str) -> Tuple[bool, int, Optional[int]]:
         if self._use_redis and self._redis_backend:
             return await self._redis_backend.record_failure(identifier)
         return self._memory_backend.record_failure(identifier)

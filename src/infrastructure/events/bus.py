@@ -36,10 +36,12 @@ class EventBus:
 
     def handler(self, *event_types: Type[DomainEvent]) -> Callable:
         """Décorateur pour enregistrer une fonction comme handler."""
+
         def decorator(func: Callable) -> Callable:
             for et in event_types:
                 self.subscribe(et, func)
             return func
+
         return decorator
 
     async def publish(self, event: DomainEvent) -> None:

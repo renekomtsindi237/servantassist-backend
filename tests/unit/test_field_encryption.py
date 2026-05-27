@@ -26,6 +26,7 @@ TEST_KEY = "test-master-secret-for-unit-tests-only-!"
 def reset_singleton():
     """Isole chaque test : repart d'un singleton vide."""
     import src.infrastructure.security.field_encryption as fe
+
     original = fe._encryptor_instance
     fe._encryptor_instance = None
     yield
@@ -42,7 +43,6 @@ def enc() -> FieldEncryptor:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestEncryptDecrypt:
-
     def test_roundtrip_simple(self, enc):
         assert enc.decrypt(enc.encrypt("Jean NDAA")) == "Jean NDAA"
 
@@ -118,14 +118,15 @@ class TestEncryptDecrypt:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestHmacIndex:
-
     def test_deterministic(self, enc):
         h1 = enc.hmac_index("servant@paroisse.cm")
         h2 = enc.hmac_index("servant@paroisse.cm")
         assert h1 == h2
 
     def test_case_insensitive(self, enc):
-        assert enc.hmac_index("SERVANT@paroisse.cm") == enc.hmac_index("servant@paroisse.cm")
+        assert enc.hmac_index("SERVANT@paroisse.cm") == enc.hmac_index(
+            "servant@paroisse.cm"
+        )
 
     def test_strips_whitespace(self, enc):
         assert enc.hmac_index("  email@test.com  ") == enc.hmac_index("email@test.com")
@@ -155,9 +156,9 @@ class TestHmacIndex:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestDecryptStrFields:
-
     def test_decrypts_specified_fields(self, enc):
         import src.infrastructure.security.field_encryption as fe
+
         fe._encryptor_instance = enc
 
         class Fake:
@@ -171,6 +172,7 @@ class TestDecryptStrFields:
 
     def test_ignores_none_fields(self, enc):
         import src.infrastructure.security.field_encryption as fe
+
         fe._encryptor_instance = enc
 
         class Fake:
@@ -185,6 +187,7 @@ class TestDecryptStrFields:
     def test_ignores_plaintext_fields_silently(self, enc):
         """Les champs non chiffrés (avant migration) ne doivent pas lever d'erreur."""
         import src.infrastructure.security.field_encryption as fe
+
         fe._encryptor_instance = enc
 
         class Fake:
@@ -196,6 +199,7 @@ class TestDecryptStrFields:
 
     def test_missing_field_ignored(self, enc):
         import src.infrastructure.security.field_encryption as fe
+
         fe._encryptor_instance = enc
 
         class Fake:
@@ -210,7 +214,6 @@ class TestDecryptStrFields:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestGetEncryptor:
-
     def test_returns_field_encryptor_instance(self):
         enc = get_encryptor()
         assert isinstance(enc, FieldEncryptor)
@@ -222,9 +225,11 @@ class TestGetEncryptor:
 
     def test_singleton_raises_without_key(self, monkeypatch):
         import src.infrastructure.security.field_encryption as fe
+
         fe._encryptor_instance = None
         monkeypatch.setenv("FIELD_ENCRYPTION_KEY", "")
         from src.infrastructure.config.settings import get_settings
+
         get_settings.cache_clear()
 
         try:

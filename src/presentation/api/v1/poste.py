@@ -20,10 +20,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.responsable_service import ResponsableService
-from src.core.entities.responsable import SLUG_TO_POSTE, ActionCategory, ActionStatus, PosteResponsable
+from src.core.entities.responsable import (
+    SLUG_TO_POSTE,
+    ActionCategory,
+    ActionStatus,
+    PosteResponsable,
+)
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.responsable_repository import NominationRepository, PosteActionRepository
+from src.infrastructure.repositories.responsable_repository import (
+    NominationRepository,
+    PosteActionRepository,
+)
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import get_current_active_user
 from src.presentation.schemas.responsable import (
@@ -39,7 +47,9 @@ router = APIRouter()
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 def _get_service(session: AsyncSession) -> ResponsableService:
-    from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
+    from src.infrastructure.repositories.council_meeting_repository import (
+        CouncilMeetingRepository,
+    )
 
     return ResponsableService(
         nomination_repo=NominationRepository(session),
@@ -171,9 +181,11 @@ async def list_actions(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
     category: Optional[ActionCategory] = Query(
-    None, description="Filtrer par categorie"),
+        None, description="Filtrer par categorie"
+    ),
     action_status: Optional[ActionStatus] = Query(
-    None, alias="status", description="Filtrer par statut"),
+        None, alias="status", description="Filtrer par statut"
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -212,8 +224,7 @@ async def get_action(
     return await service.get_action(action_id)
 
 
-@router.patch("/{slug}/actions/{action_id}",
-              response_model=PosteActionResponse)
+@router.patch("/{slug}/actions/{action_id}", response_model=PosteActionResponse)
 async def update_action(
     slug: str,
     action_id: UUID,

@@ -18,7 +18,11 @@ from sqlmodel import col, func, select
 
 from src.core.entities.attendance import Attendance, AttendanceStatus
 from src.core.entities.assignment import Assignment, AssignmentStatus
-from src.core.entities.cotisation import CotisationPeriod, CotisationStatus as CotisationPaymentStatus, MemberCotisation
+from src.core.entities.cotisation import (
+    CotisationPeriod,
+    CotisationStatus as CotisationPaymentStatus,
+    MemberCotisation,
+)
 from src.core.entities.event import Event
 from src.core.entities.user import User, UserRole
 from src.presentation.schemas.dashboard import (
@@ -63,8 +67,10 @@ class DashboardService:
         all_att = result_att.all()
         total_att = len(all_att)
         present_att = sum(
-            1 for a in all_att
-            if getattr(a, "status", None) in (
+            1
+            for a in all_att
+            if getattr(a, "status", None)
+            in (
                 AttendanceStatus.PRESENT,
                 AttendanceStatus.EN_RETARD,
             )
@@ -139,9 +145,7 @@ class DashboardService:
                 )
             )
 
-        avg_rate = (
-            sum(p.rate_percent for p in points) / len(points) if points else 0.0
-        )
+        avg_rate = sum(p.rate_percent for p in points) / len(points) if points else 0.0
         label = "Tendance mensuelle" if group_by == "month" else "Tendance hebdomadaire"
         return AttendanceTrend(
             period_label=label,
@@ -156,7 +160,9 @@ class DashboardService:
         Retourne le statut des cotisations de la période la plus récente.
         """
         # Récupérer la période la plus récente
-        stmt = select(CotisationPeriod).order_by(col(CotisationPeriod.start_date).desc())
+        stmt = select(CotisationPeriod).order_by(
+            col(CotisationPeriod.start_date).desc()
+        )
         result = await self.session.exec(stmt)
         period = result.first()
         if not period:
@@ -180,7 +186,11 @@ class DashboardService:
         cotisations = result_cot.all()
 
         paid = sum(1 for c in cotisations if c.status == CotisationPaymentStatus.PAYE)
-        partial = sum(1 for c in cotisations if c.status == CotisationPaymentStatus.PAYE_PARTIELLEMENT)
+        partial = sum(
+            1
+            for c in cotisations
+            if c.status == CotisationPaymentStatus.PAYE_PARTIELLEMENT
+        )
         unpaid = len(cotisations) - paid - partial
 
         total_expected = float(period.amount_expected or 0) * len(cotisations)
@@ -222,8 +232,10 @@ class DashboardService:
             result_a = await self.session.exec(stmt_a)
             assignments = result_a.all()
             confirmed = sum(
-                1 for a in assignments
-                if getattr(a, "status", None) in (
+                1
+                for a in assignments
+                if getattr(a, "status", None)
+                in (
                     AssignmentStatus.ACCEPTED,
                     AssignmentStatus.PRESENT,
                 )
@@ -261,8 +273,10 @@ class DashboardService:
             att_records = result_att.all()
             total = len(att_records)
             present = sum(
-                1 for a in att_records
-                if getattr(a, "status", None) in (
+                1
+                for a in att_records
+                if getattr(a, "status", None)
+                in (
                     AttendanceStatus.PRESENT,
                     AttendanceStatus.EN_RETARD,
                 )

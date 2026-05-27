@@ -96,9 +96,15 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["revoked_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_nominations_user_id"), "nominations", ["user_id"], unique=False)
-    op.create_index(op.f("ix_nominations_poste"), "nominations", ["poste"], unique=False)
-    op.create_index(op.f("ix_nominations_status"), "nominations", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_nominations_user_id"), "nominations", ["user_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_nominations_poste"), "nominations", ["poste"], unique=False
+    )
+    op.create_index(
+        op.f("ix_nominations_status"), "nominations", ["status"], unique=False
+    )
 
     op.create_table(
         "poste_actions",
@@ -152,13 +158,21 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
         sa.ForeignKeyConstraint(["target_user_id"], ["users.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(["target_event_id"], ["events.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(
+            ["target_event_id"], ["events.id"], ondelete="SET NULL"
+        ),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_poste_actions_poste"), "poste_actions", ["poste"], unique=False)
-    op.create_index(op.f("ix_poste_actions_category"), "poste_actions", ["category"], unique=False)
-    op.create_index(op.f("ix_poste_actions_status"), "poste_actions", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_poste_actions_poste"), "poste_actions", ["poste"], unique=False
+    )
+    op.create_index(
+        op.f("ix_poste_actions_category"), "poste_actions", ["category"], unique=False
+    )
+    op.create_index(
+        op.f("ix_poste_actions_status"), "poste_actions", ["status"], unique=False
+    )
 
 
 def downgrade() -> None:

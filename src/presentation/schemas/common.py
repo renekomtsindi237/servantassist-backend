@@ -40,6 +40,7 @@ API_V1_PREFIX = "/api/v1"
 #  PAGINATION
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class PageLinks(BaseModel):
     """Liens de navigation RFC 5988 pour les listes paginées."""
 
@@ -79,7 +80,9 @@ class PaginatedResponse(BaseModel, Generic[T]):
     model_config = {"populate_by_name": True}
 
 
-def _build_page_links(base_url: str, page: int, page_size: int, total: int) -> PageLinks:
+def _build_page_links(
+    base_url: str, page: int, page_size: int, total: int
+) -> PageLinks:
     total_pages = max(1, ceil(total / page_size))
 
     def _url(p: int) -> str:
@@ -149,6 +152,7 @@ def build_paginated_response(
 #  RÉFÉRENCES INTER-RESSOURCES (HATEOAS LÉGER)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class ResourceLink(BaseModel):
     """Lien vers une ressource liée."""
 
@@ -170,28 +174,30 @@ def user_links(user_id: UUID) -> Dict[str, ResourceLink]:
     """
     uid = str(user_id)
     return {
-        "self":             make_link(f"/users/{uid}"),
-        "assignments":      make_link(f"/assignments?user_id={uid}"),
-        "attendance":       make_link(f"/attendance?user_id={uid}"),
+        "self": make_link(f"/users/{uid}"),
+        "assignments": make_link(f"/assignments?user_id={uid}"),
+        "attendance": make_link(f"/attendance?user_id={uid}"),
         "discipline_cases": make_link(f"/discipline/user/{uid}/stats"),
-        "contributions":    make_link(f"/contributions?servant_id={uid}"),
-        "cotisations":      make_link(f"/cotisations/user/{uid}/summary"),
+        "contributions": make_link(f"/contributions?servant_id={uid}"),
+        "cotisations": make_link(f"/cotisations/user/{uid}/summary"),
     }
 
 
 def discipline_links(case_id: UUID, accused_user_id: UUID) -> Dict[str, ResourceLink]:
     """Liens utiles pour un dossier disciplinaire."""
     return {
-        "self":    make_link(f"/discipline/{case_id}"),
+        "self": make_link(f"/discipline/{case_id}"),
         "accused": make_link(f"/users/{accused_user_id}"),
     }
 
 
-def assignment_links(assignment_id: UUID, user_id: UUID, event_id: UUID) -> Dict[str, ResourceLink]:
+def assignment_links(
+    assignment_id: UUID, user_id: UUID, event_id: UUID
+) -> Dict[str, ResourceLink]:
     """Liens utiles pour une affectation liturgique."""
     return {
-        "self":  make_link(f"/assignments/{assignment_id}"),
-        "user":  make_link(f"/users/{user_id}"),
+        "self": make_link(f"/assignments/{assignment_id}"),
+        "user": make_link(f"/users/{user_id}"),
         "event": make_link(f"/events/{event_id}"),
     }
 
@@ -207,6 +213,7 @@ def attendance_links(attendance_id: UUID, user_id: UUID) -> Dict[str, ResourceLi
 # ═══════════════════════════════════════════════════════════════════════════
 #  ERREURS STANDARDISÉES
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class ApiError(BaseModel):
     """
@@ -244,5 +251,5 @@ class ErrorCode:
     UNAUTHORIZED = "UNAUTHORIZED"
     RATE_LIMITED = "RATE_LIMITED"
     INTERNAL = "INTERNAL_SERVER_ERROR"
-    GONE = "GONE"                       # Ressource supprimée définitivement
-    UNPROCESSABLE = "UNPROCESSABLE"     # Règle métier violée
+    GONE = "GONE"  # Ressource supprimée définitivement
+    UNPROCESSABLE = "UNPROCESSABLE"  # Règle métier violée

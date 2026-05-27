@@ -26,7 +26,10 @@ from src.application.services.responsable_service import ResponsableService
 from src.core.entities.responsable import PosteResponsable
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.responsable_repository import NominationRepository, PosteActionRepository
+from src.infrastructure.repositories.responsable_repository import (
+    NominationRepository,
+    PosteActionRepository,
+)
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
@@ -49,7 +52,9 @@ router = APIRouter()
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 def _get_service(session: AsyncSession) -> ResponsableService:
-    from src.infrastructure.repositories.council_meeting_repository import CouncilMeetingRepository
+    from src.infrastructure.repositories.council_meeting_repository import (
+        CouncilMeetingRepository,
+    )
 
     return ResponsableService(
         nomination_repo=NominationRepository(session),
@@ -86,7 +91,15 @@ async def create_nomination(
     """
     service = _get_service(session)
     nomination = await service.nominate(data, nominated_by=current_user.id)
-    asyncio.create_task(_notify_nomination(nomination.user_id, nomination.poste.value if hasattr(nomination.poste, 'value') else str(nomination.poste), session))
+    asyncio.create_task(
+        _notify_nomination(
+            nomination.user_id,
+            nomination.poste.value
+            if hasattr(nomination.poste, "value")
+            else str(nomination.poste),
+            session,
+        )
+    )
     return nomination
 
 
@@ -95,6 +108,7 @@ async def _notify_nomination(user_id: UUID, poste_label: str, session) -> None:
     try:
         from src.infrastructure.repositories.user_repository import UserRepository
         from src.infrastructure.services.email_service import EmailService
+
         user_repo = UserRepository(session)
         servant = await user_repo.get(user_id)
         if servant and servant.email:
@@ -147,8 +161,7 @@ async def get_nomination_history(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
     user_id: Optional[UUID] = Query(None, description="Filtrer par servant"),
-    poste: Optional[PosteResponsable] = Query(
-        None, description="Filtrer par poste"),
+    poste: Optional[PosteResponsable] = Query(None, description="Filtrer par poste"),
 ):
     """
     Historique complet des nominations (actives et revoquees).
@@ -243,7 +256,9 @@ async def record_council_attendance(
 ):
     """Enregistre les présences au conseil."""
     service = _get_service(session)
-    return await service.record_council_attendance(meeting_id, data, recorded_by=current_user.id)
+    return await service.record_council_attendance(
+        meeting_id, data, recorded_by=current_user.id
+    )
 
 
 @router.get(

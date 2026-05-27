@@ -34,7 +34,12 @@ async def test_create_entry_performance(client, commissaire_token):
 @pytest.mark.asyncio
 async def test_list_entries_performance(client, commissaire_token, db_session):
     """Test performance liste des entrées."""
-    from src.core.entities.financial_entry import EntryCategory, EntrySource, FinancialEntry, VerificationStatus
+    from src.core.entities.financial_entry import (
+        EntryCategory,
+        EntrySource,
+        FinancialEntry,
+        VerificationStatus,
+    )
 
     # Créer 100 entrées
     for i in range(100):

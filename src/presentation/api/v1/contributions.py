@@ -11,9 +11,14 @@ from src.application.services.contribution_service import ContributionService
 from src.core.entities.contribution import PaymentMode
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.contribution_repository import ContributionRepository
+from src.infrastructure.repositories.contribution_repository import (
+    ContributionRepository,
+)
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import get_current_user, require_econome_or_admin
+from src.presentation.dependencies.auth_deps import (
+    get_current_user,
+    require_econome_or_admin,
+)
 from src.presentation.schemas.contribution import (
     ContributionCreate,
     ContributionResponse,
@@ -70,14 +75,12 @@ async def record_payment(
     description="Liste paginée des contributions avec filtres",
 )
 async def list_contributions(
-    servant_id: Optional[UUID] = Query(
-    None, description="Filtrer par servant"),
-    month: Optional[int] = Query(
-    None, ge=1, le=12, description="Filtrer par mois"),
-    year: Optional[int] = Query(
-    None, ge=2020, description="Filtrer par année"),
+    servant_id: Optional[UUID] = Query(None, description="Filtrer par servant"),
+    month: Optional[int] = Query(None, ge=1, le=12, description="Filtrer par mois"),
+    year: Optional[int] = Query(None, ge=2020, description="Filtrer par année"),
     payment_mode: Optional[PaymentMode] = Query(
-    None, description="Filtrer par mode de paiement"),
+        None, description="Filtrer par mode de paiement"
+    ),
     page: int = Query(1, ge=1, description="Numéro de page"),
     page_size: int = Query(50, ge=1, le=100, description="Taille de page"),
     current_user: User = Depends(get_current_user),

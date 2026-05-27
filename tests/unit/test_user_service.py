@@ -32,18 +32,24 @@ def _make_service(session: AsyncSession) -> UserService:
 class TestUpdateProfile:
     async def test_update_first_name(self, db_session, servant_user):
         service = _make_service(db_session)
-        updated = await service.update_profile(servant_user, UserProfileUpdate(first_name="Nouveau"))
+        updated = await service.update_profile(
+            servant_user, UserProfileUpdate(first_name="Nouveau")
+        )
         assert updated.first_name == "Nouveau"
         assert updated.last_name == servant_user.last_name  # Inchange
 
     async def test_update_last_name(self, db_session, servant_user):
         service = _make_service(db_session)
-        updated = await service.update_profile(servant_user, UserProfileUpdate(last_name="NouveauNom"))
+        updated = await service.update_profile(
+            servant_user, UserProfileUpdate(last_name="NouveauNom")
+        )
         assert updated.last_name == "NouveauNom"
 
     async def test_update_phone_number(self, db_session, servant_user):
         service = _make_service(db_session)
-        updated = await service.update_profile(servant_user, UserProfileUpdate(phone_number="+237699999999"))
+        updated = await service.update_profile(
+            servant_user, UserProfileUpdate(phone_number="+237699999999")
+        )
         assert updated.phone_number == "+237699999999"
 
     async def test_update_phone_conflict(self, db_session, servant_user, parent_user):
@@ -60,14 +66,18 @@ class TestUpdateProfile:
         """Un PATCH partiel ne modifie que les champs fournis."""
         original_phone = servant_user.phone_number
         service = _make_service(db_session)
-        updated = await service.update_profile(servant_user, UserProfileUpdate(first_name="Modifie"))
+        updated = await service.update_profile(
+            servant_user, UserProfileUpdate(first_name="Modifie")
+        )
         assert updated.first_name == "Modifie"
         assert updated.phone_number == original_phone
 
     async def test_clear_phone_number(self, db_session, servant_user):
         """Envoyer phone_number='' supprime le numero."""
         service = _make_service(db_session)
-        updated = await service.update_profile(servant_user, UserProfileUpdate(phone_number=""))
+        updated = await service.update_profile(
+            servant_user, UserProfileUpdate(phone_number="")
+        )
         assert updated.phone_number is None
 
 
@@ -80,7 +90,9 @@ class TestChangePassword:
         service = _make_service(db_session)
         await service.change_password(
             servant_user,
-            ChangePasswordRequest(current_password=VALID_PASSWORD, new_password="NewPass123"),
+            ChangePasswordRequest(
+                current_password=VALID_PASSWORD, new_password="NewPass123"
+            ),
         )
         # Verifier que le nouveau mot de passe fonctionne
         assert SecurityUtils.verify_password("NewPass123", servant_user.hashed_password)
@@ -118,19 +130,25 @@ class TestChangePassword:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestListUsers:
-    async def test_list_returns_all_users(self, db_session, admin_user, servant_user, parent_user):
+    async def test_list_returns_all_users(
+        self, db_session, admin_user, servant_user, parent_user
+    ):
         service = _make_service(db_session)
         result = await service.list_users(page=1, page_size=50)
         assert result.total >= 3
         assert len(result.items) >= 3
 
-    async def test_filter_by_role(self, db_session, admin_user, servant_user, parent_user):
+    async def test_filter_by_role(
+        self, db_session, admin_user, servant_user, parent_user
+    ):
         service = _make_service(db_session)
         result = await service.list_users(role=UserRole.SERVANT)
         for u in result.items:
             assert u.role == UserRole.SERVANT
 
-    async def test_filter_by_active(self, db_session, admin_user, servant_user, inactive_user):
+    async def test_filter_by_active(
+        self, db_session, admin_user, servant_user, inactive_user
+    ):
         service = _make_service(db_session)
         result = await service.list_users(is_active=False)
         for u in result.items:
@@ -179,7 +197,9 @@ class TestAdminUpdateUser:
         )
         assert updated.email == "newemail@test.com"
 
-    async def test_admin_email_conflict(self, db_session, admin_user, servant_user, parent_user):
+    async def test_admin_email_conflict(
+        self, db_session, admin_user, servant_user, parent_user
+    ):
         service = _make_service(db_session)
         with pytest.raises(HTTPException) as exc:
             await service.admin_update_user(
@@ -202,7 +222,9 @@ class TestAdminUpdateUser:
     async def test_update_nonexistent_user(self, db_session, admin_user):
         service = _make_service(db_session)
         with pytest.raises(HTTPException) as exc:
-            await service.admin_update_user(uuid4(), UserAdminUpdate(first_name="X"), admin_user)
+            await service.admin_update_user(
+                uuid4(), UserAdminUpdate(first_name="X"), admin_user
+            )
         assert exc.value.status_code == 404
 
 
@@ -216,7 +238,9 @@ class TestActivateDeactivate:
         result = await service.deactivate_user(servant_user.id, admin_user)
         assert result.is_active is False
 
-    async def test_deactivate_already_inactive(self, db_session, admin_user, inactive_user):
+    async def test_deactivate_already_inactive(
+        self, db_session, admin_user, inactive_user
+    ):
         service = _make_service(db_session)
         with pytest.raises(HTTPException) as exc:
             await service.deactivate_user(inactive_user.id, admin_user)
@@ -247,7 +271,9 @@ class TestActivateDeactivate:
 class TestAdminResetPassword:
     async def test_reset_password(self, db_session, admin_user, servant_user):
         service = _make_service(db_session)
-        await service.admin_reset_password(servant_user.id, UserAdminResetPassword(new_password="ResetPass1"))
+        await service.admin_reset_password(
+            servant_user.id, UserAdminResetPassword(new_password="ResetPass1")
+        )
         updated = await UserRepository(db_session).get(servant_user.id)
         assert SecurityUtils.verify_password("ResetPass1", updated.hashed_password)
 
@@ -271,7 +297,9 @@ class TestDeleteUser:
             await service.delete_user(admin_user.id, admin_user)
         assert exc.value.status_code == 400
 
-    async def test_delete_last_admin_rejected(self, db_session, admin_user, servant_user):
+    async def test_delete_last_admin_rejected(
+        self, db_session, admin_user, servant_user
+    ):
         """Le dernier admin ne peut pas etre supprime."""
         # Creer un second admin pour le test
         service = _make_service(db_session)

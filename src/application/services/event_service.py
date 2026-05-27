@@ -16,7 +16,13 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from src.core.entities.event import Event, EventParticipant, EventStatus, EventType, ParticipantStatus
+from src.core.entities.event import (
+    Event,
+    EventParticipant,
+    EventStatus,
+    EventType,
+    ParticipantStatus,
+)
 from src.core.entities.user import User
 from src.core.utils import utc_now
 from src.core.interfaces.repositories import IEventRepository
@@ -46,8 +52,9 @@ class EventService:
     #  CRUD Evenements
     # ══════════════════════════════════════════════════════════════════
 
-    async def create_event(self, event_data: EventCreate,
-                           created_by: UUID) -> EventDetailResponse:
+    async def create_event(
+        self, event_data: EventCreate, created_by: UUID
+    ) -> EventDetailResponse:
         """
         Cree un evenement avec participants optionnels.
         """
@@ -74,8 +81,9 @@ class EventService:
 
         return await self._build_event_detail(created_event.id)
 
-    async def update_event(self, event_id: UUID, event_data: EventUpdate,
-                           updated_by: UUID) -> EventDetailResponse:
+    async def update_event(
+        self, event_id: UUID, event_data: EventUpdate, updated_by: UUID
+    ) -> EventDetailResponse:
         """Met a jour un evenement existant (modification partielle)."""
         event = await self.event_repository.get(event_id)
         if not event:
@@ -233,7 +241,9 @@ class EventService:
                 detail="Evenement introuvable.",
             )
 
-        return await self._add_participant_internal(event_id, participant_data, added_by)
+        return await self._add_participant_internal(
+            event_id, participant_data, added_by
+        )
 
     async def _add_participant_internal(
         self,
@@ -252,7 +262,9 @@ class EventService:
                 )
 
         # Verifier doublon
-        existing = await self.event_repository.get_participant_by_event_and_user(event_id, participant_data.user_id)
+        existing = await self.event_repository.get_participant_by_event_and_user(
+            event_id, participant_data.user_id
+        )
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -334,8 +346,7 @@ class EventService:
             updated_at=updated.updated_at,
         )
 
-    async def remove_participant(
-        self, event_id: UUID, participant_id: UUID) -> None:
+    async def remove_participant(self, event_id: UUID, participant_id: UUID) -> None:
         """Retire un participant d'un evenement."""
         participant = await self.event_repository.get_participant(participant_id)
         if not participant or participant.event_id != event_id:
@@ -345,8 +356,7 @@ class EventService:
             )
         await self.event_repository.remove_participant(participant_id)
 
-    async def get_event_participants(
-        self, event_id: UUID) -> List[ParticipantResponse]:
+    async def get_event_participants(self, event_id: UUID) -> List[ParticipantResponse]:
         """Recupere la liste des participants d'un evenement."""
         event = await self.event_repository.get(event_id)
         if not event:
@@ -364,7 +374,9 @@ class EventService:
         new_status: ParticipantStatus,
     ) -> ParticipantResponse:
         """Permet a un participant de confirmer/decliner sa participation."""
-        participant = await self.event_repository.get_participant_by_event_and_user(event_id, user_id)
+        participant = await self.event_repository.get_participant_by_event_and_user(
+            event_id, user_id
+        )
         if not participant:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

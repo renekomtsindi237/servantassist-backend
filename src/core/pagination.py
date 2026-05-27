@@ -46,6 +46,7 @@ T = TypeVar("T")
 
 class OffsetPage(BaseModel, Generic[T]):
     """Page paginée par offset (classique)."""
+
     items: List[T]
     total: int
     limit: int
@@ -62,6 +63,7 @@ class OffsetPage(BaseModel, Generic[T]):
 
 class CursorPage(BaseModel, Generic[T]):
     """Page paginée par curseur (performante sur grands datasets)."""
+
     items: List[T]
     next_cursor: Optional[str] = None
     limit: int

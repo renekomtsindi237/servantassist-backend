@@ -63,7 +63,10 @@ class PayloadEncryptionMiddleware(BaseHTTPMiddleware):
 
         # Déchiffrement
         try:
-            from src.infrastructure.security.payload_encryption import get_payload_encryptor
+            from src.infrastructure.security.payload_encryption import (
+                get_payload_encryptor,
+            )
+
             encryptor = get_payload_encryptor()
             plaintext = encryptor.decrypt_request(client_pub_b64, encrypted_body)
         except RuntimeError as exc:
@@ -71,7 +74,9 @@ class PayloadEncryptionMiddleware(BaseHTTPMiddleware):
             logger.error("PayloadEncryption not configured: %s", exc)
             return JSONResponse(
                 status_code=503,
-                content={"detail": "Chiffrement de charge utile non configuré côté serveur."},
+                content={
+                    "detail": "Chiffrement de charge utile non configuré côté serveur."
+                },
             )
         except ValueError as exc:
             logger.warning("Payload decryption failed: %s", exc)

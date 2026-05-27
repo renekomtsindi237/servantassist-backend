@@ -28,7 +28,7 @@ from cryptography.hazmat.primitives import hashes
 
 _SALT_ENC = b"servantassist-pii-enc-v1"
 _SALT_HMAC = b"servantassist-pii-hmac-v1"
-_KEY_LEN = 32    # AES-256
+_KEY_LEN = 32  # AES-256
 _NONCE_LEN = 12  # GCM nonce standard (96 bits)
 _PBKDF2_ITER = 100_000
 
@@ -143,12 +143,13 @@ def get_encryptor() -> FieldEncryptor:
     global _encryptor_instance
     if _encryptor_instance is None:
         from src.infrastructure.config.settings import get_settings
+
         key = get_settings().FIELD_ENCRYPTION_KEY
         if not key:
             raise RuntimeError(
                 "FIELD_ENCRYPTION_KEY absente du fichier .env. "
                 "Générez-en une avec : "
-                "python -c \"import secrets; print(secrets.token_urlsafe(48))\""
+                'python -c "import secrets; print(secrets.token_urlsafe(48))"'
             )
         _encryptor_instance = FieldEncryptor(key)
     return _encryptor_instance

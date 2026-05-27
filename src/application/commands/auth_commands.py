@@ -25,6 +25,7 @@ class CreateInvitationCommand:
         )
         invitation = await cmd.execute(invitation_repo)
     """
+
     created_by_id: UUID
     role: UserRole
     email: Optional[str] = None
@@ -44,11 +45,13 @@ class CreateInvitationCommand:
             created_at=utc_now(),
         )
         created = await invitation_repo.create(invitation)
-        await event_bus.publish(UserInvited(
-            invitation_id=created.id,
-            created_by_id=self.created_by_id,
-            email=self.email,
-            phone_number=self.phone_number,
-            role=self.role.value,
-        ))
+        await event_bus.publish(
+            UserInvited(
+                invitation_id=created.id,
+                created_by_id=self.created_by_id,
+                email=self.email,
+                phone_number=self.phone_number,
+                role=self.role.value,
+            )
+        )
         return created

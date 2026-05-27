@@ -12,7 +12,9 @@ from httpx import AsyncClient
 class TestContributionSecurity:
     """Tests de sécurité des endpoints de contributions."""
 
-    async def test_sql_injection_in_filters(self, client: AsyncClient, econome_token: str):
+    async def test_sql_injection_in_filters(
+        self, client: AsyncClient, econome_token: str
+    ):
         """Test : Protection contre l'injection SQL dans les filtres."""
         malicious_input = "1' OR '1'='1"
 
@@ -24,7 +26,9 @@ class TestContributionSecurity:
         # Doit retourner une erreur de validation, pas une erreur SQL
         assert response.status_code == 422
 
-    async def test_xss_in_notes_field(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_xss_in_notes_field(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Protection contre XSS dans le champ notes."""
         xss_payload = "<script>alert('XSS')</script>"
 
@@ -60,7 +64,9 @@ class TestContributionSecurity:
         )
         assert response.status_code == 401
 
-    async def test_forbidden_access_for_servant(self, client: AsyncClient, servant_token: str, servant_user_id: str):
+    async def test_forbidden_access_for_servant(
+        self, client: AsyncClient, servant_token: str, servant_user_id: str
+    ):
         """Test : Accès interdit pour un SERVANT."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -76,7 +82,9 @@ class TestContributionSecurity:
         )
         assert response.status_code == 403
 
-    async def test_cannot_access_other_servant_data_without_permission(self, client: AsyncClient, servant_token: str):
+    async def test_cannot_access_other_servant_data_without_permission(
+        self, client: AsyncClient, servant_token: str
+    ):
         """Test : Un servant ne peut pas créer de contributions."""
         other_servant_id = str(uuid4())
 
@@ -95,7 +103,9 @@ class TestContributionSecurity:
 
         assert response.status_code == 403
 
-    async def test_negative_amount_rejected(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_negative_amount_rejected(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Montant négatif rejeté."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -111,7 +121,9 @@ class TestContributionSecurity:
         )
         assert response.status_code == 422
 
-    async def test_zero_amount_rejected(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_zero_amount_rejected(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Montant zéro rejeté."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -127,7 +139,9 @@ class TestContributionSecurity:
         )
         assert response.status_code == 422
 
-    async def test_invalid_month_rejected(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_invalid_month_rejected(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Mois invalide rejeté."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -143,7 +157,9 @@ class TestContributionSecurity:
         )
         assert response.status_code == 422
 
-    async def test_invalid_year_rejected(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_invalid_year_rejected(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Année invalide rejetée."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -177,7 +193,9 @@ class TestContributionSecurity:
         )
         assert response.status_code == 422
 
-    async def test_rate_limiting_protection(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_rate_limiting_protection(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Protection contre les abus (rate limiting)."""
         # Faire 100 requêtes rapidement
         responses = []
@@ -195,7 +213,9 @@ class TestContributionSecurity:
         assert 500 not in status_codes
         assert 502 not in status_codes
 
-    async def test_data_leakage_in_error_messages(self, client: AsyncClient, econome_token: str):
+    async def test_data_leakage_in_error_messages(
+        self, client: AsyncClient, econome_token: str
+    ):
         """Test : Pas de fuite de données sensibles dans les erreurs."""
         fake_id = str(uuid4())
 
@@ -216,7 +236,9 @@ class TestContributionSecurity:
 class TestContributionInputValidation:
     """Tests de validation des entrées."""
 
-    async def test_payment_mode_validation(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_payment_mode_validation(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Validation du mode de paiement."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -232,7 +254,9 @@ class TestContributionInputValidation:
         )
         assert response.status_code == 422
 
-    async def test_date_format_validation(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_date_format_validation(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Validation du format de date."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -248,7 +272,9 @@ class TestContributionInputValidation:
         )
         assert response.status_code == 422
 
-    async def test_week_number_range_validation(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_week_number_range_validation(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Validation de la plage de week_number."""
         response = await client.post(
             "/api/v1/contributions/",
@@ -265,7 +291,9 @@ class TestContributionInputValidation:
         )
         assert response.status_code == 422
 
-    async def test_very_long_notes_field(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_very_long_notes_field(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Gestion des notes très longues."""
         very_long_notes = "A" * 10000  # 10000 caractères
 

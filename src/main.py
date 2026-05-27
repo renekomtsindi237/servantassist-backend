@@ -12,6 +12,7 @@ try:
     from sentry_sdk.integrations.fastapi import FastApiIntegration
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
+
     _SENTRY_AVAILABLE = True
 except ImportError:
     _SENTRY_AVAILABLE = False
@@ -253,75 +254,51 @@ app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(activities.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(
-    communication.router,
-    prefix="/api/v1/communication",
-     tags=["Communication"])
+    communication.router, prefix="/api/v1/communication", tags=["Communication"]
+)
 app.include_router(
-    assignments.router,
-    prefix="/api/v1/assignments",
-     tags=["Assignments"])
+    assignments.router, prefix="/api/v1/assignments", tags=["Assignments"]
+)
 app.include_router(
-    responsables.router,
-    prefix="/api/v1/responsables",
-     tags=["Responsables"])
+    responsables.router, prefix="/api/v1/responsables", tags=["Responsables"]
+)
+app.include_router(poste.router, prefix="/api/v1/poste", tags=["Postes (Dynamic)"])
+app.include_router(discipline.router, prefix="/api/v1/discipline", tags=["Discipline"])
 app.include_router(
-    poste.router,
-    prefix="/api/v1/poste",
-     tags=["Postes (Dynamic)"])
-app.include_router(
-    discipline.router,
-    prefix="/api/v1/discipline",
-     tags=["Discipline"])
-app.include_router(
-    cotisations.router,
-    prefix="/api/v1/cotisations",
-     tags=["Cotisations"])
-app.include_router(
-    attendance.router,
-    prefix="/api/v1/attendance",
-     tags=["Attendance"])
-app.include_router(
-    subgroups.router,
-    prefix="/api/v1/subgroups",
-     tags=["Sub-Groups"])
+    cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"]
+)
+app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
+app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
 app.include_router(
     attendance_sessions.router,
     prefix="/api/v1/attendance-sessions",
     tags=["Attendance Sessions"],
 )
 app.include_router(
-    contributions.router,
-    prefix="/api/v1/contributions",
-     tags=["Contributions"])
+    contributions.router, prefix="/api/v1/contributions", tags=["Contributions"]
+)
 app.include_router(
     financial_entries.router,
     prefix="/api/v1/financial-entries",
     tags=["Financial Entries"],
 )
-app.include_router(
-    material.router,
-    prefix="/api/v1/material",
-     tags=["Material"])
+app.include_router(material.router, prefix="/api/v1/material", tags=["Material"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
-app.include_router(classement.router, prefix="/api/v1/classements", tags=["Classements"])
+app.include_router(
+    classement.router, prefix="/api/v1/classements", tags=["Classements"]
+)
 app.include_router(email.router, prefix="/api/v1/email", tags=["Email"])
 app.include_router(dossier.router, prefix="/api/v1/dossier", tags=["Dossier"])
 app.include_router(
-    sport_culture.router,
-    prefix="/api/v1/sport-culture",
-     tags=["Sport & Culture"])
+    sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"]
+)
 app.include_router(
-    sunday_schedule.router,
-    prefix="/api/v1/sunday-schedule",
-     tags=["Sunday Schedule"])
+    sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"]
+)
+app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])
 app.include_router(
-    training.router,
-    prefix="/api/v1/training",
-     tags=["Training"])
-app.include_router(
-    weekly_schedule.router,
-    prefix="/api/v1/weekly-schedule",
-     tags=["Weekly Schedule"])
+    weekly_schedule.router, prefix="/api/v1/weekly-schedule", tags=["Weekly Schedule"]
+)
 app.include_router(
     dashboard.router,
     prefix="/api/v1/dashboard",
@@ -351,7 +328,7 @@ async def root():
     tags=["System"],
     summary="Readiness probe",
     description="Retourne 200 si l'application est prête à recevoir du trafic (DB accessible). "
-                "Utilisé par Kubernetes / load-balancer avant de router les requêtes.",
+    "Utilisé par Kubernetes / load-balancer avant de router les requêtes.",
 )
 async def readiness_probe():
     """Sonde de disponibilité : vérifie que la base de données est joignable."""
@@ -411,6 +388,7 @@ async def health_check():
         t0 = time.monotonic()
         async with sessionmanager.session() as session:
             from sqlmodel import text
+
             await session.exec(text("SELECT 1"))
         db_latency = round((time.monotonic() - t0) * 1000, 1)
         checks["database"] = {"status": "ok", "latency_ms": db_latency}

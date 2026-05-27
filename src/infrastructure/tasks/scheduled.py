@@ -29,7 +29,11 @@ def _run_async(coro):
 # ── Tâche 1 : Rappels 24h avant un événement ─────────────────────────────
 
 
-@celery_app.task(name="src.infrastructure.tasks.scheduled.send_event_reminders", bind=True, max_retries=3)
+@celery_app.task(
+    name="src.infrastructure.tasks.scheduled.send_event_reminders",
+    bind=True,
+    max_retries=3,
+)
 def send_event_reminders(self):
     """
     Chaque matin à 8h : envoie un rappel aux servants affectés
@@ -48,7 +52,11 @@ async def _send_event_reminders_async():
 
     from src.core.entities.assignment import Assignment, AssignmentStatus
     from src.core.entities.event import Event, EventStatus
-    from src.core.entities.notification import NotificationChannel, NotificationPriority, NotificationType
+    from src.core.entities.notification import (
+        NotificationChannel,
+        NotificationPriority,
+        NotificationType,
+    )
     from src.core.entities.user import User
     from src.infrastructure.database.session import sessionmanager
     from src.infrastructure.services.email_service import EmailService
@@ -89,7 +97,11 @@ async def _send_event_reminders_async():
                 if not user or not user.is_active or not user.email:
                     continue
 
-                role = assignment.liturgical_role.value if assignment.liturgical_role else "servant"
+                role = (
+                    assignment.liturgical_role.value
+                    if assignment.liturgical_role
+                    else "servant"
+                )
                 ok = await email_svc.send_event_reminder(
                     to_email=user.email,
                     user_first_name=user.first_name,
@@ -111,7 +123,11 @@ async def _send_event_reminders_async():
 # ── Tâche 2 : Rapport hebdomadaire ───────────────────────────────────────
 
 
-@celery_app.task(name="src.infrastructure.tasks.scheduled.send_weekly_report", bind=True, max_retries=3)
+@celery_app.task(
+    name="src.infrastructure.tasks.scheduled.send_weekly_report",
+    bind=True,
+    max_retries=3,
+)
 def send_weekly_report(self):
     """
     Chaque lundi à 7h : envoie un rapport hebdomadaire de statistiques
@@ -139,7 +155,9 @@ async def _send_weekly_report_async():
 
     async with sessionmanager.session() as session:
         # Récupérer les admins
-        stmt_admins = select(User).where(User.role == UserRole.ADMIN, User.is_active == True)
+        stmt_admins = select(User).where(
+            User.role == UserRole.ADMIN, User.is_active == True
+        )
         result_a = await session.exec(stmt_admins)
         admins = result_a.all()
 
@@ -161,8 +179,10 @@ async def _send_weekly_report_async():
         attendance_week = result_att.all()
 
         present = sum(
-            1 for a in attendance_week
-            if getattr(a, "status", None) in (AttendanceStatus.PRESENT, AttendanceStatus.RETARD)
+            1
+            for a in attendance_week
+            if getattr(a, "status", None)
+            in (AttendanceStatus.PRESENT, AttendanceStatus.RETARD)
         )
         total_att = len(attendance_week)
         att_rate = f"{present / total_att * 100:.1f}%" if total_att else "N/A"
@@ -196,7 +216,11 @@ async def _send_weekly_report_async():
 # ── Tâche 3 : Nettoyage des vieilles notifications ────────────────────────
 
 
-@celery_app.task(name="src.infrastructure.tasks.scheduled.cleanup_notifications", bind=True, max_retries=2)
+@celery_app.task(
+    name="src.infrastructure.tasks.scheduled.cleanup_notifications",
+    bind=True,
+    max_retries=2,
+)
 def cleanup_notifications(self):
     """
     Chaque nuit à 2h : supprime les notifications IN_APP lues depuis +30 jours.

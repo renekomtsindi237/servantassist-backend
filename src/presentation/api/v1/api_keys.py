@@ -15,17 +15,27 @@ from src.application.services.api_key_service import ApiKeyService
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.api_key_repository import ApiKeyRepository
-from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_user
-from src.presentation.schemas.api_key import ApiKeyCreate, ApiKeyCreatedResponse, ApiKeyResponse
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_admin_user,
+)
+from src.presentation.schemas.api_key import (
+    ApiKeyCreate,
+    ApiKeyCreatedResponse,
+    ApiKeyResponse,
+)
 
 router = APIRouter()
 
 
-def _get_service(session: Annotated[AsyncSession, Depends(get_db_session)]) -> ApiKeyService:
+def _get_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> ApiKeyService:
     return ApiKeyService(ApiKeyRepository(session))
 
 
 # ── Créer une clé ─────────────────────────────────────────────────────────
+
 
 @router.post(
     "/",
@@ -52,6 +62,7 @@ async def create_api_key(
 
 # ── Lister ses propres clés ───────────────────────────────────────────────
 
+
 @router.get(
     "/me",
     response_model=List[ApiKeyResponse],
@@ -66,6 +77,7 @@ async def list_my_api_keys(
 
 
 # ── Lister toutes les clés (admin) ────────────────────────────────────────
+
 
 @router.get(
     "/",
@@ -84,6 +96,7 @@ async def list_all_api_keys(
 
 # ── Révoquer une clé ─────────────────────────────────────────────────────
 
+
 @router.post(
     "/{key_id}/revoke",
     response_model=ApiKeyResponse,
@@ -100,6 +113,7 @@ async def revoke_api_key(
 
 
 # ── Supprimer une clé ─────────────────────────────────────────────────────
+
 
 @router.delete(
     "/{key_id}",

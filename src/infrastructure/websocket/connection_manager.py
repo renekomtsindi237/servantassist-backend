@@ -25,8 +25,8 @@ from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
-_HEARTBEAT_INTERVAL = 30   # Secondes entre chaque ping
-_HEARTBEAT_TIMEOUT = 60    # Secondes max sans pong avant déconnexion
+_HEARTBEAT_INTERVAL = 30  # Secondes entre chaque ping
+_HEARTBEAT_TIMEOUT = 60  # Secondes max sans pong avant déconnexion
 
 
 class _WsConn:
@@ -55,8 +55,11 @@ class ConnectionManager:
         """Démarre la tâche de heartbeat en arrière-plan."""
         if self._heartbeat_task is None or self._heartbeat_task.done():
             self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
-            logger.info("WebSocket heartbeat démarré (interval=%ds, timeout=%ds)",
-                        _HEARTBEAT_INTERVAL, _HEARTBEAT_TIMEOUT)
+            logger.info(
+                "WebSocket heartbeat démarré (interval=%ds, timeout=%ds)",
+                _HEARTBEAT_INTERVAL,
+                _HEARTBEAT_TIMEOUT,
+            )
 
     async def stop_heartbeat(self) -> None:
         """Arrête la tâche de heartbeat proprement."""
@@ -78,7 +81,9 @@ class ConnectionManager:
             if user_id not in self._connections:
                 self._connections[user_id] = []
             self._connections[user_id].append(conn)
-        logger.info("WebSocket connecté: user_id=%s total=%d", user_id, self.total_connections)
+        logger.info(
+            "WebSocket connecté: user_id=%s total=%d", user_id, self.total_connections
+        )
 
     async def disconnect(self, websocket: WebSocket, user_id: str) -> None:
         """Désenregistre une connexion WebSocket."""

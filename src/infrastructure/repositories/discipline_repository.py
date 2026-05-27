@@ -57,22 +57,23 @@ class DisciplineCaseRepository(EncryptedModelMixin):
         stmt = select(DisciplineCase)
 
         if accused_user_id:
-            stmt = stmt.where(
-    DisciplineCase.accused_user_id == accused_user_id)
+            stmt = stmt.where(DisciplineCase.accused_user_id == accused_user_id)
         if status:
             stmt = stmt.where(DisciplineCase.status == status)
         if severity:
             stmt = stmt.where(DisciplineCase.severity == severity)
         if offense_category:
-            stmt = stmt.where(
-    DisciplineCase.offense_category == offense_category)
+            stmt = stmt.where(DisciplineCase.offense_category == offense_category)
 
         count_stmt = select(func.count()).select_from(stmt.subquery())
         total = (await self.session.exec(count_stmt)).one()
 
         offset = (page - 1) * page_size
-        stmt = stmt.offset(offset).limit(page_size).order_by(
-            DisciplineCase.created_at.desc())
+        stmt = (
+            stmt.offset(offset)
+            .limit(page_size)
+            .order_by(DisciplineCase.created_at.desc())
+        )
         result = await self.session.exec(stmt)
         cases = list(result.all())
         self._decrypt_list(cases)

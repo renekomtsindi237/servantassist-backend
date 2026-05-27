@@ -10,7 +10,9 @@ from src.application.services.auth_service import AuthService
 from src.core.entities.user import UserRole
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.invitation_repository import InvitationCodeRepository
+from src.infrastructure.repositories.invitation_repository import (
+    InvitationCodeRepository,
+)
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.security.brute_force import brute_force_guard
 from src.infrastructure.security.token_blacklist import token_blacklist
@@ -64,9 +66,7 @@ async def login_for_access_token(
     await _check_brute_force(identifier)
 
     try:
-        login_data = UserLogin(
-    email=form_data.username,
-     password=form_data.password)
+        login_data = UserLogin(email=form_data.username, password=form_data.password)
     except PydanticValidationError:
         await brute_force_guard.record_failure(identifier)
         raise HTTPException(
@@ -125,8 +125,9 @@ async def login_with_phone(
     return await auth_service.create_tokens(user)
 
 
-@router.post("/register", response_model=UserResponse,
-             status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register_user(
     user_data: UserCreateWithInvite,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -184,11 +185,15 @@ async def logout(
     _settings = get_settings()
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token manquant")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token manquant"
+        )
 
     token = auth_header.split(" ", 1)[1]
     try:
-        payload = jwt.decode(token, _settings.JWT_SECRET_KEY, algorithms=[_settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, _settings.JWT_SECRET_KEY, algorithms=[_settings.JWT_ALGORITHM]
+        )
         jti = payload.get("jti")
         exp = payload.get("exp", time.time() + 1800)
         if jti:
@@ -215,7 +220,9 @@ async def forgot_password(
     email_service = EmailService()
 
     await auth_service.forgot_password(request.email, email_service)
-    return {"message": "Si cet e-mail est enregistré, un lien de réinitialisation vous a été envoyé."}
+    return {
+        "message": "Si cet e-mail est enregistré, un lien de réinitialisation vous a été envoyé."
+    }
 
 
 @router.post("/request-reset-code", status_code=status.HTTP_200_OK)
@@ -228,7 +235,9 @@ async def request_reset_code(
     Retourne toujours 200 OK pour prévenir l'énumération d'emails.
     """
     from src.infrastructure.services.email_service import EmailService
-    from src.infrastructure.repositories.password_reset_code_repository import PasswordResetCodeRepository
+    from src.infrastructure.repositories.password_reset_code_repository import (
+        PasswordResetCodeRepository,
+    )
 
     user_repo = UserRepository(session)
     code_repo = PasswordResetCodeRepository(session)
@@ -245,13 +254,17 @@ async def verify_reset_code(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
     """Vérifie le code OTP et retourne un reset_token JWT valable 15 minutes."""
-    from src.infrastructure.repositories.password_reset_code_repository import PasswordResetCodeRepository
+    from src.infrastructure.repositories.password_reset_code_repository import (
+        PasswordResetCodeRepository,
+    )
 
     user_repo = UserRepository(session)
     code_repo = PasswordResetCodeRepository(session)
     auth_service = AuthService(user_repo)
 
-    reset_token = await auth_service.verify_reset_code(request.email, request.code, code_repo)
+    reset_token = await auth_service.verify_reset_code(
+        request.email, request.code, code_repo
+    )
     return VerifyResetCodeResponse(reset_token=reset_token)
 
 
@@ -267,7 +280,9 @@ async def reset_password(
     auth_service = AuthService(user_repo)
     email_service = EmailService()
 
-    await auth_service.reset_password(request.token, request.new_password, email_service)
+    await auth_service.reset_password(
+        request.token, request.new_password, email_service
+    )
     return {"message": "Votre mot de passe a été réinitialisé avec succès."}
 
 
@@ -292,6 +307,7 @@ async def get_server_pubkey():
             "enabled": False,
         }
     from src.infrastructure.security.payload_encryption import get_payload_encryptor
+
     encryptor = get_payload_encryptor()
     return {
         "key": encryptor.public_key_b64,

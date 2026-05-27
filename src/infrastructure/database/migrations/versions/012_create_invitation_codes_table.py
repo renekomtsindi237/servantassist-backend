@@ -56,8 +56,12 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["used_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_invitation_codes_code"), "invitation_codes", ["code"], unique=True)
-    op.create_index(op.f("ix_invitation_codes_status"), "invitation_codes", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_invitation_codes_code"), "invitation_codes", ["code"], unique=True
+    )
+    op.create_index(
+        op.f("ix_invitation_codes_status"), "invitation_codes", ["status"], unique=False
+    )
 
 
 def downgrade() -> None:

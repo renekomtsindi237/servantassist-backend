@@ -72,16 +72,19 @@ class Attendance(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="users.id", index=True)
     # Evenement associe (optionnel)
-    event_id: Optional[UUID] = Field(
-    default=None, foreign_key="events.id", index=True)
+    event_id: Optional[UUID] = Field(default=None, foreign_key="events.id", index=True)
     # Type et date
-    attendance_type: AttendanceType = Field(sa_column=Column(String(50), nullable=False, index=True))
+    attendance_type: AttendanceType = Field(
+        sa_column=Column(String(50), nullable=False, index=True)
+    )
     attendance_date: datetime = Field(index=True)
     title: Optional[str] = Field(default=None, max_length=200)
     # Statut
     status: AttendanceStatus = Field(
         default=AttendanceStatus.PRESENT,
-        sa_column=Column(String(50), nullable=False, server_default="PRESENT", index=True),
+        sa_column=Column(
+            String(50), nullable=False, server_default="PRESENT", index=True
+        ),
     )
     # Justification
     justification: Optional[str] = Field(default=None, max_length=1000)

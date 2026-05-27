@@ -8,7 +8,10 @@ from httpx import AsyncClient
 from jose import jwt
 
 from src.infrastructure.config.settings import get_settings
-from src.infrastructure.security.brute_force import BruteForceProtection, brute_force_guard
+from src.infrastructure.security.brute_force import (
+    BruteForceProtection,
+    brute_force_guard,
+)
 from src.infrastructure.security.utils import SecurityUtils
 from tests.conftest import VALID_PASSWORD
 
@@ -24,38 +27,54 @@ class TestJwtTokenId:
 
     def test_access_token_has_jti(self):
         token = SecurityUtils.create_access_token(subject="test@test.com", role="ADMIN")
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         assert "jti" in payload
         assert len(payload["jti"]) == 32  # uuid4().hex = 32 chars
 
     def test_refresh_token_has_jti(self):
-        token = SecurityUtils.create_refresh_token(subject="test@test.com", role="ADMIN")
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        token = SecurityUtils.create_refresh_token(
+            subject="test@test.com", role="ADMIN"
+        )
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         assert "jti" in payload
 
     def test_reset_token_has_jti(self):
         token = SecurityUtils.create_reset_token(subject="test@test.com")
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         assert "jti" in payload
 
     def test_two_tokens_have_different_jti(self):
         """Deux tokens pour le meme utilisateur ont des JTI differents."""
         t1 = SecurityUtils.create_access_token(subject="test@test.com", role="ADMIN")
         t2 = SecurityUtils.create_access_token(subject="test@test.com", role="ADMIN")
-        p1 = jwt.decode(t1, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-        p2 = jwt.decode(t2, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        p1 = jwt.decode(
+            t1, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
+        p2 = jwt.decode(
+            t2, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         assert p1["jti"] != p2["jti"]
 
     def test_access_token_has_issuer(self):
         """Le token contient le champ 'iss' (issuer)."""
         token = SecurityUtils.create_access_token(subject="test@test.com", role="ADMIN")
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         assert payload.get("iss") == settings.APP_NAME
 
     def test_access_token_has_iat(self):
         """Le token contient le champ 'iat' (issued at)."""
         token = SecurityUtils.create_access_token(subject="test@test.com", role="ADMIN")
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         assert "iat" in payload
 
 
@@ -86,7 +105,9 @@ class TestBruteForceIntegration:
         bf_module.brute_force_guard = original
         auth_module.brute_force_guard = original
 
-    async def test_email_login_lockout_after_failures(self, client: AsyncClient, admin_user):
+    async def test_email_login_lockout_after_failures(
+        self, client: AsyncClient, admin_user
+    ):
         """5 echecs de login par email verrouillent le compte."""
         for i in range(5):
             resp = await client.post(
@@ -107,7 +128,9 @@ class TestBruteForceIntegration:
         assert resp.status_code == 429
         assert "locked" in resp.json()["detail"].lower()
 
-    async def test_phone_login_lockout_after_failures(self, client: AsyncClient, servant_user):
+    async def test_phone_login_lockout_after_failures(
+        self, client: AsyncClient, servant_user
+    ):
         """5 echecs de login par telephone verrouillent le compte."""
         for i in range(5):
             resp = await client.post(
@@ -132,7 +155,9 @@ class TestBruteForceIntegration:
         )
         assert resp.status_code == 429
 
-    async def test_successful_login_resets_lockout(self, client: AsyncClient, admin_user):
+    async def test_successful_login_resets_lockout(
+        self, client: AsyncClient, admin_user
+    ):
         """Un login reussi reinitialise le compteur."""
         # 3 echecs
         for _ in range(3):
@@ -156,7 +181,9 @@ class TestBruteForceIntegration:
             )
             assert resp.status_code == 401  # Pas 429
 
-    async def test_lockout_includes_retry_after_header(self, client: AsyncClient, admin_user):
+    async def test_lockout_includes_retry_after_header(
+        self, client: AsyncClient, admin_user
+    ):
         """La reponse 429 inclut un header Retry-After."""
         for _ in range(6):
             resp = await client.post(
@@ -167,7 +194,9 @@ class TestBruteForceIntegration:
         if resp.status_code == 429:
             assert "Retry-After" in resp.headers or "retry_after_seconds" in resp.json()
 
-    async def test_different_users_independent_lockout(self, client: AsyncClient, admin_user, aumonier_user):
+    async def test_different_users_independent_lockout(
+        self, client: AsyncClient, admin_user, aumonier_user
+    ):
         """Le verrouillage d'un compte n'affecte pas les autres."""
         # Verrouiller admin
         for _ in range(6):
@@ -198,7 +227,9 @@ class TestSecurityHeaders:
 
     def test_security_headers_middleware_exists(self):
         """Verifie que le middleware est importe sans erreur."""
-        from src.presentation.middleware.security_headers import SecurityHeadersMiddleware
+        from src.presentation.middleware.security_headers import (
+            SecurityHeadersMiddleware,
+        )
 
         assert SecurityHeadersMiddleware is not None
 

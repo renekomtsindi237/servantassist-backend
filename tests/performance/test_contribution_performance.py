@@ -16,7 +16,9 @@ from src.core.entities.user import User
 class TestContributionPerformance:
     """Tests de performance des endpoints de contributions."""
 
-    async def test_list_contributions_performance(self, client: AsyncClient, econome_token: str):
+    async def test_list_contributions_performance(
+        self, client: AsyncClient, econome_token: str
+    ):
         """Test : Performance de la liste des contributions."""
         start_time = time.time()
 
@@ -31,7 +33,9 @@ class TestContributionPerformance:
         assert response.status_code == 200
         assert duration < 1.0  # Doit répondre en moins de 1 seconde
 
-    async def test_create_contribution_performance(self, client: AsyncClient, econome_token: str, servant_user_id: str):
+    async def test_create_contribution_performance(
+        self, client: AsyncClient, econome_token: str, servant_user_id: str
+    ):
         """Test : Performance de création d'une contribution."""
         start_time = time.time()
 
@@ -54,7 +58,9 @@ class TestContributionPerformance:
         assert response.status_code == 201
         assert duration < 0.5  # Doit créer en moins de 500ms
 
-    async def test_monthly_summary_performance(self, client: AsyncClient, econome_token: str):
+    async def test_monthly_summary_performance(
+        self, client: AsyncClient, econome_token: str
+    ):
         """Test : Performance du résumé mensuel."""
         start_time = time.time()
 
@@ -69,7 +75,9 @@ class TestContributionPerformance:
         assert response.status_code == 200
         assert duration < 2.0  # Doit calculer en moins de 2 secondes
 
-    async def test_financial_report_performance(self, client: AsyncClient, econome_token: str):
+    async def test_financial_report_performance(
+        self, client: AsyncClient, econome_token: str
+    ):
         """Test : Performance de génération de rapport."""
         start_time = time.time()
 

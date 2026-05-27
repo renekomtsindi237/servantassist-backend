@@ -28,7 +28,10 @@ from src.application.services.cotisation_service import CotisationService
 from src.core.entities.cotisation import CotisationType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.cotisation_repository import CotisationPeriodRepository, MemberCotisationRepository
+from src.infrastructure.repositories.cotisation_repository import (
+    CotisationPeriodRepository,
+    MemberCotisationRepository,
+)
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,

@@ -50,8 +50,7 @@ class UserService:
         """Retourne le profil de l'utilisateur connecte."""
         return user
 
-    async def update_profile(self, user: User,
-                             data: UserProfileUpdate) -> User:
+    async def update_profile(self, user: User, data: UserProfileUpdate) -> User:
         """
         Mise a jour du profil par l'utilisateur lui-meme.
         Seuls first_name, last_name, phone_number sont modifiables.
@@ -77,30 +76,28 @@ class UserService:
         user.updated_at = utc_now()
         return await self.user_repository.update(user.id, user)
 
-    async def change_password(self, user: User,
-                              data: ChangePasswordRequest) -> None:
+    async def change_password(self, user: User, data: ChangePasswordRequest) -> None:
         """
         Changement de mot de passe par l'utilisateur.
         L'ancien mot de passe est requis pour verification.
         """
         # Verifier l'ancien mot de passe
         if not SecurityUtils.verify_password(
-            data.current_password, user.hashed_password):
+            data.current_password, user.hashed_password
+        ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Le mot de passe actuel est incorrect.",
             )
 
         # Verifier que le nouveau mot de passe est different
-        if SecurityUtils.verify_password(
-            data.new_password, user.hashed_password):
+        if SecurityUtils.verify_password(data.new_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Le nouveau mot de passe doit etre different de l'ancien.",
             )
 
-        user.hashed_password = SecurityUtils.get_password_hash(
-            data.new_password)
+        user.hashed_password = SecurityUtils.get_password_hash(data.new_password)
         user.updated_at = utc_now()
         await self.user_repository.update(user.id, user)
 
@@ -145,7 +142,8 @@ class UserService:
         return user
 
     async def admin_update_user(
-        self, user_id: UUID, data: UserAdminUpdate, admin: User) -> User:
+        self, user_id: UUID, data: UserAdminUpdate, admin: User
+    ) -> User:
         """
         Mise a jour d'un utilisateur par l'admin.
         Peut modifier email, nom, prenom, telephone, statut actif.
@@ -230,7 +228,9 @@ class UserService:
         user.is_active = False
         user.updated_at = utc_now()
         result = await self.user_repository.update(user.id, user)
-        await event_bus.publish(UserDeactivated(user_id=user_id, deactivated_by_id=admin.id))
+        await event_bus.publish(
+            UserDeactivated(user_id=user_id, deactivated_by_id=admin.id)
+        )
         return result
 
     async def activate_user(self, user_id: UUID) -> User:
@@ -250,11 +250,11 @@ class UserService:
         return result
 
     async def admin_reset_password(
-        self, user_id: UUID, data: UserAdminResetPassword) -> None:
+        self, user_id: UUID, data: UserAdminResetPassword
+    ) -> None:
         """Reinitialisation forcee du mot de passe par l'admin."""
         user = await self.get_user(user_id)
-        user.hashed_password = SecurityUtils.get_password_hash(
-            data.new_password)
+        user.hashed_password = SecurityUtils.get_password_hash(data.new_password)
         user.updated_at = utc_now()
         await self.user_repository.update(user.id, user)
         await event_bus.publish(PasswordReset(user_id=user_id))

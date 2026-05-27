@@ -31,7 +31,10 @@ from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.services.storage_service import StorageService
-from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_user
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_admin_user,
+)
 from src.presentation.schemas.user import (
     ChangePasswordRequest,
     PaginatedResponse,
@@ -96,7 +99,9 @@ async def change_my_password(
 
 @router.post("/me/photo", response_model=UserProfileResponse)
 async def upload_my_photo(
-    file: Annotated[UploadFile, File(description="Photo de profil (JPEG, PNG ou WebP, max 5 Mo)")],
+    file: Annotated[
+        UploadFile, File(description="Photo de profil (JPEG, PNG ou WebP, max 5 Mo)")
+    ],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
@@ -172,7 +177,9 @@ async def list_directory(
     current_user: Annotated[User, Depends(get_current_active_user)],
     role: Optional[UserRole] = Query(None, description="Filtrer par rôle"),
     is_active: Optional[bool] = Query(True, description="Filtrer par statut actif"),
-    search: Optional[str] = Query(None, max_length=100, description="Recherche par nom"),
+    search: Optional[str] = Query(
+        None, max_length=100, description="Recherche par nom"
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
 ):
@@ -201,12 +208,10 @@ async def list_users(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_admin_user)],
     role: Optional[UserRole] = Query(None, description="Filtrer par role"),
-    is_active: Optional[bool] = Query(
-    None, description="Filtrer par statut actif"),
+    is_active: Optional[bool] = Query(None, description="Filtrer par statut actif"),
     search: Optional[str] = Query(
-    None,
-    max_length=100,
-     description="Recherche par nom ou email"),
+        None, max_length=100, description="Recherche par nom ou email"
+    ),
     page: int = Query(1, ge=1, description="Numero de page"),
     page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
 ):
@@ -294,8 +299,7 @@ async def activate_user(
     return await service.activate_user(user_id)
 
 
-@router.post("/{user_id}/reset-password",
-             status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{user_id}/reset-password", status_code=status.HTTP_204_NO_CONTENT)
 async def admin_reset_password(
     user_id: UUID,
     data: UserAdminResetPassword,

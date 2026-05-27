@@ -17,6 +17,7 @@ TEST_KEY = "test-master-secret-for-mixin-tests-!"
 def inject_test_encryptor():
     """Force le singleton à utiliser la clé de test."""
     import src.infrastructure.security.field_encryption as fe
+
     original = fe._encryptor_instance
     fe._encryptor_instance = FieldEncryptor(TEST_KEY)
     yield
@@ -25,8 +26,10 @@ def inject_test_encryptor():
 
 # ── Faux modèles pour les tests ──────────────────────────────────────────
 
+
 class FakeModel:
     """Simule un modèle SQLModel avec des champs attributs."""
+
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -47,7 +50,6 @@ class SearchableRepo(EncryptedModelMixin):
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestEncryptModel:
-
     def test_encrypts_declared_fields(self):
         repo = SimpleRepo()
         model = FakeModel(name="Jean", notes="Absent hier")
@@ -78,8 +80,12 @@ class TestEncryptModel:
         from src.infrastructure.security.field_encryption import get_encryptor
 
         repo = SearchableRepo()
-        model = FakeModel(email="test@example.com", phone="+237600000001",
-                          email_hmac=None, phone_hmac=None)
+        model = FakeModel(
+            email="test@example.com",
+            phone="+237600000001",
+            email_hmac=None,
+            phone_hmac=None,
+        )
         repo._encrypt_model(model)
 
         enc = get_encryptor()
@@ -90,8 +96,9 @@ class TestEncryptModel:
         from src.infrastructure.security.field_encryption import get_encryptor
 
         repo = SearchableRepo()
-        model = FakeModel(email="x@x.cm", phone="+237699001122",
-                          email_hmac=None, phone_hmac=None)
+        model = FakeModel(
+            email="x@x.cm", phone="+237699001122", email_hmac=None, phone_hmac=None
+        )
         repo._encrypt_model(model)
 
         enc = get_encryptor()
@@ -99,8 +106,9 @@ class TestEncryptModel:
 
     def test_hmac_none_when_field_is_none(self):
         repo = SearchableRepo()
-        model = FakeModel(email=None, phone="+237699001122",
-                          email_hmac=None, phone_hmac=None)
+        model = FakeModel(
+            email=None, phone="+237699001122", email_hmac=None, phone_hmac=None
+        )
         repo._encrypt_model(model)
 
         assert model.email_hmac is None
@@ -120,7 +128,6 @@ class TestEncryptModel:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestDecryptModel:
-
     def test_roundtrip(self):
         repo = SimpleRepo()
         model = FakeModel(name="Côme", notes="Présent")
@@ -155,7 +162,6 @@ class TestDecryptModel:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestDecryptList:
-
     def test_decrypts_all_models(self):
         repo = SimpleRepo()
         models = [FakeModel(name=f"Name{i}", notes=f"Note{i}") for i in range(5)]
@@ -193,15 +199,14 @@ class TestDecryptList:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestEncryptIdempotency:
-
     def test_double_encrypt_then_single_decrypt_fails(self):
         """Un double-chiffrement accidentel rend le déchiffrement impossible → bug détectable."""
         repo = SimpleRepo()
         model = FakeModel(name="Test", notes="ok")
 
         repo._encrypt_model(model)
-        repo._encrypt_model(model)   # accidentel
-        repo._decrypt_model(model)   # décrypte une fois
+        repo._encrypt_model(model)  # accidentel
+        repo._decrypt_model(model)  # décrypte une fois
 
         # Après un seul decrypt, le résultat est encore un blob chiffré
         assert model.name != "Test", (

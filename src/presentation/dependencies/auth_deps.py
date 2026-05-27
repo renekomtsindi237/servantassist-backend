@@ -30,8 +30,8 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(
-    token, settings.JWT_SECRET_KEY, algorithms=[
-        settings.JWT_ALGORITHM])
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         token_type: str | None = payload.get("type")
         if token_type is not None:
             raise credentials_exception
@@ -152,7 +152,9 @@ async def get_current_responsable(
             detail="Seuls les servants responsables peuvent accéder à cette ressource.",
         )
 
-    from src.infrastructure.repositories.responsable_repository import NominationRepository
+    from src.infrastructure.repositories.responsable_repository import (
+        NominationRepository,
+    )
 
     nom_repo = NominationRepository(session)
     nominations = await nom_repo.get_active_by_user(current_user.id)
@@ -205,7 +207,9 @@ def get_require_poste(required_poste: str):
 
         # Vérifier la nomination ACTIVE au poste requis
         from src.core.entities.responsable import PosteResponsable
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nomination = await nom_repo.get_active_by_user(current_user.id)
@@ -245,24 +249,23 @@ def get_require_charge_liturgie():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         allowed = ("CHARGE_LITURGIE", "CHARGE_LITURGIE_ADJOINT")
-        if not nominations or not any(
-            n.poste.value in allowed for n in nominations):
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
-    403, f"Vous devez être CHARGE_LITURGIE, vous êtes {roles}")
-            raise HTTPException(
-    403, "Vous devez être nominé à CHARGE_LITURGIE")
+                    403, f"Vous devez être CHARGE_LITURGIE, vous êtes {roles}"
+                )
+            raise HTTPException(403, "Vous devez être nominé à CHARGE_LITURGIE")
 
         return current_user
 
@@ -284,24 +287,23 @@ def get_require_sport_culture():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         allowed = ("CHARGE_SPORT_CULTURE", "CHARGE_SPORT_CULTURE_ADJOINT")
-        if not nominations or not any(
-            n.poste.value in allowed for n in nominations):
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
-    403, f"Vous devez être CHARGE_SPORT_CULTURE, vous êtes {roles}")
-            raise HTTPException(
-    403, "Vous devez être nominé à CHARGE_SPORT_CULTURE")
+                    403, f"Vous devez être CHARGE_SPORT_CULTURE, vous êtes {roles}"
+                )
+            raise HTTPException(403, "Vous devez être nominé à CHARGE_SPORT_CULTURE")
 
         return current_user
 
@@ -327,22 +329,22 @@ def get_require_intendant():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         allowed = ("INTENDANT", "INTENDANT_ADJOINT")
-        if not nominations or not any(
-            n.poste.value in allowed for n in nominations):
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
-    403, f"Vous devez être INTENDANT, vous êtes {roles}")
+                    403, f"Vous devez être INTENDANT, vous êtes {roles}"
+                )
             raise HTTPException(403, "Vous devez être nominé à INTENDANT")
 
         return current_user
@@ -365,22 +367,20 @@ def get_require_delegue():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         allowed = ("DELEGUE", "VICE_DELEGUE")
-        if not nominations or not any(
-            n.poste.value in allowed for n in nominations):
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
-                raise HTTPException(
-    403, f"Vous devez être DELEGUE, vous êtes {roles}")
+                raise HTTPException(403, f"Vous devez être DELEGUE, vous êtes {roles}")
             raise HTTPException(403, "Vous devez être nominé à DELEGUE")
 
         return current_user
@@ -403,23 +403,24 @@ def get_require_commissaire():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         if not nominations or not any(
-            n.poste.value == "COMMISSAIRE_AUX_COMPTES" for n in nominations):
+            n.poste.value == "COMMISSAIRE_AUX_COMPTES" for n in nominations
+        ):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
-    403, f"Vous devez être COMMISSAIRE_AUX_COMPTES, vous êtes {roles}")
-            raise HTTPException(
-    403, "Vous devez être nominé à COMMISSAIRE_AUX_COMPTES")
+                    403, f"Vous devez être COMMISSAIRE_AUX_COMPTES, vous êtes {roles}"
+                )
+            raise HTTPException(403, "Vous devez être nominé à COMMISSAIRE_AUX_COMPTES")
 
         return current_user
 
@@ -437,15 +438,20 @@ def get_require_commissaire_strict():
         session: Annotated[AsyncSession, Depends(get_db_session)],
     ) -> User:
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(status_code=403, detail="Accès réservé au Commissaire aux Comptes")
+            raise HTTPException(
+                status_code=403, detail="Accès réservé au Commissaire aux Comptes"
+            )
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         if not nominations or not any(
-            n.poste.value == "COMMISSAIRE_AUX_COMPTES" for n in nominations):
+            n.poste.value == "COMMISSAIRE_AUX_COMPTES" for n in nominations
+        ):
             raise HTTPException(403, "Accès réservé au Commissaire aux Comptes")
 
         return current_user
@@ -468,22 +474,22 @@ def get_require_delegue_or_sg():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         allowed = ("DELEGUE", "VICE_DELEGUE", "SECRETAIRE_GENERAL")
-        if not nominations or not any(
-            n.poste.value in allowed for n in nominations):
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
-    403, f"Accès réservé au Délégué ou Secrétaire. Vous êtes {roles}")
+                    403, f"Accès réservé au Délégué ou Secrétaire. Vous êtes {roles}"
+                )
             raise HTTPException(403, "Accès réservé au Délégué ou Secrétaire")
 
         return current_user
@@ -506,22 +512,20 @@ def get_require_censeur():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         allowed = ("CENSEUR", "CENSEUR_ADJOINT")
-        if not nominations or not any(
-            n.poste.value in allowed for n in nominations):
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
-                raise HTTPException(
-    403, f"Accès réservé au Censeur. Vous êtes {roles}")
+                raise HTTPException(403, f"Accès réservé au Censeur. Vous êtes {roles}")
             raise HTTPException(403, "Accès réservé au Censeur")
 
         return current_user
@@ -547,21 +551,21 @@ def get_require_censeur_strict():
         # STRICT : Les administrateurs ne pueden pas non plus
         if current_user.role != UserRole.SERVANT:
             raise HTTPException(
-    status_code=403,
-     detail="Seul un CENSEUR peut effectuer cette action")
+                status_code=403, detail="Seul un CENSEUR peut effectuer cette action"
+            )
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         allowed = ("CENSEUR", "CENSEUR_ADJOINT")
-        if not nominations or not any(
-            n.poste.value in allowed for n in nominations):
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
-                raise HTTPException(
-    403, f"Accès réservé au Censeur. Vous êtes {roles}")
+                raise HTTPException(403, f"Accès réservé au Censeur. Vous êtes {roles}")
             raise HTTPException(403, "Accès réservé au Censeur")
 
         return current_user
@@ -584,21 +588,21 @@ def get_require_econome():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
-        if not nominations or not any(
-            n.poste.value == "ECONOME" for n in nominations):
+        if not nominations or not any(n.poste.value == "ECONOME" for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
-    403, f"Accès réservé à l'Econome. Vous êtes {roles}")
+                    403, f"Accès réservé à l'Econome. Vous êtes {roles}"
+                )
             raise HTTPException(403, "Accès réservé à l'Econome")
 
         return current_user
@@ -621,11 +625,11 @@ def get_require_secretaire():
         # requirements
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
@@ -636,12 +640,12 @@ def get_require_secretaire():
             "SECRETAIRE",
             "SECRETAIRE_ADJOINT",
         )
-        if not nominations or not any(
-            n.poste.value in allowed for n in nominations):
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
-    403, f"Accès réservé au Secrétaire. Vous êtes {roles}")
+                    403, f"Accès réservé au Secrétaire. Vous êtes {roles}"
+                )
             raise HTTPException(403, "Accès réservé au Secrétaire")
 
         return current_user
@@ -664,7 +668,9 @@ async def validate_ws_token(token: str, session: AsyncSession) -> User:
         Exception si le token est invalide ou l'utilisateur introuvable/inactif.
     """
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         token_type: str | None = payload.get("type")
         if token_type is not None:
             raise ValueError("Invalid token type")
@@ -693,25 +699,25 @@ def get_current_charge_classement_dimanche():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         if not nominations or not any(
-            n.poste.value == "CHARGE_CLASSEMENT_DIMANCHE" for n in nominations):
+            n.poste.value == "CHARGE_CLASSEMENT_DIMANCHE" for n in nominations
+        ):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
                     403,
                     f"Accès réservé au Chargé de Classement Dimanche. Vous êtes {roles}",
                 )
-            raise HTTPException(
-    403, "Accès réservé au Chargé de Classement Dimanche")
+            raise HTTPException(403, "Accès réservé au Chargé de Classement Dimanche")
 
         return current_user
 
@@ -733,25 +739,25 @@ def get_current_charge_classement_semaine():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
 
         if not nominations or not any(
-            n.poste.value == "CHARGE_CLASSEMENT_SEMAINE" for n in nominations):
+            n.poste.value == "CHARGE_CLASSEMENT_SEMAINE" for n in nominations
+        ):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(
                     403,
                     f"Accès réservé au Chargé de Classement Semaine. Vous êtes {roles}",
                 )
-            raise HTTPException(
-    403, "Accès réservé au Chargé de Classement Semaine")
+            raise HTTPException(403, "Accès réservé au Chargé de Classement Semaine")
 
         return current_user
 
@@ -776,11 +782,11 @@ def get_sunday_schedule_history_access():
             return current_user
 
         if current_user.role != UserRole.SERVANT:
-            raise HTTPException(
-    status_code=403,
-     detail="You must be a SERVANT")
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
 
-        from src.infrastructure.repositories.responsable_repository import NominationRepository
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
 
         nom_repo = NominationRepository(session)
         nominations = await nom_repo.get_active_by_user(current_user.id)
@@ -791,12 +797,12 @@ def get_sunday_schedule_history_access():
             "CENSEUR_ADJOINT",
         )
         if not nominations or not any(
-            n.poste.value in allowed_postes for n in nominations):
+            n.poste.value in allowed_postes for n in nominations
+        ):
             if nominations:
                 roles = ", ".join([n.poste.value for n in nominations])
                 raise HTTPException(403, f"Accès refusé. Vous êtes {roles}")
-            raise HTTPException(
-    403, "Accès réservé aux responsables autorisés")
+            raise HTTPException(403, "Accès réservé aux responsables autorisés")
 
         return current_user
 

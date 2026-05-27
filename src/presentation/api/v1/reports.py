@@ -5,16 +5,32 @@ from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.report_service import ReportService
 from src.core.entities.report import ReportStatus, ReportType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.report_repository import AttachmentRepository, ReportRepository
+from src.infrastructure.repositories.report_repository import (
+    AttachmentRepository,
+    ReportRepository,
+)
 from src.infrastructure.services.storage_service import StorageService
-from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_responsable, require_secretaire
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_responsable,
+    require_secretaire,
+)
 from src.presentation.schemas.report import (
     AttachmentCreate,
     AttachmentResponse,
@@ -42,7 +58,9 @@ async def _is_secretaire(current_user: User, session: AsyncSession) -> bool:
         return False
 
     from src.core.entities.responsable import PosteResponsable
-    from src.infrastructure.repositories.responsable_repository import NominationRepository
+    from src.infrastructure.repositories.responsable_repository import (
+        NominationRepository,
+    )
 
     nom_repo = NominationRepository(session)
     nominations = await nom_repo.get_active_by_user(current_user.id)
@@ -106,7 +124,9 @@ async def list_reports(
     """Liste les rapports avec filtres et pagination."""
     # Les non-secrétaires ne voient que les rapports publiés
     from src.core.entities.responsable import PosteResponsable
-    from src.infrastructure.repositories.responsable_repository import NominationRepository
+    from src.infrastructure.repositories.responsable_repository import (
+        NominationRepository,
+    )
 
     # Vérifier si l'utilisateur est secrétaire
     is_secretaire = False
@@ -166,7 +186,9 @@ async def get_report(
     # Vérifier les permissions
     # Les non-secrétaires ne peuvent voir que les rapports publiés
     from src.core.entities.responsable import PosteResponsable
-    from src.infrastructure.repositories.responsable_repository import NominationRepository
+    from src.infrastructure.repositories.responsable_repository import (
+        NominationRepository,
+    )
 
     is_secretaire = False
     if current_user.role.value == "SERVANT":
@@ -355,14 +377,21 @@ async def get_my_reports(
 )
 async def upload_attachment(
     report_id: UUID,
-    file: Annotated[UploadFile, File(description="Fichier à attacher (image ou document PDF/DOC/DOCX, max 10 Mo)")],
+    file: Annotated[
+        UploadFile,
+        File(
+            description="Fichier à attacher (image ou document PDF/DOC/DOCX, max 10 Mo)"
+        ),
+    ],
     current_user: Annotated[User, Depends(require_secretaire)],
     service: Annotated[ReportService, Depends(get_report_service)],
 ):
     """Upload un fichier et crée la pièce jointe associée au rapport."""
     report = await service.get_report(report_id)
     if not report:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rapport introuvable")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Rapport introuvable"
+        )
 
     file_data = await file.read()
     content_type = file.content_type or "application/octet-stream"
@@ -515,7 +544,9 @@ async def export_report_pdf(
     pdf_svc = PDFService()
     pdf_bytes = pdf_svc.generate_report(
         title=report.title,
-        report_type=report.type.value if hasattr(report.type, "value") else str(report.type),
+        report_type=report.type.value
+        if hasattr(report.type, "value")
+        else str(report.type),
         report_date=report.report_date,
         location=report.location,
         content=report.content,

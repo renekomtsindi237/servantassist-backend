@@ -54,7 +54,9 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("offense_description", sa.String(length=2000), nullable=False),
-        sa.Column("offense_date", sa.DateTime(), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "offense_date", sa.DateTime(), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column(
             "severity",
             sa.Enum(
@@ -122,15 +124,31 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["verdict_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_discipline_cases_accused_user_id"), "discipline_cases", ["accused_user_id"], unique=False)
-    op.create_index(op.f("ix_discipline_cases_offense_category"), "discipline_cases", ["offense_category"], unique=False)
-    op.create_index(op.f("ix_discipline_cases_status"), "discipline_cases", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_discipline_cases_accused_user_id"),
+        "discipline_cases",
+        ["accused_user_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_discipline_cases_offense_category"),
+        "discipline_cases",
+        ["offense_category"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_discipline_cases_status"), "discipline_cases", ["status"], unique=False
+    )
 
 
 def downgrade() -> None:
     op.drop_index(op.f("ix_discipline_cases_status"), table_name="discipline_cases")
-    op.drop_index(op.f("ix_discipline_cases_offense_category"), table_name="discipline_cases")
-    op.drop_index(op.f("ix_discipline_cases_accused_user_id"), table_name="discipline_cases")
+    op.drop_index(
+        op.f("ix_discipline_cases_offense_category"), table_name="discipline_cases"
+    )
+    op.drop_index(
+        op.f("ix_discipline_cases_accused_user_id"), table_name="discipline_cases"
+    )
     op.drop_table("discipline_cases")
 
     sa.Enum(name="sanctiontype").drop(op.get_bind(), checkfirst=True)

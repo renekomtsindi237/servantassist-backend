@@ -44,7 +44,12 @@ async def test_cannot_modify_verified_entry(client, commissaire_token, db_sessio
     """Test qu'on ne peut pas modifier une entrée vérifiée."""
     from datetime import datetime
 
-    from src.core.entities.financial_entry import EntryCategory, EntrySource, FinancialEntry, VerificationStatus
+    from src.core.entities.financial_entry import (
+        EntryCategory,
+        EntrySource,
+        FinancialEntry,
+        VerificationStatus,
+    )
 
     entry = FinancialEntry(
         id=uuid4(),

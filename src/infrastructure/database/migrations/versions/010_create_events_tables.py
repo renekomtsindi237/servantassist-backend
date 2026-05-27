@@ -84,9 +84,13 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["updated_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_events_event_type"), "events", ["event_type"], unique=False)
+    op.create_index(
+        op.f("ix_events_event_type"), "events", ["event_type"], unique=False
+    )
     op.create_index(op.f("ix_events_status"), "events", ["status"], unique=False)
-    op.create_index(op.f("ix_events_start_time"), "events", ["start_time"], unique=False)
+    op.create_index(
+        op.f("ix_events_start_time"), "events", ["start_time"], unique=False
+    )
 
     op.create_table(
         "event_participants",
@@ -150,13 +154,27 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["added_by"], ["users.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_event_participants_event_id"), "event_participants", ["event_id"], unique=False)
-    op.create_index(op.f("ix_event_participants_user_id"), "event_participants", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_event_participants_event_id"),
+        "event_participants",
+        ["event_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_event_participants_user_id"),
+        "event_participants",
+        ["user_id"],
+        unique=False,
+    )
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_event_participants_user_id"), table_name="event_participants")
-    op.drop_index(op.f("ix_event_participants_event_id"), table_name="event_participants")
+    op.drop_index(
+        op.f("ix_event_participants_user_id"), table_name="event_participants"
+    )
+    op.drop_index(
+        op.f("ix_event_participants_event_id"), table_name="event_participants"
+    )
     op.drop_table("event_participants")
 
     op.drop_index(op.f("ix_events_start_time"), table_name="events")

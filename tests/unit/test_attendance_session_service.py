@@ -10,7 +10,11 @@ import pytest
 pytestmark = pytest.mark.unit
 
 from src.application.services.attendance_session_service import AttendanceSessionService
-from src.core.entities.attendance_session import AttendanceRecord, AttendanceSession, AttendanceStatus
+from src.core.entities.attendance_session import (
+    AttendanceRecord,
+    AttendanceSession,
+    AttendanceStatus,
+)
 from src.core.entities.user import User, UserRole
 from src.presentation.schemas.attendance_session import (
     AttendanceRecordCreate,
@@ -91,7 +95,9 @@ async def test_create_session_success(service, mock_session_repo, sample_session
 
 
 @pytest.mark.asyncio
-async def test_mark_attendance_success(service, mock_session_repo, mock_user_repo, sample_session, sample_servant):
+async def test_mark_attendance_success(
+    service, mock_session_repo, mock_user_repo, sample_session, sample_servant
+):
     session_id = sample_session.id
     servant_id = sample_servant.id
     now = datetime.now(timezone.utc)
@@ -119,7 +125,9 @@ async def test_mark_attendance_success(service, mock_session_repo, mock_user_rep
         "updated_at": now,
     }
 
-    data = AttendanceRecordCreate(servant_id=servant_id, status=AttendanceStatus.PRESENT)
+    data = AttendanceRecordCreate(
+        servant_id=servant_id, status=AttendanceStatus.PRESENT
+    )
 
     result = await service.mark_attendance(session_id, data, uuid4())
 

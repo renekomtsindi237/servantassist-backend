@@ -14,7 +14,10 @@ from src.core.entities.financial_entry import (
     FinancialSummary,
     VerificationStatus,
 )
-from src.core.interfaces.repositories import IDiscrepancyRepository, IFinancialEntryRepository
+from src.core.interfaces.repositories import (
+    IDiscrepancyRepository,
+    IFinancialEntryRepository,
+)
 
 
 class FinancialEntryService:
@@ -95,8 +98,7 @@ class FinancialEntryService:
 
         # Vérifier que l'entrée n'est pas vérifiée
         if entry.verification_status == VerificationStatus.VERIFIED:
-            raise ValueError(
-                "Les entrées vérifiées ne peuvent pas être modifiées")
+            raise ValueError("Les entrées vérifiées ne peuvent pas être modifiées")
 
         # Mise à jour des champs
         if date is not None:
@@ -122,8 +124,7 @@ class FinancialEntryService:
 
         # Vérifier que l'entrée n'est pas vérifiée
         if entry.verification_status == VerificationStatus.VERIFIED:
-            raise ValueError(
-                "Les entrées vérifiées ne peuvent pas être supprimées")
+            raise ValueError("Les entrées vérifiées ne peuvent pas être supprimées")
 
         return await self.entry_repo.delete(entry_id)
 
@@ -166,6 +167,7 @@ class FinancialEntryService:
     ):
         """Retourne un résumé simplifié income/expense pour la période."""
         from datetime import datetime as _dt
+
         start = start_date or _dt(2000, 1, 1)
         end = end_date or _dt(2099, 12, 31)
         stats = await self.entry_repo.get_statistics(start, end)
@@ -199,14 +201,16 @@ class FinancialEntryService:
         # Calculer le taux de vérification
         if stats["total_entries"] > 0:
             stats["verification_rate"] = (
-    stats["verified_entries"] / stats["total_entries"]) * 100
+                stats["verified_entries"] / stats["total_entries"]
+            ) * 100
         else:
             stats["verification_rate"] = 0.0
 
         # Calculer le montant moyen
         if stats["total_entries"] > 0:
-            stats["average_entry_amount"] = stats["total_amount"] / \
-                stats["total_entries"]
+            stats["average_entry_amount"] = (
+                stats["total_amount"] / stats["total_entries"]
+            )
         else:
             stats["average_entry_amount"] = 0.0
 
@@ -226,18 +230,20 @@ class FinancialEntryService:
         stats = await self.entry_repo.get_statistics(start_date, end_date)
 
         # Récupérer les résumés par catégorie
-        summaries_data = await self.entry_repo.get_summary_by_category(start_date, end_date)
+        summaries_data = await self.entry_repo.get_summary_by_category(
+            start_date, end_date
+        )
 
         # Récupérer les écarts non résolus
         unresolved_discrepancies = await self.discrepancy_repo.list_unresolved()
 
         # Construire la liste des écarts
-        discrepancies = [
-            f"{d.type}: {d.description}" for d in unresolved_discrepancies]
+        discrepancies = [f"{d.type}: {d.description}" for d in unresolved_discrepancies]
 
         # Générer des recommandations
         recommendations = self._generate_recommendations(
-            stats, unresolved_discrepancies)
+            stats, unresolved_discrepancies
+        )
 
         # Créer le rapport
         report = AuditReport(
@@ -267,7 +273,8 @@ class FinancialEntryService:
         # Taux de vérification faible
         if stats["total_entries"] > 0:
             verification_rate = (
-    stats["verified_entries"] / stats["total_entries"]) * 100
+                stats["verified_entries"] / stats["total_entries"]
+            ) * 100
             if verification_rate < 50:
                 recommendations.append(
                     f"Taux de vérification faible ({verification_rate:.1f}%). "
@@ -295,7 +302,8 @@ class FinancialEntryService:
 
         if not recommendations:
             recommendations.append(
-                "Aucune anomalie majeure détectée. " "Continuer le suivi régulier des entrées financières."
+                "Aucune anomalie majeure détectée. "
+                "Continuer le suivi régulier des entrées financières."
             )
 
         return "\n".join(recommendations)

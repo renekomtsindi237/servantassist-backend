@@ -7,6 +7,7 @@ from __future__ import annotations
 
 class ServantAssistException(Exception):
     """Racine de toutes les exceptions applicatives."""
+
     http_status: int = 500
     default_message: str = "Une erreur interne est survenue."
 
@@ -19,12 +20,14 @@ class ServantAssistException(Exception):
 # ── 400 Bad Request ────────────────────────────────────────────────────────
 class ValidationException(ServantAssistException):
     """Données d'entrée invalides — règle métier ou format."""
+
     http_status = 400
     default_message = "Données invalides."
 
 
 class BusinessRuleException(ServantAssistException):
     """Violation d'une règle métier (ex: doublon, état incompatible)."""
+
     http_status = 400
     default_message = "Opération non autorisée par les règles métier."
 
@@ -32,6 +35,7 @@ class BusinessRuleException(ServantAssistException):
 # ── 401 Unauthorized ──────────────────────────────────────────────────────
 class UnauthorizedException(ServantAssistException):
     """Token absent, expiré ou invalide."""
+
     http_status = 401
     default_message = "Authentification requise."
 
@@ -47,6 +51,7 @@ class InvalidTokenException(UnauthorizedException):
 # ── 403 Forbidden ─────────────────────────────────────────────────────────
 class ForbiddenException(ServantAssistException):
     """Authentifié mais sans les droits nécessaires."""
+
     http_status = 403
     default_message = "Accès interdit."
 
@@ -58,6 +63,7 @@ class InsufficientRoleException(ForbiddenException):
 # ── 404 Not Found ─────────────────────────────────────────────────────────
 class NotFoundException(ServantAssistException):
     """Ressource introuvable."""
+
     http_status = 404
     default_message = "Ressource introuvable."
 
@@ -71,8 +77,11 @@ class NotFoundException(ServantAssistException):
 # ── 409 Conflict ──────────────────────────────────────────────────────────
 class ConflictException(ServantAssistException):
     """Conflit d'état — doublon, version concurrente, etc."""
+
     http_status = 409
-    default_message = "Conflit : la ressource existe déjà ou est en cours de modification."
+    default_message = (
+        "Conflit : la ressource existe déjà ou est en cours de modification."
+    )
 
 
 class DuplicateException(ConflictException):
@@ -86,6 +95,7 @@ class DuplicateException(ConflictException):
 # ── 410 Gone ──────────────────────────────────────────────────────────────
 class ResourceGoneException(ServantAssistException):
     """Ressource définitivement supprimée."""
+
     http_status = 410
     default_message = "Cette ressource n'existe plus."
 
@@ -93,6 +103,7 @@ class ResourceGoneException(ServantAssistException):
 # ── 422 Unprocessable Entity ──────────────────────────────────────────────
 class UnprocessableException(ServantAssistException):
     """Données structurellement valides mais sémantiquement incorrectes."""
+
     http_status = 422
     default_message = "Impossible de traiter les données fournies."
 
@@ -100,6 +111,7 @@ class UnprocessableException(ServantAssistException):
 # ── 429 Too Many Requests ─────────────────────────────────────────────────
 class RateLimitException(ServantAssistException):
     """Trop de requêtes — rate limiting dépassé."""
+
     http_status = 429
     default_message = "Trop de requêtes. Veuillez réessayer dans quelques instants."
 
@@ -107,6 +119,7 @@ class RateLimitException(ServantAssistException):
 # ── 503 Service Unavailable ───────────────────────────────────────────────
 class ExternalServiceException(ServantAssistException):
     """Échec d'un service externe (email, SMS, Supabase, R2…)."""
+
     http_status = 503
     default_message = "Service temporairement indisponible."
 

@@ -53,8 +53,9 @@ def parse_mass_time(mass_time: str) -> tuple[int, int]:
     return hours, minutes
 
 
-def is_within_mass_window(slot_date: datetime, mass_time: str,
-                          current_time: Optional[datetime] = None) -> bool:
+def is_within_mass_window(
+    slot_date: datetime, mass_time: str, current_time: Optional[datetime] = None
+) -> bool:
     """
     Vérifie si l'heure actuelle est dans la fenêtre de modification autorisée.
 
@@ -191,8 +192,7 @@ class WeeklyScheduleService:
     #  LECTURE
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_template(
-        self, template_id: UUID) -> WeeklyScheduleTemplateResponse:
+    async def get_template(self, template_id: UUID) -> WeeklyScheduleTemplateResponse:
         """Récupère un modèle par son ID avec tous ses créneaux."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -283,7 +283,8 @@ class WeeklyScheduleService:
         return WeeklyScheduleTemplateResponse(**enriched)
 
     async def publish_template(
-        self, template_id: UUID, published_by: UUID) -> WeeklyScheduleTemplateResponse:
+        self, template_id: UUID, published_by: UUID
+    ) -> WeeklyScheduleTemplateResponse:
         """Publie un modèle (le rend visible par tous)."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -307,7 +308,8 @@ class WeeklyScheduleService:
         return WeeklyScheduleTemplateResponse(**enriched)
 
     async def archive_template(
-        self, template_id: UUID, archived_by: UUID) -> WeeklyScheduleTemplateResponse:
+        self, template_id: UUID, archived_by: UUID
+    ) -> WeeklyScheduleTemplateResponse:
         """Archive un modèle."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:

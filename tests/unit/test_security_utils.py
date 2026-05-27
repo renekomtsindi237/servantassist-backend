@@ -24,9 +24,9 @@ settings = get_settings()
 #  Hachage de mots de passe
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestPasswordHashing:
-
     def test_hash_is_not_plaintext(self):
         hashed = SecurityUtils.get_password_hash("MySecret1!")
         assert hashed != "MySecret1!"
@@ -58,9 +58,9 @@ class TestPasswordHashing:
 #  Access token
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestAccessToken:
-
     def _decode(self, token: str) -> dict:
         return jwt.decode(
             token,
@@ -99,6 +99,7 @@ class TestAccessToken:
 
     def test_custom_expiry(self):
         import time
+
         token = SecurityUtils.create_access_token(
             "uid", "SERVANT", expires_delta=timedelta(seconds=5)
         )
@@ -111,9 +112,9 @@ class TestAccessToken:
 #  Refresh token
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestRefreshToken:
-
     def _decode(self, token: str) -> dict:
         return jwt.decode(
             token,
@@ -146,9 +147,9 @@ class TestRefreshToken:
 #  Reset token
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestResetToken:
-
     def _decode(self, token: str) -> dict:
         return jwt.decode(
             token,
@@ -162,6 +163,7 @@ class TestResetToken:
 
     def test_short_lived_by_default(self):
         import time
+
         token = SecurityUtils.create_reset_token("uid")
         payload = self._decode(token)
         remaining = payload["exp"] - time.time()
@@ -177,9 +179,9 @@ class TestResetToken:
 #  Sanitize HTML (anti-XSS)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestSanitizeHtml:
-
     def test_strips_script_tag(self):
         result = SecurityUtils.sanitize_html("<script>alert(1)</script>Hello")
         assert "<script>" not in result

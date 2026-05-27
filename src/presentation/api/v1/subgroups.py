@@ -29,7 +29,10 @@ from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.subgroup_repository import SubGroupRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_admin_or_aumonier,
+)
 from src.presentation.schemas.subgroup import (
     SubGroupCreate,
     SubGroupMemberAdd,
@@ -42,7 +45,9 @@ router = APIRouter()
 
 
 def _get_service(session: AsyncSession) -> SubGroupService:
-    from src.infrastructure.repositories.training_repository import TrainingParticipationRepository
+    from src.infrastructure.repositories.training_repository import (
+        TrainingParticipationRepository,
+    )
 
     return SubGroupService(
         group_repo=SubGroupRepository(session),
@@ -99,7 +104,8 @@ async def list_subgroups(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
     active_only: bool = Query(
-    True, description="Afficher uniquement les sous-groupes actifs"),
+        True, description="Afficher uniquement les sous-groupes actifs"
+    ),
 ):
     """
     Lister les sous-groupes.

@@ -26,7 +26,7 @@ from starlette.responses import JSONResponse, Response
 
 logger = logging.getLogger(__name__)
 
-_TTL_SECONDS = 86400   # 24h
+_TTL_SECONDS = 86400  # 24h
 _MAX_BODY_SIZE = 1024 * 64  # 64 KB max pour le cache
 
 # Endpoints exclus de l'idempotency (déjà idempotents ou non-critiques)
@@ -117,7 +117,9 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         if _memory_store.is_in_progress(composite):
             return JSONResponse(
                 status_code=409,
-                content={"detail": "Requête en cours de traitement. Réessayez dans un instant."},
+                content={
+                    "detail": "Requête en cours de traitement. Réessayez dans un instant."
+                },
             )
 
         _memory_store.mark_in_progress(composite)

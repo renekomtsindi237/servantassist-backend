@@ -22,10 +22,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.discipline_service import DisciplineService
-from src.core.entities.discipline import DisciplineCaseStatus, OffenseCategory, SanctionSeverity
+from src.core.entities.discipline import (
+    DisciplineCaseStatus,
+    OffenseCategory,
+    SanctionSeverity,
+)
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.discipline_repository import DisciplineCaseRepository
+from src.infrastructure.repositories.discipline_repository import (
+    DisciplineCaseRepository,
+)
 from src.infrastructure.repositories.responsable_repository import NominationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
@@ -46,7 +52,9 @@ router = APIRouter()
 
 
 def _get_service(session: AsyncSession) -> DisciplineService:
-    from src.infrastructure.repositories.attendance_repository import AttendanceRepository
+    from src.infrastructure.repositories.attendance_repository import (
+        AttendanceRepository,
+    )
 
     return DisciplineService(
         case_repo=DisciplineCaseRepository(session),

@@ -81,9 +81,7 @@ class WeeklyScheduleTemplate(WeeklyScheduleTemplateBase, table=True):
 class WeeklyScheduleSlotBase(SQLModel):
     """Champs communs d'un créneau de messe dans le classement."""
 
-    template_id: UUID = Field(
-    foreign_key="weekly_schedule_templates.id",
-     index=True)
+    template_id: UUID = Field(foreign_key="weekly_schedule_templates.id", index=True)
     day: WeekDay = Field(sa_column=Column(String(20), nullable=False))
     mass_time: MassTime = Field(sa_column=Column(String(10), nullable=False))
     notes: Optional[str] = Field(default=None, max_length=500)
@@ -108,8 +106,7 @@ class SlotServantAssignmentBase(SQLModel):
     """Assignation d'un servant à un créneau."""
 
     slot_id: UUID = Field(foreign_key="weekly_schedule_slots.id", index=True)
-    servant_id: Optional[UUID] = Field(
-    default=None, foreign_key="users.id", index=True)
+    servant_id: Optional[UUID] = Field(default=None, foreign_key="users.id", index=True)
     servant_name: Optional[str] = Field(
         default=None,
         max_length=200,
@@ -126,13 +123,10 @@ class SlotServantAssignment(SlotServantAssignmentBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     assigned_by: UUID = Field(foreign_key="users.id")
     # Traçabilité des modifications
-    last_modified_by: Optional[UUID] = Field(
-        default=None, foreign_key="users.id")
-    presence_marked_by: Optional[UUID] = Field(
-        default=None, foreign_key="users.id")
+    last_modified_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
+    presence_marked_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
     presence_marked_at: Optional[datetime] = Field(default=None)
-    is_present: Optional[bool] = Field(
-    default=None, description="Présence constatée")
+    is_present: Optional[bool] = Field(default=None, description="Présence constatée")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -160,22 +154,26 @@ class WeeklyScheduleModificationLog(SQLModel, table=True):
     __tablename__ = "weekly_schedule_modification_logs"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    template_id: UUID = Field(
-    foreign_key="weekly_schedule_templates.id",
-     index=True)
+    template_id: UUID = Field(foreign_key="weekly_schedule_templates.id", index=True)
     slot_id: Optional[UUID] = Field(
-    default=None, foreign_key="weekly_schedule_slots.id")
+        default=None, foreign_key="weekly_schedule_slots.id"
+    )
     assignment_id: Optional[UUID] = Field(
-    default=None, foreign_key="slot_servant_assignments.id")
+        default=None, foreign_key="slot_servant_assignments.id"
+    )
 
-    action: WeeklyModificationAction = Field(sa_column=Column(String(30), nullable=False))
-    description: str = Field(max_length=500,
-     description="Description de la modification")
+    action: WeeklyModificationAction = Field(
+        sa_column=Column(String(30), nullable=False)
+    )
+    description: str = Field(
+        max_length=500, description="Description de la modification"
+    )
 
     # Qui a fait la modification
     modified_by: UUID = Field(foreign_key="users.id", index=True)
-    modified_by_name: str = Field(max_length=200,
-     description="Nom complet de la personne")
+    modified_by_name: str = Field(
+        max_length=200, description="Nom complet de la personne"
+    )
 
     # Quand et où
     modified_at: datetime = Field(default_factory=datetime.utcnow, index=True)

@@ -24,7 +24,9 @@ from src.application.services.auth_service import AuthService
 from src.core.entities.invitation import InvitationCode
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.invitation_repository import InvitationCodeRepository
+from src.infrastructure.repositories.invitation_repository import (
+    InvitationCodeRepository,
+)
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import get_current_admin_user
 from src.presentation.schemas.auth import UserCreate, UserResponse
@@ -97,8 +99,7 @@ async def create_invitation(
         sent = await whatsapp_service.send_invitation_code(
             phone_number=request.phone_number,
             code=code,
-            parent_name=request.email.split(
-                "@")[0],  # Use email prefix as name
+            parent_name=request.email.split("@")[0],  # Use email prefix as name
         )
 
         if sent:
@@ -124,8 +125,7 @@ async def list_invitations(
     return invitations
 
 
-@router.delete("/invitations/{invitation_id}",
-               status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/invitations/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_invitation(
     invitation_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -141,8 +141,9 @@ async def revoke_invitation(
 
     if not invitation:
         raise HTTPException(
-    status_code=status.HTTP_404_NOT_FOUND,
-     detail="Cette invitation est introuvable.")
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cette invitation est introuvable.",
+        )
 
     # Only admin who created it can revoke
     if invitation.created_by != current_admin.id:
@@ -174,10 +175,14 @@ async def send_invitation_email(
     invitation = await invitation_repo.get_by_id(invitation_id)
 
     if not invitation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation introuvable.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Invitation introuvable."
+        )
 
     if invitation.created_by != current_admin.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé."
+        )
 
     email_service = EmailService()
     parent_name = invitation.parent_name or request.email.split("@")[0]
@@ -213,10 +218,14 @@ async def toggle_invitation_status(
     invitation = await invitation_repo.get_by_id(invitation_id)
 
     if not invitation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation introuvable.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Invitation introuvable."
+        )
 
     if invitation.created_by != current_admin.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé."
+        )
 
     if invitation.status == InvitationStatus.ACCEPTED:
         raise HTTPException(
@@ -233,8 +242,9 @@ async def toggle_invitation_status(
     return updated
 
 
-@router.post("/users/aumônier", response_model=UserResponse,
-             status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/users/aumônier", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_aumônier(
     request: UserCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -250,8 +260,7 @@ async def create_aumônier(
         password=request.password,
         first_name=request.first_name,
         last_name=request.last_name,
-        phone_number=request.phone_number if hasattr(
-            request, "phone_number") else None,
+        phone_number=request.phone_number if hasattr(request, "phone_number") else None,
         role=UserRole.AUMÔNIER,
     )
 
@@ -259,7 +268,9 @@ async def create_aumônier(
     auth_service = AuthService(user_repo, None)
 
     try:
-        user = await auth_service.register_user(user_create=aumônier_create, admin_id=current_admin.id)
+        user = await auth_service.register_user(
+            user_create=aumônier_create, admin_id=current_admin.id
+        )
         return user
     except HTTPException:
         raise
@@ -276,8 +287,9 @@ async def create_aumônier(
         )
 
 
-@router.post("/users/admin", response_model=UserResponse,
-             status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/users/admin", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_admin(
     request: UserCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -293,8 +305,7 @@ async def create_admin(
         password=request.password,
         first_name=request.first_name,
         last_name=request.last_name,
-        phone_number=request.phone_number if hasattr(
-            request, "phone_number") else None,
+        phone_number=request.phone_number if hasattr(request, "phone_number") else None,
         role=UserRole.ADMIN,
     )
 
@@ -302,7 +313,9 @@ async def create_admin(
     auth_service = AuthService(user_repo, None)
 
     try:
-        user = await auth_service.register_user(user_create=admin_create, admin_id=current_admin.id)
+        user = await auth_service.register_user(
+            user_create=admin_create, admin_id=current_admin.id
+        )
         return user
     except HTTPException:
         raise
@@ -319,8 +332,9 @@ async def create_admin(
         )
 
 
-@router.post("/users/parent", response_model=UserResponse,
-             status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/users/parent", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_parent_direct(
     user_data: UserCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -340,7 +354,9 @@ async def create_parent_direct(
     user_repo = UserRepository(session)
     auth_service = AuthService(user_repo, None)
 
-    created_user = await auth_service.register_user(user_data, invitation_code=None, admin_id=current_admin.id)
+    created_user = await auth_service.register_user(
+        user_data, invitation_code=None, admin_id=current_admin.id
+    )
 
     return created_user
 
@@ -434,7 +450,9 @@ async def list_api_keys(
 ):
     """Retourne toutes les clés API (sans les clés en clair)."""
     result = await session.execute(
-        text("SELECT id, name, scopes, is_active, last_used_at, created_at FROM api_keys WHERE user_id = :uid ORDER BY created_at DESC"),
+        text(
+            "SELECT id, name, scopes, is_active, last_used_at, created_at FROM api_keys WHERE user_id = :uid ORDER BY created_at DESC"
+        ),
         {"uid": str(current_admin.id)},
     )
     rows = result.fetchall()
@@ -468,4 +486,6 @@ async def revoke_api_key(
     )
     await session.commit()
     if result.rowcount == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clé API introuvable.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Clé API introuvable."
+        )

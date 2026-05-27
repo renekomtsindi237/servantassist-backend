@@ -78,7 +78,9 @@ class SportCultureEvent(SQLModel, table=True):
     title: str = Field(min_length=1, max_length=200)
     description: str
     event_type: EventType = Field(sa_column=Column(String(50), nullable=False))
-    sport_type: Optional[SportType] = Field(default=None, sa_column=Column(String(50), nullable=True))
+    sport_type: Optional[SportType] = Field(
+        default=None, sa_column=Column(String(50), nullable=True)
+    )
     date: datetime
     start_time: str  # Format HHhMM
     end_time: str  # Format HHhMM
@@ -161,8 +163,8 @@ class EventTeam(SQLModel, table=True):
         default_factory=list, sa_column=Column(JSON)
     )  # Changed to List[str] for JSON serialization
     members_names: List[str] = Field(
-    default_factory=list,
-     sa_column=Column(JSON))  # Enrichi
+        default_factory=list, sa_column=Column(JSON)
+    )  # Enrichi
     created_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

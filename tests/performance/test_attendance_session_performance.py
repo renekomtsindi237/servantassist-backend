@@ -33,7 +33,9 @@ async def test_create_session_performance(client, censeur_token):
 
 
 @pytest.mark.asyncio
-async def test_mark_attendance_batch_performance(client, censeur_token, sample_attendance_session):
+async def test_mark_attendance_batch_performance(
+    client, censeur_token, sample_attendance_session
+):
     """Test performance marquage de présence en lot."""
     from src.core.entities.user import User, UserRole
     from src.infrastructure.security.utils import SecurityUtils
@@ -256,7 +258,9 @@ async def test_get_servants_list_performance(client, censeur_token, db_session):
 
 
 @pytest.mark.asyncio
-async def test_update_record_performance(client, censeur_token, sample_attendance_record):
+async def test_update_record_performance(
+    client, censeur_token, sample_attendance_record
+):
     """Test performance modification d'enregistrement."""
     start_time = time.time()
 
@@ -276,7 +280,9 @@ async def test_update_record_performance(client, censeur_token, sample_attendanc
 
 
 @pytest.mark.asyncio
-async def test_concurrent_marking_performance(client, censeur_token, sample_attendance_session, db_session):
+async def test_concurrent_marking_performance(
+    client, censeur_token, sample_attendance_session, db_session
+):
     """Test performance marquage concurrent."""
     import asyncio
 

@@ -82,9 +82,15 @@ def upgrade() -> None:
         # Un servant ne peut avoir qu'une seule affectation par evenement
         sa.UniqueConstraint("event_id", "user_id", name="uq_assignment_event_user"),
     )
-    op.create_index(op.f("ix_assignments_event_id"), "assignments", ["event_id"], unique=False)
-    op.create_index(op.f("ix_assignments_user_id"), "assignments", ["user_id"], unique=False)
-    op.create_index(op.f("ix_assignments_status"), "assignments", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_assignments_event_id"), "assignments", ["event_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_assignments_user_id"), "assignments", ["user_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_assignments_status"), "assignments", ["status"], unique=False
+    )
 
 
 def downgrade() -> None:

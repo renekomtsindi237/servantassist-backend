@@ -55,9 +55,7 @@ class Classement(SQLModel, table=True):
     participants: Optional[str] = None
 
     # Tableau des postes : [{label, col1, col2}, ...]
-    postes: List[Dict[str, Any]] = Field(
-        default_factory=list, sa_column=Column(JSON)
-    )
+    postes: List[Dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSON))
 
     created_by: UUID = Field(foreign_key="users.id")
     published_at: Optional[datetime] = None

@@ -7,7 +7,13 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 
-from src.core.entities.sport_culture import EventStatus, EventType, ParticipationStatus, ResultType, SportType
+from src.core.entities.sport_culture import (
+    EventStatus,
+    EventType,
+    ParticipationStatus,
+    ResultType,
+    SportType,
+)
 
 # ══════════════════════════════════════════════════════════════════
 #  TESTS - ÉVÉNEMENTS

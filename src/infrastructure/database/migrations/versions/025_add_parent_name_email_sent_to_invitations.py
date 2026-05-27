@@ -17,7 +17,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("invitation_codes", sa.Column("parent_name", sa.String(), nullable=True))
+    op.add_column(
+        "invitation_codes", sa.Column("parent_name", sa.String(), nullable=True)
+    )
     op.add_column(
         "invitation_codes",
         sa.Column("email_sent", sa.Boolean(), nullable=False, server_default="false"),

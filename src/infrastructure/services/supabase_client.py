@@ -40,6 +40,7 @@ def get_supabase_admin():
     _assert_supabase_config()
 
     from supabase import create_client, Client  # import paresseux
+
     client: Client = create_client(
         settings.SUPABASE_URL,
         settings.SUPABASE_SERVICE_ROLE_KEY,
@@ -60,6 +61,7 @@ def get_supabase_public():
     _assert_supabase_config()
 
     from supabase import create_client, Client
+
     client: Client = create_client(
         settings.SUPABASE_URL,
         settings.SUPABASE_ANON_KEY,
@@ -69,7 +71,8 @@ def get_supabase_public():
 
 def _assert_supabase_config() -> None:
     missing = [
-        name for name, val in [
+        name
+        for name, val in [
             ("SUPABASE_URL", settings.SUPABASE_URL),
             ("SUPABASE_ANON_KEY", settings.SUPABASE_ANON_KEY),
             ("SUPABASE_SERVICE_ROLE_KEY", settings.SUPABASE_SERVICE_ROLE_KEY),
@@ -84,6 +87,7 @@ def _assert_supabase_config() -> None:
 
 
 # ── Helpers Storage ────────────────────────────────────────────────────────────
+
 
 def upload_to_supabase_storage(
     bucket: str,

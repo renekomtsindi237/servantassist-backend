@@ -59,8 +59,9 @@ def parse_mass_time(mass_time: str) -> tuple[int, int]:
     return hours, minutes
 
 
-def is_within_mass_window(schedule_date: datetime, mass_time: str,
-                          current_time: Optional[datetime] = None) -> bool:
+def is_within_mass_window(
+    schedule_date: datetime, mass_time: str, current_time: Optional[datetime] = None
+) -> bool:
     """
     Vérifie si l'heure actuelle est dans la fenêtre de modification autorisée.
 
@@ -82,13 +83,14 @@ def is_within_mass_window(schedule_date: datetime, mass_time: str,
     hours, minutes = parse_mass_time(mass_time)
 
     # Normaliser en naif UTC (utc_now() est toujours naif)
-    naive_date = schedule_date.replace(tzinfo=None) if schedule_date.tzinfo else schedule_date
+    naive_date = (
+        schedule_date.replace(tzinfo=None) if schedule_date.tzinfo else schedule_date
+    )
     if current_time.tzinfo:
         current_time = current_time.replace(tzinfo=None)
 
     # Créer le datetime de début de la messe
-    mass_start = naive_date.replace(
-        hour=hours, minute=minutes, second=0, microsecond=0)
+    mass_start = naive_date.replace(hour=hours, minute=minutes, second=0, microsecond=0)
 
     # Fenêtre : 1h avant → 2h après le début (1h de messe + 1h après)
     window_start = mass_start - timedelta(hours=1)
@@ -239,8 +241,7 @@ class SundayScheduleService:
     #  LECTURE
     # ══════════════════════════════════════════════════════════════════
 
-    async def get_template(
-        self, template_id: UUID) -> SundayScheduleTemplateResponse:
+    async def get_template(self, template_id: UUID) -> SundayScheduleTemplateResponse:
         """Récupère un modèle par son ID avec toutes ses messes."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -333,7 +334,8 @@ class SundayScheduleService:
         return SundayScheduleTemplateResponse(**enriched)
 
     async def publish_template(
-        self, template_id: UUID, published_by: UUID) -> SundayScheduleTemplateResponse:
+        self, template_id: UUID, published_by: UUID
+    ) -> SundayScheduleTemplateResponse:
         """Publie un modèle (le rend visible par tous)."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -357,7 +359,8 @@ class SundayScheduleService:
         return SundayScheduleTemplateResponse(**enriched)
 
     async def archive_template(
-        self, template_id: UUID, archived_by: UUID) -> SundayScheduleTemplateResponse:
+        self, template_id: UUID, archived_by: UUID
+    ) -> SundayScheduleTemplateResponse:
         """Archive un modèle."""
         template = await self.schedule_repo.get_template(template_id)
         if not template:
@@ -512,8 +515,7 @@ class SundayScheduleService:
             template = await self.schedule_repo.get_template(mass.template_id)
             if template:
                 # Validation temporelle stricte : 1h avant → 1h après la messe
-                if not is_within_mass_window(
-                    template.schedule_date, mass.mass_time):
+                if not is_within_mass_window(template.schedule_date, mass.mass_time):
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {mass.mass_time}.",
@@ -538,7 +540,10 @@ class SundayScheduleService:
         ip_address: Optional[str] = None,
     ) -> SundayMassAssignmentResponse:
         """Marque la présence ou l'absence d'un servant."""
-        from src.core.entities.sunday_schedule import ModificationAction, SundayScheduleModificationLog
+        from src.core.entities.sunday_schedule import (
+            ModificationAction,
+            SundayScheduleModificationLog,
+        )
 
         assignment = await self.schedule_repo.get_assignment(assignment_id)
         if not assignment:
@@ -601,7 +606,9 @@ class SundayScheduleService:
             template_id=mass.template_id,
             mass_slot_id=mass.id,
             assignment_id=assignment_id,
-            action=ModificationAction.PRESENCE_MARKED if is_present else ModificationAction.ABSENCE_MARKED,
+            action=ModificationAction.PRESENCE_MARKED
+            if is_present
+            else ModificationAction.ABSENCE_MARKED,
             description=f"Présence {'confirmée' if is_present else 'marquée absente'} pour {servant_name} ({assignment.position.value}) à la messe de {mass.mass_time}",
             modified_by=marked_by,
             modified_by_name=f"{user.first_name} {user.last_name}",
@@ -619,9 +626,12 @@ class SundayScheduleService:
     # ══════════════════════════════════════════════════════════════════
 
     async def get_modification_history(
-        self, template_id: UUID, limit: int = 100) -> List:
+        self, template_id: UUID, limit: int = 100
+    ) -> List:
         """Récupère l'historique des modifications d'un classement."""
         from src.presentation.schemas.sunday_schedule import ModificationLogResponse
 
-        logs = await self.schedule_repo.get_template_modification_logs(template_id, limit)
+        logs = await self.schedule_repo.get_template_modification_logs(
+            template_id, limit
+        )
         return [ModificationLogResponse(**log.model_dump()) for log in logs]

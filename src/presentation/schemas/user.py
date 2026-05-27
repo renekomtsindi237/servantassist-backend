@@ -19,6 +19,7 @@ from src.presentation.schemas.common import (  # noqa: F401
     build_paginated_response,
 )
 
+
 # ── Profil utilisateur (lecture) ─────────────────────────────────────────
 class UserProfileResponse(BaseModel):
     """Profil complet d'un utilisateur (lecture)."""
@@ -57,7 +58,8 @@ class UserProfileUpdate(BaseModel):
         if v is not None and v != "":
             if not re.match(r"^\+\d{1,3}\d{6,14}$", v):
                 raise ValueError(
-                    "Le numero de telephone doit etre au format +237xxxxxxxxx")
+                    "Le numero de telephone doit etre au format +237xxxxxxxxx"
+                )
         return v
 
 
@@ -72,17 +74,13 @@ class ChangePasswordRequest(BaseModel):
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
         if len(v) < 8:
-            raise ValueError(
-                "Le mot de passe doit contenir au moins 8 caracteres")
+            raise ValueError("Le mot de passe doit contenir au moins 8 caracteres")
         if not re.search(r"[A-Z]", v):
-            raise ValueError(
-                "Le mot de passe doit contenir au moins une majuscule")
+            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
         if not re.search(r"[a-z]", v):
-            raise ValueError(
-                "Le mot de passe doit contenir au moins une minuscule")
+            raise ValueError("Le mot de passe doit contenir au moins une minuscule")
         if not re.search(r"\d", v):
-            raise ValueError(
-                "Le mot de passe doit contenir au moins un chiffre")
+            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
         return v
 
 
@@ -103,7 +101,8 @@ class UserAdminUpdate(BaseModel):
         if v is not None and v != "":
             if not re.match(r"^\+\d{1,3}\d{6,14}$", v):
                 raise ValueError(
-                    "Le numero de telephone doit etre au format +237xxxxxxxxx")
+                    "Le numero de telephone doit etre au format +237xxxxxxxxx"
+                )
         return v
 
 
@@ -116,17 +115,13 @@ class UserAdminResetPassword(BaseModel):
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
         if len(v) < 8:
-            raise ValueError(
-                "Le mot de passe doit contenir au moins 8 caracteres")
+            raise ValueError("Le mot de passe doit contenir au moins 8 caracteres")
         if not re.search(r"[A-Z]", v):
-            raise ValueError(
-                "Le mot de passe doit contenir au moins une majuscule")
+            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
         if not re.search(r"[a-z]", v):
-            raise ValueError(
-                "Le mot de passe doit contenir au moins une minuscule")
+            raise ValueError("Le mot de passe doit contenir au moins une minuscule")
         if not re.search(r"\d", v):
-            raise ValueError(
-                "Le mot de passe doit contenir au moins un chiffre")
+            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
         return v
 
 
@@ -137,8 +132,7 @@ class UserListFilters(BaseModel):
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     search: Optional[str] = Field(
-    None,
-    max_length=100,
-     description="Recherche par nom ou email")
+        None, max_length=100, description="Recherche par nom ou email"
+    )
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)

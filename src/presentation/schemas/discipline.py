@@ -7,7 +7,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.discipline import DisciplineCaseStatus, OffenseCategory, SanctionSeverity, SanctionType
+from src.core.entities.discipline import (
+    DisciplineCaseStatus,
+    OffenseCategory,
+    SanctionSeverity,
+    SanctionType,
+)
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Dossiers disciplinaires

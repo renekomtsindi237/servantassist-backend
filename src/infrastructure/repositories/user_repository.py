@@ -36,6 +36,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
 
     def _encrypt_model(self, model: User) -> None:
         from datetime import datetime as dt
+
         enc = get_encryptor()
 
         # HMAC d'abord (sur le plaintext)
@@ -57,6 +58,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
 
     def _decrypt_model(self, model: User) -> None:
         from datetime import datetime as dt
+
         enc = get_encryptor()
 
         for field in self.ENCRYPTED_FIELDS:
@@ -71,7 +73,9 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
             val = getattr(model, field, None)
             if val and isinstance(val, str):
                 try:
-                    set_committed_value(model, field, dt.fromisoformat(enc.decrypt(val)))
+                    set_committed_value(
+                        model, field, dt.fromisoformat(enc.decrypt(val))
+                    )
                 except (ValueError, Exception):
                     pass
 
@@ -136,7 +140,8 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         if search:
             term = search.lower()
             all_users = [
-                u for u in all_users
+                u
+                for u in all_users
                 if term in (u.first_name or "").lower()
                 or term in (u.last_name or "").lower()
                 or term in (u.email or "").lower()
@@ -145,12 +150,10 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         total = len(all_users)
         all_users.sort(key=lambda u: u.created_at, reverse=True)
         offset = (page - 1) * page_size
-        return all_users[offset: offset + page_size], total
+        return all_users[offset : offset + page_size], total
 
     async def count_by_role(self, role: UserRole) -> int:
-        result = await self.session.exec(
-            select(func.count()).where(User.role == role)
-        )
+        result = await self.session.exec(select(func.count()).where(User.role == role))
         return result.one()
 
     # ── Écriture ──────────────────────────────────────────────────────
@@ -182,8 +185,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
             return True
         return False
 
-    async def email_exists(self, email: str,
-                           exclude_id: Optional[UUID] = None) -> bool:
+    async def email_exists(self, email: str, exclude_id: Optional[UUID] = None) -> bool:
         email_hmac = get_encryptor().hmac_index(email)
         stmt = select(User).where(User.email_hmac == email_hmac)
         if exclude_id:
@@ -191,8 +193,9 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         result = await self.session.exec(stmt)
         return result.first() is not None
 
-    async def phone_exists(self, phone_number: str,
-                           exclude_id: Optional[UUID] = None) -> bool:
+    async def phone_exists(
+        self, phone_number: str, exclude_id: Optional[UUID] = None
+    ) -> bool:
         phone_hmac = get_encryptor().hmac_index(phone_number)
         stmt = select(User).where(User.phone_hmac == phone_hmac)
         if exclude_id:

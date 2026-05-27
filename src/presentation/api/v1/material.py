@@ -13,7 +13,12 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.material_service import MaterialService
-from src.core.entities.material import MaterialCategory, MaterialCondition, TaskStatus, TaskType
+from src.core.entities.material import (
+    MaterialCategory,
+    MaterialCondition,
+    TaskStatus,
+    TaskType,
+)
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.material_repository import (
@@ -59,16 +64,18 @@ router = APIRouter()
 # ══════════════════════════════════════════════════════════════════
 
 
-def get_material_service(db: Annotated[AsyncSession, Depends(
-    get_db_session)]) -> MaterialService:
+def get_material_service(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> MaterialService:
     """Dépendance pour obtenir le service de matériel."""
     item_repo = MaterialItemRepository(db)
     cleaning_task_repo = CleaningTaskRepository(db)
     assignment_repo = TaskAssignmentRepository(db)
     aube_task_repo = AubeTaskRepository(db)
     maintenance_repo = MaintenanceHistoryRepository(db)
-    return MaterialService(item_repo, cleaning_task_repo,
-                           assignment_repo, aube_task_repo, maintenance_repo)
+    return MaterialService(
+        item_repo, cleaning_task_repo, assignment_repo, aube_task_repo, maintenance_repo
+    )
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -201,7 +208,9 @@ async def update_material_item(
 )
 async def upload_material_photo(
     item_id: UUID,
-    file: Annotated[UploadFile, File(description="Photo de l'article (JPEG, PNG ou WebP, max 5 Mo)")],
+    file: Annotated[
+        UploadFile, File(description="Photo de l'article (JPEG, PNG ou WebP, max 5 Mo)")
+    ],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: User = Depends(require_intendant),
     service: MaterialService = Depends(get_material_service),
@@ -555,14 +564,19 @@ async def delete_cleaning_task(
 )
 async def upload_cleaning_task_photo_before(
     task_id: UUID,
-    file: Annotated[UploadFile, File(description="Photo avant intervention (JPEG, PNG, WebP, max 5 Mo)")],
+    file: Annotated[
+        UploadFile,
+        File(description="Photo avant intervention (JPEG, PNG, WebP, max 5 Mo)"),
+    ],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: User = Depends(get_current_user),
     service: MaterialService = Depends(get_material_service),
 ):
     task = await service.get_cleaning_task(task_id)
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable"
+        )
     storage = StorageService()
     try:
         photo_url = await storage.upload_task_photo(
@@ -576,7 +590,11 @@ async def upload_cleaning_task_photo_before(
     assignments = await service.get_task_assignments(updated.id)
     task_dict = updated.model_dump()
     task_dict["assigned_servants"] = [
-        {"id": str(a.id), "servant_id": str(a.servant_id), "servant_name": a.servant_name}
+        {
+            "id": str(a.id),
+            "servant_id": str(a.servant_id),
+            "servant_name": a.servant_name,
+        }
         for a in assignments
     ]
     return CleaningTaskResponse(**task_dict)
@@ -590,14 +608,19 @@ async def upload_cleaning_task_photo_before(
 )
 async def upload_cleaning_task_photo_after(
     task_id: UUID,
-    file: Annotated[UploadFile, File(description="Photo après intervention (JPEG, PNG, WebP, max 5 Mo)")],
+    file: Annotated[
+        UploadFile,
+        File(description="Photo après intervention (JPEG, PNG, WebP, max 5 Mo)"),
+    ],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: User = Depends(get_current_user),
     service: MaterialService = Depends(get_material_service),
 ):
     task = await service.get_cleaning_task(task_id)
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable"
+        )
     storage = StorageService()
     try:
         photo_url = await storage.upload_task_photo(
@@ -611,7 +634,11 @@ async def upload_cleaning_task_photo_after(
     assignments = await service.get_task_assignments(updated.id)
     task_dict = updated.model_dump()
     task_dict["assigned_servants"] = [
-        {"id": str(a.id), "servant_id": str(a.servant_id), "servant_name": a.servant_name}
+        {
+            "id": str(a.id),
+            "servant_id": str(a.servant_id),
+            "servant_name": a.servant_name,
+        }
         for a in assignments
     ]
     return CleaningTaskResponse(**task_dict)
@@ -913,14 +940,19 @@ async def delete_aube_task(
 )
 async def upload_aube_task_photo_before(
     task_id: UUID,
-    file: Annotated[UploadFile, File(description="Photo avant intervention (JPEG, PNG, WebP, max 5 Mo)")],
+    file: Annotated[
+        UploadFile,
+        File(description="Photo avant intervention (JPEG, PNG, WebP, max 5 Mo)"),
+    ],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: User = Depends(get_current_user),
     service: MaterialService = Depends(get_material_service),
 ):
     task = await service.get_aube_task(task_id)
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable"
+        )
     storage = StorageService()
     try:
         photo_url = await storage.upload_task_photo(
@@ -942,14 +974,19 @@ async def upload_aube_task_photo_before(
 )
 async def upload_aube_task_photo_after(
     task_id: UUID,
-    file: Annotated[UploadFile, File(description="Photo après intervention (JPEG, PNG, WebP, max 5 Mo)")],
+    file: Annotated[
+        UploadFile,
+        File(description="Photo après intervention (JPEG, PNG, WebP, max 5 Mo)"),
+    ],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: User = Depends(get_current_user),
     service: MaterialService = Depends(get_material_service),
 ):
     task = await service.get_aube_task(task_id)
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tâche introuvable"
+        )
     storage = StorageService()
     try:
         photo_url = await storage.upload_task_photo(

@@ -60,7 +60,9 @@ async def send_test_email(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Échec de l'envoi de l'email. Vérifiez la configuration SMTP dans le fichier .env.",
         )
-    logger.info("Email de test envoyé | to=%s | by=%s", request.to_email, current_admin.id)
+    logger.info(
+        "Email de test envoyé | to=%s | by=%s", request.to_email, current_admin.id
+    )
     return EmailResult(
         success=True,
         to=request.to_email,
@@ -88,11 +90,13 @@ async def send_notification(
             title=request.title,
             body=request.body,
         )
-        results.append(EmailResult(
-            success=ok,
-            to=email,
-            detail="Envoyé." if ok else "Échec d'envoi.",
-        ))
+        results.append(
+            EmailResult(
+                success=ok,
+                to=email,
+                detail="Envoyé." if ok else "Échec d'envoi.",
+            )
+        )
     logger.info(
         "Notifications envoyées | count=%d | by=%s",
         len(request.to_emails),

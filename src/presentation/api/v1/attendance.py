@@ -33,7 +33,10 @@ from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.attendance_repository import AttendanceRepository
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import get_current_active_user, get_current_admin_or_aumonier
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_admin_or_aumonier,
+)
 from src.presentation.schemas.attendance import (
     AttendanceBatchCreate,
     AttendanceBatchResponse,
@@ -137,7 +140,9 @@ async def get_my_stats(
     **Accessible a :** Tout utilisateur authentifie.
     """
     service = _get_service(session)
-    return await service.get_user_stats(current_user.id, start_date=start_date, end_date=end_date)
+    return await service.get_user_stats(
+        current_user.id, start_date=start_date, end_date=end_date
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -151,8 +156,7 @@ async def list_attendances(
     current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
     user_id: Optional[UUID] = Query(None),
     attendance_type: Optional[AttendanceType] = Query(None),
-    attendance_status: Optional[AttendanceStatus] = Query(
-        None, alias="status"),
+    attendance_status: Optional[AttendanceStatus] = Query(None, alias="status"),
     start_date: Optional[datetime] = Query(None),
     end_date: Optional[datetime] = Query(None),
     event_id: Optional[UUID] = Query(None),
@@ -194,7 +198,9 @@ async def get_user_stats(
     **Accessible a :** Aumonier, Admin.
     """
     service = _get_service(session)
-    return await service.get_user_stats(user_id, start_date=start_date, end_date=end_date)
+    return await service.get_user_stats(
+        user_id, start_date=start_date, end_date=end_date
+    )
 
 
 @router.get("/{attendance_id}", response_model=AttendanceResponse)
@@ -210,7 +216,10 @@ async def get_attendance(
     """
     service = _get_service(session)
     attendance = await service.get_attendance(attendance_id)
-    if current_user.role not in (UserRole.ADMIN, UserRole.AUMÔNIER) and attendance.user_id != current_user.id:
+    if (
+        current_user.role not in (UserRole.ADMIN, UserRole.AUMÔNIER)
+        and attendance.user_id != current_user.id
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acces refuse a cet enregistrement de presence.",
@@ -248,7 +257,9 @@ async def update_attendance(
 async def export_attendance_pdf(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
-    user_id: Optional[UUID] = Query(None, description="ID du servant (admin seulement)"),
+    user_id: Optional[UUID] = Query(
+        None, description="ID du servant (admin seulement)"
+    ),
     start_date: Optional[datetime] = Query(None, description="Date de début"),
     end_date: Optional[datetime] = Query(None, description="Date de fin"),
 ):
@@ -257,7 +268,11 @@ async def export_attendance_pdf(
     from src.infrastructure.services.pdf_service import PDFService
 
     # Les non-admin ne peuvent exporter que leurs propres données
-    target_id = user_id if user_id and current_user.role in (UserRole.ADMIN, UserRole.AUMONIER) else current_user.id
+    target_id = (
+        user_id
+        if user_id and current_user.role in (UserRole.ADMIN, UserRole.AUMONIER)
+        else current_user.id
+    )
     svc = _get_service(session)
     result = await svc.list_attendances(
         user_id=target_id,
@@ -265,14 +280,20 @@ async def export_attendance_pdf(
         end_date=end_date,
         page_size=500,
     )
-    stats = await svc.get_user_stats(target_id, start_date=start_date, end_date=end_date)
+    stats = await svc.get_user_stats(
+        target_id, start_date=start_date, end_date=end_date
+    )
     target_user = await UserRepository(session).get(target_id)
     servant_name = (
-        f"{target_user.first_name} {target_user.last_name}" if target_user else str(target_id)
+        f"{target_user.first_name} {target_user.last_name}"
+        if target_user
+        else str(target_id)
     )
     period_label = "Toute période"
     if start_date and end_date:
-        period_label = f"{start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}"
+        period_label = (
+            f"{start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}"
+        )
     elif start_date:
         period_label = f"Depuis le {start_date.strftime('%d/%m/%Y')}"
 

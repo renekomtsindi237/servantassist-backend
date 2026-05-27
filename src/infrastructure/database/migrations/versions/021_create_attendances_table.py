@@ -51,8 +51,12 @@ def upgrade() -> None:
 
     op.create_index("ix_attendances_user_id", "attendances", ["user_id"])
     op.create_index("ix_attendances_event_id", "attendances", ["event_id"])
-    op.create_index("ix_attendances_attendance_type", "attendances", ["attendance_type"])
-    op.create_index("ix_attendances_attendance_date", "attendances", ["attendance_date"])
+    op.create_index(
+        "ix_attendances_attendance_type", "attendances", ["attendance_type"]
+    )
+    op.create_index(
+        "ix_attendances_attendance_date", "attendances", ["attendance_date"]
+    )
     op.create_index("ix_attendances_status", "attendances", ["status"])
 
 

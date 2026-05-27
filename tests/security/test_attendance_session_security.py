@@ -36,7 +36,9 @@ async def test_only_censeur_can_create_session(client, servant_token, admin_toke
 
 
 @pytest.mark.asyncio
-async def test_only_censeur_can_mark_attendance(client, servant_token, sample_attendance_session, servant_user):
+async def test_only_censeur_can_mark_attendance(
+    client, servant_token, sample_attendance_session, servant_user
+):
     """Test que seul le CENSEUR peut marquer la présence."""
     response = await client.post(
         f"/api/v1/attendance-sessions/{sample_attendance_session.id}/records",
@@ -50,7 +52,9 @@ async def test_only_censeur_can_mark_attendance(client, servant_token, sample_at
 
 
 @pytest.mark.asyncio
-async def test_only_censeur_can_update_record(client, servant_token, sample_attendance_record):
+async def test_only_censeur_can_update_record(
+    client, servant_token, sample_attendance_record
+):
     """Test que seul le CENSEUR peut modifier un enregistrement."""
     response = await client.patch(
         f"/api/v1/attendance-sessions/records/{sample_attendance_record.id}",
@@ -79,12 +83,16 @@ async def test_unauthenticated_cannot_access(client, sample_attendance_session):
     assert response.status_code == 401
 
     # Détail session
-    response = await client.get(f"/api/v1/attendance-sessions/{sample_attendance_session.id}")
+    response = await client.get(
+        f"/api/v1/attendance-sessions/{sample_attendance_session.id}"
+    )
     assert response.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_cannot_mark_duplicate_attendance(client, censeur_token, sample_attendance_session, servant_user):
+async def test_cannot_mark_duplicate_attendance(
+    client, censeur_token, sample_attendance_session, servant_user
+):
     """Test qu'on ne peut pas marquer deux fois la même présence."""
     # Premier marquage
     response = await client.post(
@@ -113,33 +121,41 @@ async def test_cannot_mark_duplicate_attendance(client, censeur_token, sample_at
 async def test_cannot_access_other_censeur_sessions(client, db_session, aumonier_user):
     """Test isolation des sessions entre censeurs."""
     from src.core.entities.attendance_session import AttendanceSession
-    from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
+    from src.core.entities.responsable import (
+        Nomination,
+        NominationStatus,
+        PosteResponsable,
+    )
     from src.core.entities.user import User, UserRole
     from src.infrastructure.repositories.user_repository import UserRepository
     from src.infrastructure.security.utils import SecurityUtils
 
     # Créer deux censeurs via le repository (pour que email_hmac soit renseigné)
     _repo = UserRepository(db_session)
-    censeur1 = await _repo.create(User(
-        id=uuid4(),
-        email="censeur1@test.com",
-        hashed_password=SecurityUtils.get_password_hash("TestPass1"),
-        first_name="Censeur1",
-        last_name="Test",
-        role=UserRole.SERVANT,
-        is_active=True,
-        phone_number="+237600000021",
-    ))
-    censeur2 = await _repo.create(User(
-        id=uuid4(),
-        email="censeur2@test.com",
-        hashed_password=SecurityUtils.get_password_hash("TestPass1"),
-        first_name="Censeur2",
-        last_name="Test",
-        role=UserRole.SERVANT,
-        is_active=True,
-        phone_number="+237600000022",
-    ))
+    censeur1 = await _repo.create(
+        User(
+            id=uuid4(),
+            email="censeur1@test.com",
+            hashed_password=SecurityUtils.get_password_hash("TestPass1"),
+            first_name="Censeur1",
+            last_name="Test",
+            role=UserRole.SERVANT,
+            is_active=True,
+            phone_number="+237600000021",
+        )
+    )
+    censeur2 = await _repo.create(
+        User(
+            id=uuid4(),
+            email="censeur2@test.com",
+            hashed_password=SecurityUtils.get_password_hash("TestPass1"),
+            first_name="Censeur2",
+            last_name="Test",
+            role=UserRole.SERVANT,
+            is_active=True,
+            phone_number="+237600000022",
+        )
+    )
 
     # Nominations
     nom1 = Nomination(
@@ -266,7 +282,9 @@ async def test_rate_limiting(client, censeur_token):
 
 
 @pytest.mark.asyncio
-async def test_invalid_status_values(client, censeur_token, sample_attendance_session, servant_user):
+async def test_invalid_status_values(
+    client, censeur_token, sample_attendance_session, servant_user
+):
     """Test validation des valeurs de statut."""
     response = await client.post(
         f"/api/v1/attendance-sessions/{sample_attendance_session.id}/records",
@@ -293,7 +311,9 @@ async def test_invalid_date_format(client, censeur_token):
 
 
 @pytest.mark.asyncio
-async def test_cannot_modify_past_sessions(client, censeur_token, db_session, censeur_user):
+async def test_cannot_modify_past_sessions(
+    client, censeur_token, db_session, censeur_user
+):
     """Test qu'on ne peut pas modifier des sessions trop anciennes."""
     from src.core.entities.attendance_session import AttendanceSession
 
@@ -342,23 +362,29 @@ async def test_token_expiration(client, censeur_user):
 @pytest.mark.asyncio
 async def test_censeur_adjoint_has_same_permissions(client, db_session, aumonier_user):
     """Test que le CENSEUR_ADJOINT a les mêmes permissions."""
-    from src.core.entities.responsable import Nomination, NominationStatus, PosteResponsable
+    from src.core.entities.responsable import (
+        Nomination,
+        NominationStatus,
+        PosteResponsable,
+    )
     from src.core.entities.user import User, UserRole
     from src.infrastructure.repositories.user_repository import UserRepository
     from src.infrastructure.security.utils import SecurityUtils
     from tests.conftest import make_access_token
 
     # Créer un censeur adjoint via le repository (pour que email_hmac soit renseigné)
-    censeur_adj = await UserRepository(db_session).create(User(
-        id=uuid4(),
-        email="censeur.adj@test.com",
-        hashed_password=SecurityUtils.get_password_hash("TestPass1"),
-        first_name="CenseurAdj",
-        last_name="Test",
-        role=UserRole.SERVANT,
-        is_active=True,
-        phone_number="+237600000023",
-    ))
+    censeur_adj = await UserRepository(db_session).create(
+        User(
+            id=uuid4(),
+            email="censeur.adj@test.com",
+            hashed_password=SecurityUtils.get_password_hash("TestPass1"),
+            first_name="CenseurAdj",
+            last_name="Test",
+            role=UserRole.SERVANT,
+            is_active=True,
+            phone_number="+237600000023",
+        )
+    )
 
     # Nomination
     nomination = Nomination(

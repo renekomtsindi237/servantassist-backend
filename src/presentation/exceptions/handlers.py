@@ -50,8 +50,10 @@ def _new_id() -> str:
 
 def _client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
-    return forwarded.split(",")[0].strip() if forwarded else (
-        request.client.host if request.client else "unknown"
+    return (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else "unknown")
     )
 
 
@@ -131,10 +133,12 @@ async def validation_exception_handler(
         locs = [str(loc) for loc in err["loc"] if loc != "body"]
         raw_field = locs[-1] if locs else "body"
         label = _FIELD_LABELS.get(raw_field, raw_field.replace("_", " "))
-        errors.append({
-            "champ": label,
-            "message": _translate_pydantic(err),
-        })
+        errors.append(
+            {
+                "champ": label,
+                "message": _translate_pydantic(err),
+            }
+        )
 
     logger.bind(
         event="validation_error",
@@ -151,9 +155,7 @@ async def validation_exception_handler(
 
 
 # ── Handler 2 : HTTPException FastAPI/Starlette ───────────────────────────
-async def http_exception_handler(
-    request: Request, exc: HTTPException
-) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """
     Gère les HTTPException levées dans les routes et dépendances.
     Ajoute un error_id pour les 5xx.
@@ -258,9 +260,7 @@ async def sqlalchemy_exception_handler(
 
 
 # ── Handler 5 : Exception générique non catchée ────────────────────────────
-async def unhandled_exception_handler(
-    request: Request, exc: Exception
-) -> JSONResponse:
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """
     Filet de sécurité final — ne laisse jamais fuiter de stack trace.
     Toujours loggé en ERROR pour Sentry / alerting.

@@ -28,13 +28,15 @@ logger = logging.getLogger(__name__)
 
 # ── Handlers Audit ────────────────────────────────────────────────────────────
 
+
 @event_bus.handler(UserRegistered)
 async def audit_user_registered(event: UserRegistered) -> None:
     logger.info(
         "AUDIT | UserRegistered | user_id=%s role=%s by_admin=%s",
-        event.user_id, event.role, event.created_by_admin,
+        event.user_id,
+        event.role,
+        event.created_by_admin,
     )
-
 
 
 @event_bus.handler(UserRegistered)
@@ -56,7 +58,9 @@ async def notify_user_registered(event: UserRegistered) -> None:
 async def audit_user_invited(event: UserInvited) -> None:
     logger.info(
         "AUDIT | UserInvited | invitation=%s by=%s role=%s",
-        event.invitation_id, event.created_by_id, event.role,
+        event.invitation_id,
+        event.created_by_id,
+        event.role,
     )
 
 
@@ -64,7 +68,8 @@ async def audit_user_invited(event: UserInvited) -> None:
 async def audit_password_reset(event: PasswordReset) -> None:
     logger.info(
         "AUDIT | PasswordReset | user_id=%s by_admin=%s",
-        event.user_id, event.reset_by_admin_id,
+        event.user_id,
+        event.reset_by_admin_id,
     )
 
 
@@ -72,7 +77,8 @@ async def audit_password_reset(event: PasswordReset) -> None:
 async def audit_user_deactivated(event: UserDeactivated) -> None:
     logger.info(
         "AUDIT | UserDeactivated | user_id=%s by=%s",
-        event.user_id, event.deactivated_by_id,
+        event.user_id,
+        event.deactivated_by_id,
     )
 
 
@@ -85,7 +91,8 @@ async def audit_user_activated(event: UserActivated) -> None:
 async def audit_user_deleted(event: UserDeleted) -> None:
     logger.info(
         "AUDIT | UserDeleted | user_id=%s by=%s",
-        event.user_id, event.deleted_by_id,
+        event.user_id,
+        event.deleted_by_id,
     )
 
 
@@ -93,8 +100,10 @@ async def audit_user_deleted(event: UserDeleted) -> None:
 async def audit_discipline_case_opened(event: DisciplineCaseOpened) -> None:
     logger.info(
         "AUDIT | DisciplineCaseOpened | case=%s accused=%s category=%s by=%s",
-        event.case_id, event.accused_user_id,
-        event.offense_category, event.opened_by_id,
+        event.case_id,
+        event.accused_user_id,
+        event.offense_category,
+        event.opened_by_id,
     )
 
 
@@ -102,8 +111,10 @@ async def audit_discipline_case_opened(event: DisciplineCaseOpened) -> None:
 async def audit_discipline_sanction(event: DisciplineSanctionIssued) -> None:
     logger.info(
         "AUDIT | DisciplineSanctionIssued | case=%s accused=%s sanction=%s by=%s",
-        event.case_id, event.accused_user_id,
-        event.sanction_type, event.issued_by_id,
+        event.case_id,
+        event.accused_user_id,
+        event.sanction_type,
+        event.issued_by_id,
     )
 
 
@@ -111,14 +122,17 @@ async def audit_discipline_sanction(event: DisciplineSanctionIssued) -> None:
 async def audit_attendance_recorded(event: AttendanceRecorded) -> None:
     logger.debug(
         "AUDIT | AttendanceRecorded | id=%s user=%s type=%s status=%s",
-        event.attendance_id, event.user_id,
-        event.attendance_type, event.status,
+        event.attendance_id,
+        event.user_id,
+        event.attendance_type,
+        event.status,
     )
 
 
 # ── Handlers Notification (hooks futurs) ──────────────────────────────────────
 # Ces handlers peuvent envoyer des emails/WhatsApp quand l'infrastructure
 # de notification est configurée. Actuellement ils loguent uniquement.
+
 
 @event_bus.handler(UserInvited)
 async def notify_user_invited(event: UserInvited) -> None:
@@ -127,6 +141,7 @@ async def notify_user_invited(event: UserInvited) -> None:
         return
     try:
         from src.infrastructure.services.email_service import EmailService
+
         await EmailService().send_general_notification(
             to_email=event.email,
             user_first_name=event.email.split("@")[0].capitalize(),
@@ -164,4 +179,6 @@ def register_all_handlers() -> None:
     l'import du module, donc il suffit d'importer ce fichier.
     Cette fonction existe pour rendre l'intention explicite dans main.py.
     """
-    logger.info("EventBus: %d event types have registered handlers", len(event_bus._handlers))
+    logger.info(
+        "EventBus: %d event types have registered handlers", len(event_bus._handlers)
+    )

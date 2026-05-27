@@ -9,7 +9,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from src.core.entities.event import EventStatus, EventType, ParticipantRole, ParticipantStatus
+from src.core.entities.event import (
+    EventStatus,
+    EventType,
+    ParticipantRole,
+    ParticipantStatus,
+)
 from src.core.utils import maybe_to_naive_utc, to_naive_utc
 
 # ═══════════════════════════════════════════════════════════════════════════

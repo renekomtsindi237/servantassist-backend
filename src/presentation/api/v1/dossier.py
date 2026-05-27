@@ -12,7 +12,9 @@ from sqlalchemy import select, func, and_
 from src.core.entities.attendance_session import AttendanceRecord, AttendanceStatus
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.attendance_session_repository import AttendanceSessionRepository
+from src.infrastructure.repositories.attendance_session_repository import (
+    AttendanceSessionRepository,
+)
 from src.infrastructure.repositories.responsable_repository import NominationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.security.field_encryption import decrypt_str_fields
@@ -97,6 +99,7 @@ async def get_dossier(
     cotisations: list[DossierCotisation] = []
     try:
         from src.core.entities.cotisation import MemberCotisation, CotisationPeriod
+
         cot_result = await session.execute(
             select(MemberCotisation, CotisationPeriod)
             .join(CotisationPeriod, MemberCotisation.period_id == CotisationPeriod.id)
@@ -105,14 +108,18 @@ async def get_dossier(
             .limit(10)
         )
         for cot, period in cot_result.all():
-            cotisations.append(DossierCotisation(
-                id=cot.id,
-                period_label=f"{period.name}" if hasattr(period, "name") else str(period.id),
-                amount_due=float(getattr(period, "amount", 0)),
-                amount_paid=float(getattr(cot, "amount_paid", 0)),
-                status=getattr(cot, "status", "UNKNOWN"),
-                paid_at=getattr(cot, "paid_at", None),
-            ))
+            cotisations.append(
+                DossierCotisation(
+                    id=cot.id,
+                    period_label=f"{period.name}"
+                    if hasattr(period, "name")
+                    else str(period.id),
+                    amount_due=float(getattr(period, "amount", 0)),
+                    amount_paid=float(getattr(cot, "amount_paid", 0)),
+                    status=getattr(cot, "status", "UNKNOWN"),
+                    paid_at=getattr(cot, "paid_at", None),
+                )
+            )
     except Exception:
         pass
 
@@ -120,6 +127,7 @@ async def get_dossier(
     trainings: list[DossierTraining] = []
     try:
         from src.core.entities.training import Training, TrainingParticipant
+
         train_result = await session.execute(
             select(Training)
             .join(TrainingParticipant, TrainingParticipant.training_id == Training.id)
@@ -128,12 +136,14 @@ async def get_dossier(
             .limit(10)
         )
         for t in train_result.scalars().all():
-            trainings.append(DossierTraining(
-                id=t.id,
-                title=t.title,
-                training_date=getattr(t, "training_date", None),
-                status=getattr(t, "status", "UNKNOWN"),
-            ))
+            trainings.append(
+                DossierTraining(
+                    id=t.id,
+                    title=t.title,
+                    training_date=getattr(t, "training_date", None),
+                    status=getattr(t, "status", "UNKNOWN"),
+                )
+            )
     except Exception:
         pass
 
@@ -141,6 +151,7 @@ async def get_dossier(
     discipline_cases: list[DossierDiscipline] = []
     try:
         from src.core.entities.discipline import DisciplineCase
+
         disc_result = await session.execute(
             select(DisciplineCase)
             .where(DisciplineCase.servant_id == user_id)
@@ -148,35 +159,46 @@ async def get_dossier(
             .limit(10)
         )
         for d in disc_result.scalars().all():
-            discipline_cases.append(DossierDiscipline(
-                id=d.id,
-                incident_type=getattr(d, "incident_type", ""),
-                incident_date=getattr(d, "incident_date", None),
-                sanction=getattr(d, "sanction", None),
-                status=getattr(d, "status", "UNKNOWN"),
-            ))
+            discipline_cases.append(
+                DossierDiscipline(
+                    id=d.id,
+                    incident_type=getattr(d, "incident_type", ""),
+                    incident_date=getattr(d, "incident_date", None),
+                    sanction=getattr(d, "sanction", None),
+                    status=getattr(d, "status", "UNKNOWN"),
+                )
+            )
     except Exception:
         pass
 
     # ── Sport & Culture ────────────────────────────────────────────
     sport_culture: list[DossierSportCulture] = []
     try:
-        from src.core.entities.sport_culture import SportCultureEvent, SportCultureParticipation
+        from src.core.entities.sport_culture import (
+            SportCultureEvent,
+            SportCultureParticipation,
+        )
+
         sc_result = await session.execute(
             select(SportCultureEvent, SportCultureParticipation)
-            .join(SportCultureParticipation, SportCultureParticipation.event_id == SportCultureEvent.id)
+            .join(
+                SportCultureParticipation,
+                SportCultureParticipation.event_id == SportCultureEvent.id,
+            )
             .where(SportCultureParticipation.servant_id == user_id)
             .order_by(SportCultureEvent.event_date.desc())
             .limit(10)
         )
         for evt, part in sc_result.all():
-            sport_culture.append(DossierSportCulture(
-                id=part.id,
-                event_title=evt.title,
-                event_date=getattr(evt, "event_date", None),
-                role=getattr(part, "role", None),
-                result=getattr(part, "result", None),
-            ))
+            sport_culture.append(
+                DossierSportCulture(
+                    id=part.id,
+                    event_title=evt.title,
+                    event_date=getattr(evt, "event_date", None),
+                    role=getattr(part, "role", None),
+                    result=getattr(part, "result", None),
+                )
+            )
     except Exception:
         pass
 

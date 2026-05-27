@@ -54,8 +54,8 @@ class InvitationCode(SQLModel, table=True):
 
     # Usage tracking
     used_by: Optional[UUID] = Field(
-    default=None,
-     foreign_key="users.id")  # Who accepted this invitation
+        default=None, foreign_key="users.id"
+    )  # Who accepted this invitation
     used_at: Optional[datetime] = Field(default=None)
 
     # Metadata

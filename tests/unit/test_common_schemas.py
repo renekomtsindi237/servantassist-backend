@@ -32,9 +32,9 @@ from src.presentation.schemas.common import (
 #  PageLinks
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestPageLinks:
-
     def test_all_fields_optional(self):
         links = PageLinks()
         assert links.first is None
@@ -63,9 +63,9 @@ class TestPageLinks:
 #  PaginatedResponse
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestPaginatedResponse:
-
     def test_basic_construction(self):
         resp = PaginatedResponse[str](
             items=["a", "b"],
@@ -80,7 +80,9 @@ class TestPaginatedResponse:
         assert resp.links is None
 
     def test_links_optional(self):
-        resp = PaginatedResponse[int](items=[], total=0, page=1, page_size=20, total_pages=1)
+        resp = PaginatedResponse[int](
+            items=[], total=0, page=1, page_size=20, total_pages=1
+        )
         assert resp.links is None
 
     def test_with_links(self):
@@ -102,7 +104,9 @@ class TestPaginatedResponse:
 
     def test_generic_type_works_with_dicts(self):
         items = [{"id": 1, "name": "foo"}, {"id": 2, "name": "bar"}]
-        resp = PaginatedResponse[dict](items=items, total=2, page=1, page_size=20, total_pages=1)
+        resp = PaginatedResponse[dict](
+            items=items, total=2, page=1, page_size=20, total_pages=1
+        )
         assert resp.items[0]["name"] == "foo"
         assert len(resp.items) == 2
 
@@ -111,9 +115,9 @@ class TestPaginatedResponse:
 #  build_paginated_response
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestBuildPaginatedResponse:
-
     def test_returns_dict(self):
         result = build_paginated_response(["a"], total=1, page=1, page_size=20)
         assert isinstance(result, dict)
@@ -146,7 +150,9 @@ class TestBuildPaginatedResponse:
             query_params = {}
             url = MockURL()
 
-        result = build_paginated_response([], total=100, page=2, page_size=20, request=MockRequest())
+        result = build_paginated_response(
+            [], total=100, page=2, page_size=20, request=MockRequest()
+        )
         assert result["links"] is not None
 
     def test_links_first_page(self):
@@ -157,7 +163,9 @@ class TestBuildPaginatedResponse:
             query_params = {}
             url = MockURL()
 
-        result = build_paginated_response([], total=100, page=1, page_size=20, request=MockRequest())
+        result = build_paginated_response(
+            [], total=100, page=1, page_size=20, request=MockRequest()
+        )
         links = result["links"]
         assert links.first is not None
         assert links.prev is None  # pas de page précédente
@@ -171,7 +179,9 @@ class TestBuildPaginatedResponse:
             query_params = {}
             url = MockURL()
 
-        result = build_paginated_response([], total=20, page=1, page_size=20, request=MockRequest())
+        result = build_paginated_response(
+            [], total=20, page=1, page_size=20, request=MockRequest()
+        )
         links = result["links"]
         assert links.next is None  # unique page
 
@@ -183,7 +193,9 @@ class TestBuildPaginatedResponse:
             query_params = {"role": "ADMIN", "page": "2", "page_size": "20"}
             url = MockURL()
 
-        result = build_paginated_response([], total=100, page=2, page_size=20, request=MockRequest())
+        result = build_paginated_response(
+            [], total=100, page=2, page_size=20, request=MockRequest()
+        )
         links = result["links"]
         assert "role=ADMIN" in links.first
         assert "role=ADMIN" in links.last
@@ -196,7 +208,9 @@ class TestBuildPaginatedResponse:
             query_params = {}
             url = MockURL()
 
-        result = build_paginated_response([], total=100, page=3, page_size=20, request=MockRequest())
+        result = build_paginated_response(
+            [], total=100, page=3, page_size=20, request=MockRequest()
+        )
         links = result["links"]
         assert "page=3" in links.self
 
@@ -205,9 +219,9 @@ class TestBuildPaginatedResponse:
 #  ResourceLink / make_link
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestResourceLink:
-
     def test_default_method_is_get(self):
         link = ResourceLink(href="/api/v1/users/1")
         assert link.method == "GET"
@@ -233,9 +247,9 @@ class TestResourceLink:
 #  Helper link builders
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestLinkBuilders:
-
     def test_user_links_has_self(self):
         uid = uuid4()
         links = user_links(uid)
@@ -287,9 +301,9 @@ class TestLinkBuilders:
 #  ApiError / ErrorCode
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestApiError:
-
     def test_minimal_construction(self):
         err = ApiError(detail="Something went wrong")
         assert err.detail == "Something went wrong"
@@ -306,7 +320,9 @@ class TestApiError:
         assert err.field == "email"
 
     def test_with_error_id(self):
-        err = ApiError(detail="Internal error", code=ErrorCode.INTERNAL, error_id="req-abc123")
+        err = ApiError(
+            detail="Internal error", code=ErrorCode.INTERNAL, error_id="req-abc123"
+        )
         assert err.error_id == "req-abc123"
 
     def test_json_serializable(self):
@@ -318,7 +334,6 @@ class TestApiError:
 
 @pytest.mark.unit
 class TestErrorCode:
-
     def test_not_found(self):
         assert ErrorCode.NOT_FOUND == "NOT_FOUND"
 

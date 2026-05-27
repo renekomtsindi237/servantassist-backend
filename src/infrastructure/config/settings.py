@@ -27,8 +27,8 @@ class Settings(BaseSettings):
 
     # ── Supabase (staging + production) ───────────────────────────────
     # Tableau de bord Supabase → Settings → API
-    SUPABASE_URL: str = ""             # https://[project-ref].supabase.co
-    SUPABASE_ANON_KEY: str = ""        # clé publique (safe côté client)
+    SUPABASE_URL: str = ""  # https://[project-ref].supabase.co
+    SUPABASE_ANON_KEY: str = ""  # clé publique (safe côté client)
     SUPABASE_SERVICE_ROLE_KEY: str = ""  # clé secrète (côté serveur uniquement)
 
     # Connexion directe à la base Supabase (utilisée par Alembic/migrations)
@@ -73,8 +73,12 @@ class Settings(BaseSettings):
     CLOUDFLARE_R2_BUCKET_TASKS: str = ""  # photos avant-après tâches entretien
     CLOUDFLARE_R2_BUCKET_REPORTS: str = ""  # pièces jointes rapports (secrétariat)
     CLOUDFLARE_R2_BUCKET_TRAINING: str = ""  # supports formation
-    CLOUDFLARE_R2_BUCKET_DOCUMENTS: str = ""  # documents génériques (hors rapports/formation)
-    CLOUDFLARE_R2_BUCKET_COMMUNICATION: str = ""  # PJ notifications, campagnes, médias comms
+    CLOUDFLARE_R2_BUCKET_DOCUMENTS: str = (
+        ""  # documents génériques (hors rapports/formation)
+    )
+    CLOUDFLARE_R2_BUCKET_COMMUNICATION: str = (
+        ""  # PJ notifications, campagnes, médias comms
+    )
     CLOUDFLARE_R2_BUCKET_EXPORTS: str = ""  # exports CSV, fichiers temporaires export
     CLOUDFLARE_R2_BUCKET_BACKUPS: str = ""  # sauvegardes applicatives (optionnel)
     # URL publique par défaut (sans slash final). Domains ou pub-xxx.r2.dev
@@ -115,9 +119,7 @@ class Settings(BaseSettings):
     TWILIO_WHATSAPP_FROM: str = ""  # Format: "whatsapp:+237xxxxxxxxx"
 
     # CORS
-    CORS_ORIGINS: List[str] = [
-    "http://localhost:3000",
-     "http://localhost:3001"]
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
 
     # Security
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
@@ -128,8 +130,8 @@ class Settings(BaseSettings):
     LOGIN_LOCKOUT_SECONDS: int = 60  # Duree du premier palier de verrouillage
 
     # Rate limiting
-    RATE_LIMIT_AUTH: int = 5       # Requêtes/min sur les endpoints auth
-    RATE_LIMIT_GLOBAL: int = 60    # Requêtes/min global par IP
+    RATE_LIMIT_AUTH: int = 5  # Requêtes/min sur les endpoints auth
+    RATE_LIMIT_GLOBAL: int = 60  # Requêtes/min global par IP
     # True en staging/prod (derrière Nginx-lb) — False en dev direct
     TRUST_PROXY_HEADERS: bool = False
 

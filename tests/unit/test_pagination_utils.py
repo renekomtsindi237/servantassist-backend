@@ -22,9 +22,9 @@ from src.core.utils.pagination import (
 #  PageParams
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestPageParams:
-
     def test_defaults(self):
         p = PageParams()
         assert p.page == 1
@@ -107,9 +107,9 @@ class TestPageParams:
 #  build_link_header
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestBuildLinkHeader:
-
     def _parse(self, header: str) -> dict:
         """Transforme le header Link en {rel: url}."""
         result = {}
@@ -177,9 +177,9 @@ class TestBuildLinkHeader:
 #  paginate()
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.unit
 class TestPaginate:
-
     def test_returns_pagination_result(self):
         result = paginate(["a", "b"], total=2, page=1, page_size=20)
         assert isinstance(result, PaginationResult)
@@ -221,8 +221,11 @@ class TestPaginate:
 
     def test_with_mock_request_adds_link_header(self):
         class MockQueryParams:
-            def __init__(self): pass
-            def items(self): return [("role", "ADMIN")]
+            def __init__(self):
+                pass
+
+            def items(self):
+                return [("role", "ADMIN")]
 
         class MockURL:
             path = "/api/v1/users"

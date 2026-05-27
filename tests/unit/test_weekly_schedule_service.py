@@ -8,7 +8,10 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.application.services.weekly_schedule_service import WeeklyScheduleService, is_within_mass_window
+from src.application.services.weekly_schedule_service import (
+    WeeklyScheduleService,
+    is_within_mass_window,
+)
 from src.core.entities.user import User, UserRole
 from src.core.entities.weekly_schedule import (
     MassTime,
@@ -18,7 +21,10 @@ from src.core.entities.weekly_schedule import (
     WeeklyScheduleSlot,
     WeeklyScheduleTemplate,
 )
-from src.presentation.schemas.weekly_schedule import SlotServantCreate, WeeklyScheduleTemplateCreate
+from src.presentation.schemas.weekly_schedule import (
+    SlotServantCreate,
+    WeeklyScheduleTemplateCreate,
+)
 
 
 @pytest.fixture
@@ -92,7 +98,9 @@ async def test_create_template_success(service, mock_schedule_repo, sample_templ
 
 
 @pytest.mark.asyncio
-async def test_add_servant_to_slot_outside_window(service, mock_schedule_repo, sample_template):
+async def test_add_servant_to_slot_outside_window(
+    service, mock_schedule_repo, sample_template
+):
     slot_id = uuid4()
     slot = WeeklyScheduleSlot(
         id=slot_id,

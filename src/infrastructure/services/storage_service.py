@@ -41,37 +41,43 @@ from src.infrastructure.config.settings import get_settings
 # ── Préfixes d'objets par domaine ────────────────────────────────────────────
 
 # Domaine Images
-FOLDER_PROFILES  = "images/profiles"
+FOLDER_PROFILES = "images/profiles"
 FOLDER_MATERIALS = "images/materials"
-FOLDER_TASKS     = "images/tasks"
+FOLDER_TASKS = "images/tasks"
 
 # Domaine Documents
-FOLDER_REPORTS   = "documents/reports"
-FOLDER_TRAINING  = "documents/training"
+FOLDER_REPORTS = "documents/reports"
+FOLDER_TRAINING = "documents/training"
 FOLDER_DOCUMENTS = "documents/general"
 
 # Domaines autonomes
 FOLDER_COMMUNICATION = "communication"
-FOLDER_EXPORTS       = "exports"
-FOLDER_BACKUPS       = "backups"
+FOLDER_EXPORTS = "exports"
+FOLDER_BACKUPS = "backups"
 
 # Lookup ordonné du plus spécifique au plus court — utilisé par _bucket_from_object_key
 _ALL_FOLDERS = (
-    FOLDER_PROFILES,  FOLDER_MATERIALS, FOLDER_TASKS,
-    FOLDER_REPORTS,   FOLDER_TRAINING,  FOLDER_DOCUMENTS,
-    FOLDER_COMMUNICATION, FOLDER_EXPORTS, FOLDER_BACKUPS,
+    FOLDER_PROFILES,
+    FOLDER_MATERIALS,
+    FOLDER_TASKS,
+    FOLDER_REPORTS,
+    FOLDER_TRAINING,
+    FOLDER_DOCUMENTS,
+    FOLDER_COMMUNICATION,
+    FOLDER_EXPORTS,
+    FOLDER_BACKUPS,
 )
 
 # ── Types MIME autorisés ─────────────────────────────────────────────────────
 
 _IMAGE_TYPES: dict[str, str] = {
     "image/jpeg": "jpg",
-    "image/png":  "png",
+    "image/png": "png",
     "image/webp": "webp",
 }
 
 _DOCUMENT_TYPES: dict[str, str] = {
-    "application/pdf":  "pdf",
+    "application/pdf": "pdf",
     "application/msword": "doc",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
 }
@@ -87,10 +93,10 @@ _EXPORT_TYPES: dict[str, str] = {
 
 # ── Limites de taille par domaine ────────────────────────────────────────────
 
-_IMAGE_MAX_BYTES    =  5 * 1024 * 1024   #   5 Mo — photos
-_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024   #  10 Mo — documents / communication
-_EXPORT_MAX_BYTES   = 50 * 1024 * 1024   #  50 Mo — exports
-_BACKUP_MAX_BYTES   = 100 * 1024 * 1024  # 100 Mo — sauvegardes
+_IMAGE_MAX_BYTES = 5 * 1024 * 1024  #   5 Mo — photos
+_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024  #  10 Mo — documents / communication
+_EXPORT_MAX_BYTES = 50 * 1024 * 1024  #  50 Mo — exports
+_BACKUP_MAX_BYTES = 100 * 1024 * 1024  # 100 Mo — sauvegardes
 
 # ── Stockage local (dev sans R2) ─────────────────────────────────────────────
 
@@ -157,21 +163,21 @@ class StorageService:
         Gère les dossiers nommés (FOLDER_*) ET les dossiers dynamiques
         créés par _resolve_folder (ex: "images/reports", "documents/tasks").
         """
-        s         = self._settings
-        default   = self._default_bucket()
-        images    = s.CLOUDFLARE_R2_BUCKET_IMAGES    or default
+        s = self._settings
+        default = self._default_bucket()
+        images = s.CLOUDFLARE_R2_BUCKET_IMAGES or default
         documents = s.CLOUDFLARE_R2_BUCKET_DOCUMENTS or default
 
         named = {
-            FOLDER_PROFILES:      s.CLOUDFLARE_R2_BUCKET_PROFILES      or images,
-            FOLDER_MATERIALS:     s.CLOUDFLARE_R2_BUCKET_MATERIALS      or images,
-            FOLDER_TASKS:         s.CLOUDFLARE_R2_BUCKET_TASKS          or images,
-            FOLDER_REPORTS:       s.CLOUDFLARE_R2_BUCKET_REPORTS        or documents,
-            FOLDER_TRAINING:      s.CLOUDFLARE_R2_BUCKET_TRAINING       or documents,
-            FOLDER_DOCUMENTS:     documents,
-            FOLDER_COMMUNICATION: s.CLOUDFLARE_R2_BUCKET_COMMUNICATION  or default,
-            FOLDER_EXPORTS:       s.CLOUDFLARE_R2_BUCKET_EXPORTS        or default,
-            FOLDER_BACKUPS:       s.CLOUDFLARE_R2_BUCKET_BACKUPS        or default,
+            FOLDER_PROFILES: s.CLOUDFLARE_R2_BUCKET_PROFILES or images,
+            FOLDER_MATERIALS: s.CLOUDFLARE_R2_BUCKET_MATERIALS or images,
+            FOLDER_TASKS: s.CLOUDFLARE_R2_BUCKET_TASKS or images,
+            FOLDER_REPORTS: s.CLOUDFLARE_R2_BUCKET_REPORTS or documents,
+            FOLDER_TRAINING: s.CLOUDFLARE_R2_BUCKET_TRAINING or documents,
+            FOLDER_DOCUMENTS: documents,
+            FOLDER_COMMUNICATION: s.CLOUDFLARE_R2_BUCKET_COMMUNICATION or default,
+            FOLDER_EXPORTS: s.CLOUDFLARE_R2_BUCKET_EXPORTS or default,
+            FOLDER_BACKUPS: s.CLOUDFLARE_R2_BUCKET_BACKUPS or default,
         }
         if folder in named:
             return named[folder]
@@ -193,21 +199,25 @@ class StorageService:
 
     def _public_base_for_folder(self, folder: str) -> str:
         """Même logique que _bucket_for_folder, appliquée aux URL publiques."""
-        s         = self._settings
-        default   = s.CLOUDFLARE_R2_PUBLIC_URL.rstrip("/")
-        images    = (s.CLOUDFLARE_R2_PUBLIC_URL_IMAGES    or s.CLOUDFLARE_R2_PUBLIC_URL).rstrip("/")
-        documents = (s.CLOUDFLARE_R2_PUBLIC_URL_DOCUMENTS or s.CLOUDFLARE_R2_PUBLIC_URL).rstrip("/")
+        s = self._settings
+        default = s.CLOUDFLARE_R2_PUBLIC_URL.rstrip("/")
+        images = (
+            s.CLOUDFLARE_R2_PUBLIC_URL_IMAGES or s.CLOUDFLARE_R2_PUBLIC_URL
+        ).rstrip("/")
+        documents = (
+            s.CLOUDFLARE_R2_PUBLIC_URL_DOCUMENTS or s.CLOUDFLARE_R2_PUBLIC_URL
+        ).rstrip("/")
 
         named = {
-            FOLDER_PROFILES:      s.CLOUDFLARE_R2_PUBLIC_URL_PROFILES      or images,
-            FOLDER_MATERIALS:     s.CLOUDFLARE_R2_PUBLIC_URL_MATERIALS      or images,
-            FOLDER_TASKS:         s.CLOUDFLARE_R2_PUBLIC_URL_TASKS          or images,
-            FOLDER_REPORTS:       s.CLOUDFLARE_R2_PUBLIC_URL_REPORTS        or documents,
-            FOLDER_TRAINING:      s.CLOUDFLARE_R2_PUBLIC_URL_TRAINING       or documents,
-            FOLDER_DOCUMENTS:     documents,
-            FOLDER_COMMUNICATION: s.CLOUDFLARE_R2_PUBLIC_URL_COMMUNICATION  or default,
-            FOLDER_EXPORTS:       s.CLOUDFLARE_R2_PUBLIC_URL_EXPORTS        or default,
-            FOLDER_BACKUPS:       s.CLOUDFLARE_R2_PUBLIC_URL_BACKUPS        or default,
+            FOLDER_PROFILES: s.CLOUDFLARE_R2_PUBLIC_URL_PROFILES or images,
+            FOLDER_MATERIALS: s.CLOUDFLARE_R2_PUBLIC_URL_MATERIALS or images,
+            FOLDER_TASKS: s.CLOUDFLARE_R2_PUBLIC_URL_TASKS or images,
+            FOLDER_REPORTS: s.CLOUDFLARE_R2_PUBLIC_URL_REPORTS or documents,
+            FOLDER_TRAINING: s.CLOUDFLARE_R2_PUBLIC_URL_TRAINING or documents,
+            FOLDER_DOCUMENTS: documents,
+            FOLDER_COMMUNICATION: s.CLOUDFLARE_R2_PUBLIC_URL_COMMUNICATION or default,
+            FOLDER_EXPORTS: s.CLOUDFLARE_R2_PUBLIC_URL_EXPORTS or default,
+            FOLDER_BACKUPS: s.CLOUDFLARE_R2_PUBLIC_URL_BACKUPS or default,
         }
         if folder in named:
             return (named[folder] or default).rstrip("/")
@@ -264,6 +274,7 @@ class StorageService:
 
     def _get_r2_client(self):
         import boto3
+
         return boto3.client(
             "s3",
             endpoint_url=self._settings.CLOUDFLARE_R2_ENDPOINT,
@@ -320,7 +331,7 @@ class StorageService:
         return url
 
     async def _delete_local(self, object_key: str) -> None:
-        base     = _LOCAL_BASE.resolve()
+        base = _LOCAL_BASE.resolve()
         filepath = (base / object_key).resolve()
         if not str(filepath).startswith(str(base)):
             logger.warning("Path traversal bloqué | key={k}", k=object_key)
@@ -350,7 +361,9 @@ class StorageService:
                 f"Acceptés : {', '.join(allowed_types)}."
             )
         safe_owner = "".join(c for c in str(owner_id) if c.isalnum() or c == "-")
-        object_key = f"{folder}/{safe_owner}/{uuid.uuid4().hex}.{allowed_types[content_type]}"
+        object_key = (
+            f"{folder}/{safe_owner}/{uuid.uuid4().hex}.{allowed_types[content_type]}"
+        )
 
         if self._is_testing:
             logger.info("Upload simulé (testing) | key={k}", k=object_key)
@@ -358,7 +371,9 @@ class StorageService:
 
         if self._is_r2_configured:
             return await self._upload_to_r2(
-                file_data, object_key, content_type,
+                file_data,
+                object_key,
+                content_type,
                 bucket=self._bucket_for_folder(folder),
                 public_base=self._public_base_for_folder(folder),
             )
@@ -374,16 +389,20 @@ class StorageService:
             return
         for base in self._all_public_bases():
             if file_url.startswith(base + "/"):
-                object_key = file_url[len(base) + 1:]
+                object_key = file_url[len(base) + 1 :]
                 if self._is_r2_configured:
-                    await self._delete_from_r2(object_key, self._bucket_from_object_key(object_key))
+                    await self._delete_from_r2(
+                        object_key, self._bucket_from_object_key(object_key)
+                    )
                 else:
                     await self._delete_local(object_key)
                 return
         if file_url.startswith("/uploads/"):
-            await self._delete_local(file_url[len("/uploads/"):])
+            await self._delete_local(file_url[len("/uploads/") :])
         else:
-            logger.warning("URL non reconnue, suppression ignorée | url={u}", u=file_url)
+            logger.warning(
+                "URL non reconnue, suppression ignorée | url={u}", u=file_url
+            )
 
     # ── API publique — Domaine Images ─────────────────────────────────────────
 
@@ -392,8 +411,12 @@ class StorageService:
     ) -> str:
         """Photo de profil → images/profiles/{user_id}/{uuid}.ext"""
         return await self._upload(
-            FOLDER_PROFILES, user_id, file_data, content_type,
-            _IMAGE_TYPES, _IMAGE_MAX_BYTES,
+            FOLDER_PROFILES,
+            user_id,
+            file_data,
+            content_type,
+            _IMAGE_TYPES,
+            _IMAGE_MAX_BYTES,
         )
 
     async def upload_material_photo(
@@ -401,8 +424,12 @@ class StorageService:
     ) -> str:
         """Photo matériel → images/materials/{material_id}/{uuid}.ext"""
         return await self._upload(
-            FOLDER_MATERIALS, material_id, file_data, content_type,
-            _IMAGE_TYPES, _IMAGE_MAX_BYTES,
+            FOLDER_MATERIALS,
+            material_id,
+            file_data,
+            content_type,
+            _IMAGE_TYPES,
+            _IMAGE_MAX_BYTES,
         )
 
     async def upload_task_photo(
@@ -410,8 +437,12 @@ class StorageService:
     ) -> str:
         """Photo tâche (nettoyage/aubes avant-après) → images/tasks/{task_id}/{uuid}.ext"""
         return await self._upload(
-            FOLDER_TASKS, task_id, file_data, content_type,
-            _IMAGE_TYPES, _IMAGE_MAX_BYTES,
+            FOLDER_TASKS,
+            task_id,
+            file_data,
+            content_type,
+            _IMAGE_TYPES,
+            _IMAGE_MAX_BYTES,
         )
 
     async def upload_sport_culture_photo(
@@ -419,8 +450,12 @@ class StorageService:
     ) -> str:
         """Photo événement sport/culture → images/sport_culture/{event_id}/{uuid}.ext"""
         return await self._upload(
-            "images/sport_culture", event_id, file_data, content_type,
-            _IMAGE_TYPES, _IMAGE_MAX_BYTES,
+            "images/sport_culture",
+            event_id,
+            file_data,
+            content_type,
+            _IMAGE_TYPES,
+            _IMAGE_MAX_BYTES,
         )
 
     # ── API publique — Domaine Documents ──────────────────────────────────────
@@ -433,8 +468,12 @@ class StorageService:
         """PJ rapport — image → images/reports/, document → documents/reports/"""
         folder = self._resolve_folder("reports", content_type)
         return await self._upload(
-            folder, report_id, file_data, content_type,
-            _IMAGE_AND_DOCUMENT_TYPES, _DOCUMENT_MAX_BYTES,
+            folder,
+            report_id,
+            file_data,
+            content_type,
+            _IMAGE_AND_DOCUMENT_TYPES,
+            _DOCUMENT_MAX_BYTES,
         )
 
     async def upload_training_material(
@@ -443,8 +482,12 @@ class StorageService:
         """Support formation — image → images/training/, document → documents/training/"""
         folder = self._resolve_folder("training", content_type)
         return await self._upload(
-            folder, training_id, file_data, content_type,
-            _IMAGE_AND_DOCUMENT_TYPES, _DOCUMENT_MAX_BYTES,
+            folder,
+            training_id,
+            file_data,
+            content_type,
+            _IMAGE_AND_DOCUMENT_TYPES,
+            _DOCUMENT_MAX_BYTES,
         )
 
     async def upload_document(
@@ -453,8 +496,12 @@ class StorageService:
         """Document générique — image → images/general/, document → documents/general/"""
         folder = self._resolve_folder("general", content_type)
         return await self._upload(
-            folder, owner_id, file_data, content_type,
-            _IMAGE_AND_DOCUMENT_TYPES, _DOCUMENT_MAX_BYTES,
+            folder,
+            owner_id,
+            file_data,
+            content_type,
+            _IMAGE_AND_DOCUMENT_TYPES,
+            _DOCUMENT_MAX_BYTES,
         )
 
     # ── API publique — Domaine Communication ──────────────────────────────────
@@ -465,8 +512,12 @@ class StorageService:
         """Média campagne — image → images/communication/, document → documents/communication/"""
         folder = self._resolve_folder("communication", content_type)
         return await self._upload(
-            folder, campaign_id, file_data, content_type,
-            _IMAGE_AND_DOCUMENT_TYPES, _DOCUMENT_MAX_BYTES,
+            folder,
+            campaign_id,
+            file_data,
+            content_type,
+            _IMAGE_AND_DOCUMENT_TYPES,
+            _DOCUMENT_MAX_BYTES,
         )
 
     # ── API publique — Exports & Sauvegardes ──────────────────────────────────
@@ -476,8 +527,12 @@ class StorageService:
     ) -> str:
         """Fichier export → exports/{export_id}/{uuid}.ext"""
         return await self._upload(
-            FOLDER_EXPORTS, export_id, file_data, content_type,
-            _EXPORT_TYPES, _EXPORT_MAX_BYTES,
+            FOLDER_EXPORTS,
+            export_id,
+            file_data,
+            content_type,
+            _EXPORT_TYPES,
+            _EXPORT_MAX_BYTES,
         )
 
     async def upload_backup(
@@ -485,8 +540,12 @@ class StorageService:
     ) -> str:
         """Sauvegarde → backups/{backup_id}/{uuid}.ext"""
         return await self._upload(
-            FOLDER_BACKUPS, backup_id, file_data, content_type,
-            {**_EXPORT_TYPES, **_IMAGE_AND_DOCUMENT_TYPES}, _BACKUP_MAX_BYTES,
+            FOLDER_BACKUPS,
+            backup_id,
+            file_data,
+            content_type,
+            {**_EXPORT_TYPES, **_IMAGE_AND_DOCUMENT_TYPES},
+            _BACKUP_MAX_BYTES,
         )
 
     # ── API publique — Upload générique automatique ───────────────────────────
@@ -515,7 +574,9 @@ class StorageService:
             allowed, max_bytes = _EXPORT_TYPES, _EXPORT_MAX_BYTES
         else:
             allowed, max_bytes = _IMAGE_AND_DOCUMENT_TYPES, _DOCUMENT_MAX_BYTES
-        return await self._upload(folder, owner_id, file_data, content_type, allowed, max_bytes)
+        return await self._upload(
+            folder, owner_id, file_data, content_type, allowed, max_bytes
+        )
 
     # ── Suppression générique ─────────────────────────────────────────────────
 

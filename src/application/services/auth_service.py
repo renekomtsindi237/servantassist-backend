@@ -28,7 +28,8 @@ class AuthService:
         self.invitation_repository = invitation_repository
 
     async def authenticate_user(
-        self, login_data: Union[UserLogin, UserPhoneLogin]) -> User:
+        self, login_data: Union[UserLogin, UserPhoneLogin]
+    ) -> User:
         """
         Authenticate user based on role:
         - ADMIN/AUMÔNIER: Email login ONLY (via UserLogin)
@@ -68,8 +69,7 @@ class AuthService:
                 )
 
         # Verify password
-        if not SecurityUtils.verify_password(
-            login_data.password, user.hashed_password):
+        if not SecurityUtils.verify_password(login_data.password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect credentials",
@@ -108,9 +108,13 @@ class AuthService:
             )
 
         # Check phone uniqueness for PARENT/SERVANT
-        if user_create.role in [UserRole.PARENT,
-            UserRole.SERVANT] and user_create.phone_number:
-            existing_by_phone = await self.user_repository.get_by_phone(user_create.phone_number)
+        if (
+            user_create.role in [UserRole.PARENT, UserRole.SERVANT]
+            and user_create.phone_number
+        ):
+            existing_by_phone = await self.user_repository.get_by_phone(
+                user_create.phone_number
+            )
             if existing_by_phone:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -138,7 +142,9 @@ class AuthService:
                         detail="Le système d'invitation est temporairement indisponible.",
                     )
 
-                invitation = await self.invitation_repository.get_by_code(invitation_code)
+                invitation = await self.invitation_repository.get_by_code(
+                    invitation_code
+                )
                 if not invitation:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
@@ -153,7 +159,10 @@ class AuthService:
                     )
 
                 # If phone-specific invitation, verify match
-                if invitation.phone_number and invitation.phone_number != user_create.phone_number:
+                if (
+                    invitation.phone_number
+                    and invitation.phone_number != user_create.phone_number
+                ):
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="Ce code d'invitation n'est pas valide pour ce numéro de téléphone.",
@@ -211,16 +220,24 @@ class AuthService:
         created_user = await self.user_repository.create(db_user)
 
         # Mark invitation as used if applicable
-        if user_create.role == UserRole.PARENT and invitation_code and self.invitation_repository:
-            await self.invitation_repository.mark_as_used(invitation_code, created_user.id)
+        if (
+            user_create.role == UserRole.PARENT
+            and invitation_code
+            and self.invitation_repository
+        ):
+            await self.invitation_repository.mark_as_used(
+                invitation_code, created_user.id
+            )
 
-        await event_bus.publish(UserRegistered(
-            user_id=created_user.id,
-            email=user_create.email,
-            first_name=user_create.first_name,
-            role=user_create.role.value,
-            created_by_admin=admin_id is not None,
-        ))
+        await event_bus.publish(
+            UserRegistered(
+                user_id=created_user.id,
+                email=user_create.email,
+                first_name=user_create.first_name,
+                role=user_create.role.value,
+                created_by_admin=admin_id is not None,
+            )
+        )
         return created_user
 
     async def create_tokens(self, user: User) -> Token:
@@ -235,8 +252,9 @@ class AuthService:
             subject=user.email,
             role=user.role.value,
         )
-        return Token(access_token=access_token,
-                     refresh_token=refresh_token, token_type="bearer")
+        return Token(
+            access_token=access_token, refresh_token=refresh_token, token_type="bearer"
+        )
 
     async def refresh_token(self, refresh_token: str) -> Token:
         import time as _time
@@ -362,7 +380,8 @@ class AuthService:
         )
 
     async def reset_password(
-        self, token: str, new_password: str, email_service=None) -> None:
+        self, token: str, new_password: str, email_service=None
+    ) -> None:
         import time as _time
         from jose import JWTError, jwt
 
@@ -377,8 +396,8 @@ class AuthService:
         )
         try:
             payload = jwt.decode(
-    token, settings.JWT_SECRET_KEY, algorithms=[
-        settings.JWT_ALGORITHM])
+                token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+            )
             email: str = payload.get("sub")
             token_type: str = payload.get("type")
             jti: str | None = payload.get("jti")

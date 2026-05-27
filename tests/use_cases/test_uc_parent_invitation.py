@@ -23,7 +23,9 @@ from tests.conftest import VALID_PASSWORD, make_auth_header
 class TestParentInvitationFlow:
     """Parcours complet : admin crée invitation → parent s'inscrit → login."""
 
-    async def test_full_parent_invitation_flow(self, client: AsyncClient, admin_user: User):
+    async def test_full_parent_invitation_flow(
+        self, client: AsyncClient, admin_user: User
+    ):
         admin_headers = make_auth_header(admin_user)
 
         # ── Étape 1 : Admin crée un code invitation ──────────────────
@@ -32,7 +34,9 @@ class TestParentInvitationFlow:
             json={"role": "PARENT", "notes": "Test invitation"},
             headers=admin_headers,
         )
-        assert inv_resp.status_code == 201, f"Invitation creation failed: {inv_resp.text}"
+        assert (
+            inv_resp.status_code == 201
+        ), f"Invitation creation failed: {inv_resp.text}"
 
         invitation = inv_resp.json()
         assert invitation["role"] == "PARENT"
@@ -61,7 +65,9 @@ class TestParentInvitationFlow:
             "invitation_code": code,
         }
         reg_resp = await client.post("/api/v1/auth/register", json=parent_data)
-        assert reg_resp.status_code == 201, f"Parent registration failed: {reg_resp.text}"
+        assert (
+            reg_resp.status_code == 201
+        ), f"Parent registration failed: {reg_resp.text}"
 
         parent = reg_resp.json()
         assert parent["role"] == "PARENT"
@@ -117,7 +123,9 @@ class TestParentWithoutInvitation:
 class TestEmailLockedInvitation:
     """Invitation verrouillée sur un email spécifique."""
 
-    async def test_email_locked_invitation_wrong_email(self, client: AsyncClient, admin_user: User):
+    async def test_email_locked_invitation_wrong_email(
+        self, client: AsyncClient, admin_user: User
+    ):
         admin_headers = make_auth_header(admin_user)
 
         # Admin crée une invitation avec email spécifique
@@ -146,7 +154,9 @@ class TestEmailLockedInvitation:
         assert resp.status_code == 403
         assert "email" in resp.json()["detail"].lower()
 
-    async def test_email_locked_invitation_correct_email(self, client: AsyncClient, admin_user: User):
+    async def test_email_locked_invitation_correct_email(
+        self, client: AsyncClient, admin_user: User
+    ):
         admin_headers = make_auth_header(admin_user)
 
         inv_resp = await client.post(

@@ -7,7 +7,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.sport_culture import EventStatus, EventType, ParticipationStatus, ResultType, SportType
+from src.core.entities.sport_culture import (
+    EventStatus,
+    EventType,
+    ParticipationStatus,
+    ResultType,
+    SportType,
+)
 
 
 # ── Schémas de création - Événements ─────────────────────────────

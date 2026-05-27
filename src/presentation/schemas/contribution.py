@@ -24,7 +24,8 @@ class ContributionCreate(BaseModel):
     month: int = Field(ge=1, le=12, description="Mois (1-12)")
     year: int = Field(ge=2020, le=2100, description="Année")
     week_number: Optional[int] = Field(
-    None, ge=1, le=4, description="Semaine (1-4) si hebdomadaire")
+        None, ge=1, le=4, description="Semaine (1-4) si hebdomadaire"
+    )
     notes: Optional[str] = None
 
     @field_validator("week_number")
@@ -33,11 +34,11 @@ class ContributionCreate(BaseModel):
         """Valide que week_number est fourni pour paiement hebdomadaire."""
         payment_mode = info.data.get("payment_mode")
         if payment_mode == PaymentMode.WEEKLY and v is None:
-            raise ValueError(
-                "week_number est requis pour un paiement hebdomadaire")
+            raise ValueError("week_number est requis pour un paiement hebdomadaire")
         if payment_mode == PaymentMode.MONTHLY and v is not None:
             raise ValueError(
-                "week_number ne doit pas être fourni pour un paiement mensuel")
+                "week_number ne doit pas être fourni pour un paiement mensuel"
+            )
         return v
 
     @field_validator("amount")

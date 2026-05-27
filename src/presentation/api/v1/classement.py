@@ -41,14 +41,18 @@ async def require_classement_manager(
             detail="Accès réservé aux chargés de classement.",
         )
 
-    from src.infrastructure.repositories.responsable_repository import NominationRepository
+    from src.infrastructure.repositories.responsable_repository import (
+        NominationRepository,
+    )
 
     nom_repo = NominationRepository(session)
     nominations = await nom_repo.get_active_by_user(current_user.id)
     allowed = ("CHARGE_CLASSEMENT_DIMANCHE", "CHARGE_CLASSEMENT_SEMAINE")
 
     if not nominations or not any(n.poste.value in allowed for n in nominations):
-        roles = ", ".join(n.poste.value for n in nominations) if nominations else "aucun"
+        roles = (
+            ", ".join(n.poste.value for n in nominations) if nominations else "aucun"
+        )
         raise HTTPException(
             status_code=403,
             detail=f"Accès réservé au Chargé de Classement. Votre rôle : {roles}",
@@ -57,7 +61,9 @@ async def require_classement_manager(
     return current_user
 
 
-def get_service(session: Annotated[AsyncSession, Depends(get_db_session)]) -> ClassementService:
+def get_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> ClassementService:
     return ClassementService(ClassementRepository(session))
 
 
@@ -156,7 +162,9 @@ async def update_classement(
     current_user: Annotated[User, Depends(require_classement_manager)],
     service: Annotated[ClassementService, Depends(get_service)],
 ):
-    postes_dicts = [p.model_dump() for p in data.postes] if data.postes is not None else None
+    postes_dicts = (
+        [p.model_dump() for p in data.postes] if data.postes is not None else None
+    )
     classement = await service.update(
         classement_id,
         date=data.date,
@@ -200,20 +208,34 @@ async def advance_classement(
     return classement
 
 
-async def _notify_classement_published(classement: ClassementResponse, session: AsyncSession) -> None:
+async def _notify_classement_published(
+    classement: ClassementResponse, session: AsyncSession
+) -> None:
     """Notifie tous les servants actifs qu'un classement a été publié."""
     try:
         from src.infrastructure.repositories.user_repository import UserRepository
+
         user_repo = UserRepository(session)
-        servants, _ = await user_repo.list_paginated(role=UserRole.SERVANT, is_active=True, page_size=500)
+        servants, _ = await user_repo.list_paginated(
+            role=UserRole.SERVANT, is_active=True, page_size=500
+        )
         email_svc = EmailService()
         type_labels = {
             "DIMANCHE": "Classement du Dimanche",
             "SEMAINE": "Classement de la Semaine",
             "EXTRAORDINAIRE": "Classement Extraordinaire",
         }
-        type_label = type_labels.get(classement.type.value if hasattr(classement.type, 'value') else str(classement.type), "Classement")
-        date_str = classement.date if isinstance(classement.date, str) else str(classement.date)
+        type_label = type_labels.get(
+            classement.type.value
+            if hasattr(classement.type, "value")
+            else str(classement.type),
+            "Classement",
+        )
+        date_str = (
+            classement.date
+            if isinstance(classement.date, str)
+            else str(classement.date)
+        )
         title = f"{type_label} publié — {date_str}"
         body = (
             f"Un nouveau classement vient d'être publié : <strong>{type_label}</strong> du {date_str}.<br><br>"

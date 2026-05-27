@@ -30,7 +30,9 @@ from src.application.services.sunday_schedule_service import SundayScheduleServi
 from src.core.entities.sunday_schedule import SundayScheduleStatus
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.repositories.sunday_schedule_repository import SundayScheduleRepository
+from src.infrastructure.repositories.sunday_schedule_repository import (
+    SundayScheduleRepository,
+)
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
@@ -193,17 +195,19 @@ async def generate_exceptional_template(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-@router.get("/",
-            response_model=PaginatedResponse[SundayScheduleTemplateSummary])
+@router.get("/", response_model=PaginatedResponse[SundayScheduleTemplateSummary])
 async def list_templates(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_charge_classement_dimanche)],
     status_filter: Optional[SundayScheduleStatus] = Query(
-    None, alias="status", description="Filtrer par statut"),
+        None, alias="status", description="Filtrer par statut"
+    ),
     start_date: Optional[datetime] = Query(
-    None, description="Modèles à partir de cette date"),
+        None, description="Modèles à partir de cette date"
+    ),
     end_date: Optional[datetime] = Query(
-    None, description="Modèles jusqu'à cette date"),
+        None, description="Modèles jusqu'à cette date"
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -370,11 +374,12 @@ async def add_assignment_to_mass(
     Une messe peut avoir plusieurs assignations pour différents postes.
     """
     service = _get_service(session)
-    return await service.add_assignment_to_mass(mass_id, data, assigned_by=current_user.id)
+    return await service.add_assignment_to_mass(
+        mass_id, data, assigned_by=current_user.id
+    )
 
 
-@router.delete("/assignments/{assignment_id}",
-               status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/assignments/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_assignment(
     assignment_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -436,11 +441,7 @@ async def get_modification_history(
     template_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_sunday_schedule_history_access)],
-    limit: int = Query(
-    100,
-    ge=1,
-    le=500,
-     description="Nombre maximum d'entrées"),
+    limit: int = Query(100, ge=1, le=500, description="Nombre maximum d'entrées"),
 ):
     """
     Récupérer l'historique complet des modifications d'un classement.

@@ -62,8 +62,9 @@ class DisciplineService:
     #  OUVRIR UN DOSSIER
     # ══════════════════════════════════════════════════════════════════
 
-    async def open_case(self, data: DisciplineCaseCreate,
-                        reported_by: UUID) -> DisciplineCaseResponse:
+    async def open_case(
+        self, data: DisciplineCaseCreate, reported_by: UUID
+    ) -> DisciplineCaseResponse:
         """Ouvrir un dossier disciplinaire."""
         user = await self.user_repo.get(data.accused_user_id)
         if not user:
@@ -78,7 +79,8 @@ class DisciplineService:
             )
 
         severity = data.severity or OFFENSE_DEFAULT_SEVERITY.get(
-            data.offense_category, SanctionSeverity.MINEUR)
+            data.offense_category, SanctionSeverity.MINEUR
+        )
 
         case = DisciplineCase(
             accused_user_id=data.accused_user_id,
@@ -90,12 +92,14 @@ class DisciplineService:
             status=DisciplineCaseStatus.SIGNALE,
         )
         created = await self.case_repo.create(case)
-        await event_bus.publish(DisciplineCaseOpened(
-            case_id=created.id,
-            accused_user_id=data.accused_user_id,
-            opened_by_id=reported_by,
-            offense_category=data.offense_category.value,
-        ))
+        await event_bus.publish(
+            DisciplineCaseOpened(
+                case_id=created.id,
+                accused_user_id=data.accused_user_id,
+                opened_by_id=reported_by,
+                offense_category=data.offense_category.value,
+            )
+        )
         enriched = await self.case_repo.enrich_case(created)
         return DisciplineCaseResponse(**enriched)
 
@@ -103,8 +107,9 @@ class DisciplineService:
     #  CONVOQUER AU CONSEIL DE DISCIPLINE
     # ══════════════════════════════════════════════════════════════════
 
-    async def convoke(self, case_id: UUID,
-                      data: DisciplineConvocation) -> DisciplineCaseResponse:
+    async def convoke(
+        self, case_id: UUID, data: DisciplineConvocation
+    ) -> DisciplineCaseResponse:
         """Convoquer un servant au conseil de discipline."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -156,8 +161,9 @@ class DisciplineService:
     #  RENDRE LE VERDICT
     # ══════════════════════════════════════════════════════════════════
 
-    async def render_verdict(self, case_id: UUID, data: DisciplineVerdict,
-                             verdict_by: UUID) -> DisciplineCaseResponse:
+    async def render_verdict(
+        self, case_id: UUID, data: DisciplineVerdict, verdict_by: UUID
+    ) -> DisciplineCaseResponse:
         """Rendre le verdict du conseil de discipline."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -185,18 +191,19 @@ class DisciplineService:
             days = data.suspension_days or 30
             case.suspension_days = days
             case.suspension_start = utc_now()
-            case.suspension_end = datetime.now(
-                timezone.utc) + timedelta(days=days)
+            case.suspension_end = datetime.now(timezone.utc) + timedelta(days=days)
 
         case.updated_at = utc_now()
 
         updated = await self.case_repo.update(case)
-        await event_bus.publish(DisciplineSanctionIssued(
-            case_id=case_id,
-            accused_user_id=case.accused_user_id,
-            sanction_type=data.sanction_type.value,
-            issued_by_id=verdict_by,
-        ))
+        await event_bus.publish(
+            DisciplineSanctionIssued(
+                case_id=case_id,
+                accused_user_id=case.accused_user_id,
+                sanction_type=data.sanction_type.value,
+                issued_by_id=verdict_by,
+            )
+        )
         enriched = await self.case_repo.enrich_case(updated)
         return DisciplineCaseResponse(**enriched)
 
@@ -238,7 +245,8 @@ class DisciplineService:
     # ══════════════════════════════════════════════════════════════════
 
     async def dismiss_case(
-        self, case_id: UUID, notes: Optional[str] = None) -> DisciplineCaseResponse:
+        self, case_id: UUID, notes: Optional[str] = None
+    ) -> DisciplineCaseResponse:
         """Classer un dossier sans suite."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -310,8 +318,7 @@ class DisciplineService:
             total_pages=total_pages,
         )
 
-    async def get_user_discipline_stats(
-        self, user_id: UUID) -> DisciplineStatsResponse:
+    async def get_user_discipline_stats(self, user_id: UUID) -> DisciplineStatsResponse:
         counts = await self.case_repo.count_sanctions_by_user(user_id)
         active = await self.case_repo.count_active_cases(user_id)
 
@@ -319,11 +326,10 @@ class DisciplineService:
             user_id=user_id,
             total_cases=sum(counts.values()) + active,
             avertissements_verbaux=counts.get(
-    SanctionType.AVERTISSEMENT_VERBAL.value, 0),
-            avertissements_ecrits=counts.get(
-    SanctionType.AVERTISSEMENT_ECRIT.value, 0),
-            suspensions=counts.get(
-    SanctionType.SUSPENSION_TEMPORAIRE.value, 0),
+                SanctionType.AVERTISSEMENT_VERBAL.value, 0
+            ),
+            avertissements_ecrits=counts.get(SanctionType.AVERTISSEMENT_ECRIT.value, 0),
+            suspensions=counts.get(SanctionType.SUSPENSION_TEMPORAIRE.value, 0),
             cases_en_cours=active,
         )
 
@@ -335,12 +341,15 @@ class DisciplineService:
         """
         # Récupérer les 2 dernières réunions hebdomadaires
         attendances, _ = await self.attendance_repo.list_paginated(
-            user_id=user_id, attendance_type=AttendanceType.REUNION_ORDINAIRE, page_size=2
+            user_id=user_id,
+            attendance_type=AttendanceType.REUNION_ORDINAIRE,
+            page_size=2,
         )
 
         consecutive_absences = (
-            all(a.status == AttendanceStatus.ABSENT for a in attendances) if len(
-                attendances) >= 2 else False
+            all(a.status == AttendanceStatus.ABSENT for a in attendances)
+            if len(attendances) >= 2
+            else False
         )
 
         # Vérifier l'absence continue sur 6 mois

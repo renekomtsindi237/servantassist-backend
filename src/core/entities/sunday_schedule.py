@@ -87,12 +87,9 @@ class SundayScheduleTemplateBase(SQLModel):
         max_length=200,
         description="Titre du classement (ex: Dimanche du temps ordinaire - 16/02/2026)",
     )
-    schedule_date: datetime = Field(
-    description="Date du dimanche ou de la solennité")
+    schedule_date: datetime = Field(description="Date du dimanche ou de la solennité")
     mass_type: MassType = Field(default=MassType.ORDINAIRE)
-    is_exceptional: bool = Field(
-    default=False,
-     description="Horaires exceptionnels")
+    is_exceptional: bool = Field(default=False, description="Horaires exceptionnels")
     status: SundayScheduleStatus = Field(default=SundayScheduleStatus.DRAFT)
     watermark_logo_url: str = Field(
         default="logo_servant.jpeg",
@@ -125,12 +122,10 @@ class SundayScheduleTemplate(SundayScheduleTemplateBase, table=True):
 class SundayMassSlotBase(SQLModel):
     """Champs communs d'une messe dans le classement dominical."""
 
-    template_id: UUID = Field(
-    foreign_key="sunday_schedule_templates.id",
-     index=True)
+    template_id: UUID = Field(foreign_key="sunday_schedule_templates.id", index=True)
     mass_time: str = Field(
-    max_length=10,
-     description="Heure de la messe (ex: 06h30, 08h30, 10h00)")
+        max_length=10, description="Heure de la messe (ex: 06h30, 08h30, 10h00)"
+    )
     language: MassLanguage = Field(sa_column=Column(String(20), nullable=False))
     notes: Optional[str] = Field(default=None, max_length=500)
 
@@ -155,15 +150,15 @@ class SundayMassAssignmentBase(SQLModel):
 
     mass_slot_id: UUID = Field(foreign_key="sunday_mass_slots.id", index=True)
     position: LiturgicalPosition = Field(sa_column=Column(String(30), nullable=False))
-    servant_id: Optional[UUID] = Field(
-    default=None, foreign_key="users.id", index=True)
+    servant_id: Optional[UUID] = Field(default=None, foreign_key="users.id", index=True)
     servant_name: Optional[str] = Field(
         default=None,
         max_length=200,
         description="Nom du servant (si non encore dans le système)",
     )
     is_present: Optional[bool] = Field(
-    default=None, description="Présence constatée (None=pas encore vérifié)")
+        default=None, description="Présence constatée (None=pas encore vérifié)"
+    )
     notes: Optional[str] = Field(default=None, max_length=500)
 
 
@@ -175,10 +170,8 @@ class SundayMassAssignment(SundayMassAssignmentBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     assigned_by: UUID = Field(foreign_key="users.id")
     # Traçabilité des modifications
-    last_modified_by: Optional[UUID] = Field(
-        default=None, foreign_key="users.id")
-    presence_marked_by: Optional[UUID] = Field(
-        default=None, foreign_key="users.id")
+    last_modified_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
+    presence_marked_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
     presence_marked_at: Optional[datetime] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -207,22 +200,24 @@ class SundayScheduleModificationLog(SQLModel, table=True):
     __tablename__ = "sunday_schedule_modification_logs"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    template_id: UUID = Field(
-    foreign_key="sunday_schedule_templates.id",
-     index=True)
+    template_id: UUID = Field(foreign_key="sunday_schedule_templates.id", index=True)
     mass_slot_id: Optional[UUID] = Field(
-    default=None, foreign_key="sunday_mass_slots.id")
+        default=None, foreign_key="sunday_mass_slots.id"
+    )
     assignment_id: Optional[UUID] = Field(
-    default=None, foreign_key="sunday_mass_assignments.id")
+        default=None, foreign_key="sunday_mass_assignments.id"
+    )
 
     action: ModificationAction = Field(sa_column=Column(String(30), nullable=False))
-    description: str = Field(max_length=500,
-     description="Description de la modification")
+    description: str = Field(
+        max_length=500, description="Description de la modification"
+    )
 
     # Qui a fait la modification
     modified_by: UUID = Field(foreign_key="users.id", index=True)
-    modified_by_name: str = Field(max_length=200,
-     description="Nom complet de la personne")
+    modified_by_name: str = Field(
+        max_length=200, description="Nom complet de la personne"
+    )
 
     # Quand et où
     modified_at: datetime = Field(default_factory=datetime.utcnow, index=True)

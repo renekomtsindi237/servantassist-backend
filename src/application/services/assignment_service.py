@@ -55,7 +55,8 @@ class AssignmentService:
     # ══════════════════════════════════════════════════════════════════
 
     async def create_assignment(
-        self, data: AssignmentCreate, assigned_by: UUID) -> AssignmentResponse:
+        self, data: AssignmentCreate, assigned_by: UUID
+    ) -> AssignmentResponse:
         """
         Cree une affectation unique.
 
@@ -91,7 +92,9 @@ class AssignmentService:
             )
 
         # Verifier doublon
-        existing = await self.assignment_repo.get_by_event_user_role(data.event_id, data.user_id, data.liturgical_role)
+        existing = await self.assignment_repo.get_by_event_user_role(
+            data.event_id, data.user_id, data.liturgical_role
+        )
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -109,8 +112,9 @@ class AssignmentService:
         enriched = await self.assignment_repo.enrich_assignment(created)
         return AssignmentResponse(**enriched)
 
-    async def create_batch(self, data: AssignmentBatchCreate,
-                           assigned_by: UUID) -> AssignmentBatchResponse:
+    async def create_batch(
+        self, data: AssignmentBatchCreate, assigned_by: UUID
+    ) -> AssignmentBatchResponse:
         """
         Cree plusieurs affectations pour un meme evenement en une seule requete.
 
@@ -136,11 +140,14 @@ class AssignmentService:
                     errors.append(f"Utilisateur {item.user_id} introuvable.")
                     continue
                 if not user.is_active:
-                    errors.append(f"Utilisateur {user.first_name} {user.last_name} inactif.")
+                    errors.append(
+                        f"Utilisateur {user.first_name} {user.last_name} inactif."
+                    )
                     continue
                 if user.role != UserRole.SERVANT:
                     errors.append(
-                        f"{user.first_name} {user.last_name} n'est pas un servant.")
+                        f"{user.first_name} {user.last_name} n'est pas un servant."
+                    )
                     continue
 
                 # Verifier doublon
@@ -226,8 +233,7 @@ class AssignmentService:
             total_pages=total_pages,
         )
 
-    async def get_event_assignments(
-        self, event_id: UUID) -> List[AssignmentResponse]:
+    async def get_event_assignments(self, event_id: UUID) -> List[AssignmentResponse]:
         """Toutes les affectations actives d'un evenement."""
         event = await self.event_repo.get(event_id)
         if not event:
@@ -237,13 +243,11 @@ class AssignmentService:
             )
         assignments = await self.assignment_repo.list_by_event(event_id)
         # Filtrer les annulees
-        active = [a for a in assignments if a.status !=
-            AssignmentStatus.CANCELLED]
+        active = [a for a in assignments if a.status != AssignmentStatus.CANCELLED]
         enriched = await self.assignment_repo.enrich_assignments(active)
         return [AssignmentResponse(**e) for e in enriched]
 
-    async def get_my_assignments(
-        self, user_id: UUID) -> List[AssignmentResponse]:
+    async def get_my_assignments(self, user_id: UUID) -> List[AssignmentResponse]:
         """Toutes les affectations du servant connecte."""
         assignments = await self.assignment_repo.list_by_user(user_id)
         enriched = await self.assignment_repo.enrich_assignments(assignments)
@@ -372,7 +376,8 @@ class AssignmentService:
             )
 
     async def cancel_assignment(
-        self, assignment_id: UUID, cancelled_by: UUID) -> AssignmentResponse:
+        self, assignment_id: UUID, cancelled_by: UUID
+    ) -> AssignmentResponse:
         """
         Annule une affectation (soft-delete : passe le statut a CANCELLED).
         L'affectation reste en BDD pour l'historique.
@@ -423,7 +428,9 @@ class AssignmentService:
                 detail="Impossible de marquer la presence d'une affectation annulee.",
             )
 
-        assignment.status = AssignmentStatus.PRESENT if present else AssignmentStatus.ABSENT
+        assignment.status = (
+            AssignmentStatus.PRESENT if present else AssignmentStatus.ABSENT
+        )
         assignment.updated_at = utc_now()
         updated = await self.assignment_repo.update(assignment_id, assignment)
         enriched = await self.assignment_repo.enrich_assignment(updated)

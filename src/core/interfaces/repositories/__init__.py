@@ -10,11 +10,17 @@ from .assignment_repository import IAssignmentRepository
 from .attendance_repository import IAttendanceRepository
 from .attendance_session_repository import IAttendanceSessionRepository
 from .contribution_repository import IContributionRepository
-from .cotisation_repository import ICotisationPeriodRepository, IMemberCotisationRepository
+from .cotisation_repository import (
+    ICotisationPeriodRepository,
+    IMemberCotisationRepository,
+)
 from .council_meeting_repository import ICouncilMeetingRepository
 from .discipline_repository import IDisciplineCaseRepository
 from .event_repository import IEventRepository
-from .financial_entry_repository import IDiscrepancyRepository, IFinancialEntryRepository
+from .financial_entry_repository import (
+    IDiscrepancyRepository,
+    IFinancialEntryRepository,
+)
 from .invitation_repository import IInvitationRepository
 from .material_repository import (
     IAubeTaskRepository,
@@ -23,7 +29,10 @@ from .material_repository import (
     IMaterialItemRepository,
     ITaskAssignmentRepository,
 )
-from .notification_repository import INotificationPreferenceRepository, INotificationRepository
+from .notification_repository import (
+    INotificationPreferenceRepository,
+    INotificationRepository,
+)
 from .report_repository import IAttachmentRepository, IReportRepository
 from .responsable_repository import INominationRepository, IPosteActionRepository
 from .sport_culture_repository import (

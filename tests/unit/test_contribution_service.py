@@ -11,7 +11,11 @@ from fastapi import HTTPException
 from src.application.services.contribution_service import ContributionService
 from src.core.entities.contribution import Contribution, PaymentMode, PaymentStatus
 from src.core.entities.user import User, UserRole
-from src.presentation.schemas.contribution import ContributionCreate, ContributionUpdate, FinancialReportRequest
+from src.presentation.schemas.contribution import (
+    ContributionCreate,
+    ContributionUpdate,
+    FinancialReportRequest,
+)
 
 
 @pytest.fixture
@@ -386,7 +390,9 @@ class TestGenerateFinancialReport:
         )
 
         # Act
-        result = await contribution_service.generate_financial_report(request, sample_econome.id)
+        result = await contribution_service.generate_financial_report(
+            request, sample_econome.id
+        )
 
         # Assert
         assert result.total_expected == 10000.0
@@ -412,7 +418,9 @@ class TestGetServantStats:
         """Test : Calculer les statistiques d'un servant."""
         # Arrange
         mock_user_repo.get.return_value = sample_servant
-        mock_contribution_repo.get_servant_contributions.return_value = [sample_contribution]
+        mock_contribution_repo.get_servant_contributions.return_value = [
+            sample_contribution
+        ]
 
         # Act
         result = await contribution_service.get_servant_stats(

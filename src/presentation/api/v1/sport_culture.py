@@ -13,7 +13,13 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.sport_culture_service import SportCultureService
-from src.core.entities.sport_culture import EventStatus, EventType, ParticipationStatus, ResultType, SportType
+from src.core.entities.sport_culture import (
+    EventStatus,
+    EventType,
+    ParticipationStatus,
+    ResultType,
+    SportType,
+)
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.sport_culture_repository import (
@@ -23,7 +29,10 @@ from src.infrastructure.repositories.sport_culture_repository import (
     SportCultureEventRepository,
 )
 from src.infrastructure.services.storage_service import StorageService
-from src.presentation.dependencies.auth_deps import get_current_user, require_charge_sport_culture
+from src.presentation.dependencies.auth_deps import (
+    get_current_user,
+    require_charge_sport_culture,
+)
 from src.presentation.schemas.sport_culture import (
     EventParticipationBatchCreate,
     EventParticipationCreate,
@@ -55,14 +64,14 @@ router = APIRouter()
 
 
 def get_sport_culture_service(
-    db: Annotated[AsyncSession, Depends(get_db_session)]) -> SportCultureService:
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SportCultureService:
     """Dépendance pour obtenir le service sport/culture."""
     event_repo = SportCultureEventRepository(db)
     participation_repo = EventParticipationRepository(db)
     result_repo = EventResultRepository(db)
     team_repo = EventTeamRepository(db)
-    return SportCultureService(
-        event_repo, participation_repo, result_repo, team_repo)
+    return SportCultureService(event_repo, participation_repo, result_repo, team_repo)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -102,7 +111,9 @@ async def create_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(
+        event.id
+    )
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -141,7 +152,9 @@ async def list_events(
     enriched_events = []
     for event in events:
         participants_count = await service.participation_repo.count_by_event(event.id)
-        confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
+        confirmed_count = await service.participation_repo.count_confirmed_by_event(
+            event.id
+        )
 
         event_dict = event.model_dump()
         event_dict["participants_count"] = participants_count
@@ -178,7 +191,9 @@ async def get_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(
+        event.id
+    )
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -224,7 +239,9 @@ async def update_event(
 
     # Enrichir avec les compteurs
     participants_count = await service.participation_repo.count_by_event(event.id)
-    confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
+    confirmed_count = await service.participation_repo.count_confirmed_by_event(
+        event.id
+    )
 
     event_dict = event.model_dump()
     event_dict["participants_count"] = participants_count
@@ -271,7 +288,9 @@ async def get_upcoming_events(
     enriched_events = []
     for event in events:
         participants_count = await service.participation_repo.count_by_event(event.id)
-        confirmed_count = await service.participation_repo.count_confirmed_by_event(event.id)
+        confirmed_count = await service.participation_repo.count_confirmed_by_event(
+            event.id
+        )
 
         event_dict = event.model_dump()
         event_dict["participants_count"] = participants_count
@@ -303,14 +322,18 @@ async def get_upcoming_events(
 )
 async def upload_event_photo(
     event_id: UUID,
-    file: Annotated[UploadFile, File(description="Photo de l'événement (JPEG, PNG, WebP, max 5 Mo)")],
+    file: Annotated[
+        UploadFile, File(description="Photo de l'événement (JPEG, PNG, WebP, max 5 Mo)")
+    ],
     current_user: User = Depends(require_charge_sport_culture),
     service: SportCultureService = Depends(get_sport_culture_service),
 ):
     """Upload une photo et l'associe à l'événement."""
     event = await service.get_event(event_id)
     if not event:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Événement introuvable")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Événement introuvable"
+        )
 
     storage = StorageService()
     try:

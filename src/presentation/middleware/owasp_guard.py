@@ -33,17 +33,21 @@ from src.infrastructure.config.settings import get_settings
 # Détectés dans : URL path, query string, headers critiques
 # Le corps JSON est géré par Pydantic — pas besoin de le rescanner ici.
 _SQL_PATTERNS: Sequence[re.Pattern] = [
-    re.compile(r"(union\s+select|select\s+.+\s+from|insert\s+into|drop\s+table"
-               r"|delete\s+from|update\s+.+\s+set|exec\s*\(|execute\s*\()",
-               re.IGNORECASE),
+    re.compile(
+        r"(union\s+select|select\s+.+\s+from|insert\s+into|drop\s+table"
+        r"|delete\s+from|update\s+.+\s+set|exec\s*\(|execute\s*\()",
+        re.IGNORECASE,
+    ),
     re.compile(r"(--\s|;--|\bor\b\s+\d+=\d+|\band\b\s+\d+=\d+)", re.IGNORECASE),
-    re.compile(r"(xp_cmdshell|sp_executesql|information_schema|sysobjects)", re.IGNORECASE),
+    re.compile(
+        r"(xp_cmdshell|sp_executesql|information_schema|sysobjects)", re.IGNORECASE
+    ),
 ]
 
 _SSTI_PATTERNS: Sequence[re.Pattern] = [
-    re.compile(r"\{\{.*?\}\}"),         # Jinja2/Twig
-    re.compile(r"\$\{.*?\}"),           # EL / Freemarker
-    re.compile(r"<%.*?%>"),             # JSP / ERB
+    re.compile(r"\{\{.*?\}\}"),  # Jinja2/Twig
+    re.compile(r"\$\{.*?\}"),  # EL / Freemarker
+    re.compile(r"<%.*?%>"),  # JSP / ERB
 ]
 
 _PATH_TRAVERSAL: re.Pattern = re.compile(
@@ -52,22 +56,33 @@ _PATH_TRAVERSAL: re.Pattern = re.compile(
 )
 
 # Schémas d'URL dangereux côté SSRF (A10)
-_SSRF_SCHEMES: FrozenSet[str] = frozenset({
-    "file://", "gopher://", "dict://", "ftp://",
-    "ldap://", "ldaps://", "sftp://", "tftp://",
-    "jar://", "netdoc://",
-})
+_SSRF_SCHEMES: FrozenSet[str] = frozenset(
+    {
+        "file://",
+        "gopher://",
+        "dict://",
+        "ftp://",
+        "ldap://",
+        "ldaps://",
+        "sftp://",
+        "tftp://",
+        "jar://",
+        "netdoc://",
+    }
+)
 
 # Taille max du corps hors upload (A04) — 2 MB par défaut
 _MAX_BODY_BYTES = 2 * 1024 * 1024
 
 # Content-Type attendu pour les corps (A04)
 _JSON_METHODS = frozenset({"POST", "PUT", "PATCH"})
-_ALLOWED_CONTENT_TYPES = frozenset({
-    "application/json",
-    "multipart/form-data",
-    "application/x-www-form-urlencoded",
-})
+_ALLOWED_CONTENT_TYPES = frozenset(
+    {
+        "application/json",
+        "multipart/form-data",
+        "application/x-www-form-urlencoded",
+    }
+)
 
 # Endpoints exempts de la validation Content-Type
 _CT_EXEMPT_PREFIXES = (
@@ -106,9 +121,8 @@ class OWASPGuardMiddleware(BaseHTTPMiddleware):
             return self._reject(400, "Malformed request")
 
         # ── A04 : Validation du Content-Type pour POST/PUT/PATCH ─────────
-        if (
-            request.method in _JSON_METHODS
-            and not any(request.url.path.startswith(p) for p in _CT_EXEMPT_PREFIXES)
+        if request.method in _JSON_METHODS and not any(
+            request.url.path.startswith(p) for p in _CT_EXEMPT_PREFIXES
         ):
             ct = request.headers.get("content-type", "").split(";")[0].strip()
             if ct and ct not in _ALLOWED_CONTENT_TYPES:
@@ -123,8 +137,7 @@ class OWASPGuardMiddleware(BaseHTTPMiddleware):
             and "multipart/form-data" not in ct
             and int(content_length) > _MAX_BODY_BYTES
         ):
-            self._log_event("BODY_TOO_LARGE", request,
-                            f"size={content_length}")
+            self._log_event("BODY_TOO_LARGE", request, f"size={content_length}")
             return self._reject(413, "Request body too large")
 
         # ── Passe la main ─────────────────────────────────────────────────

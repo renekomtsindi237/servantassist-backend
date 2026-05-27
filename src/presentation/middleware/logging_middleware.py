@@ -62,9 +62,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 **log_data,
             )
         else:
-            logger.info(
-    "HTTP {status} | {method} {path} | {duration_ms}ms",
-     **log_data)
+            logger.info("HTTP {status} | {method} {path} | {duration_ms}ms", **log_data)
 
         # Audit log pour les endpoints sensibles
         if path in _AUDIT_PATHS or path.startswith(_ADMIN_PREFIX):

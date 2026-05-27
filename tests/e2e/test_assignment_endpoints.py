@@ -430,7 +430,9 @@ class TestReadAssignments:
         resp = await client.get("/api/v1/assignments/me")
         assert resp.status_code == 401
 
-    async def test_assignment_not_found_404(self, client: AsyncClient, servant_user: User):
+    async def test_assignment_not_found_404(
+        self, client: AsyncClient, servant_user: User
+    ):
         """Affectation inexistante -> 404."""
         resp = await client.get(
             f"/api/v1/assignments/{uuid4()}",

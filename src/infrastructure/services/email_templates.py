@@ -619,9 +619,7 @@ def render_invitation_code(
     logo = _logo_url()
 
     subject = f"Votre code d'invitation ServantAssist — {code}"
-    preview = (
-        f"Bonjour {parent_name}, voici votre code d'invitation pour rejoindre ServantAssist."
-    )
+    preview = f"Bonjour {parent_name}, voici votre code d'invitation pour rejoindre ServantAssist."
 
     content = f"""\
               <!-- Bandeau d'en-tête -->

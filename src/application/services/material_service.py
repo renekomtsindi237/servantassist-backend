@@ -379,20 +379,23 @@ class MaterialService:
         # Enrichir les assignations
         enriched = []
         for assignment in created_assignments:
-            enriched_assignment = await self.assignment_repo.enrich_assignment(assignment)
+            enriched_assignment = await self.assignment_repo.enrich_assignment(
+                assignment
+            )
             enriched.append(enriched_assignment)
 
         return enriched
 
-    async def get_task_assignments(
-        self, task_id: UUID) -> List[TaskAssignment]:
+    async def get_task_assignments(self, task_id: UUID) -> List[TaskAssignment]:
         """Récupère les assignations d'une tâche."""
         assignments = await self.assignment_repo.get_by_task(task_id)
 
         # Enrichir les assignations
         enriched = []
         for assignment in assignments:
-            enriched_assignment = await self.assignment_repo.enrich_assignment(assignment)
+            enriched_assignment = await self.assignment_repo.enrich_assignment(
+                assignment
+            )
             enriched.append(enriched_assignment)
 
         return enriched
@@ -404,12 +407,16 @@ class MaterialService:
         end_date: Optional[datetime] = None,
     ) -> List[TaskAssignment]:
         """Récupère les assignations d'un servant."""
-        assignments = await self.assignment_repo.get_by_servant(servant_id, start_date, end_date)
+        assignments = await self.assignment_repo.get_by_servant(
+            servant_id, start_date, end_date
+        )
 
         # Enrichir les assignations
         enriched = []
         for assignment in assignments:
-            enriched_assignment = await self.assignment_repo.enrich_assignment(assignment)
+            enriched_assignment = await self.assignment_repo.enrich_assignment(
+                assignment
+            )
             enriched.append(enriched_assignment)
 
         return enriched
@@ -453,12 +460,15 @@ class MaterialService:
         task = await self.aube_task_repo.create(task)
 
         if broadcast_notification:
-            from src.application.services.notification_service import NotificationService
+            from src.application.services.notification_service import (
+                NotificationService,
+            )
             from src.core.entities.notification import (
                 NotificationChannel,
                 NotificationPriority,
                 NotificationType,
             )
+
             notif_service = NotificationService(self.aube_task_repo.session)
             await notif_service.broadcast(
                 target="servants",
@@ -642,7 +652,8 @@ class MaterialService:
         return await self.maintenance_repo.create(history)
 
     async def get_item_maintenance_history(
-        self, item_id: UUID) -> List[MaintenanceHistory]:
+        self, item_id: UUID
+    ) -> List[MaintenanceHistory]:
         """Récupère l'historique de maintenance d'un article."""
         return await self.maintenance_repo.get_by_item(item_id)
 
@@ -663,16 +674,22 @@ class MaterialService:
         # Répartition par catégorie
         items_by_category = {}
         for item in items:
-            category = item.category.value if hasattr(item.category, 'value') else str(item.category)
-            items_by_category[category] = items_by_category.get(
-                category, 0) + 1
+            category = (
+                item.category.value
+                if hasattr(item.category, "value")
+                else str(item.category)
+            )
+            items_by_category[category] = items_by_category.get(category, 0) + 1
 
         # Répartition par état
         items_by_condition = {}
         for item in items:
-            condition = item.condition.value if hasattr(item.condition, 'value') else str(item.condition)
-            items_by_condition[condition] = items_by_condition.get(
-                condition, 0) + 1
+            condition = (
+                item.condition.value
+                if hasattr(item.condition, "value")
+                else str(item.condition)
+            )
+            items_by_condition[condition] = items_by_condition.get(condition, 0) + 1
 
         # Récupérer toutes les tâches de la période
         cleaning_tasks, _ = await self.cleaning_task_repo.list_tasks(
@@ -690,14 +707,18 @@ class MaterialService:
 
         total_tasks = len(cleaning_tasks) + len(aube_tasks)
         completed_tasks = sum(
-            1 for t in cleaning_tasks + aube_tasks if t.status in [TaskStatus.TERMINEE, TaskStatus.VALIDEE]
+            1
+            for t in cleaning_tasks + aube_tasks
+            if t.status in [TaskStatus.TERMINEE, TaskStatus.VALIDEE]
         )
         pending_tasks = sum(
-    1 for t in cleaning_tasks +
-     aube_tasks if t.status == TaskStatus.PLANIFIEE)
+            1 for t in cleaning_tasks + aube_tasks if t.status == TaskStatus.PLANIFIEE
+        )
 
         # Coût total de maintenance
-        total_maintenance_cost = await self.maintenance_repo.get_total_cost(start_date, end_date)
+        total_maintenance_cost = await self.maintenance_repo.get_total_cost(
+            start_date, end_date
+        )
 
         # Articles nécessitant attention
         items_needing_attention = []
@@ -746,19 +767,27 @@ class MaterialService:
         # Répartition par catégorie
         items_by_category = {}
         for item in items:
-            category = item.category.value if hasattr(item.category, 'value') else str(item.category)
-            items_by_category[category] = items_by_category.get(
-                category, 0) + 1
+            category = (
+                item.category.value
+                if hasattr(item.category, "value")
+                else str(item.category)
+            )
+            items_by_category[category] = items_by_category.get(category, 0) + 1
 
         # Répartition par état
         items_by_condition = {}
         for item in items:
-            condition = item.condition.value if hasattr(item.condition, 'value') else str(item.condition)
-            items_by_condition[condition] = items_by_condition.get(
-                condition, 0) + 1
+            condition = (
+                item.condition.value
+                if hasattr(item.condition, "value")
+                else str(item.condition)
+            )
+            items_by_condition[condition] = items_by_condition.get(condition, 0) + 1
 
         # Articles nécessitant maintenance
-        items_needing_maintenance = len(await self.item_repo.get_items_needing_maintenance())
+        items_needing_maintenance = len(
+            await self.item_repo.get_items_needing_maintenance()
+        )
 
         # Récupérer toutes les tâches
         cleaning_tasks, _ = await self.cleaning_task_repo.list_tasks(skip=0, limit=1000)
@@ -766,16 +795,17 @@ class MaterialService:
 
         total_tasks = len(cleaning_tasks) + len(aube_tasks)
         completed_tasks = sum(
-            1 for t in cleaning_tasks + aube_tasks if t.status in [TaskStatus.TERMINEE, TaskStatus.VALIDEE]
+            1
+            for t in cleaning_tasks + aube_tasks
+            if t.status in [TaskStatus.TERMINEE, TaskStatus.VALIDEE]
         )
         pending_tasks = sum(
-    1 for t in cleaning_tasks +
-     aube_tasks if t.status == TaskStatus.PLANIFIEE)
+            1 for t in cleaning_tasks + aube_tasks if t.status == TaskStatus.PLANIFIEE
+        )
 
         completion_rate = (
-    completed_tasks /
-    total_tasks *
-     100) if total_tasks > 0 else 0.0
+            (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0.0
+        )
 
         return {
             "total_items": total_items,

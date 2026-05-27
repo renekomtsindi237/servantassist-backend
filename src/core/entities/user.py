@@ -40,16 +40,20 @@ class UserBase(SQLModel):
     role: UserRole = Field(default=UserRole.SERVANT)
     is_active: bool = Field(default=True)
     phone_number: Optional[str] = Field(
-    default=None, index=True)  # Indexed for PARENT/SERVANT login
-    profile_photo_url: Optional[str] = Field(
-    default=None)  # URL de la photo de profil
+        default=None, index=True
+    )  # Indexed for PARENT/SERVANT login
+    profile_photo_url: Optional[str] = Field(default=None)  # URL de la photo de profil
     birth_date: Optional[datetime] = Field(
-    default=None)  # Pour les règles d'âge (Art 19, 26)
+        default=None
+    )  # Pour les règles d'âge (Art 19, 26)
     baptism_date: Optional[datetime] = Field(
-    default=None)  # Art 19 : être chrétien baptisé
+        default=None
+    )  # Art 19 : être chrétien baptisé
     position: Optional[ServantPosition] = Field(
-    default=None,
-    sa_column=Column(SAEnum(ServantPosition, name="servantposition"), nullable=True),
+        default=None,
+        sa_column=Column(
+            SAEnum(ServantPosition, name="servantposition"), nullable=True
+        ),
     )  # Poste organisationnel (servants uniquement)
 
 
@@ -61,12 +65,16 @@ class User(UserBase, table=True):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
     created_by: Optional[UUID] = Field(
-    default=None, foreign_key="users.id")  # Admin who created this user
+        default=None, foreign_key="users.id"
+    )  # Admin who created this user
     invited_by: Optional[UUID] = Field(
-    default=None, foreign_key="users.id")  # For PARENT: who sent invitation
+        default=None, foreign_key="users.id"
+    )  # For PARENT: who sent invitation
 
     # Lien parent : UUID d'un User PARENT lié à ce servant (pour convocations)
-    parent_id: Optional[UUID] = Field(default=None, foreign_key="users.id", sa_column_kwargs={"index": True})
+    parent_id: Optional[UUID] = Field(
+        default=None, foreign_key="users.id", sa_column_kwargs={"index": True}
+    )
 
     # Index HMAC pour les lookups sans déchiffrement (Loi 2024/017 Art. 22)
     # Valeur = HMAC-SHA256(normalize(plaintext)) — opaque pour l'hébergeur.

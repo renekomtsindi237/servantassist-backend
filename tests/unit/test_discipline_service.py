@@ -56,7 +56,9 @@ def sample_servant():
 
 
 @pytest.mark.asyncio
-async def test_open_case_success(service, mock_case_repo, mock_user_repo, sample_servant):
+async def test_open_case_success(
+    service, mock_case_repo, mock_user_repo, sample_servant
+):
     mock_user_repo.get.return_value = sample_servant
 
     case = DisciplineCase(

@@ -57,8 +57,7 @@ class AssignmentBase(SQLModel):
 
     event_id: UUID = Field(foreign_key="events.id", index=True)
     user_id: UUID = Field(foreign_key="users.id", index=True)
-    liturgical_role: LiturgicalRole = Field(
-    default=LiturgicalRole.SERVANT_GENERAL)
+    liturgical_role: LiturgicalRole = Field(default=LiturgicalRole.SERVANT_GENERAL)
     status: AssignmentStatus = Field(default=AssignmentStatus.PENDING)
     notes: Optional[str] = Field(default=None, max_length=500)
 

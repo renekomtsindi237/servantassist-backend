@@ -24,4 +24,7 @@ class ApiKeyResponse(BaseModel):
 
 class ApiKeyCreatedResponse(ApiKeyResponse):
     """Réponse à la création — contient la clé brute (une seule fois)."""
-    raw_key: str = Field(description="Clé brute à conserver — jamais retransmise par le serveur")
+
+    raw_key: str = Field(
+        description="Clé brute à conserver — jamais retransmise par le serveur"
+    )

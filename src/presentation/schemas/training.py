@@ -7,7 +7,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.core.entities.training import MaterialType, ParticipationStatus, TrainingLevel, TrainingStatus
+from src.core.entities.training import (
+    MaterialType,
+    ParticipationStatus,
+    TrainingLevel,
+    TrainingStatus,
+)
 
 
 # ── Schémas de création - Sessions ───────────────────────────────────

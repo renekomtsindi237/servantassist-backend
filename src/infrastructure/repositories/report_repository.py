@@ -27,7 +27,9 @@ class ReportRepository:
 
     async def get_by_id(self, report_id: UUID) -> Optional[Report]:
         """Récupère un rapport par son ID."""
-        result = await self.session.execute(select(Report).where(Report.id == report_id))
+        result = await self.session.execute(
+            select(Report).where(Report.id == report_id)
+        )
         return result.scalar_one_or_none()
 
     async def list_reports(
@@ -136,10 +138,7 @@ class ReportRepository:
         result = await self.session.execute(query)
         reports = list(result.scalars().all())
 
-        count_query = select(
-    func.count(
-        Report.id)).where(
-            Report.created_by == user_id)
+        count_query = select(func.count(Report.id)).where(Report.created_by == user_id)
         count_result = await self.session.execute(count_query)
         total = count_result.scalar_one()
 
@@ -159,10 +158,11 @@ class AttachmentRepository:
         await self.session.refresh(attachment)
         return attachment
 
-    async def get_by_id(
-        self, attachment_id: UUID) -> Optional[ReportAttachment]:
+    async def get_by_id(self, attachment_id: UUID) -> Optional[ReportAttachment]:
         """Récupère une pièce jointe par son ID."""
-        result = await self.session.execute(select(ReportAttachment).where(ReportAttachment.id == attachment_id))
+        result = await self.session.execute(
+            select(ReportAttachment).where(ReportAttachment.id == attachment_id)
+        )
         return result.scalar_one_or_none()
 
     async def get_by_report(self, report_id: UUID) -> List[ReportAttachment]:

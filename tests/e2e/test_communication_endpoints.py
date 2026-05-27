@@ -30,7 +30,9 @@ class TestSendNotification:
     """Tests pour l'envoi de notifications individuelles."""
 
     @pytest.mark.asyncio
-    async def test_send_notification_success(self, client: AsyncClient, aumonier_user: User, servant_user: User):
+    async def test_send_notification_success(
+        self, client: AsyncClient, aumonier_user: User, servant_user: User
+    ):
         resp = await client.post(
             "/api/v1/communication/notify",
             json={
@@ -52,7 +54,9 @@ class TestSendNotification:
         assert body["sent_by"] == str(aumonier_user.id)
 
     @pytest.mark.asyncio
-    async def test_send_notification_with_priority(self, client: AsyncClient, aumonier_user: User, servant_user: User):
+    async def test_send_notification_with_priority(
+        self, client: AsyncClient, aumonier_user: User, servant_user: User
+    ):
         resp = await client.post(
             "/api/v1/communication/notify",
             json={
@@ -112,7 +116,9 @@ class TestSendNotification:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
-    async def test_send_notification_admin_success(self, client: AsyncClient, admin_user: User, servant_user: User):
+    async def test_send_notification_admin_success(
+        self, client: AsyncClient, admin_user: User, servant_user: User
+    ):
         """Un admin peut envoyer une notification."""
         resp = await client.post(
             "/api/v1/communication/notify",
@@ -240,7 +246,9 @@ class TestMyNotifications:
     """Tests pour la lecture des notifications de l'utilisateur connecte."""
 
     @pytest.mark.asyncio
-    async def test_get_my_notifications_empty(self, client: AsyncClient, servant_user: User):
+    async def test_get_my_notifications_empty(
+        self, client: AsyncClient, servant_user: User
+    ):
         resp = await client.get(
             "/api/v1/communication/me",
             headers=make_auth_header(servant_user),
@@ -307,7 +315,9 @@ class TestNotificationDetail:
         assert body["title"] == "Reunion ce dimanche"
 
     @pytest.mark.asyncio
-    async def test_get_notification_not_found(self, client: AsyncClient, servant_user: User):
+    async def test_get_notification_not_found(
+        self, client: AsyncClient, servant_user: User
+    ):
         fake_id = uuid4()
         resp = await client.get(
             f"/api/v1/communication/me/{fake_id}",
@@ -443,7 +453,9 @@ class TestNotificationPreferences:
     """Tests pour les preferences de notification."""
 
     @pytest.mark.asyncio
-    async def test_get_preferences_defaults(self, client: AsyncClient, servant_user: User):
+    async def test_get_preferences_defaults(
+        self, client: AsyncClient, servant_user: User
+    ):
         """Sans preferences custom, retourne les defaults pour tous les types."""
         resp = await client.get(
             "/api/v1/communication/me/preferences",
@@ -479,7 +491,9 @@ class TestNotificationPreferences:
         assert body["in_app_enabled"] is True
 
     @pytest.mark.asyncio
-    async def test_update_preference_partial(self, client: AsyncClient, servant_user: User):
+    async def test_update_preference_partial(
+        self, client: AsyncClient, servant_user: User
+    ):
         """Mise a jour partielle : seul email_enabled change."""
         resp = await client.put(
             "/api/v1/communication/me/preferences",
@@ -498,7 +512,9 @@ class TestNotificationPreferences:
         assert body["in_app_enabled"] is True
 
     @pytest.mark.asyncio
-    async def test_update_preference_idempotent(self, client: AsyncClient, servant_user: User):
+    async def test_update_preference_idempotent(
+        self, client: AsyncClient, servant_user: User
+    ):
         """Deux mises a jour successives fonctionnent correctement."""
         data = {
             "notification_type": "DISCIPLINE",

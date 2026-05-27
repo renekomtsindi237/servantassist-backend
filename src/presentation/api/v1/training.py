@@ -9,11 +9,26 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.training_service import TrainingService
-from src.core.entities.training import MaterialType, ParticipationStatus, TrainingLevel, TrainingStatus
+from src.core.entities.training import (
+    MaterialType,
+    ParticipationStatus,
+    TrainingLevel,
+    TrainingStatus,
+)
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.training_repository import (
@@ -23,7 +38,10 @@ from src.infrastructure.repositories.training_repository import (
     TrainingSessionRepository,
 )
 from src.infrastructure.services.storage_service import StorageService
-from src.presentation.dependencies.auth_deps import get_current_user, require_charge_liturgie
+from src.presentation.dependencies.auth_deps import (
+    get_current_user,
+    require_charge_liturgie,
+)
 from src.presentation.schemas.training import (
     SessionMaterialAdd,
     SessionMaterialResponse,
@@ -54,15 +72,17 @@ router = APIRouter()
 # ══════════════════════════════════════════════════════════════════
 
 
-def get_training_service(db: Annotated[AsyncSession, Depends(
-    get_db_session)]) -> TrainingService:
+def get_training_service(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> TrainingService:
     """Dépendance pour obtenir le service de formation."""
     session_repo = TrainingSessionRepository(db)
     participation_repo = TrainingParticipationRepository(db)
     material_repo = TrainingMaterialRepository(db)
     session_material_repo = SessionMaterialRepository(db)
-    return TrainingService(session_repo, participation_repo,
-                           material_repo, session_material_repo)
+    return TrainingService(
+        session_repo, participation_repo, material_repo, session_material_repo
+    )
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -453,7 +473,10 @@ async def get_servant_training_stats(
     ),
 )
 async def upload_training_material(
-    file: Annotated[UploadFile, File(description="Fichier pédagogique (PDF, DOC, DOCX, image, max 10 Mo)")],
+    file: Annotated[
+        UploadFile,
+        File(description="Fichier pédagogique (PDF, DOC, DOCX, image, max 10 Mo)"),
+    ],
     title: str = Form(...),
     description: str = Form(...),
     type: MaterialType = Form(...),
@@ -657,7 +680,11 @@ async def download_certificate(
     # Récupérer la session de formation pour le titre
     session = await service.get_session(participation.session_id)
     session_title = session.title if session else "Formation"
-    session_date = session.date if session and hasattr(session, "date") else participation.created_at
+    session_date = (
+        session.date
+        if session and hasattr(session, "date")
+        else participation.created_at
+    )
 
     from src.infrastructure.services.pdf_service import PDFService
 
@@ -667,7 +694,9 @@ async def download_certificate(
         participant_last_name="",
         training_title=session_title,
         training_date=session_date,
-        score=float(participation.evaluation_score) if participation.evaluation_score else None,
+        score=float(participation.evaluation_score)
+        if participation.evaluation_score
+        else None,
     )
     filename = f"certificat_{participation_id}.pdf"
     return Response(

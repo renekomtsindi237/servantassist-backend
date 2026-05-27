@@ -16,7 +16,9 @@ from tests.conftest import VALID_PASSWORD, make_auth_header
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.use_cases
 class TestServantProfileManagement:
-    async def test_full_profile_update_flow(self, client: AsyncClient, servant_user: User):
+    async def test_full_profile_update_flow(
+        self, client: AsyncClient, servant_user: User
+    ):
         headers = make_auth_header(servant_user)
 
         # 1. Consulter le profil
@@ -57,7 +59,9 @@ class TestServantProfileManagement:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.use_cases
 class TestAdminUserManagement:
-    async def test_admin_views_and_filters_users(self, client: AsyncClient, admin_user, servant_user, parent_user):
+    async def test_admin_views_and_filters_users(
+        self, client: AsyncClient, admin_user, servant_user, parent_user
+    ):
         headers = make_auth_header(admin_user)
 
         # 1. Lister tous les utilisateurs
@@ -76,11 +80,15 @@ class TestAdminUserManagement:
         assert resp.status_code == 200
         assert resp.json()["total"] >= 1
 
-    async def test_admin_deactivates_and_reactivates_user(self, client: AsyncClient, admin_user, servant_user):
+    async def test_admin_deactivates_and_reactivates_user(
+        self, client: AsyncClient, admin_user, servant_user
+    ):
         headers = make_auth_header(admin_user)
 
         # 1. Desactiver le servant
-        resp = await client.patch(f"/api/v1/users/{servant_user.id}/deactivate", headers=headers)
+        resp = await client.patch(
+            f"/api/v1/users/{servant_user.id}/deactivate", headers=headers
+        )
         assert resp.status_code == 200
         assert resp.json()["is_active"] is False
 
@@ -89,11 +97,15 @@ class TestAdminUserManagement:
         assert any(u["id"] == str(servant_user.id) for u in resp.json()["items"])
 
         # 3. Reactiver le servant
-        resp = await client.patch(f"/api/v1/users/{servant_user.id}/activate", headers=headers)
+        resp = await client.patch(
+            f"/api/v1/users/{servant_user.id}/activate", headers=headers
+        )
         assert resp.status_code == 200
         assert resp.json()["is_active"] is True
 
-    async def test_admin_resets_user_password(self, client: AsyncClient, admin_user, servant_user):
+    async def test_admin_resets_user_password(
+        self, client: AsyncClient, admin_user, servant_user
+    ):
         headers = make_auth_header(admin_user)
 
         # Reinitialiser le mot de passe
@@ -110,7 +122,9 @@ class TestAdminUserManagement:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.use_cases
 class TestDeleteGuardrails:
-    async def test_admin_deletes_servant(self, client: AsyncClient, admin_user, servant_user):
+    async def test_admin_deletes_servant(
+        self, client: AsyncClient, admin_user, servant_user
+    ):
         headers = make_auth_header(admin_user)
 
         # Supprimer un servant
@@ -125,4 +139,7 @@ class TestDeleteGuardrails:
         headers = make_auth_header(admin_user)
         resp = await client.delete(f"/api/v1/users/{admin_user.id}", headers=headers)
         assert resp.status_code == 400
-        assert "propre" in resp.json()["detail"].lower() or "supprimer" in resp.json()["detail"].lower()
+        assert (
+            "propre" in resp.json()["detail"].lower()
+            or "supprimer" in resp.json()["detail"].lower()
+        )

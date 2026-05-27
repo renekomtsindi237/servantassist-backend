@@ -56,14 +56,15 @@ from cryptography.hazmat.primitives.serialization import (
     load_pem_private_key,
 )
 
-_NONCE_LEN = 12         # GCM nonce (96 bits)
-_KEY_LEN = 32           # AES-256
+_NONCE_LEN = 12  # GCM nonce (96 bits)
+_KEY_LEN = 32  # AES-256
 _HKDF_INFO = b"ServantAssist-payload-v1"
-_EC_PUBKEY_LEN = 65     # point non-compressé (0x04 || X 32B || Y 32B)
+_EC_PUBKEY_LEN = 65  # point non-compressé (0x04 || X 32B || Y 32B)
 _PAYLOAD_VERSION = 1
 
 
 # ── Helpers EC ───────────────────────────────────────────────────────────────
+
 
 def _raw_bytes_to_ec_pubkey(raw: bytes):
     """Convertit 65 octets (point non-compressé) en EllipticCurvePublicKey."""
@@ -84,6 +85,7 @@ def _ec_pubkey_to_raw_bytes(pub_key) -> bytes:
 
 # ── Dérivation de clé de session ─────────────────────────────────────────────
 
+
 def _derive_session_key(shared_secret: bytes) -> bytes:
     """HKDF-SHA256(shared_secret, info) → 32 octets AES-256."""
     hkdf = HKDF(
@@ -96,6 +98,7 @@ def _derive_session_key(shared_secret: bytes) -> bytes:
 
 
 # ── Classe principale ─────────────────────────────────────────────────────────
+
 
 class PayloadEncryptor:
     """
@@ -115,7 +118,9 @@ class PayloadEncryptor:
         self._private_key = load_pem_private_key(pem, password=None)
         # Pré-calcul de la clé publique sérialisée
         self._public_key_raw = _ec_pubkey_to_raw_bytes(self._private_key.public_key())
-        self._public_key_b64 = base64.urlsafe_b64encode(self._public_key_raw).decode("ascii")
+        self._public_key_b64 = base64.urlsafe_b64encode(self._public_key_raw).decode(
+            "ascii"
+        )
 
     # ── API publique ──────────────────────────────────────────────────────────
 
@@ -169,7 +174,9 @@ class PayloadEncryptor:
             aesgcm = AESGCM(session_key)
             plaintext = aesgcm.decrypt(iv, ct, None)
         except Exception as exc:
-            raise ValueError(f"Déchiffrement GCM échoué (tag invalide ?) : {exc}") from exc
+            raise ValueError(
+                f"Déchiffrement GCM échoué (tag invalide ?) : {exc}"
+            ) from exc
 
         return plaintext
 
@@ -187,6 +194,7 @@ def get_payload_encryptor() -> PayloadEncryptor:
     global _encryptor_instance
     if _encryptor_instance is None:
         from src.infrastructure.config.settings import get_settings
+
         key = get_settings().PAYLOAD_ENCRYPTION_PRIVATE_KEY
         if not key:
             raise RuntimeError(

@@ -35,23 +35,18 @@ services:
       retries: 3
 
   # ── Redis ─────────────────────────────────────────────────────────────────
+  # Sans mot de passe : Redis est interne au réseau Docker, non exposé à l'hôte.
   redis:
     image: redis:7-alpine
     container_name: servantassist-staging-redis
     restart: unless-stopped
-    env_file:
-      - .env.staging
-    command: >
-      redis-server
-        --maxmemory 256mb
-        --maxmemory-policy allkeys-lru
-        --requirepass ${REDIS_PASSWORD:-}
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping 2>&1 | grep -qiE 'PONG|NOAUTH'"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 10s
 
   # ── Backend (2 réplicas par défaut) ──────────────────────────────────────
   # Pas de container_name — Docker Compose nomme automatiquement les réplicas
@@ -67,7 +62,7 @@ services:
     environment:
       APP_ENV: staging
       APP_DEBUG: "false"
-      REDIS_URL: "redis://:${REDIS_PASSWORD:-}@redis:6379/0"
+      REDIS_URL: "redis://redis:6379/0"
       GUNICORN_WORKERS: "2"      # 2 workers par réplica (staging léger)
     volumes:
       - ./gunicorn.conf.py:/app/gunicorn.conf.py:ro
@@ -124,7 +119,7 @@ services:
       - .env.staging
     environment:
       APP_ENV: staging
-      REDIS_URL: "redis://:${REDIS_PASSWORD:-}@redis:6379/0"
+      REDIS_URL: "redis://redis:6379/0"
     command: celery -A src.infrastructure.tasks.celery_app worker --loglevel=info --concurrency=2
     security_opt:
       - no-new-privileges:true
@@ -148,7 +143,7 @@ services:
       - .env.staging
     environment:
       APP_ENV: staging
-      REDIS_URL: "redis://:${REDIS_PASSWORD:-}@redis:6379/0"
+      REDIS_URL: "redis://redis:6379/0"
     command: celery -A src.infrastructure.tasks.celery_app beat --loglevel=info
     security_opt:
       - no-new-privileges:true

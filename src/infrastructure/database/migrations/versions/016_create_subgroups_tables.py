@@ -48,7 +48,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name", name="uq_sub_groups_name"),
     )
-    op.create_index(op.f("ix_sub_groups_is_active"), "sub_groups", ["is_active"], unique=False)
+    op.create_index(
+        op.f("ix_sub_groups_is_active"), "sub_groups", ["is_active"], unique=False
+    )
 
     op.create_table(
         "sub_group_members",
@@ -69,18 +71,32 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
         sa.Column("left_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["sub_group_id"], ["sub_groups.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["sub_group_id"], ["sub_groups.id"], ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["added_by"], ["users.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_sub_group_members_sub_group_id"), "sub_group_members", ["sub_group_id"], unique=False)
-    op.create_index(op.f("ix_sub_group_members_user_id"), "sub_group_members", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_sub_group_members_sub_group_id"),
+        "sub_group_members",
+        ["sub_group_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_sub_group_members_user_id"),
+        "sub_group_members",
+        ["user_id"],
+        unique=False,
+    )
 
 
 def downgrade() -> None:
     op.drop_index(op.f("ix_sub_group_members_user_id"), table_name="sub_group_members")
-    op.drop_index(op.f("ix_sub_group_members_sub_group_id"), table_name="sub_group_members")
+    op.drop_index(
+        op.f("ix_sub_group_members_sub_group_id"), table_name="sub_group_members"
+    )
     op.drop_table("sub_group_members")
 
     op.drop_index(op.f("ix_sub_groups_is_active"), table_name="sub_groups")

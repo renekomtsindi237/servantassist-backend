@@ -91,10 +91,27 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["sent_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_notifications_recipient_id"), "notifications", ["recipient_id"], unique=False)
-    op.create_index(op.f("ix_notifications_notification_type"), "notifications", ["notification_type"], unique=False)
-    op.create_index(op.f("ix_notifications_status"), "notifications", ["status"], unique=False)
-    op.create_index(op.f("ix_notifications_broadcast_id"), "notifications", ["broadcast_id"], unique=False)
+    op.create_index(
+        op.f("ix_notifications_recipient_id"),
+        "notifications",
+        ["recipient_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_notifications_notification_type"),
+        "notifications",
+        ["notification_type"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_notifications_status"), "notifications", ["status"], unique=False
+    )
+    op.create_index(
+        op.f("ix_notifications_broadcast_id"),
+        "notifications",
+        ["broadcast_id"],
+        unique=False,
+    )
 
     op.create_table(
         "notification_preferences",
@@ -120,9 +137,15 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
-        sa.Column("email_enabled", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("whatsapp_enabled", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("in_app_enabled", sa.Boolean(), nullable=False, server_default="true"),
+        sa.Column(
+            "email_enabled", sa.Boolean(), nullable=False, server_default="false"
+        ),
+        sa.Column(
+            "whatsapp_enabled", sa.Boolean(), nullable=False, server_default="false"
+        ),
+        sa.Column(
+            "in_app_enabled", sa.Boolean(), nullable=False, server_default="true"
+        ),
         sa.Column(
             "updated_at",
             sa.DateTime(),
@@ -131,20 +154,40 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("user_id", "notification_type", name="uq_notif_pref_user_type"),
+        sa.UniqueConstraint(
+            "user_id", "notification_type", name="uq_notif_pref_user_type"
+        ),
     )
-    op.create_index(op.f("ix_notification_preferences_user_id"), "notification_preferences", ["user_id"], unique=False)
-    op.create_index(op.f("ix_notification_preferences_notification_type"), "notification_preferences", ["notification_type"], unique=False)
+    op.create_index(
+        op.f("ix_notification_preferences_user_id"),
+        "notification_preferences",
+        ["user_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_notification_preferences_notification_type"),
+        "notification_preferences",
+        ["notification_type"],
+        unique=False,
+    )
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_notification_preferences_notification_type"), table_name="notification_preferences")
-    op.drop_index(op.f("ix_notification_preferences_user_id"), table_name="notification_preferences")
+    op.drop_index(
+        op.f("ix_notification_preferences_notification_type"),
+        table_name="notification_preferences",
+    )
+    op.drop_index(
+        op.f("ix_notification_preferences_user_id"),
+        table_name="notification_preferences",
+    )
     op.drop_table("notification_preferences")
 
     op.drop_index(op.f("ix_notifications_broadcast_id"), table_name="notifications")
     op.drop_index(op.f("ix_notifications_status"), table_name="notifications")
-    op.drop_index(op.f("ix_notifications_notification_type"), table_name="notifications")
+    op.drop_index(
+        op.f("ix_notifications_notification_type"), table_name="notifications"
+    )
     op.drop_index(op.f("ix_notifications_recipient_id"), table_name="notifications")
     op.drop_table("notifications")
 

@@ -19,7 +19,11 @@ def get_db_url(for_migrations: bool = False) -> str:
       - for_migrations=False → transaction pooler pgbouncer (runtime)
     """
     if settings.is_supabase_env:
-        url = settings.SUPABASE_DB_DIRECT_URL if for_migrations else settings.SUPABASE_DB_POOLER_URL
+        url = (
+            settings.SUPABASE_DB_DIRECT_URL
+            if for_migrations
+            else settings.SUPABASE_DB_POOLER_URL
+        )
         if not url:
             raise RuntimeError(
                 f"APP_ENV={settings.APP_ENV} mais "
@@ -68,25 +72,27 @@ def _build_engine_kwargs() -> dict[str, Any]:
         pool_size = max(2, 50 // workers)
         max_overflow = pool_size
 
-        base.update({
-            "connect_args": {
-                # Pgbouncer transaction mode — désactive prepared statements
-                "prepared_statement_cache_size": 0,
-                # Timeout de connexion initiale (évite les attentes infinies)
-                "timeout": 10,
-                # Statement timeout : tue toute requête qui dépasse 30s
-                "server_settings": {
-                    "statement_timeout": "30000",        # ms
-                    "idle_in_transaction_session_timeout": "60000",  # ms
-                    "application_name": f"servantassist-{os.environ.get('APP_ENV', 'app')}",
+        base.update(
+            {
+                "connect_args": {
+                    # Pgbouncer transaction mode — désactive prepared statements
+                    "prepared_statement_cache_size": 0,
+                    # Timeout de connexion initiale (évite les attentes infinies)
+                    "timeout": 10,
+                    # Statement timeout : tue toute requête qui dépasse 30s
+                    "server_settings": {
+                        "statement_timeout": "30000",  # ms
+                        "idle_in_transaction_session_timeout": "60000",  # ms
+                        "application_name": f"servantassist-{os.environ.get('APP_ENV', 'app')}",
+                    },
                 },
-            },
-            "pool_size": pool_size,
-            "max_overflow": max_overflow,
-            "pool_timeout": 15,       # Attente max pour obtenir une connexion du pool
-            "pool_recycle": 1800,     # Recrée la connexion après 30 min
-            "pool_pre_ping": True,    # Vérifie la connexion avant utilisation
-        })
+                "pool_size": pool_size,
+                "max_overflow": max_overflow,
+                "pool_timeout": 15,  # Attente max pour obtenir une connexion du pool
+                "pool_recycle": 1800,  # Recrée la connexion après 30 min
+                "pool_pre_ping": True,  # Vérifie la connexion avant utilisation
+            }
+        )
 
     return base
 

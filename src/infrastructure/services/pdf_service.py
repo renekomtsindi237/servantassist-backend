@@ -30,9 +30,9 @@ from reportlab.platypus import (
 _LOGO_PATH = Path(__file__).parent.parent.parent.parent / "assets" / "logo_servant.jpeg"
 
 # Couleurs institutionnelles
-_COLOR_PRIMARY = colors.HexColor("#1a3a5c")   # Bleu marine
-_COLOR_ACCENT = colors.HexColor("#c9a84c")    # Or
-_COLOR_LIGHT = colors.HexColor("#f5f5f5")     # Gris clair
+_COLOR_PRIMARY = colors.HexColor("#1a3a5c")  # Bleu marine
+_COLOR_ACCENT = colors.HexColor("#c9a84c")  # Or
+_COLOR_LIGHT = colors.HexColor("#f5f5f5")  # Gris clair
 
 
 def _base_doc(buffer: BytesIO, title: str) -> SimpleDocTemplate:
@@ -108,7 +108,9 @@ def _header_elements(st: dict, title: str, subtitle: str = "") -> list:
     ]
     if subtitle:
         elems.append(Paragraph(subtitle, st["subtitle"]))
-    elems.append(HRFlowable(width="100%", thickness=1, color=_COLOR_ACCENT, spaceAfter=10))
+    elems.append(
+        HRFlowable(width="100%", thickness=1, color=_COLOR_ACCENT, spaceAfter=10)
+    )
     return elems
 
 
@@ -160,9 +162,7 @@ class PDFService:
         story.append(Spacer(1, 1.5 * cm))
 
         # Corps du certificat
-        story.append(
-            Paragraph("Nous certifions que", st["center"])
-        )
+        story.append(Paragraph("Nous certifions que", st["center"]))
         story.append(Spacer(1, 0.5 * cm))
         story.append(
             Paragraph(
@@ -341,9 +341,7 @@ class PDFService:
         story.extend(
             _header_elements(st, "BILAN FINANCIER", f"Période : {period_label}")
         )
-        story.append(
-            Paragraph(f"Établi par : {generated_by}", st["small"])
-        )
+        story.append(Paragraph(f"Établi par : {generated_by}", st["small"]))
         story.append(Spacer(1, 0.5 * cm))
 
         # Résumé
@@ -382,7 +380,9 @@ class PDFService:
         # Détail des opérations
         if entries:
             story.append(Paragraph("Détail des opérations", st["section"]))
-            table_data = [["Date", "Description", "Catégorie", "Type", "Montant (FCFA)"]]
+            table_data = [
+                ["Date", "Description", "Catégorie", "Type", "Montant (FCFA)"]
+            ]
             for e in entries:
                 date_str = (
                     e["date"].strftime("%d/%m/%Y")
@@ -410,7 +410,12 @@ class PDFService:
                         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                         ("FONTSIZE", (0, 0), (-1, -1), 8),
                         ("ALIGN", (4, 0), (4, -1), "RIGHT"),
-                        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, _COLOR_LIGHT]),
+                        (
+                            "ROWBACKGROUNDS",
+                            (0, 1),
+                            (-1, -1),
+                            [colors.white, _COLOR_LIGHT],
+                        ),
                         ("GRID", (0, 0), (-1, -1), 0.25, colors.lightgrey),
                         ("TOPPADDING", (0, 0), (-1, -1), 4),
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
@@ -495,7 +500,9 @@ class PDFService:
                     else str(s.get("date", ""))
                 )
                 status = str(s.get("status", ""))
-                status_display = "✓ Présent" if "PRESENT" in status.upper() else "✗ Absent"
+                status_display = (
+                    "✓ Présent" if "PRESENT" in status.upper() else "✗ Absent"
+                )
                 table_data.append(
                     [
                         date_str,
@@ -515,7 +522,12 @@ class PDFService:
                         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                         ("FONTSIZE", (0, 0), (-1, -1), 9),
-                        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, _COLOR_LIGHT]),
+                        (
+                            "ROWBACKGROUNDS",
+                            (0, 1),
+                            (-1, -1),
+                            [colors.white, _COLOR_LIGHT],
+                        ),
                         ("GRID", (0, 0), (-1, -1), 0.25, colors.lightgrey),
                         ("TOPPADDING", (0, 0), (-1, -1), 4),
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 4),

@@ -39,7 +39,12 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_council_meetings_meeting_date"), "council_meetings", ["meeting_date"], unique=False)
+    op.create_index(
+        op.f("ix_council_meetings_meeting_date"),
+        "council_meetings",
+        ["meeting_date"],
+        unique=False,
+    )
 
     op.create_table(
         "council_attendances",
@@ -70,21 +75,39 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
         sa.Column("recorded_by", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.ForeignKeyConstraint(["meeting_id"], ["council_meetings.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["meeting_id"], ["council_meetings.id"], ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(["responsable_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["recorded_by"], ["users.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_council_attendances_meeting_id"), "council_attendances", ["meeting_id"], unique=False)
-    op.create_index(op.f("ix_council_attendances_responsable_id"), "council_attendances", ["responsable_id"], unique=False)
+    op.create_index(
+        op.f("ix_council_attendances_meeting_id"),
+        "council_attendances",
+        ["meeting_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_council_attendances_responsable_id"),
+        "council_attendances",
+        ["responsable_id"],
+        unique=False,
+    )
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_council_attendances_responsable_id"), table_name="council_attendances")
-    op.drop_index(op.f("ix_council_attendances_meeting_id"), table_name="council_attendances")
+    op.drop_index(
+        op.f("ix_council_attendances_responsable_id"), table_name="council_attendances"
+    )
+    op.drop_index(
+        op.f("ix_council_attendances_meeting_id"), table_name="council_attendances"
+    )
     op.drop_table("council_attendances")
 
-    op.drop_index(op.f("ix_council_meetings_meeting_date"), table_name="council_meetings")
+    op.drop_index(
+        op.f("ix_council_meetings_meeting_date"), table_name="council_meetings"
+    )
     op.drop_table("council_meetings")
 
     sa.Enum(name="councilattendancestatus").drop(op.get_bind(), checkfirst=True)
