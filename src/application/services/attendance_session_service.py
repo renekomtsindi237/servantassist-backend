@@ -247,9 +247,7 @@ class AttendanceSessionService:
         if servant.role != UserRole.SERVANT:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{
-    servant.first_name} {
-        servant.last_name} n'est pas un servant.",
+                detail=f"{servant.first_name} {servant.last_name} n'est pas un servant.",
             )
 
         # Vérifier qu'il n'existe pas déjà un enregistrement pour ce servant
@@ -258,9 +256,7 @@ class AttendanceSessionService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"La présence de {
-    servant.first_name} {
-        servant.last_name} est déjà enregistrée dans cette session.",
+                detail=f"La présence de {servant.first_name} {servant.last_name} est déjà enregistrée dans cette session.",
             )
 
         record = AttendanceRecord(
@@ -366,9 +362,7 @@ class AttendanceSessionService:
 
         # Récupérer le générateur
         generator = await self.user_repo.get(generated_by)
-        generated_by_name = f"{
-    generator.first_name} {
-        generator.last_name}" if generator else "Inconnu"
+        generated_by_name = f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
 
         return AttendanceReportResponse(
             start_date=request.start_date,

@@ -145,9 +145,7 @@ async def register_user(
     if user_data.role not in _SELF_REGISTER_ROLES:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Le rôle {
-    user_data.role.value} ne peut pas s'inscrire publiquement. "
-            "Contactez un administrateur.",
+            detail=f"Le rôle {user_data.role.value} ne peut pas s'inscrire publiquement. Contactez un administrateur.",
         )
 
     user_repo = UserRepository(session)

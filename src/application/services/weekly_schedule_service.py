@@ -164,15 +164,12 @@ class WeeklyScheduleService:
                             if not user:
                                 raise HTTPException(
                                     status_code=status.HTTP_404_NOT_FOUND,
-                                    detail=f"Utilisateur {
-    servant_data.servant_id} introuvable.",
+                                    detail=f"Utilisateur {servant_data.servant_id} introuvable.",
                                 )
                             if user.role != UserRole.SERVANT:
                                 raise HTTPException(
                                     status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail=f"{
-    user.first_name} {
-        user.last_name} n'est pas un servant.",
+                                    detail=f"{user.first_name} {user.last_name} n'est pas un servant.",
                                 )
 
                         assignment = SlotServantAssignment(
@@ -443,17 +440,14 @@ class WeeklyScheduleService:
         if not slot_date:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Le jour {
-    slot.day.value} n'existe pas dans la période du classement.",
+                detail=f"Le jour {slot.day.value} n'existe pas dans la période du classement.",
             )
 
         # Validation temporelle stricte : 1h avant → 1h après la messe
         if not is_within_mass_window(slot_date, slot.mass_time):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
-    slot.mass_time} le {
-        slot.day.value}.",
+                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",
             )
 
         # Valider le servant si fourni
@@ -467,9 +461,7 @@ class WeeklyScheduleService:
             if user.role != UserRole.SERVANT:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"{
-    user.first_name} {
-        user.last_name} n'est pas un servant.",
+                    detail=f"{user.first_name} {user.last_name} n'est pas un servant.",
                 )
 
         assignment = SlotServantAssignment(
@@ -525,9 +517,7 @@ class WeeklyScheduleService:
                     if not is_within_mass_window(slot_date, slot.mass_time):
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
-    slot.mass_time} le {
-        slot.day.value}.",
+                            detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",
                         )
 
         deleted = await self.schedule_repo.delete_assignment(assignment_id)

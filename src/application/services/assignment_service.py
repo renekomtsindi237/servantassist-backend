@@ -95,9 +95,7 @@ class AssignmentService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=(
-    f"Ce servant est deja affecte comme {
-        data.liturgical_role.value} " f"a cet evenement."),
+                detail=f"Ce servant est deja affecte comme {data.liturgical_role.value} a cet evenement.",
             )
 
         assignment = Assignment(
@@ -138,10 +136,7 @@ class AssignmentService:
                     errors.append(f"Utilisateur {item.user_id} introuvable.")
                     continue
                 if not user.is_active:
-                    errors.append(
-    f"Utilisateur {
-        user.first_name} {
-            user.last_name} inactif.")
+                    errors.append(f"Utilisateur {user.first_name} {user.last_name} inactif.")
                     continue
                 if user.role != UserRole.SERVANT:
                     errors.append(
@@ -171,10 +166,7 @@ class AssignmentService:
                 created_list.append(AssignmentResponse(**enriched))
 
             except Exception as exc:
-                errors.append(
-    f"Erreur pour l'utilisateur {
-        item.user_id}: {
-            str(exc)}")
+                errors.append(f"Erreur pour l'utilisateur {item.user_id}: {str(exc)}")
 
         return AssignmentBatchResponse(
             created=created_list,
@@ -294,10 +286,7 @@ class AssignmentService:
                 if existing and existing.id != assignment.id:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
-                        detail=(
-                            f"Ce servant a deja une affectation " f"{
-    data.liturgical_role.value} pour cet evenement."
-                        ),
+                        detail=f"Ce servant a deja une affectation {data.liturgical_role.value} pour cet evenement.",
                     )
             assignment.liturgical_role = data.liturgical_role
 
@@ -354,11 +343,7 @@ class AssignmentService:
         if data.status not in allowed:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    f"Vous ne pouvez qu'accepter ou decliner. " f"Statuts autorises : {
-    [
-        s.value for s in allowed]}"
-                ),
+                detail=f"Vous ne pouvez qu'accepter ou decliner. Statuts autorises : {[s.value for s in allowed]}",
             )
 
         assignment.status = data.status

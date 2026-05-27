@@ -220,8 +220,7 @@ def get_require_poste(required_poste: str):
         if nomination.poste.value != required_poste:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Vous devez être {required_poste}, vous êtes actuellement {
-    nomination.poste.value}.",
+                detail=f"Vous devez être {required_poste}, vous êtes actuellement {nomination.poste.value}.",
             )
 
         return current_user

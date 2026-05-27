@@ -190,8 +190,7 @@ class SubGroupService:
             if count >= group.max_members:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Ce sous-groupe a atteint sa capacite maximale ({
-    group.max_members}).",
+                    detail=f"Ce sous-groupe a atteint sa capacite maximale ({group.max_members}).",
                 )
 
         membership = SubGroupMember(

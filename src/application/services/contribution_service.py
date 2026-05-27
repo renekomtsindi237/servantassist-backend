@@ -60,9 +60,7 @@ class ContributionService:
         if servant.role != UserRole.SERVANT:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{
-    servant.first_name} {
-        servant.last_name} n'est pas un servant.",
+                detail=f"{servant.first_name} {servant.last_name} n'est pas un servant.",
             )
 
         # Validation: montant doit être positif
@@ -308,9 +306,7 @@ class ContributionService:
 
         # Récupérer le générateur
         generator = await self.user_repo.get(generated_by)
-        generated_by_name = f"{
-    generator.first_name} {
-        generator.last_name}" if generator else "Inconnu"
+        generated_by_name = f"{generator.first_name} {generator.last_name}" if generator else "Inconnu"
 
         return FinancialReportResponse(
             start_date=request.start_date,

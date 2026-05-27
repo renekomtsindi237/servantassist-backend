@@ -70,9 +70,7 @@ class EmailService:
         Supporte STARTTLS (port 587) et SSL direct (port 465).
         """
         msg = MIMEMultipart("alternative")
-        msg["From"] = f"{
-    self._settings.SMTP_FROM_NAME} <{
-        self._settings.SMTP_FROM}>"
+        msg["From"] = f"{self._settings.SMTP_FROM_NAME} <{self._settings.SMTP_FROM}>"
         msg["To"] = to_email
         msg["Subject"] = subject
         msg["X-Mailer"] = "ServantAssist/1.0"

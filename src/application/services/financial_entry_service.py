@@ -277,8 +277,7 @@ class FinancialEntryService:
         # Entrées rejetées
         if stats["rejected_entries"] > 0:
             recommendations.append(
-                f"{
-    stats['rejected_entries']} entrée(s) rejetée(s). " "Vérifier et corriger les anomalies détectées."
+                f"{stats['rejected_entries']} entrée(s) rejetée(s). Vérifier et corriger les anomalies détectées."
             )
 
         # Écarts non résolus
@@ -291,9 +290,7 @@ class FinancialEntryService:
         # Montant élevé en attente
         if stats["pending_amount"] > stats["total_amount"] * 0.3:
             recommendations.append(
-                f"Montant important en attente de vérification ({
-    stats['pending_amount']:.0f} FCFA). "
-                "Prioriser la vérification des entrées en attente."
+                f"Montant important en attente de vérification ({stats['pending_amount']:.0f} FCFA). Prioriser la vérification des entrées en attente."
             )
 
         if not recommendations:

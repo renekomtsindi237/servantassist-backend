@@ -49,8 +49,7 @@ class AuthService:
             if user.role not in (UserRole.ADMIN, UserRole.AUMÔNIER):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f"Les utilisateurs {
-    user.role.value} doivent se connecter avec leur numéro de téléphone",
+                    detail=f"Les utilisateurs {user.role.value} doivent se connecter avec leur numéro de téléphone",
                 )
         else:
             # Phone-based login — réservé PARENT/SERVANT
@@ -65,8 +64,7 @@ class AuthService:
             if user.role not in (UserRole.PARENT, UserRole.SERVANT):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f"Les utilisateurs {
-    user.role.value} doivent se connecter avec leur email",
+                    detail=f"Les utilisateurs {user.role.value} doivent se connecter avec leur email",
                 )
 
         # Verify password

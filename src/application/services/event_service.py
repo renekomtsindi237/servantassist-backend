@@ -248,8 +248,7 @@ class EventService:
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Utilisateur {
-    participant_data.user_id} introuvable.",
+                    detail=f"Utilisateur {participant_data.user_id} introuvable.",
                 )
 
         # Verifier doublon
@@ -377,9 +376,7 @@ class EventService:
         if new_status not in allowed:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Vous ne pouvez que confirmer ou decliner. Statuts autorises : {
-    [
-        s.value for s in allowed]}",
+                detail=f"Vous ne pouvez que confirmer ou decliner. Statuts autorises : {[s.value for s in allowed]}",
             )
 
         participant.status = new_status

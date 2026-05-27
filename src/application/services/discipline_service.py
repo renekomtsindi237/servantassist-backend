@@ -115,8 +115,7 @@ class DisciplineService:
         if case.status != DisciplineCaseStatus.SIGNALE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Impossible de convoquer : statut actuel = {
-    case.status.value}.",
+                detail=f"Impossible de convoquer : statut actuel = {case.status.value}.",
             )
 
         case.status = DisciplineCaseStatus.CONVOQUE
@@ -143,8 +142,7 @@ class DisciplineService:
         if case.status != DisciplineCaseStatus.CONVOQUE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Impossible d'ouvrir l'audience : statut actuel = {
-    case.status.value}.",
+                detail=f"Impossible d'ouvrir l'audience : statut actuel = {case.status.value}.",
             )
 
         case.status = DisciplineCaseStatus.EN_AUDIENCE
@@ -174,8 +172,7 @@ class DisciplineService:
         ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Impossible de rendre un verdict : statut actuel = {
-    case.status.value}.",
+                detail=f"Impossible de rendre un verdict : statut actuel = {case.status.value}.",
             )
 
         case.status = DisciplineCaseStatus.VERDICT_RENDU
@@ -218,8 +215,7 @@ class DisciplineService:
         if case.status != DisciplineCaseStatus.VERDICT_RENDU:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Impossible d'executer : verdict non rendu (statut = {
-    case.status.value}).",
+                detail=f"Impossible d'executer : verdict non rendu (statut = {case.status.value}).",
             )
 
         case.status = DisciplineCaseStatus.EXECUTE

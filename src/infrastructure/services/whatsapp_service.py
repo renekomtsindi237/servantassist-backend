@@ -67,15 +67,11 @@ class WhatsAppService:
             message = self.client.messages.create(
     from_=self.whatsapp_from, to=whatsapp_to, body=message_body)
 
-            logger.info(
-    f"WhatsApp message sent successfully to {phone_number} (SID: {
-        message.sid})")
+            logger.info(f"WhatsApp message sent successfully to {phone_number} (SID: {message.sid})")
             return True
 
         except Exception as e:
-            logger.error(
-    f"Failed to send WhatsApp message to {phone_number}: {
-        str(e)}")
+            logger.error(f"Failed to send WhatsApp message to {phone_number}: {str(e)}")
             return False
 
     async def send_login_otp(self, phone_number: str, otp_code: str) -> bool:
@@ -104,15 +100,11 @@ class WhatsAppService:
             message = self.client.messages.create(
     from_=self.whatsapp_from, to=whatsapp_to, body=message_body)
 
-            logger.info(
-    f"WhatsApp OTP sent to {phone_number} (SID: {
-        message.sid})")
+            logger.info(f"WhatsApp OTP sent to {phone_number} (SID: {message.sid})")
             return True
 
         except Exception as e:
-            logger.error(
-    f"Failed to send WhatsApp OTP to {phone_number}: {
-        str(e)}")
+            logger.error(f"Failed to send WhatsApp OTP to {phone_number}: {str(e)}")
             return False
 
     async def send_admin_notification(
@@ -137,13 +129,9 @@ class WhatsAppService:
             message = self.client.messages.create(
     from_=self.whatsapp_from, to=whatsapp_to, body=message_text)
 
-            logger.info(
-    f"WhatsApp notification sent to {phone_number} (SID: {
-        message.sid})")
+            logger.info(f"WhatsApp notification sent to {phone_number} (SID: {message.sid})")
             return True
 
         except Exception as e:
-            logger.error(
-    f"Failed to send WhatsApp notification to {phone_number}: {
-        str(e)}")
+            logger.error(f"Failed to send WhatsApp notification to {phone_number}: {str(e)}")
             return False

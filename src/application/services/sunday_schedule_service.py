@@ -149,15 +149,12 @@ class SundayScheduleService:
                             if not user:
                                 raise HTTPException(
                                     status_code=status.HTTP_404_NOT_FOUND,
-                                    detail=f"Utilisateur {
-    assignment_data.servant_id} introuvable.",
+                                    detail=f"Utilisateur {assignment_data.servant_id} introuvable.",
                                 )
                             if user.role != UserRole.SERVANT:
                                 raise HTTPException(
                                     status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail=f"{
-    user.first_name} {
-        user.last_name} n'est pas un servant.",
+                                    detail=f"{user.first_name} {user.last_name} n'est pas un servant.",
                                 )
 
                         assignment = SundayMassAssignment(
@@ -471,8 +468,7 @@ class SundayScheduleService:
         if not is_within_mass_window(template.schedule_date, mass.mass_time):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
-    mass.mass_time}.",
+                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {mass.mass_time}.",
             )
 
         # Valider le servant si fourni
@@ -486,9 +482,7 @@ class SundayScheduleService:
             if user.role != UserRole.SERVANT:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"{
-    user.first_name} {
-        user.last_name} n'est pas un servant.",
+                    detail=f"{user.first_name} {user.last_name} n'est pas un servant.",
                 )
 
         assignment = SundayMassAssignment(
@@ -522,8 +516,7 @@ class SundayScheduleService:
                     template.schedule_date, mass.mass_time):
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
-    mass.mass_time}.",
+                        detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {mass.mass_time}.",
                     )
 
         deleted = await self.schedule_repo.delete_assignment(assignment_id)
@@ -574,8 +567,7 @@ class SundayScheduleService:
         if not is_within_mass_window(template.schedule_date, mass.mass_time):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Le marquage de présence n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {
-    mass.mass_time}.",
+                detail=f"Le marquage de présence n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {mass.mass_time}.",
             )
 
         # Récupérer l'utilisateur qui marque
@@ -610,10 +602,7 @@ class SundayScheduleService:
             mass_slot_id=mass.id,
             assignment_id=assignment_id,
             action=ModificationAction.PRESENCE_MARKED if is_present else ModificationAction.ABSENCE_MARKED,
-            description=f"Présence {
-    'confirmée' if is_present else 'marquée absente'} pour {servant_name} ({
-        assignment.position.value}) à la messe de {
-            mass.mass_time}",
+            description=f"Présence {'confirmée' if is_present else 'marquée absente'} pour {servant_name} ({assignment.position.value}) à la messe de {mass.mass_time}",
             modified_by=marked_by,
             modified_by_name=f"{user.first_name} {user.last_name}",
             ip_address=ip_address,

@@ -55,10 +55,7 @@ def _resolve_slug(slug: str) -> PosteResponsable:
     if not poste:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=(
-    f"Poste inconnu : '{slug}'. " f"Slugs valides : {
-        ', '.join(
-            SLUG_TO_POSTE.keys())}"),
+            detail=f"Poste inconnu : '{slug}'. Slugs valides : {', '.join(SLUG_TO_POSTE.keys())}",
         )
     return poste
 
@@ -82,8 +79,7 @@ async def _verify_poste_access(
     if not nomination:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Vous n'occupez pas le poste de {
-    poste.value}. Acces refuse.",
+            detail=f"Vous n'occupez pas le poste de {poste.value}. Acces refuse.",
         )
 
 
