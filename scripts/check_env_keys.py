@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Show env variable names and DB host only (no credentials)."""
-import paramiko, re
+import re
+
+import paramiko
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())

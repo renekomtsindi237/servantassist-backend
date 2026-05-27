@@ -17,12 +17,12 @@ Sortie :
 import base64
 import textwrap
 
-from cryptography.hazmat.primitives.asymmetric.ec import generate_private_key, SECP256R1
+from cryptography.hazmat.primitives.asymmetric.ec import SECP256R1, generate_private_key
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
+    NoEncryption,
     PrivateFormat,
     PublicFormat,
-    NoEncryption,
 )
 
 

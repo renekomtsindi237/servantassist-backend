@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Extract DB host from env file and test connectivity (no credentials revealed)."""
-import paramiko, re
+import re
+
+import paramiko
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())

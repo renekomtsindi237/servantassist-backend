@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Transfer .env.staging to server securely without displaying content."""
-import paramiko, base64, os
+import base64
+import os
+
+import paramiko
 
 ENV_PATH = os.path.join(os.path.dirname(__file__), '..', '.env.staging')
 ENV_PATH = os.path.abspath(ENV_PATH)

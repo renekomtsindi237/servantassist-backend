@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Enable IPv6 in Docker daemon on VPS."""
-import sys, io, paramiko, json, base64
+import base64
+import io
+import json
+import sys
+
+import paramiko
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 client = paramiko.SSHClient()

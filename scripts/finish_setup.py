@@ -27,6 +27,7 @@ echo "$(date) OK: $DUMP ($SIZE)" >> /opt/servantassist/logs/backup.log
 
 # Write backup script via tee (no SFTP needed)
 import base64
+
 b64 = base64.b64encode(BACKUP_SCRIPT_CONTENT.encode()).decode()
 write_cmd = f"echo '{b64}' | base64 -d > /opt/servantassist/scripts/backup-db.sh"
 _, out, err = client.exec_command(write_cmd, timeout=10)

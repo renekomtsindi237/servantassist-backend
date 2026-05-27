@@ -21,15 +21,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import select
 
-from src.infrastructure.config.settings import get_settings
 from src.core.entities.user import User
+from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.field_encryption import get_encryptor
 
 

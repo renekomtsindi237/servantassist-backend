@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Set, Tuple
 
+
 def detect_unused_imports(code: str) -> Set[Tuple[str, str]]:
     """Détecte les imports non utilisés dans le code Python.
     

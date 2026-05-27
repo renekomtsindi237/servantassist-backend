@@ -20,8 +20,8 @@ from sqlmodel import select
 
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import sessionmanager
-from src.infrastructure.security.utils import SecurityUtils
 from src.infrastructure.security.field_encryption import get_encryptor
+from src.infrastructure.security.utils import SecurityUtils
 
 # Credentials par défaut — surchargeable via env vars
 _DEFAULT_EMAIL = "renekomtsindi7@gmail.com"

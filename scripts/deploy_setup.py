@@ -3,8 +3,13 @@
 Script d'initialisation serveur via SSH (paramiko).
 Usage: python deploy_setup.py
 """
-import os, sys, time, io
+import io
+import os
+import sys
+import time
+
 import paramiko
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
