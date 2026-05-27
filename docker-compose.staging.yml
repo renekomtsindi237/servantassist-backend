@@ -56,10 +56,7 @@ services:
   # Pas de container_name — Docker Compose nomme automatiquement les réplicas
   # Pas de port exposé directement — le trafic passe par nginx-lb
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
+    image: ghcr.io/renekomtsindi237/servantassist-backend/servantassist-backend:staging
     restart: unless-stopped
     depends_on:
       redis:
@@ -103,10 +100,7 @@ services:
 
   # ── Migration (one-shot — profil "migrate") ────────────────────────────────
   migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
+    image: ghcr.io/renekomtsindi237/servantassist-backend/servantassist-backend:staging
     container_name: servantassist-staging-migrate
     profiles: [migrate]
     env_file:
@@ -118,10 +112,7 @@ services:
 
   # ── Celery Worker ──────────────────────────────────────────────────────────
   celery-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
+    image: ghcr.io/renekomtsindi237/servantassist-backend/servantassist-backend:staging
     container_name: servantassist-staging-celery
     restart: unless-stopped
     depends_on:
@@ -145,10 +136,7 @@ services:
 
   # ── Celery Beat ────────────────────────────────────────────────────────────
   celery-beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
+    image: ghcr.io/renekomtsindi237/servantassist-backend/servantassist-backend:staging
     container_name: servantassist-staging-beat
     restart: unless-stopped
     depends_on:
