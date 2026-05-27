@@ -230,7 +230,7 @@ jobs:
   # JOB 10 — Coverage Gate
   # ════════════════════════════════════════════════════════════════════════
   coverage-gate:
-    name: "Coverage Gate (≥ ${{ env.COVERAGE_MIN }}%)"
+    name: "Coverage Gate (≥ 65%)"
     needs:
       - unit-tests
       - security-tests
