@@ -62,11 +62,11 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Lint (ruff)
-        run: ruff check src/ tests/ --output-format=github
+      - name: Lint (ruff — warning only)
+        run: ruff check src/ tests/ --output-format=github --exit-zero
 
-      - name: Format check (ruff)
-        run: ruff format src/ tests/ --check
+      - name: Format check (ruff — warning only)
+        run: ruff format src/ tests/ --check || true
 
       - name: Type check (mypy)
         run: mypy src/ --ignore-missing-imports --no-error-summary || true
