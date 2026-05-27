@@ -214,25 +214,8 @@ jobs:
         run: |
           echo "::add-mask::${{ secrets.STAGING_HOST }}"
           echo "::add-mask::${{ secrets.STAGING_SSH_KEY }}"
-          echo "::add-mask::${{ secrets.GHCR_READ_TOKEN }}"
 
-      - name: Sauvegarder image courante (rollback reference)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_PORT }}
-          script: |
-            DC="docker compose --env-file /opt/servantassist/servantassist-backend/.env.staging -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
-            CURRENT=$($DC ps -q backend 2>/dev/null | head -1)
-            if [ -n "$CURRENT" ]; then
-              IMAGE=$(docker inspect --format='{{.Config.Image}}' "$CURRENT" 2>/dev/null || echo "")
-              echo "$IMAGE" > /opt/servantassist/.rollback_image_staging
-              echo "==> Rollback reference: $IMAGE"
-            fi
-
-      - name: Deploy — Rolling update
+      - name: Deploy
         id: deploy
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -245,9 +228,11 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA
+          command_timeout: 10m
           script: |
             set -euo pipefail
-            DC="docker compose --env-file /opt/servantassist/servantassist-backend/.env.staging -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
+            ENVFILE="/opt/servantassist/servantassist-backend/.env.staging"
+            DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
 
             echo "==> Pull code"
             cd /opt/servantassist/servantassist-backend
@@ -262,26 +247,30 @@ jobs:
             echo "==> Migrations Alembic"
             $DC --profile migrate run --rm migrate
 
-            echo "==> Rolling update (scale 2 → 3 → 2)"
-            $DC up -d --scale backend=3 --no-recreate
-            sleep 20
+            echo "==> Sauvegarde référence rollback"
+            CURRENT=$($DC ps -q backend 2>/dev/null | head -1)
+            if [ -n "$CURRENT" ]; then
+              IMAGE=$(docker inspect --format='{{.Config.Image}}' "$CURRENT" 2>/dev/null || echo "")
+              [ -n "$IMAGE" ] && echo "$IMAGE" > /opt/servantassist/.rollback_image_staging && echo "==> Rollback ref: $IMAGE"
+            fi
 
-            OLD=$($DC ps -q backend | tail -1)
-            [ -n "$OLD" ] && docker stop --time=30 "$OLD" && docker rm "$OLD"
+            echo "==> Arrêt propre des containers existants"
+            $DC down --remove-orphans 2>/dev/null || true
 
-            $DC up -d --scale backend=2 --no-recreate
+            echo "==> Démarrage avec la nouvelle config (attente healthchecks)"
+            $DC up -d --scale backend=2 --wait --timeout 120
             echo "==> Deploy OK: sha=${SHA}"
 
-      - name: Health check (3 tentatives)
+      - name: Health check endpoint public
         id: healthcheck
         run: |
-          for i in 1 2 3; do
-            sleep 10
-            if curl -fsS "${{ vars.STAGING_URL }}/api/v1/health"; then
+          for i in 1 2 3 4 5; do
+            sleep 15
+            if curl -fsS "${{ vars.STAGING_URL }}/api/v1/health" 2>/dev/null; then
               echo "==> Health OK"
               exit 0
             fi
-            echo "Tentative $i/3 échouée"
+            echo "Tentative $i/5 échouée — attente..."
           done
           echo "Health check final échoué"
           exit 1
@@ -296,7 +285,8 @@ jobs:
           port: ${{ secrets.STAGING_PORT }}
           script: |
             set -euo pipefail
-            DC="docker compose --env-file /opt/servantassist/servantassist-backend/.env.staging -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
+            ENVFILE="/opt/servantassist/servantassist-backend/.env.staging"
+            DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
             ROLLBACK=$(cat /opt/servantassist/.rollback_image_staging 2>/dev/null || echo "")
 
             if [ -z "$ROLLBACK" ]; then
@@ -306,9 +296,9 @@ jobs:
 
             echo "==> ROLLBACK vers: $ROLLBACK"
             docker pull "$ROLLBACK"
-            REGISTRY_IMAGE="$ROLLBACK" $DC up -d --force-recreate --scale backend=2 backend
-            sleep 15
-            curl -fsS "http://localhost:8000/health" && echo "==> Rollback OK" || echo "==> Rollback echoue — intervention manuelle requise"
+            $DC down --remove-orphans 2>/dev/null || true
+            IMAGE_TAG="${ROLLBACK##*:}" $DC up -d --scale backend=2 --wait --timeout 60
+            echo "==> Rollback OK"
 
   # ══════════════════════════════════════════════════════════════════════════
   # JOB 5 : Résumé du pipeline (toujours affiché)
