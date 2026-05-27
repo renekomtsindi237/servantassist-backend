@@ -1,123 +1,364 @@
 name: CI/CD — ServantAssist Backend
 
 # ──────────────────────────────────────────────────────────────────────────
-# Stratégie par branche :
-#   push main/staging  → CI + Build + Bootstrap serveur + Deploy + Health
-#   push develop/*     → CI uniquement
-#   pull_request *     → CI uniquement
-#   workflow_dispatch  → CI + Deploy manuel (si branche main/staging)
+# Stratégie :
+#   push dev/staging/main  → CI complet (qualité + 8 suites de tests)
+#   push main              → CI + Build Docker + Bootstrap VPS + Deploy Staging
+#   workflow_dispatch      → CI + (deploy staging OU production selon inputs)
+#   pull_request           → CI uniquement
 # ──────────────────────────────────────────────────────────────────────────
 on:
   push:
-    branches: [main, staging, develop]
+    branches: [dev, staging, main]
   pull_request:
-    branches: [main, staging, develop]
+    branches: [dev, staging, main]
   workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: "Environnement de déploiement"
+        required: false
+        default: staging
+        type: choice
+        options: [staging, production]
+      confirm_prod:
+        description: "Production uniquement : taper exactement 'DEPLOY' pour confirmer"
+        required: false
+        default: ""
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: pipeline-${{ github.ref }}
+  group: pipeline-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
+  PYTHON_VERSION: "3.12"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/servantassist-backend
-  PYTHON_VERSION: "3.12"
-  IS_DEPLOY_BRANCH: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging') }}
+  # Environnement de test CI
+  APP_ENV: testing
+  APP_DEBUG: "False"
+  DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+  JWT_SECRET_KEY: "ci-jwt-secret-key-minimum-32-chars-long-for-hs256!"
+  JWT_ALGORITHM: HS256
+  SECRET_KEY: "ci-app-secret-key-minimum-32-chars-long!"
+  CLOUDFLARE_R2_ENDPOINT: "https://ci.r2.cloudflarestorage.com"
+  CLOUDFLARE_R2_ACCESS_KEY: "ci-access-key"
+  CLOUDFLARE_R2_SECRET_KEY: "ci-secret-key"
+  CLOUDFLARE_R2_BUCKET: "ci-bucket"
+  CLOUDFLARE_R2_PUBLIC_URL: "https://ci.r2.dev"
+  COVERAGE_MIN: "65"
 
-# ══════════════════════════════════════════════════════════════════════════
-# JOB 1 : CI — Tests, Qualité, Sécurité  (toutes branches + PRs)
-# ══════════════════════════════════════════════════════════════════════════
 jobs:
-  ci:
-    name: "CI — Tests & Qualité"
+  # ════════════════════════════════════════════════════════════════════════
+  # JOB 1 — Quality & Security Gates  (toutes branches + PRs)
+  # ════════════════════════════════════════════════════════════════════════
+  quality:
+    name: "Quality & Security"
     runs-on: ubuntu-latest
-    env:
-      APP_ENV: testing
-      APP_DEBUG: "False"
-      DATABASE_URL: "sqlite+aiosqlite:///:memory:"
-      JWT_SECRET_KEY: "ci-jwt-secret-key-minimum-32-chars-long-for-hs256!"
-      JWT_ALGORITHM: HS256
-      SECRET_KEY: "ci-app-secret-key-minimum-32-chars-long!"
-      CLOUDFLARE_R2_ENDPOINT: "https://ci.r2.cloudflarestorage.com"
-      CLOUDFLARE_R2_ACCESS_KEY: "ci-access-key"
-      CLOUDFLARE_R2_SECRET_KEY: "ci-secret-key"
-      CLOUDFLARE_R2_BUCKET: "ci-bucket"
-      CLOUDFLARE_R2_PUBLIC_URL: "https://ci.r2.dev"
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
+      - name: Install
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Black
+        run: black --check --diff src/ tests/
+      - name: isort
+        run: isort --check-only --diff src/ tests/
+      - name: Flake8
+        run: flake8 src/ tests/
+      - name: MyPy
+        run: mypy src/ --ignore-missing-imports --no-strict-optional
+      - name: Bandit
+        run: bandit -r src/ --severity-level medium --confidence-level medium -x tests/
+      - name: pip-audit
+        run: pip-audit --strict --desc
 
-      - name: Install dependencies
+  # ════════════════════════════════════════════════════════════════════════
+  # JOBs 2-9 — Suites de tests en parallèle  (needs: quality)
+  # ════════════════════════════════════════════════════════════════════════
+  unit-tests:
+    name: "Unit Tests"
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/unit/ -v --tb=short --junitxml=junit-unit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-unit
+          path: junit-unit.xml
+
+  security-tests:
+    name: "Security Tests"
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/security/ -v --tb=short --junitxml=junit-security.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-security
+          path: junit-security.xml
+
+  usecase-tests:
+    name: "Use-Case Tests"
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/use_cases/ -v --tb=short --junitxml=junit-usecases.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-usecases
+          path: junit-usecases.xml
+
+  integration-tests:
+    name: "Integration Tests"
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/integration/ -v --tb=short --junitxml=junit-integration.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-integration
+          path: junit-integration.xml
+
+  e2e-tests:
+    name: "E2E Tests"
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/e2e/ -v --tb=short --junitxml=junit-e2e.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-e2e
+          path: junit-e2e.xml
+
+  system-tests:
+    name: "System Tests"
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/system/ -v --tb=short --junitxml=junit-system.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-system
+          path: junit-system.xml
+
+  storage-tests:
+    name: "Storage Tests"
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/storage/ -v --tb=short --junitxml=junit-storage.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-storage
+          path: junit-storage.xml
+
+  performance-tests:
+    name: "Performance Tests"
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/performance/ -v --tb=short --junitxml=junit-performance.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-performance
+          path: junit-performance.xml
+
+  # ════════════════════════════════════════════════════════════════════════
+  # JOB 10 — Coverage Gate
+  # ════════════════════════════════════════════════════════════════════════
+  coverage-gate:
+    name: "Coverage Gate (≥ ${{ env.COVERAGE_MIN }}%)"
+    needs:
+      - unit-tests
+      - security-tests
+      - usecase-tests
+      - integration-tests
+      - e2e-tests
+      - system-tests
+      - storage-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Coverage
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
+          pytest tests/unit tests/security tests/use_cases tests/e2e \
+                 tests/integration tests/system tests/storage \
+            --cov=src --cov-report=xml:coverage.xml --cov-report=term-missing \
+            --cov-fail-under=${COVERAGE_MIN} --junitxml=junit-coverage.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-artifacts
+          path: |
+            coverage.xml
+            junit-coverage.xml
 
-      - name: Lint (ruff — warning only)
-        run: ruff check src/ tests/ --output-format=github --exit-zero
+  # ════════════════════════════════════════════════════════════════════════
+  # JOBs 11-13 — Migrations Alembic CI (branch-specific)
+  # ════════════════════════════════════════════════════════════════════════
+  staging-migrations:
+    name: "Staging Migrations (Supabase)"
+    needs: coverage-gate
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      APP_ENV: staging
+      APP_DEBUG: "False"
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL_STAGING }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_STAGING }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_STAGING }}
+      SUPABASE_DB_DIRECT_URL: ${{ secrets.SUPABASE_DB_DIRECT_URL_STAGING }}
+      SUPABASE_DB_POOLER_URL: ${{ secrets.SUPABASE_DB_POOLER_URL_STAGING }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY_STAGING }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY_STAGING }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: alembic upgrade head
 
-      - name: Format check (ruff — warning only)
-        run: ruff format src/ tests/ --check || true
+  dev-migrations:
+    name: "Dev Migrations (PostgreSQL)"
+    needs: coverage-gate
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      APP_ENV: development
+      APP_DEBUG: "False"
+      DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY_DEV }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY_DEV }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: alembic upgrade head
 
-      - name: Type check (mypy)
-        run: mypy src/ --ignore-missing-imports --no-error-summary || true
+  production-migrations:
+    name: "Production Migrations (Supabase)"
+    needs: coverage-gate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      APP_ENV: production
+      APP_DEBUG: "False"
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL_PROD }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_PROD }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_PROD }}
+      SUPABASE_DB_DIRECT_URL: ${{ secrets.SUPABASE_DB_DIRECT_URL_PROD }}
+      SUPABASE_DB_POOLER_URL: ${{ secrets.SUPABASE_DB_POOLER_URL_PROD }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY_PROD }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY_PROD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: alembic upgrade head
 
-      - name: Security scan (bandit)
-        run: bandit -r src/ -ll -q || true
-
-      - name: Unit tests
-        run: |
-          pytest tests/unit/ \
-            --tb=short -q \
-            --cov=src --cov-report=term-missing \
-            --cov-fail-under=40 \
-            -x
-
-      - name: Integration tests
-        run: |
-          pytest tests/integration/ \
-            --tb=short -q -x \
-            --ignore=tests/integration/test_websocket.py \
-            || true
-
-  # ══════════════════════════════════════════════════════════════════════════
-  # JOB 2 : Build & Push image Docker  (push main/staging uniquement)
-  # ══════════════════════════════════════════════════════════════════════════
+  # ════════════════════════════════════════════════════════════════════════
+  # JOB 14 — Build & Push image Docker  (main/staging push + dispatch)
+  # ════════════════════════════════════════════════════════════════════════
   build-push:
     name: "Build & Push Image (GHCR)"
-    needs: [ci]
-    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging') }}
+    needs: coverage-gate
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'))
+      || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       sha_short: ${{ steps.sha.outputs.sha_short }}
-      image_tag: ${{ steps.meta.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Short SHA
         id: sha
         run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login GHCR
-        uses: docker/login-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -127,8 +368,7 @@ jobs:
             type=sha,format=short
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' }}
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
-      - name: Build & Push (non-root production stage)
+      - name: Build & Push (production stage)
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -143,22 +383,23 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ══════════════════════════════════════════════════════════════════════════
-  # JOB 3 : Bootstrap serveur — installe Docker/Compose si absent
-  # ══════════════════════════════════════════════════════════════════════════
-  server-bootstrap:
-    name: "Bootstrap VPS (Docker + Compose)"
-    needs: [build-push]
-    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging') }}
+  # ════════════════════════════════════════════════════════════════════════
+  # JOB 15 — Bootstrap VPS Staging
+  # ════════════════════════════════════════════════════════════════════════
+  bootstrap-staging:
+    name: "Bootstrap VPS Staging"
+    needs: build-push
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'))
+      || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_env != 'production')
     runs-on: ubuntu-latest
-
     steps:
       - name: Mask secrets
         run: |
           echo "::add-mask::${{ secrets.STAGING_HOST }}"
           echo "::add-mask::${{ secrets.STAGING_SSH_KEY }}"
 
-      - name: Vérifier et installer Docker + Compose
+      - name: Bootstrap Docker + Compose + IPv6
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.STAGING_HOST }}
@@ -168,9 +409,8 @@ jobs:
           script: |
             set -euo pipefail
 
-            # ── Docker ──────────────────────────────────────────────────────
+            # ── Docker ────────────────────────────────────────────────────
             if ! command -v docker &>/dev/null; then
-              echo "==> Installation Docker..."
               curl -fsSL https://get.docker.com | sh
               usermod -aG docker "$USER"
               systemctl enable --now docker
@@ -179,20 +419,18 @@ jobs:
               echo "==> Docker OK : $(docker --version)"
             fi
 
-            # ── Docker Compose (plugin v2) ───────────────────────────────────
+            # ── Docker Compose (plugin v2) ─────────────────────────────
             if ! docker compose version &>/dev/null 2>&1; then
-              echo "==> Installation Docker Compose plugin..."
               mkdir -p /usr/local/lib/docker/cli-plugins
               COMPOSE_URL="https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)"
               curl -SL "$COMPOSE_URL" -o /usr/local/lib/docker/cli-plugins/docker-compose
               chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
               echo "==> Compose installé : $(docker compose version)"
             else
-              echo "==> Docker Compose OK : $(docker compose version)"
+              echo "==> Compose OK : $(docker compose version)"
             fi
 
-            # ── IPv6 + ip6tables (Supabase IPv6-only depuis containers) ────────
-            echo "==> Configuration Docker IPv6 + ip6tables..."
+            # ── IPv6 + ip6tables (Supabase IPv6-only depuis containers) ──
             DAEMON_JSON="/etc/docker/daemon.json"
             IP6_NEED_RESTART=false
             if [ ! -f "$DAEMON_JSON" ]; then
@@ -217,22 +455,22 @@ print('daemon.json mis a jour')
               echo "==> Redémarrage Docker (activation ip6tables)..."
               systemctl restart docker
               sleep 10
-              echo "==> Docker redémarré"
             else
               echo "==> Docker IPv6 déjà configuré"
             fi
 
-            # ── Répertoire application ──────────────────────────────────────
             mkdir -p /opt/servantassist/backups /opt/servantassist/logs
             echo "==> Bootstrap OK"
 
-  # ══════════════════════════════════════════════════════════════════════════
-  # JOB 4 : Déploiement staging (rolling update + rollback auto)
-  # ══════════════════════════════════════════════════════════════════════════
-  deploy:
+  # ════════════════════════════════════════════════════════════════════════
+  # JOB 16 — Deploy Staging  (auto sur push main/staging, ou dispatch)
+  # ════════════════════════════════════════════════════════════════════════
+  deploy-staging:
     name: "Deploy → Staging"
-    needs: [server-bootstrap]
-    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging') }}
+    needs: bootstrap-staging
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'))
+      || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_env != 'production')
     runs-on: ubuntu-latest
     environment:
       name: staging
@@ -282,21 +520,21 @@ print('daemon.json mis a jour')
             CURRENT=$($DC ps -q backend 2>/dev/null | head -1)
             if [ -n "$CURRENT" ]; then
               IMAGE=$(docker inspect --format='{{.Config.Image}}' "$CURRENT" 2>/dev/null || echo "")
-              [ -n "$IMAGE" ] && echo "$IMAGE" > /opt/servantassist/.rollback_image_staging && echo "==> Rollback ref: $IMAGE"
+              [ -n "$IMAGE" ] && echo "$IMAGE" > /opt/servantassist/.rollback_image_staging
             fi
 
-            echo "==> Arrêt propre des containers existants"
+            echo "==> Arrêt propre"
             $DC down --remove-orphans 2>/dev/null || true
 
-            echo "==> Règle ip6tables masquerade (IPv6 → Supabase)"
+            echo "==> Règle ip6tables masquerade"
             ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
               || ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE
 
-            echo "==> Démarrage avec la nouvelle config (attente healthchecks)"
+            echo "==> Démarrage (attente healthchecks)"
             $DC up -d --scale backend=2 --wait --timeout 120
             echo "==> Deploy OK: sha=${SHA}"
 
-      - name: Health check endpoint public
+      - name: Health check public
         id: healthcheck
         run: |
           for i in 1 2 3 4 5; do
@@ -310,7 +548,7 @@ print('daemon.json mis a jour')
           echo "Health check final échoué"
           exit 1
 
-      - name: Rollback automatique (si health check échoue)
+      - name: Rollback automatique
         if: failure() && steps.deploy.outcome == 'success'
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -323,35 +561,142 @@ print('daemon.json mis a jour')
             ENVFILE="/opt/servantassist/servantassist-backend/.env.staging"
             DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
             ROLLBACK=$(cat /opt/servantassist/.rollback_image_staging 2>/dev/null || echo "")
-
-            if [ -z "$ROLLBACK" ]; then
-              echo "Aucune image de rollback disponible"
-              exit 1
-            fi
-
+            if [ -z "$ROLLBACK" ]; then echo "Aucune image de rollback"; exit 1; fi
             echo "==> ROLLBACK vers: $ROLLBACK"
             docker pull "$ROLLBACK"
             $DC down --remove-orphans 2>/dev/null || true
             IMAGE_TAG="${ROLLBACK##*:}" $DC up -d --scale backend=2 --wait --timeout 60
             echo "==> Rollback OK"
 
-  # ══════════════════════════════════════════════════════════════════════════
-  # JOB 5 : Résumé du pipeline (toujours affiché)
-  # ══════════════════════════════════════════════════════════════════════════
+  # ════════════════════════════════════════════════════════════════════════
+  # JOB 17 — Deploy Production  (manuel uniquement, confirmation requise)
+  # ════════════════════════════════════════════════════════════════════════
+  deploy-production:
+    name: "Deploy → Production"
+    needs: [coverage-gate, build-push]
+    if: |
+      github.event_name == 'workflow_dispatch'
+      && github.event.inputs.deploy_env == 'production'
+      && github.event.inputs.confirm_prod == 'DEPLOY'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+
+    steps:
+      - name: Mask secrets
+        run: |
+          echo "::add-mask::${{ secrets.PROD_HOST }}"
+          echo "::add-mask::${{ secrets.PROD_SSH_KEY }}"
+
+      - name: Deploy
+        id: deploy
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ needs.build-push.outputs.sha_short }}
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA
+          command_timeout: 15m
+          script: |
+            set -euo pipefail
+            ENVFILE="/opt/servantassist/servantassist-backend/.env.production"
+            DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.production.yml"
+
+            echo "==> Pull code (production)"
+            cd /opt/servantassist/servantassist-backend
+            git pull origin main
+
+            echo "==> Login GHCR"
+            printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+
+            echo "==> Pull image"
+            $DC pull backend
+
+            echo "==> Sauvegarde rollback"
+            CURRENT=$($DC ps -q backend 2>/dev/null | head -1)
+            if [ -n "$CURRENT" ]; then
+              IMAGE=$(docker inspect --format='{{.Config.Image}}' "$CURRENT" 2>/dev/null || echo "")
+              [ -n "$IMAGE" ] && echo "$IMAGE" > /opt/servantassist/.rollback_image_prod
+            fi
+
+            echo "==> Migrations Alembic (production)"
+            $DC --profile migrate run --rm migrate
+
+            echo "==> Arrêt propre"
+            $DC down --remove-orphans 2>/dev/null || true
+
+            echo "==> Règle ip6tables masquerade"
+            ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
+              || ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE
+
+            echo "==> Démarrage production (3 réplicas)"
+            $DC up -d --scale backend=3 --wait --timeout 180
+            echo "==> Deploy Production OK: sha=${SHA}"
+
+      - name: Health check production
+        id: healthcheck
+        run: |
+          for i in 1 2 3 4 5; do
+            sleep 20
+            if curl -fsS "${{ vars.PRODUCTION_URL }}/api/v1/health" 2>/dev/null; then
+              echo "==> Production OK"
+              exit 0
+            fi
+            echo "Tentative $i/5 échouée"
+          done
+          echo "Health check production échoué"
+          exit 1
+
+      - name: Rollback production
+        if: failure() && steps.deploy.outcome == 'success'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            ENVFILE="/opt/servantassist/servantassist-backend/.env.production"
+            DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.production.yml"
+            ROLLBACK=$(cat /opt/servantassist/.rollback_image_prod 2>/dev/null || echo "")
+            if [ -z "$ROLLBACK" ]; then echo "Aucune image de rollback — intervention manuelle requise"; exit 1; fi
+            echo "==> ROLLBACK PRODUCTION vers: $ROLLBACK"
+            docker pull "$ROLLBACK"
+            $DC down --remove-orphans 2>/dev/null || true
+            $DC up -d --scale backend=3 --wait --timeout 120
+            echo "==> Rollback production OK"
+
+  # ════════════════════════════════════════════════════════════════════════
+  # JOB 18 — Résumé Pipeline  (toujours affiché)
+  # ════════════════════════════════════════════════════════════════════════
   summary:
     name: "Résumé Pipeline"
-    needs: [ci, build-push, server-bootstrap, deploy]
+    needs:
+      - quality
+      - coverage-gate
+      - build-push
+      - deploy-staging
+      - deploy-production
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Rapport
         run: |
-          echo "## Résumé CI/CD" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Statut |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| CI Tests    | ${{ needs.ci.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Build/Push  | ${{ needs.build-push.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Bootstrap   | ${{ needs.server-bootstrap.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Deploy      | ${{ needs.deploy.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Branche     | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| SHA         | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "## Résumé CI/CD — ServantAssist" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Étape           | Statut |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Quality & Sec.  | ${{ needs.quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Coverage Gate   | ${{ needs.coverage-gate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build / Push    | ${{ needs.build-push.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy Staging  | ${{ needs.deploy-staging.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy Prod     | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Branche | SHA |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| \`${{ github.ref_name }}\` | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
