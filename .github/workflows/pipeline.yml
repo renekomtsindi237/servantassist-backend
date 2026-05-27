@@ -68,6 +68,8 @@ jobs:
         run: pip install -r requirements.txt -r requirements-dev.txt
       - name: Black
         run: black --check --diff src/ tests/
+      - name: Normalize Alembic imports
+        run: python -m isort src/infrastructure/database/migrations
       - name: isort
         run: isort --check-only --diff src/ tests/
       - name: Flake8
