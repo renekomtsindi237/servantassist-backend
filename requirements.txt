@@ -62,4 +62,4 @@ qrcode[pil]==7.4.2
 
 # Supabase (staging + production)
 supabase==2.3.4
-httpx==0.26.0
+httpx==0.25.2
