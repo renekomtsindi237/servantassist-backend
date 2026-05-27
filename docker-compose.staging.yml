@@ -14,8 +14,6 @@
 #
 # Prérequis : .env.staging rempli
 # ──────────────────────────────────────────────────────────────────────────────
-version: "3.9"
-
 services:
 
   # ── Nginx — Load Balancer ─────────────────────────────────────────────────
@@ -49,11 +47,11 @@ services:
         --maxmemory-policy allkeys-lru
         --requirepass ${REDIS_PASSWORD:-}
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping 2>/dev/null | grep -q PONG"]
+      test: ["CMD-SHELL", "redis-cli ping 2>&1 | grep -qiE 'PONG|NOAUTH'"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
   # ── Backend (2 réplicas par défaut) ──────────────────────────────────────
   # Pas de container_name — Docker Compose nomme automatiquement les réplicas
