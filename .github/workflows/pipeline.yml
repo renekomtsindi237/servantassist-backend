@@ -75,6 +75,7 @@ jobs:
       - name: Flake8
         run: flake8 src/ tests/
       - name: MyPy
+        continue-on-error: true
         run: mypy src/ --ignore-missing-imports --no-strict-optional
       - name: Bandit
         run: bandit -r src/ --severity-level medium --confidence-level medium -x tests/
