@@ -24,9 +24,8 @@ graceful_timeout = 30  # Laisse 30s aux requêtes en cours lors d'un SIGTERM
 keepalive = 5
 
 # ── Mémoire ────────────────────────────────────────────────────────────────
-# preload_app=True : charge l'app une fois dans le master, les workers forkent
-# → économise RAM (copy-on-write) et accélère le redémarrage des workers
-preload_app = True
+# preload_app=False : chaque worker charge l'app indépendamment après le fork
+# → évite de partager l'état asyncio/asyncpg/sessionmanager entre processus
 
 # Recyclage des workers pour éviter les fuites mémoire à long terme
 max_requests = 1000
@@ -46,24 +45,6 @@ def on_starting(server):
         "ServantAssist démarrage : %d worker(s) sur %d CPU",
         workers, _cpu
     )
-
-def post_fork(server, worker):
-    # Réinitialise le pool de connexions SQLAlchemy dans chaque worker
-    # (évite de partager des connexions DB entre processus après le fork)
-    try:
-        from src.infrastructure.database.session import sessionmanager
-        if sessionmanager._engine is not None:
-            import asyncio
-            asyncio.get_event_loop().run_until_complete(sessionmanager.close())
-            from src.infrastructure.database.session import (
-                DatabaseSessionManager,
-                _build_engine_kwargs,
-                get_db_url,
-            )
-            sessionmanager._engine = None
-            # Le manager se réinitialisera à la première requête
-    except Exception:
-        pass
 
 def worker_exit(server, worker):
     server.log.info("Worker %s arrêté proprement", worker.pid)
