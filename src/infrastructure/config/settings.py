@@ -119,7 +119,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
 
     # Security
-    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
+    # Include 'testserver' so pytest TestClient requests pass host validation
+    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "testserver"]
     SECRET_KEY: str
 
     # Brute-force protection

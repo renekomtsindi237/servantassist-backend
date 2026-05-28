@@ -139,21 +139,21 @@ class AuthService:
                 if not invitation:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Ce code d'invitation est invalide ou a déjà été utilisé.",
+                        detail="Invitation code is invalid or already used.",
                     )
 
                 # If email-specific invitation, verify match
                 if invitation.email and invitation.email != user_create.email:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        detail="Ce code d'invitation n'est pas valide pour cette adresse e-mail.",
+                        detail="This invitation code is not valid for this email address.",
                     )
 
                 # If phone-specific invitation, verify match
                 if invitation.phone_number and invitation.phone_number != user_create.phone_number:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        detail="Ce code d'invitation n'est pas valide pour ce numéro de téléphone.",
+                        detail="This invitation code is not valid for this phone number.",
                     )
 
         elif user_create.role == UserRole.ADMIN:
@@ -162,7 +162,7 @@ class AuthService:
             if not admin_id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Le compte Administrateur ne peut être créé que par un administrateur existant.",
+                    detail="Administrator account can only be created by an existing administrator.",
                 )
 
             # Check if admin already exists
@@ -171,7 +171,7 @@ class AuthService:
             if result.first():
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Un compte Administrateur existe déjà. Il ne peut y en avoir qu'un seul.",
+                        detail="An Administrator account already exists. There can only be one.",
                 )
 
         elif user_create.role == UserRole.AUMÔNIER:
@@ -180,7 +180,7 @@ class AuthService:
             if not admin_id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Le compte Aumônier ne peut être créé que par un administrateur.",
+                    detail="Aumonier account can only be created by an administrator.",
                 )
 
             # Check if aumônier already exists
@@ -189,7 +189,7 @@ class AuthService:
             if result.first():
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Un compte Aumônier existe déjà. Il ne peut y en avoir qu'un seul.",
+                    detail="An Aumonier account already exists. There can only be one.",
                 )
 
         # Create user

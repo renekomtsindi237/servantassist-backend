@@ -74,7 +74,7 @@ async def create_invitation(
     if request.role not in ("PARENT", "AUMÔNIER"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Rôle invalide. Seules les invitations pour les rôles PARENT et AUMÔNIER peuvent être créées via l'API. Le rôle '{request.role}' n'est pas autorisé.",  # noqa: E501
+            detail=f"Invalid role. Only invitations for roles PARENT and AUMONIER can be created via the API. The role '{request.role}' is not allowed.",  # noqa: E501
         )
 
     # Generate unique code

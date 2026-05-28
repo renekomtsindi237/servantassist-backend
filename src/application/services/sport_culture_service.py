@@ -229,7 +229,7 @@ class SportCultureService:
         if not event:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cet événement est introuvable.",
+                detail="Event not found.",
             )
 
         # Vérifier que le servant n'est pas déjà inscrit
@@ -237,7 +237,7 @@ class SportCultureService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Ce servant est déjà inscrit à cet événement.",
+                detail="This servant is already registered for this event.",
             )
 
         # Vérifier le nombre maximum de participants
@@ -246,7 +246,7 @@ class SportCultureService:
             if count >= event.max_participants:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Cet événement est complet. Le nombre maximum de participants est atteint.",
+                        detail="This event is full. The maximum number of participants has been reached.",
                 )
 
         participation = EventParticipation(

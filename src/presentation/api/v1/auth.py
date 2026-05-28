@@ -44,7 +44,7 @@ async def _check_brute_force(identifier: str) -> None:
     if is_locked:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Compte temporairement bloqué suite à trop de tentatives échouées. Réessayez dans {remaining} secondes.",  # noqa: E501
+            detail=f"Account temporarily locked after too many failed attempts. Retry in {remaining} seconds.",  # noqa: E501
             headers={"Retry-After": str(remaining)},
         )
 
@@ -71,7 +71,7 @@ async def login_for_access_token(
         await brute_force_guard.record_failure(identifier)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Identifiant ou mot de passe incorrect.",
+            detail="Incorrect username or password.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -88,7 +88,7 @@ async def login_for_access_token(
         await brute_force_guard.record_failure(identifier)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Identifiant ou mot de passe incorrect.",
+            detail="Incorrect username or password.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

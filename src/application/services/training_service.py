@@ -234,14 +234,14 @@ class TrainingService:
         if not session:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cette session de formation est introuvable.",
+                detail="Training session not found.",
             )
 
         # Vérifier que la session n'est pas terminée ou annulée
         if session.status in [TrainingStatus.TERMINEE, TrainingStatus.ANNULEE]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Impossible de s'inscrire à une session déjà terminée ou annulée.",
+                detail="Cannot register for a session that is finished or cancelled.",
             )
 
         # Vérifier que le servant n'est pas déjà inscrit
@@ -249,7 +249,7 @@ class TrainingService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Ce servant est déjà inscrit à cette session de formation.",
+                detail="This servant is already registered for this training session.",
             )
 
         # Vérifier le nombre maximum de participants
