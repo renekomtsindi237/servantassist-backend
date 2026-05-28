@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 
 import nh3
-from jose import jwt
+import jwt
 from passlib.context import CryptContext
 
 from src.infrastructure.config.settings import get_settings

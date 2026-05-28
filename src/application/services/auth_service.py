@@ -239,7 +239,7 @@ class AuthService:
     async def refresh_token(self, refresh_token: str) -> Token:
         import time as _time
 
-        from jose import JWTError, jwt
+        import jwt
 
         from src.infrastructure.config.settings import get_settings
         from src.infrastructure.security.token_blacklist import token_blacklist
@@ -263,7 +263,7 @@ class AuthService:
             exp: float = payload.get("exp", _time.time())
             if email is None or token_type != "refresh":
                 raise credentials_exception
-        except JWTError:
+        except jwt.PyJWTError:
             raise credentials_exception
 
         # Vérifier que le refresh token n'a pas été révoqué
@@ -360,7 +360,7 @@ class AuthService:
     async def reset_password(self, token: str, new_password: str, email_service=None) -> None:
         import time as _time
 
-        from jose import JWTError, jwt
+        import jwt
 
         from src.infrastructure.config.settings import get_settings
         from src.infrastructure.security.token_blacklist import token_blacklist
@@ -379,7 +379,7 @@ class AuthService:
             exp: float = float(payload.get("exp", _time.time()))
             if email is None or token_type != "reset":
                 raise credentials_exception
-        except JWTError:
+        except jwt.PyJWTError:
             raise credentials_exception
 
         if jti and await token_blacklist.is_revoked(jti):

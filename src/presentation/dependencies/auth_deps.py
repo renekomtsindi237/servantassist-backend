@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+import jwt
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,7 +39,7 @@ async def get_current_user(
         if email is None or role is None:
             raise credentials_exception
         token_data = TokenData(email=email, role=role)
-    except (JWTError, ValidationError):
+    except (jwt.PyJWTError, ValidationError):
         raise credentials_exception
 
     # Vérifier que le token n'a pas été révoqué (logout ou rotation)

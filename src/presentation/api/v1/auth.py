@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-from jose import JWTError, jwt
+import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.auth_service import AuthService
@@ -192,7 +192,7 @@ async def logout(
         exp = payload.get("exp", time.time() + 1800)
         if jti:
             await token_blacklist.revoke(jti, float(exp))
-    except JWTError:
+    except jwt.PyJWTError:
         pass  # Token déjà invalide, rien à faire
 
     return {"message": "Déconnecté avec succès."}

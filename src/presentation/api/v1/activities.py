@@ -407,7 +407,7 @@ async def get_event_qr_code(
     from datetime import timedelta
 
     import qrcode
-    from jose import jwt
+    import jwt
 
     from src.infrastructure.config.settings import get_settings
 
