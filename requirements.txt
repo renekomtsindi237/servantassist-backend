@@ -24,7 +24,7 @@ nh3==0.2.14
 
 
 # Validation
-pydantic==2.5.3
+pydantic==2.14.6
 pydantic-settings==2.1.0
 email-validator==2.1.0
 
