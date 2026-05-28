@@ -531,8 +531,26 @@ jobs:
             echo "==> Arrêt propre"
             $DC down --remove-orphans 2>/dev/null || true
 
-            echo "==> Démarrage (attente healthchecks)"
-            $DC up -d --wait --timeout 120
+            echo "==> Démarrage containers (sans wait)"
+            $DC up -d
+
+            echo "==> Attente 50s démarrage backend..."
+            sleep 50
+
+            echo ""
+            echo "==> ===== LOGS BACKEND (diagnostics) ====="
+            docker logs servantassist-backend-backend-1 --tail 80 2>&1 || true
+            echo "==> ====================================="
+            echo ""
+
+            echo "==> Vérification santé backend..."
+            HEALTH=$(docker inspect --format='{{.State.Health.Status}}' servantassist-backend-backend-1 2>/dev/null || echo "unknown")
+            STATUS=$(docker inspect --format='{{.State.Status}}' servantassist-backend-backend-1 2>/dev/null || echo "unknown")
+            echo "==> Backend: status=$STATUS health=$HEALTH"
+            if [ "$STATUS" = "exited" ] || [ "$STATUS" = "dead" ]; then
+              echo "==> ERREUR: backend crashed"
+              exit 1
+            fi
             echo "==> Deploy OK: sha=${SHA}"
 
       - name: Health check public
