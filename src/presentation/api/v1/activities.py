@@ -492,12 +492,12 @@ async def check_in_event(
 
     try:
         payload = jwt.decode(token_value, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-    except ExpiredSignatureError:
+    except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="QR Code expiré. Demandez un nouveau QR Code.",
         )
-    except JWTError:
+    except jwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="QR Code invalide.")
 
     if payload.get("type") != "checkin":

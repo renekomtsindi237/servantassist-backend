@@ -651,7 +651,7 @@ async def validate_ws_token(token: str, session: AsyncSession) -> User:
         email: str = payload.get("sub")
         if email is None:
             raise ValueError("Missing sub claim")
-    except (JWTError, ValidationError, ValueError) as exc:
+    except (jwt.PyJWTError, ValidationError, ValueError) as exc:
         raise Exception("Invalid token") from exc
 
     user_repo = UserRepository(session)
