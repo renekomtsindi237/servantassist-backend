@@ -451,20 +451,7 @@ jobs:
               echo "==> Docker IPv6 déjà configuré"
             fi
 
-            # ── Règle masquerade IPv6 persistante ─────────────────────────
-            /sbin/ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
-              || /sbin/ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE
-            mkdir -p /etc/iptables
-            /sbin/ip6tables-save > /etc/iptables/rules.v6 2>/dev/null || true
-            if command -v netfilter-persistent &>/dev/null; then
-              netfilter-persistent save || true
-            elif [ ! -f /etc/network/if-pre-up.d/ip6tables-restore ]; then
-              printf '#!/bin/sh\n[ -f /etc/iptables/rules.v6 ] && /sbin/ip6tables-restore < /etc/iptables/rules.v6\n' \
-                > /etc/network/if-pre-up.d/ip6tables-restore
-              chmod +x /etc/network/if-pre-up.d/ip6tables-restore
-            fi
-            echo "==> Règle ip6tables masquerade persistante OK"
-
+            # ip6tables MASQUERADE géré automatiquement par Docker daemon (ip6tables:true dans daemon.json)
             mkdir -p /opt/servantassist/backups /opt/servantassist/logs
             echo "==> Bootstrap OK"
 
@@ -543,11 +530,6 @@ jobs:
 
             echo "==> Arrêt propre"
             $DC down --remove-orphans 2>/dev/null || true
-
-            echo "==> Règle ip6tables masquerade"
-            /sbin/ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
-              || /sbin/ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
-              || echo "==> ip6tables: règle déjà active (persistante depuis bootstrap)"
 
             echo "==> Démarrage (attente healthchecks)"
             $DC up -d --scale backend=2 --wait --timeout 120
@@ -660,11 +642,6 @@ jobs:
 
             echo "==> Arrêt propre"
             $DC down --remove-orphans 2>/dev/null || true
-
-            echo "==> Règle ip6tables masquerade"
-            /sbin/ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
-              || /sbin/ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
-              || echo "==> ip6tables: règle déjà active (persistante depuis bootstrap)"
 
             echo "==> Démarrage production (3 réplicas)"
             $DC up -d --scale backend=3 --wait --timeout 180
