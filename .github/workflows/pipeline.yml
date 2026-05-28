@@ -582,7 +582,7 @@ jobs:
         run: |
           for i in 1 2 3 4 5; do
             sleep 15
-            if curl -fsS "${{ vars.STAGING_URL }}/api/v1/health" 2>/dev/null; then
+            if curl -fsS "${{ vars.STAGING_URL }}/health" 2>/dev/null; then
               echo "==> Health OK"
               exit 0
             fi
