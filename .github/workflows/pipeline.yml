@@ -452,6 +452,22 @@ jobs:
             fi
 
             # ip6tables MASQUERADE géré automatiquement par Docker daemon (ip6tables:true dans daemon.json)
+
+            # ── Fix PMTUD blackhole IPv6 (TCP RST lors des pulls GHCR/Fastly) ──
+            # gai.conf : IPv4 préféré pour connexions dual-stack → pulls via IPv4
+            GAI=/etc/gai.conf
+            if ! grep -q 'precedence ::ffff:0:0/96' "$GAI" 2>/dev/null; then
+              printf '\nprecedence ::ffff:0:0/96 100\n' >> "$GAI"
+              echo "==> gai.conf: IPv4 preferred (fix GHCR pull resets)"
+            else
+              echo "==> gai.conf: IPv4 already preferred"
+            fi
+            # Clamp TCP MSS IPv6 (évite les resets si ICMPv6 Too Big filtré)
+            ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN \
+              -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \
+            ip6tables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN \
+              -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || true
+
             mkdir -p /opt/servantassist/backups /opt/servantassist/logs
             echo "==> Bootstrap OK"
 
@@ -502,6 +518,10 @@ jobs:
 
             echo "==> Login GHCR"
             printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+
+            # Préférence IPv4 pour les pulls (fix TCP RST IPv6 → GHCR/Fastly)
+            grep -q 'precedence ::ffff:0:0/96' /etc/gai.conf 2>/dev/null || \
+              printf 'precedence ::ffff:0:0/96 100\n' >> /etc/gai.conf 2>/dev/null || true
 
             echo "==> Pull nouvelle image (avec retry)"
             PULL_OK=0
