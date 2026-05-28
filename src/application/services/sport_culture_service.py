@@ -246,7 +246,7 @@ class SportCultureService:
             if count >= event.max_participants:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="This event is full. The maximum number of participants has been reached.",
+                    detail="This event is full. The maximum number of participants has been reached.",
                 )
 
         participation = EventParticipation(

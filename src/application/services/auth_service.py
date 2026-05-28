@@ -171,7 +171,7 @@ class AuthService:
             if result.first():
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="An Administrator account already exists. There can only be one.",
+                    detail="An Administrator account already exists. There can only be one.",
                 )
 
         elif user_create.role == UserRole.AUMÔNIER:
