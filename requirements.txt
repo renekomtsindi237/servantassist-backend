@@ -1,7 +1,10 @@
 # FastAPI and ASGI server
-fastapi==0.109.1
+fastapi>=0.109.1
 uvicorn[standard]==0.27.0
 gunicorn==22.0.0
+
+# Ensure Starlette is a patched release
+starlette==1.0.1
 
 # Database
 sqlmodel==0.0.14
@@ -12,7 +15,7 @@ alembic==1.13.1
 redis==5.0.1
 
 # Authentication & Security
-PyJWT[crypto]==2.8.0
+PyJWT[crypto]==2.12.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.27
 bcrypt==4.1.2
@@ -65,3 +68,10 @@ qrcode[pil]==7.4.2
 # Supabase (staging + production)
 supabase==2.3.4
 httpx==0.25.2
+
+# Upgraded libraries to address pip-audit findings
+aiohttp==3.13.4
+requests==2.33.0
+urllib3==2.7.0
+gitpython==3.1.49
+mistune==3.2.1
