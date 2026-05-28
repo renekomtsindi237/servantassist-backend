@@ -72,7 +72,9 @@ def _build_engine_kwargs() -> dict[str, Any]:
             {
                 "connect_args": {
                     # Pgbouncer transaction mode — désactive prepared statements
+                    # (deux couches : SQLAlchemy + asyncpg natif)
                     "prepared_statement_cache_size": 0,
+                    "statement_cache_size": 0,
                     # Timeout de connexion initiale (évite les attentes infinies)
                     "timeout": 10,
                     # Statement timeout : tue toute requête qui dépasse 30s

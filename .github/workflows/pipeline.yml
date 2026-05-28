@@ -567,12 +567,23 @@ jobs:
             echo "==> Démarrage (attente healthchecks)"
             if ! $DC up -d --wait --timeout 180 2>&1; then
               echo ""
-              echo "==> ERREUR — logs backend (200 dernières lignes):"
-              docker logs servantassist-backend-backend-1 --tail 200 2>&1 || true
+              echo "==> ERREUR — état de tous les conteneurs:"
+              for ct in servantassist-backend-backend-1 servantassist-staging-lb \
+                        servantassist-staging-redis servantassist-staging-celery \
+                        servantassist-staging-beat; do
+                echo "  $ct: $(docker inspect $ct \
+                  --format 'status={{.State.Status}} exit={{.State.ExitCode}} health={{.State.Health.Status}}' \
+                  2>/dev/null || echo 'not found')"
+              done
               echo ""
-              echo "==> State: $(docker inspect servantassist-backend-backend-1 \
-                --format 'status={{.State.Status}} exit={{.State.ExitCode}} health={{.State.Health.Status}}' \
-                2>/dev/null || echo unknown)"
+              echo "==> Logs backend (50 dernières lignes):"
+              docker logs servantassist-backend-backend-1 --tail 50 2>&1 || true
+              echo ""
+              echo "==> Logs celery-beat (50 dernières lignes):"
+              docker logs servantassist-staging-beat --tail 50 2>&1 || true
+              echo ""
+              echo "==> Logs celery-worker (20 dernières lignes):"
+              docker logs servantassist-staging-celery --tail 20 2>&1 || true
               exit 1
             fi
             echo "==> Deploy OK: sha=${SHA}"
