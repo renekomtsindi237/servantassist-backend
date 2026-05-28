@@ -4,9 +4,9 @@ Tests de sécurité — JWT (tokens falsifiés, expirés, manipulés).
 
 from datetime import timedelta
 
+import jwt
 import pytest
 from httpx import AsyncClient
-import jwt
 
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.utils import SecurityUtils

@@ -12,9 +12,9 @@
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
 
+import jwt
 import pytest
 from httpx import AsyncClient
-import jwt
 
 from src.infrastructure.config.settings import get_settings
 

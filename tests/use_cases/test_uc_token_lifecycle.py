@@ -13,9 +13,9 @@
 
 from datetime import timedelta
 
+import jwt
 import pytest
 from httpx import AsyncClient
-import jwt
 
 from src.core.entities.user import User
 from src.infrastructure.config.settings import get_settings

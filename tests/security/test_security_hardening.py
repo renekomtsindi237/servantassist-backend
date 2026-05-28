@@ -4,9 +4,9 @@ Tests de securite — Renforcement (brute-force, headers, rate-limit, JTI).
 
 from datetime import timedelta
 
+import jwt
 import pytest
 from httpx import AsyncClient
-import jwt
 
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.brute_force import (

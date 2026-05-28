@@ -11,8 +11,8 @@ Couvre :
 
 from datetime import timedelta
 
-import pytest
 import jwt
+import pytest
 
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.utils import SecurityUtils
