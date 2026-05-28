@@ -531,27 +531,27 @@ jobs:
             echo "==> Arrêt propre"
             $DC down --remove-orphans 2>/dev/null || true
 
-            echo "==> Démarrage containers (sans wait)"
-            $DC up -d
+            echo "==> Démarrage backend direct (diagnostic — sans depends_on)"
+            docker run -d --name sa-backend-diag \
+              --network host \
+              --env-file "$ENVFILE" \
+              -e APP_ENV=staging -e APP_DEBUG=false \
+              -e REDIS_URL="redis://127.0.0.1:6379/0" \
+              -e APP_PORT=9000 -e GUNICORN_WORKERS=1 \
+              -v /opt/servantassist/servantassist-backend/gunicorn.conf.py:/app/gunicorn.conf.py:ro \
+              ghcr.io/renekomtsindi237/servantassist-backend/servantassist-backend:staging 2>&1 || true
 
-            echo "==> Attente 50s démarrage backend..."
-            sleep 50
+            echo "==> Attente 25s..."
+            sleep 25
 
             echo ""
-            echo "==> ===== LOGS BACKEND (diagnostics) ====="
-            docker logs servantassist-backend-backend-1 --tail 80 2>&1 || true
-            echo "==> ====================================="
-            echo ""
+            echo "==> ===== LOGS BACKEND ====="
+            docker logs sa-backend-diag --tail 120 2>&1 || true
+            echo "==> Backend state: $(docker inspect sa-backend-diag --format '{{.State.Status}} exitCode={{.State.ExitCode}}' 2>/dev/null || echo unknown)"
+            echo "==> ========================="
 
-            echo "==> Vérification santé backend..."
-            HEALTH=$(docker inspect --format='{{.State.Health.Status}}' servantassist-backend-backend-1 2>/dev/null || echo "unknown")
-            STATUS=$(docker inspect --format='{{.State.Status}}' servantassist-backend-backend-1 2>/dev/null || echo "unknown")
-            echo "==> Backend: status=$STATUS health=$HEALTH"
-            if [ "$STATUS" = "exited" ] || [ "$STATUS" = "dead" ]; then
-              echo "==> ERREUR: backend crashed"
-              exit 1
-            fi
-            echo "==> Deploy OK: sha=${SHA}"
+            docker rm -f sa-backend-diag 2>/dev/null || true
+            exit 1  # Toujours échouer en mode diagnostic
 
       - name: Health check public
         id: healthcheck
