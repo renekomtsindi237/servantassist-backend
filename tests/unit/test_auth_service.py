@@ -468,7 +468,7 @@ class TestCreateTokens:
         assert token.refresh_token
 
     async def test_access_token_contains_role(self):
-        from jose import jwt as jose_jwt
+        import jwt as jose_jwt
 
         from src.infrastructure.config.settings import get_settings
 
@@ -488,7 +488,7 @@ class TestCreateTokens:
         assert payload["sub"] == user.email
 
     async def test_refresh_token_contains_role_and_type(self):
-        from jose import jwt as jose_jwt
+        import jwt as jose_jwt
 
         from src.infrastructure.config.settings import get_settings
 

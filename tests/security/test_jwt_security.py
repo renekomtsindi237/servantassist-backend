@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import pytest
 from httpx import AsyncClient
-from jose import jwt
+import jwt
 
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.utils import SecurityUtils
