@@ -115,10 +115,13 @@ class OWASPGuardMiddleware(BaseHTTPMiddleware):
         host = request.headers.get("host", "").split(":")[0]
         client_ip = request.client.host if request.client else None
         local_client_allowed = client_ip in ("127.0.0.1", "::1", "localhost")
-        path_exempt = any(request.url.path == p or request.url.path.startswith(p + "/")
-                          for p in _HOST_EXEMPT_PREFIXES)
-        if settings.ALLOWED_HOSTS and host not in settings.ALLOWED_HOSTS \
-                and not local_client_allowed and not path_exempt:
+        path_exempt = any(request.url.path == p or request.url.path.startswith(p + "/") for p in _HOST_EXEMPT_PREFIXES)
+        if (
+            settings.ALLOWED_HOSTS
+            and host not in settings.ALLOWED_HOSTS
+            and not local_client_allowed
+            and not path_exempt
+        ):
             self._log_event("BLOCKED_HOST", request, f"host={host}")
             return self._reject(400, "Invalid host header")
 
