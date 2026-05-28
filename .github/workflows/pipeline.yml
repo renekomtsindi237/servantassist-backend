@@ -532,7 +532,7 @@ jobs:
             $DC down --remove-orphans 2>/dev/null || true
 
             echo "==> Démarrage (attente healthchecks)"
-            $DC up -d --scale backend=2 --wait --timeout 120
+            $DC up -d --wait --timeout 120
             echo "==> Deploy OK: sha=${SHA}"
 
       - name: Health check public
@@ -566,7 +566,7 @@ jobs:
             echo "==> ROLLBACK vers: $ROLLBACK"
             docker pull "$ROLLBACK"
             $DC down --remove-orphans 2>/dev/null || true
-            IMAGE_TAG="${ROLLBACK##*:}" $DC up -d --scale backend=2 --wait --timeout 60
+            IMAGE_TAG="${ROLLBACK##*:}" $DC up -d --wait --timeout 60
             echo "==> Rollback OK"
 
   # ════════════════════════════════════════════════════════════════════════
@@ -643,8 +643,8 @@ jobs:
             echo "==> Arrêt propre"
             $DC down --remove-orphans 2>/dev/null || true
 
-            echo "==> Démarrage production (3 réplicas)"
-            $DC up -d --scale backend=3 --wait --timeout 180
+            echo "==> Démarrage production"
+            $DC up -d --wait --timeout 180
             echo "==> Deploy Production OK: sha=${SHA}"
 
       - name: Health check production
@@ -677,7 +677,7 @@ jobs:
             echo "==> ROLLBACK PRODUCTION vers: $ROLLBACK"
             docker pull "$ROLLBACK"
             $DC down --remove-orphans 2>/dev/null || true
-            $DC up -d --scale backend=3 --wait --timeout 120
+            $DC up -d --wait --timeout 120
             echo "==> Rollback production OK"
 
   # ════════════════════════════════════════════════════════════════════════
