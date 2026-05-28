@@ -541,16 +541,8 @@ jobs:
             echo "==> Nettoyage résidus — par nom pattern"
             docker ps -aq --filter 'name=servantassist' | xargs -r docker rm -f 2>/dev/null || true
 
-            echo "==> Port 9000 après nettoyage:"
-            if ss -tlnp 2>/dev/null | grep -q ':9000 '; then
-              ss -tlnp | grep ':9000 ' || true
-              echo "WARN: port encore occupé — tentative fuser"
-              fuser -k 9000/tcp 2>/dev/null || true
-              sleep 3
-              ss -tlnp 2>/dev/null | grep ':9000 ' && echo "WARN: toujours occupé" || echo "  (libéré)"
-            else
-              echo "  (libre)"
-            fi
+            echo "==> Port 9099 après nettoyage:"
+            ss -tlnp 2>/dev/null | grep ':9099 ' && echo "WARN: port 9099 occupé" || echo "  (libre)"
 
             echo "==> Démarrage (attente healthchecks)"
             if ! $DC up -d --wait --timeout 180 2>&1; then

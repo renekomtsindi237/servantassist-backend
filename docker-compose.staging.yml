@@ -66,12 +66,12 @@ services:
       APP_ENV: staging
       APP_DEBUG: "false"
       REDIS_URL: "redis://127.0.0.1:6379/0"
-      APP_PORT: "9000"
+      APP_PORT: "9099"
       GUNICORN_WORKERS: "2"
     volumes:
       - ./gunicorn.conf.py:/app/gunicorn.conf.py:ro
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "--max-time", "8", "http://localhost:9000/ready"]
+      test: ["CMD", "curl", "-fsS", "--max-time", "8", "http://localhost:9099/ready"]
       interval: 15s
       timeout: 10s
       start_period: 60s
