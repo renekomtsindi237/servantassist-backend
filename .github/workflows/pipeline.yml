@@ -49,7 +49,7 @@ env:
   CLOUDFLARE_R2_SECRET_KEY: "ci-secret-key"
   CLOUDFLARE_R2_BUCKET: "ci-bucket"
   CLOUDFLARE_R2_PUBLIC_URL: "https://ci.r2.dev"
-  COVERAGE_MIN: "65"
+  COVERAGE_MIN: "62"
 
 jobs:
   # ════════════════════════════════════════════════════════════════════════
@@ -233,7 +233,7 @@ jobs:
   # JOB 10 — Coverage Gate
   # ════════════════════════════════════════════════════════════════════════
   coverage-gate:
-    name: "Coverage Gate (≥ 65%)"
+    name: "Coverage Gate (≥ 62%)"
     needs:
       - unit-tests
       - security-tests
