@@ -502,8 +502,20 @@ jobs:
             echo "==> Login GHCR"
             printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            echo "==> Pull nouvelle image"
-            $DC pull backend
+            echo "==> Pull nouvelle image (avec retry)"
+            PULL_OK=0
+            for attempt in 1 2 3 4 5; do
+              if $DC pull backend; then
+                PULL_OK=1
+                break
+              fi
+              echo "==> Pull failed (attempt ${attempt}/5), retrying..."
+              sleep $((attempt * 8))
+            done
+            if [ "$PULL_OK" -ne 1 ]; then
+              echo "==> ERROR: unable to pull backend image from GHCR after retries"
+              exit 1
+            fi
 
             echo "==> Migrations Alembic"
             $DC --profile migrate run --rm migrate
@@ -610,8 +622,20 @@ jobs:
             echo "==> Login GHCR"
             printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            echo "==> Pull image"
-            $DC pull backend
+            echo "==> Pull image (avec retry)"
+            PULL_OK=0
+            for attempt in 1 2 3 4 5; do
+              if $DC pull backend; then
+                PULL_OK=1
+                break
+              fi
+              echo "==> Pull failed (attempt ${attempt}/5), retrying..."
+              sleep $((attempt * 8))
+            done
+            if [ "$PULL_OK" -ne 1 ]; then
+              echo "==> ERROR: unable to pull backend image from GHCR after retries"
+              exit 1
+            fi
 
             echo "==> Sauvegarde rollback"
             CURRENT=$($DC ps -q backend 2>/dev/null | head -1)
