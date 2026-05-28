@@ -406,8 +406,8 @@ async def get_event_qr_code(
     import io
     from datetime import timedelta
 
-    import qrcode
     import jwt
+    import qrcode
 
     from src.infrastructure.config.settings import get_settings
 
@@ -477,7 +477,7 @@ async def check_in_event(
     - Vérifie que le token correspond à cet événement
     - Marque l'assignment du servant comme PRESENT
     """
-    from jose import ExpiredSignatureError, JWTError, jwt
+    import jwt
     from sqlmodel import select
 
     from src.core.entities.assignment import Assignment, AssignmentStatus

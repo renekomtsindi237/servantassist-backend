@@ -9,8 +9,8 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 
-import nh3
 import jwt
+import nh3
 from passlib.context import CryptContext
 
 from src.infrastructure.config.settings import get_settings
