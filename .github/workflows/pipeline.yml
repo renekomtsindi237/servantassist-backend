@@ -519,8 +519,12 @@ jobs:
             $DC down --remove-orphans 2>/dev/null || true
 
             echo "==> Règle ip6tables masquerade"
-            ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
-              || ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE
+            if command -v ip6tables >/dev/null 2>&1 && [ "$(id -u)" -eq 0 ]; then
+              ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
+                || ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE
+            else
+              echo "==> ip6tables skipped (requires root privileges)"
+            fi
 
             echo "==> Démarrage (attente healthchecks)"
             $DC up -d --scale backend=2 --wait --timeout 120
@@ -623,8 +627,12 @@ jobs:
             $DC down --remove-orphans 2>/dev/null || true
 
             echo "==> Règle ip6tables masquerade"
-            ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
-              || ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE
+            if command -v ip6tables >/dev/null 2>&1 && [ "$(id -u)" -eq 0 ]; then
+              ip6tables -t nat -C POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE 2>/dev/null \
+                || ip6tables -t nat -A POSTROUTING -s fd42:dead:beef::/48 -j MASQUERADE
+            else
+              echo "==> ip6tables skipped (requires root privileges)"
+            fi
 
             echo "==> Démarrage production (3 réplicas)"
             $DC up -d --scale backend=3 --wait --timeout 180
