@@ -534,8 +534,20 @@ jobs:
             echo "==> Nettoyage résidus (port 9000)"
             docker rm -f sa-backend-diag servantassist-backend-backend-1 2>/dev/null || true
 
+            echo "==> Port 9000 avant démarrage:"
+            ss -tlnp 2>/dev/null | grep ':9000 ' || echo "  (libre)"
+
             echo "==> Démarrage (attente healthchecks)"
-            $DC up -d --wait --timeout 120
+            if ! $DC up -d --wait --timeout 180 2>&1; then
+              echo ""
+              echo "==> ERREUR — logs backend (200 dernières lignes):"
+              docker logs servantassist-backend-backend-1 --tail 200 2>&1 || true
+              echo ""
+              echo "==> State: $(docker inspect servantassist-backend-backend-1 \
+                --format 'status={{.State.Status}} exit={{.State.ExitCode}} health={{.State.Health.Status}}' \
+                2>/dev/null || echo unknown)"
+              exit 1
+            fi
             echo "==> Deploy OK: sha=${SHA}"
 
       - name: Health check public
