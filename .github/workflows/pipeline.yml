@@ -528,14 +528,29 @@ jobs:
               [ -n "$IMAGE" ] && echo "$IMAGE" > /opt/servantassist/.rollback_image_staging
             fi
 
-            echo "==> Arrêt propre"
+            echo "==> Arrêt propre (compose)"
             $DC down --remove-orphans 2>/dev/null || true
 
-            echo "==> Nettoyage résidus (port 9000)"
+            echo "==> Nettoyage résidus — par nom"
             docker rm -f sa-backend-diag servantassist-backend-backend-1 2>/dev/null || true
 
-            echo "==> Port 9000 avant démarrage:"
-            ss -tlnp 2>/dev/null | grep ':9000 ' || echo "  (libre)"
+            echo "==> Nettoyage résidus — par image (capture containers hors compose)"
+            docker ps -aq --filter 'ancestor=ghcr.io/renekomtsindi237/servantassist-backend/servantassist-backend:staging' \
+              | xargs -r docker rm -f 2>/dev/null || true
+
+            echo "==> Nettoyage résidus — par nom pattern"
+            docker ps -aq --filter 'name=servantassist' | xargs -r docker rm -f 2>/dev/null || true
+
+            echo "==> Port 9000 après nettoyage:"
+            if ss -tlnp 2>/dev/null | grep -q ':9000 '; then
+              ss -tlnp | grep ':9000 ' || true
+              echo "WARN: port encore occupé — tentative fuser"
+              fuser -k 9000/tcp 2>/dev/null || true
+              sleep 3
+              ss -tlnp 2>/dev/null | grep ':9000 ' && echo "WARN: toujours occupé" || echo "  (libéré)"
+            else
+              echo "  (libre)"
+            fi
 
             echo "==> Démarrage (attente healthchecks)"
             if ! $DC up -d --wait --timeout 180 2>&1; then
