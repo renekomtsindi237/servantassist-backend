@@ -19,7 +19,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.application.services.dashboard_service import DashboardService
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
-from src.presentation.dependencies.auth_deps import get_current_admin_or_aumonier
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_admin_or_aumonier,
+)
 from src.presentation.schemas.dashboard import (
     AttendanceTrend,
     CotisationStatus,
@@ -42,7 +45,7 @@ def _get_service(session: AsyncSession) -> DashboardService:
 )
 async def get_dashboard_summary(
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     """Retourne les métriques globales de l'application : comptages, taux de présence et cotisations."""
     service = _get_service(session)
@@ -106,7 +109,7 @@ async def get_cotisation_status(
 )
 async def get_upcoming_events(
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
     limit: int = Query(5, ge=1, le=20, description="Nombre d'événements à retourner"),
 ):
     """Retourne les N prochains événements avec leur nombre d'assignments."""
