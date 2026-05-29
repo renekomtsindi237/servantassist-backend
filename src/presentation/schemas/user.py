@@ -4,7 +4,7 @@ Schemas pour le module Users (gestion des profils et administration).
 
 import re
 from datetime import datetime
-from typing import Dict, Generic, List, Optional, TypeVar
+from typing import Dict, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -31,6 +31,9 @@ class UserProfileResponse(BaseModel):
     last_name: str
     role: UserRole
     position: Optional[ServantPosition] = None
+    # Poste actif issu de la table nominations (PosteResponsable.value).
+    # Prend le dessus sur position pour le calcul des permissions côté client.
+    active_poste: Optional[str] = None
     is_active: bool
     phone_number: Optional[str] = None
     profile_photo_url: Optional[str] = None
@@ -58,7 +61,9 @@ class UserProfileUpdate(BaseModel):
     def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and v != "":
             if not re.match(r"^\+\d{1,3}\d{6,14}$", v):
-                raise ValueError("Le numero de telephone doit etre au format +237xxxxxxxxx")
+                raise ValueError(
+                    "Le numero de telephone doit etre au format +237xxxxxxxxx"
+                )
         return v
 
 
@@ -99,7 +104,9 @@ class UserAdminUpdate(BaseModel):
     def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and v != "":
             if not re.match(r"^\+\d{1,3}\d{6,14}$", v):
-                raise ValueError("Le numero de telephone doit etre au format +237xxxxxxxxx")
+                raise ValueError(
+                    "Le numero de telephone doit etre au format +237xxxxxxxxx"
+                )
         return v
 
 
@@ -128,6 +135,8 @@ class UserListFilters(BaseModel):
 
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
-    search: Optional[str] = Field(None, max_length=100, description="Recherche par nom ou email")
+    search: Optional[str] = Field(
+        None, max_length=100, description="Recherche par nom ou email"
+    )
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
