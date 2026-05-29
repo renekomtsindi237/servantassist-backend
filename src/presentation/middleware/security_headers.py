@@ -43,9 +43,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
 
         # -- Content Security Policy ----------------------------------
-        if settings.APP_ENV == "development":
-            # En développement, permettre les ressources externes (Swagger,
-            # etc.)
+        _docs_paths = ("/api/docs", "/api/redoc", "/api/docs/oauth2-redirect", "/openapi.json")
+        is_docs_path = request.url.path in _docs_paths
+
+        if settings.APP_ENV == "development" or (settings.APP_ENV in ("staging", "production") and is_docs_path):
+            # Autoriser les ressources CDN pour Swagger UI (dev + chemins docs en staging/prod)
             csp = (
                 "default-src 'self'; "
                 "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fastapi.tiangolo.com; "
@@ -57,7 +59,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "form-action 'self'"
             )
         else:
-            # En production, CSP stricte
+            # CSP stricte pour tous les autres endpoints
             csp = (
                 "default-src 'self'; "
                 "script-src 'self'; "
