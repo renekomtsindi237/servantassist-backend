@@ -501,12 +501,13 @@ jobs:
           GHCR_USERNAME: ${{ github.actor }}
           GHCR_READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA: ${{ needs.build-push.outputs.sha_short }}
+          FIELD_ENCRYPTION_KEY: ${{ secrets.FIELD_ENCRYPTION_KEY_STAGING }}
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
-          envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA
+          envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA,FIELD_ENCRYPTION_KEY
           command_timeout: 30m
           script: |
             set -euo pipefail
@@ -516,6 +517,17 @@ jobs:
             echo "==> Pull code"
             cd /opt/servantassist/servantassist-backend
             git pull origin main
+
+            # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.staging
+            # (idempotent : ne remplace pas si déjà définie avec la même valeur)
+            if [ -n "${FIELD_ENCRYPTION_KEY:-}" ]; then
+              if grep -q '^FIELD_ENCRYPTION_KEY=' "$ENVFILE" 2>/dev/null; then
+                sed -i "s|^FIELD_ENCRYPTION_KEY=.*|FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}|" "$ENVFILE"
+              else
+                echo "FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}" >> "$ENVFILE"
+              fi
+              echo "==> FIELD_ENCRYPTION_KEY synchronisée dans $ENVFILE"
+            fi
 
             echo "==> Login GHCR"
             printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
@@ -661,11 +673,12 @@ jobs:
           GHCR_USERNAME: ${{ github.actor }}
           GHCR_READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA: ${{ needs.build-push.outputs.sha_short }}
+          FIELD_ENCRYPTION_KEY: ${{ secrets.FIELD_ENCRYPTION_KEY_PROD }}
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA
+          envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA,FIELD_ENCRYPTION_KEY
           command_timeout: 15m
           script: |
             set -euo pipefail
@@ -675,6 +688,16 @@ jobs:
             echo "==> Pull code (production)"
             cd /opt/servantassist/servantassist-backend
             git pull origin main
+
+            # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.production
+            if [ -n "${FIELD_ENCRYPTION_KEY:-}" ]; then
+              if grep -q '^FIELD_ENCRYPTION_KEY=' "$ENVFILE" 2>/dev/null; then
+                sed -i "s|^FIELD_ENCRYPTION_KEY=.*|FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}|" "$ENVFILE"
+              else
+                echo "FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}" >> "$ENVFILE"
+              fi
+              echo "==> FIELD_ENCRYPTION_KEY synchronisée dans $ENVFILE"
+            fi
 
             echo "==> Login GHCR"
             printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
