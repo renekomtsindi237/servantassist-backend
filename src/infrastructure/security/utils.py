@@ -37,6 +37,7 @@ class SecurityUtils:
     def create_access_token(
         subject: Union[str, Any],
         role: str,
+        position: str = None,
         expires_delta: timedelta = None,
     ) -> str:
         now = datetime.now(timezone.utc)
@@ -50,6 +51,7 @@ class SecurityUtils:
             "iat": now,
             "sub": str(subject),
             "role": role,
+            "position": position,
             "jti": uuid.uuid4().hex,  # ID unique pour revocation future
             "iss": settings.APP_NAME,
         }
@@ -60,6 +62,7 @@ class SecurityUtils:
     def create_refresh_token(
         subject: Union[str, Any],
         role: str,
+        position: str = None,
         expires_delta: timedelta = None,
     ) -> str:
         now = datetime.now(timezone.utc)
@@ -74,6 +77,7 @@ class SecurityUtils:
             "sub": str(subject),
             "type": "refresh",
             "role": role,
+            "position": position,
             "jti": uuid.uuid4().hex,
             "iss": settings.APP_NAME,
         }

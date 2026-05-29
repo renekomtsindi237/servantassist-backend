@@ -223,16 +223,19 @@ class AuthService:
         return created_user
 
     async def create_tokens(self, user: User) -> Token:
-        """Create access + refresh tokens with role embedded in the payload."""
+        """Create access + refresh tokens with role and position embedded in the payload."""
         access_token_expires = timedelta(minutes=30)
+        position = user.position.value if user.position else None
         access_token = SecurityUtils.create_access_token(
             subject=user.email,
             role=user.role.value,
+            position=position,
             expires_delta=access_token_expires,
         )
         refresh_token = SecurityUtils.create_refresh_token(
             subject=user.email,
             role=user.role.value,
+            position=position,
         )
         return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
