@@ -189,8 +189,8 @@ app = FastAPI(
     title=settings.APP_NAME,
     description="API for managing altar servers and their activities",
     version="1.0.0",
-    docs_url="/api/docs" if settings.APP_ENV == "development" else None,
-    redoc_url="/api/redoc" if settings.APP_ENV == "development" else None,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
     lifespan=lifespan,
 )
 
