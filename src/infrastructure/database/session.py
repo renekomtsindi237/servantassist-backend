@@ -16,16 +16,23 @@ def get_db_url(for_migrations: bool = False) -> str:
     development → PostgreSQL local (via DATABASE_URL ou variables POSTGRES_*)
     staging / production → Supabase
       - for_migrations=True  → connexion directe (DDL, Alembic)
-      - for_migrations=False → transaction pooler pgbouncer (runtime)
+      - for_migrations=False → session pooler (port 5432) via Supavisor
+        Le pooler transaction (port 6543) est incompatible avec le protocole
+        extended query d'asyncpg (DuplicatePreparedStatementError).
     """
     if settings.is_supabase_env:
-        url = settings.SUPABASE_DB_DIRECT_URL if for_migrations else settings.SUPABASE_DB_POOLER_URL
-        if not url:
-            raise RuntimeError(
-                f"APP_ENV={settings.APP_ENV} mais "
-                f"{'SUPABASE_DB_DIRECT_URL' if for_migrations else 'SUPABASE_DB_POOLER_URL'} "
-                "n'est pas configuré."
-            )
+        if for_migrations:
+            url = settings.SUPABASE_DB_DIRECT_URL
+            if not url:
+                raise RuntimeError(f"APP_ENV={settings.APP_ENV} mais SUPABASE_DB_DIRECT_URL n'est pas configuré.")
+        else:
+            url = settings.SUPABASE_DB_POOLER_URL
+            if not url:
+                raise RuntimeError(f"APP_ENV={settings.APP_ENV} mais SUPABASE_DB_POOLER_URL n'est pas configuré.")
+            # Supavisor session mode (port 5432) au lieu du mode transaction (port 6543).
+            # Le mode session maintient une session PG persistante par connexion du pool,
+            # ce qui est compatible avec les prepared statements d'asyncpg.
+            url = url.replace(":6543/", ":5432/")
         return _ensure_asyncpg(url)
 
     # ── Développement : PostgreSQL local ──────────────────────────────
@@ -48,11 +55,9 @@ def _build_engine_kwargs() -> dict[str, Any]:
     """
     Options SQLAlchemy adaptées à l'environnement.
 
-    Supabase pgbouncer (mode Transaction) impose :
-      - prepared_statement_cache_size=0  → désactive les prepared statements
-        (pgbouncer transaction mode ne les supporte pas entre connexions)
-      - pool_size calibré par worker pour ne pas saturer pgbouncer :
-        GUNICORN_WORKERS × pool_size ≤ quota Supabase (60 free / 200 pro)
+    Supabase session pooler (port 5432 / Supavisor) :
+      - pool_size réduit : chaque slot du pool occupe une connexion PG réelle
+        GUNICORN_WORKERS × pool_size ≤ quota Supabase (free ≈ 15, starter = 200)
     """
     import multiprocessing
     import os
@@ -64,17 +69,15 @@ def _build_engine_kwargs() -> dict[str, Any]:
 
     if settings.is_supabase_env:
         workers = int(os.environ.get("GUNICORN_WORKERS", multiprocessing.cpu_count()))
-        # Budget : 50 connexions pgbouncer réparties sur tous les workers
-        pool_size = max(2, 50 // workers)
-        max_overflow = pool_size
+        # Session pooler : chaque slot du pool occupe une connexion PG réelle.
+        # Supabase free = ~15 connexions directes ; starter = 200 via pooler session.
+        # Budget conservateur : 5 connexions par worker → 2 workers × 5 = 10 max.
+        pool_size = max(2, min(5, 12 // workers))
+        max_overflow = 2
 
         base.update(
             {
                 "connect_args": {
-                    # Pgbouncer transaction mode — désactive prepared statements
-                    # (deux couches : SQLAlchemy + asyncpg natif)
-                    "prepared_statement_cache_size": 0,
-                    "statement_cache_size": 0,
                     # Timeout de connexion initiale (évite les attentes infinies)
                     "timeout": 10,
                     # Statement timeout : tue toute requête qui dépasse 30s
