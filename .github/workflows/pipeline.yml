@@ -462,11 +462,12 @@ jobs:
               -j TCPMSS --set-mss 1280 2>/dev/null || \
             ip6tables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN \
               -j TCPMSS --set-mss 1280 2>/dev/null || true
-            # DROP IPv6 vers Fastly/GHCR depuis l'hôte → Docker daemon utilise IPv4
-            # (règle volatile : re-ajoutée à chaque bootstrap/reboot via ce pipeline)
-            ip6tables -C OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 -j DROP 2>/dev/null || \
-              ip6tables -I OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 -j DROP 2>/dev/null || true
-            echo "==> ip6tables: MSS=1280 + DROP Fastly-IPv6 configurés"
+            # REJECT IPv6 vers Fastly/GHCR → Go happy-eyeballs bascule IPv4 immédiatement
+            # (REJECT renvoie TCP RST instantané vs DROP qui attend le timeout complet)
+            ip6tables -C OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 -j REJECT 2>/dev/null || \
+              ip6tables -I OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+                -j REJECT --reject-with tcp-reset 2>/dev/null || true
+            echo "==> ip6tables: MSS=1280 + REJECT Fastly-IPv6 configurés"
 
             mkdir -p /opt/servantassist/backups /opt/servantassist/logs
             echo "==> Bootstrap OK"
@@ -506,7 +507,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA
-          command_timeout: 15m
+          command_timeout: 30m
           script: |
             set -euo pipefail
             ENVFILE="/opt/servantassist/servantassist-backend/.env.staging"
@@ -519,9 +520,12 @@ jobs:
             echo "==> Login GHCR"
             printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            # Forcer IPv4 pour Docker pulls — Docker daemon (Go) ignore gai.conf,
-            # il faut bloquer IPv6 vers Fastly/GHCR au niveau ip6tables
-            ip6tables -I OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 -j DROP 2>/dev/null || true
+            # Forcer IPv4 pour Docker pulls — REJECT renvoie TCP RST immédiat, Go
+            # happy-eyeballs bascule sur IPv4 en ms (DROP attendait le timeout complet)
+            ip6tables -I OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+              -j REJECT --reject-with tcp-reset 2>/dev/null || \
+            ip6tables -I OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+              -j REJECT 2>/dev/null || true
 
             echo "==> Pull nouvelle image (avec retry)"
             PULL_OK=0
@@ -531,11 +535,14 @@ jobs:
                 break
               fi
               echo "==> Pull failed (attempt ${attempt}/5), retrying..."
-              sleep $((attempt * 8))
+              sleep $((attempt * 5))
             done
 
-            # Restaurer IPv6 vers Fastly (ne laisse que la règle permanente du bootstrap)
-            ip6tables -D OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 -j DROP 2>/dev/null || true
+            # Restaurer IPv6 vers Fastly
+            ip6tables -D OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+              -j REJECT --reject-with tcp-reset 2>/dev/null || \
+            ip6tables -D OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+              -j REJECT 2>/dev/null || true
 
             if [ "$PULL_OK" -ne 1 ]; then
               echo "==> ERROR: unable to pull backend image from GHCR after retries"
@@ -673,7 +680,10 @@ jobs:
             printf '%s' "${GHCR_READ_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
             # Forcer IPv4 pour Docker pulls (même fix que staging)
-            ip6tables -I OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 -j DROP 2>/dev/null || true
+            ip6tables -I OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+              -j REJECT --reject-with tcp-reset 2>/dev/null || \
+            ip6tables -I OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+              -j REJECT 2>/dev/null || true
 
             echo "==> Pull image (avec retry)"
             PULL_OK=0
@@ -683,10 +693,13 @@ jobs:
                 break
               fi
               echo "==> Pull failed (attempt ${attempt}/5), retrying..."
-              sleep $((attempt * 8))
+              sleep $((attempt * 5))
             done
 
-            ip6tables -D OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 -j DROP 2>/dev/null || true
+            ip6tables -D OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+              -j REJECT --reject-with tcp-reset 2>/dev/null || \
+            ip6tables -D OUTPUT -p tcp -d 2606:50c0::/32 --dport 443 \
+              -j REJECT 2>/dev/null || true
 
             if [ "$PULL_OK" -ne 1 ]; then
               echo "==> ERROR: unable to pull backend image from GHCR after retries"
