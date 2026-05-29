@@ -126,7 +126,7 @@ services:
       REDIS_URL: "redis://127.0.0.1:6379/0"
     command: celery -A src.infrastructure.tasks.celery_app beat --loglevel=info
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f 'celery.*beat' > /dev/null"]
+      test: ["CMD-SHELL", "grep -qa beat /proc/1/cmdline"]
       interval: 30s
       timeout: 5s
       retries: 3

@@ -506,7 +506,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           envs: GHCR_USERNAME,GHCR_READ_TOKEN,SHA
-          command_timeout: 10m
+          command_timeout: 15m
           script: |
             set -euo pipefail
             ENVFILE="/opt/servantassist/servantassist-backend/.env.staging"
@@ -565,7 +565,7 @@ jobs:
             ss -tlnp 2>/dev/null | grep ':9099 ' && echo "WARN: port 9099 occupé" || echo "  (libre)"
 
             echo "==> Démarrage (attente healthchecks)"
-            if ! $DC up -d --wait --timeout 180 2>&1; then
+            if ! $DC up -d --wait --wait-timeout 180 2>&1; then
               echo ""
               echo "==> ERREUR — état de tous les conteneurs:"
               for ct in servantassist-backend-backend-1 servantassist-staging-lb \
