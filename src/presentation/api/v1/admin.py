@@ -16,7 +16,6 @@ from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from src.infrastructure.repositories.connection_log_repository import ConnectionLogRepository
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +25,7 @@ from src.core.entities.invitation import InvitationCode
 from src.core.entities.user import User, UserRole
 from src.core.utils import utc_now
 from src.infrastructure.database.session import get_db_session
+from src.infrastructure.repositories.connection_log_repository import ConnectionLogRepository
 from src.infrastructure.repositories.invitation_repository import (
     InvitationCodeRepository,
 )
