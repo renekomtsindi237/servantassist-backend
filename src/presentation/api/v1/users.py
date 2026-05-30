@@ -66,9 +66,7 @@ async def get_my_profile(
     """Recuperer mon profil."""
     response = UserProfileResponse.model_validate(current_user)
     if current_user.role == UserRole.SERVANT:
-        nominations = await NominationRepository(session).get_active_by_user(
-            current_user.id
-        )
+        nominations = await NominationRepository(session).get_active_by_user(current_user.id)
         if nominations:
             response.active_poste = nominations[0].poste.value
     return response
@@ -108,9 +106,7 @@ async def change_my_password(
 
 @router.post("/me/photo", response_model=UserProfileResponse)
 async def upload_my_photo(
-    file: Annotated[
-        UploadFile, File(description="Photo de profil (JPEG, PNG ou WebP, max 5 Mo)")
-    ],
+    file: Annotated[UploadFile, File(description="Photo de profil (JPEG, PNG ou WebP, max 5 Mo)")],
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
@@ -186,9 +182,7 @@ async def list_directory(
     current_user: Annotated[User, Depends(get_current_active_user)],
     role: Optional[UserRole] = Query(None, description="Filtrer par rôle"),
     is_active: Optional[bool] = Query(True, description="Filtrer par statut actif"),
-    search: Optional[str] = Query(
-        None, max_length=100, description="Recherche par nom"
-    ),
+    search: Optional[str] = Query(None, max_length=100, description="Recherche par nom"),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
 ):
@@ -218,9 +212,7 @@ async def list_users(
     current_user: Annotated[User, Depends(get_current_admin_user)],
     role: Optional[UserRole] = Query(None, description="Filtrer par role"),
     is_active: Optional[bool] = Query(None, description="Filtrer par statut actif"),
-    search: Optional[str] = Query(
-        None, max_length=100, description="Recherche par nom ou email"
-    ),
+    search: Optional[str] = Query(None, max_length=100, description="Recherche par nom ou email"),
     page: int = Query(1, ge=1, description="Numero de page"),
     page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
 ):
