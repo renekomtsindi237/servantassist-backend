@@ -16,6 +16,7 @@ from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from src.infrastructure.repositories.connection_log_repository import ConnectionLogRepository
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -468,3 +469,20 @@ async def revoke_api_key(
     await session.commit()
     if result.rowcount == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Clé API introuvable.")
+
+
+# ── Géolocalisation des connexions ────────────────────────────────────────────
+
+
+@router.get("/connections/geo", summary="Points de connexion géolocalisés")
+async def get_connections_geo(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_admin: Annotated[User, Depends(get_current_admin_user)],
+    days: int = Query(30, ge=1, le=90, description="Fenêtre en jours"),
+) -> list:
+    """
+    Retourne les connexions récentes agrégées par ville avec coordonnées GPS.
+    Utilisé par le globe 3D du dashboard admin.
+    """
+    repo = ConnectionLogRepository(session)
+    return await repo.get_geo_points(days=days)

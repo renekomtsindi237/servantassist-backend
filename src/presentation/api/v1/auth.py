@@ -1,3 +1,4 @@
+import asyncio
 import time
 from typing import Annotated
 
@@ -7,15 +8,18 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.auth_service import AuthService
+from src.core.entities.connection_log import ConnectionLog
 from src.core.entities.user import UserRole
 from src.infrastructure.config.settings import get_settings
-from src.infrastructure.database.session import get_db_session
+from src.infrastructure.database.session import get_db_session, sessionmanager
+from src.infrastructure.repositories.connection_log_repository import ConnectionLogRepository
 from src.infrastructure.repositories.invitation_repository import (
     InvitationCodeRepository,
 )
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.security.brute_force import brute_force_guard
 from src.infrastructure.security.token_blacklist import token_blacklist
+from src.infrastructure.services.geolocation_service import extract_client_ip, geolocate_ip
 from src.presentation.dependencies.auth_deps import get_current_active_user
 from src.presentation.schemas.auth import (
     ForgotPasswordRequest,
@@ -34,6 +38,26 @@ from src.presentation.schemas.auth import (
 
 router = APIRouter()
 
+
+async def _log_connection(user_id, ip: str) -> None:
+    """Fire-and-forget : résout l'IP et insère un ConnectionLog dans une session séparée."""
+    try:
+        geo = await geolocate_ip(ip)
+        async with sessionmanager.session() as session:
+            log = ConnectionLog(
+                user_id=user_id,
+                ip_address=ip,
+                country=geo.get("country") if geo else None,
+                country_code=geo.get("country_code") if geo else None,
+                city=geo.get("city") if geo else None,
+                lat=geo.get("lat") if geo else None,
+                lng=geo.get("lng") if geo else None,
+            )
+            await ConnectionLogRepository(session).create(log)
+    except Exception:  # noqa: BLE001
+        pass  # non-bloquant : échec silencieux
+
+
 # Roles autorises pour l'auto-inscription publique
 _SELF_REGISTER_ROLES = {UserRole.SERVANT, UserRole.PARENT}
 
@@ -51,6 +75,7 @@ async def _check_brute_force(identifier: str) -> None:
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
+    request: Request,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
@@ -92,13 +117,15 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Connexion reussie : reinitialiser le compteur
+    # Connexion reussie : reinitialiser le compteur et logger l'IP
     await brute_force_guard.record_success(identifier)
+    asyncio.create_task(_log_connection(user.id, extract_client_ip(request)))
     return await auth_service.create_tokens(user)
 
 
 @router.post("/login/phone", response_model=Token)
 async def login_with_phone(
+    request: Request,
     login_data: UserPhoneLogin,
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
@@ -120,8 +147,9 @@ async def login_with_phone(
         await brute_force_guard.record_failure(identifier)
         raise
 
-    # Connexion reussie : reinitialiser le compteur
+    # Connexion reussie : reinitialiser le compteur et logger l'IP
     await brute_force_guard.record_success(identifier)
+    asyncio.create_task(_log_connection(user.id, extract_client_ip(request)))
     return await auth_service.create_tokens(user)
 
 
