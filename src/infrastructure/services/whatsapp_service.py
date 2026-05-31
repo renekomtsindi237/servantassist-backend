@@ -102,6 +102,54 @@ class WhatsAppService:
             logger.error(f"Failed to send WhatsApp OTP to {phone_number}: {str(e)}")
             return False
 
+    async def send_child_absent_alert(
+        self, phone_number: str, child_name: str, session_date: str, session_type: str
+    ) -> bool:
+        """Notifie un parent que son enfant a été marqué absent."""
+        if not self.enabled or not self.client:
+            logger.warning(f"WhatsApp not configured, skipping absent alert to {phone_number}")
+            return False
+        try:
+            message = self.client.messages.create(
+                from_=self.whatsapp_from,
+                to=f"whatsapp:{phone_number}",
+                body=(
+                    f"ServantAssist — Information parentale\n\n"
+                    f"Votre enfant {child_name} a été marqué(e) ABSENT(E)\n"
+                    f"Session du {session_date} · {session_type}\n\n"
+                    f"Si cette absence doit être justifiée, contactez le censeur."
+                ),
+            )
+            logger.info(f"WhatsApp absent alert sent to {phone_number} (SID: {message.sid})")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send child absent alert to {phone_number}: {e}")
+            return False
+
+    async def send_child_discipline_alert(
+        self, phone_number: str, child_name: str, offense_category: str
+    ) -> bool:
+        """Notifie un parent qu'un signalement disciplinaire a été ouvert pour son enfant."""
+        if not self.enabled or not self.client:
+            logger.warning(f"WhatsApp not configured, skipping discipline alert to {phone_number}")
+            return False
+        try:
+            message = self.client.messages.create(
+                from_=self.whatsapp_from,
+                to=f"whatsapp:{phone_number}",
+                body=(
+                    f"ServantAssist — Signalement disciplinaire\n\n"
+                    f"Un dossier disciplinaire a été ouvert pour votre enfant {child_name}.\n"
+                    f"Catégorie : {offense_category}\n\n"
+                    f"Veuillez contacter la délégation pour plus d'informations."
+                ),
+            )
+            logger.info(f"WhatsApp discipline alert sent to {phone_number} (SID: {message.sid})")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send child discipline alert to {phone_number}: {e}")
+            return False
+
     async def send_admin_notification(self, phone_number: str, admin_name: str, message_text: str) -> bool:
         """
         Send admin notification via WhatsApp

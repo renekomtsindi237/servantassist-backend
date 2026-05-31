@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 from uuid import UUID
 
@@ -42,6 +42,8 @@ class UserCreate(BaseModel):
     last_name: str
     phone_number: Optional[str] = None
     role: UserRole = UserRole.SERVANT
+    birth_date: Optional[datetime] = None
+    parent_id: Optional[UUID] = None
 
     @field_validator("password")
     @classmethod

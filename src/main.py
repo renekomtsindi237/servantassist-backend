@@ -50,6 +50,7 @@ from src.infrastructure.events.handlers import register_all_handlers
 from src.presentation.api.v1 import (
     activities,
     admin,
+    analytics,
     api_keys,
     assignments,
     attendance,
@@ -65,6 +66,7 @@ from src.presentation.api.v1 import (
     email,
     financial_entries,
     material,
+    parent,
     poste,
     reports,
     responsables,
@@ -251,6 +253,7 @@ app.add_middleware(
 # API Routes
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
+app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(activities.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(communication.router, prefix="/api/v1/communication", tags=["Communication"])
@@ -277,6 +280,7 @@ app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
 app.include_router(classement.router, prefix="/api/v1/classements", tags=["Classements"])
 app.include_router(email.router, prefix="/api/v1/email", tags=["Email"])
 app.include_router(dossier.router, prefix="/api/v1/dossier", tags=["Dossier"])
+app.include_router(parent.router, prefix="/api/v1/parent", tags=["Parent"])
 app.include_router(sport_culture.router, prefix="/api/v1/sport-culture", tags=["Sport & Culture"])
 app.include_router(sunday_schedule.router, prefix="/api/v1/sunday-schedule", tags=["Sunday Schedule"])
 app.include_router(training.router, prefix="/api/v1/training", tags=["Training"])

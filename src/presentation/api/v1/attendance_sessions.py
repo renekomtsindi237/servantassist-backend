@@ -183,7 +183,7 @@ async def update_attendance(
 
 
 async def _notify_servant_absent(record: AttendanceRecordResponse, session) -> None:
-    """Notifie un servant qu'il a été marqué absent."""
+    """Notifie un servant et son parent (WhatsApp) qu'il a été marqué absent."""
     try:
         user_repo = UserRepository(session)
         servant = await user_repo.get(record.servant_id)
@@ -199,6 +199,20 @@ async def _notify_servant_absent(record: AttendanceRecordResponse, session) -> N
                     "veuillez contacter votre censeur."
                 ),
             )
+        # Notifier le parent via WhatsApp si le servant est lié à un parent
+        if servant and servant.parent_id:
+            parent = await user_repo.get(servant.parent_id)
+            if parent and parent.phone_number:
+                from src.infrastructure.services.whatsapp_service import WhatsAppService
+
+                child_name = f"{servant.first_name or ''} {servant.last_name or ''}".strip() or "votre enfant"
+                session_date = record.created_at.strftime("%d/%m/%Y") if record.created_at else "—"
+                await WhatsAppService().send_child_absent_alert(
+                    phone_number=parent.phone_number,
+                    child_name=child_name,
+                    session_date=session_date,
+                    session_type="Appel hebdomadaire",
+                )
     except Exception as exc:
         logger.error("Erreur notification absence servant | error=%s", str(exc))
 

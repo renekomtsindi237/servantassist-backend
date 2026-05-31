@@ -38,6 +38,7 @@ class UserProfileResponse(BaseModel):
     phone_number: Optional[str] = None
     profile_photo_url: Optional[str] = None
     parent_id: Optional[UUID] = None
+    birth_date: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     links: Optional[Dict[str, ResourceLink]] = Field(
@@ -96,6 +97,7 @@ class UserAdminUpdate(BaseModel):
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = None
     position: Optional[ServantPosition] = None
+    birth_date: Optional[datetime] = None
 
     @field_validator("phone_number")
     @classmethod

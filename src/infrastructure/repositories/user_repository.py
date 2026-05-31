@@ -195,3 +195,10 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
             stmt = stmt.where(User.id != exclude_id)
         result = await self.session.exec(stmt)
         return result.first() is not None
+
+    async def get_children_of(self, parent_id: UUID) -> List[User]:
+        """Retourne tous les servants liés à ce parent (parent_id == parent_id)."""
+        result = await self.session.exec(select(User).where(User.parent_id == parent_id))
+        users = list(result.all())
+        self._decrypt_list(users)
+        return users

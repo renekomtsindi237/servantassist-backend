@@ -114,6 +114,20 @@ class AuthService:
                     detail="Phone number already registered",
                 )
 
+        # Validation âge < 14 ans : parent_id obligatoire
+        if getattr(user_create, "birth_date", None):
+            birth = user_create.birth_date
+            if hasattr(birth, "date"):
+                birth = birth.date()
+            from datetime import date as _date
+
+            age = (_date.today() - birth).days // 365
+            if age < 14 and not getattr(user_create, "parent_id", None):
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Les servants de moins de 14 ans doivent être liés à un compte parent (parent_id requis).",
+                )
+
         # Role-based registration validation
         if user_create.role == UserRole.SERVANT:
             # ✅ Servants can self-register
@@ -201,6 +215,8 @@ class AuthService:
             last_name=user_create.last_name,
             role=user_create.role,
             phone_number=user_create.phone_number,
+            parent_id=getattr(user_create, "parent_id", None),
+            birth_date=getattr(user_create, "birth_date", None),
             created_by=admin_id,  # Track who created this user
             invited_by=None,
         )

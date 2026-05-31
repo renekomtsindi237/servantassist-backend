@@ -16,10 +16,14 @@ Accessible a : Aumonier, Admin (toutes operations)
                Censeur/Censeur adjoint (ouverture de dossier, convocation)
 """
 
+import asyncio
+import logging
 from typing import Annotated, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+logger = logging.getLogger(__name__)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.discipline_service import DisciplineService
@@ -89,7 +93,31 @@ async def open_discipline_case(
     - AUMÔNIER
     """
     service = _get_service(session)
-    return await service.open_case(data, reported_by=current_user.id)
+    case = await service.open_case(data, reported_by=current_user.id)
+    # Notifier le parent via WhatsApp (fire-and-forget)
+    asyncio.create_task(_notify_parent_discipline(data.accused_user_id, data.offense_category, session))
+    return case
+
+
+async def _notify_parent_discipline(accused_id: UUID, offense_category, session) -> None:
+    """Notifie le parent d'un servant via WhatsApp qu'un dossier disciplinaire a été ouvert."""
+    try:
+        user_repo = UserRepository(session)
+        servant = await user_repo.get(accused_id)
+        if servant and servant.parent_id:
+            parent = await user_repo.get(servant.parent_id)
+            if parent and parent.phone_number:
+                from src.infrastructure.services.whatsapp_service import WhatsAppService
+
+                child_name = f"{servant.first_name or ''} {servant.last_name or ''}".strip() or "votre enfant"
+                category_label = offense_category.value if hasattr(offense_category, "value") else str(offense_category)
+                await WhatsAppService().send_child_discipline_alert(
+                    phone_number=parent.phone_number,
+                    child_name=child_name,
+                    offense_category=category_label,
+                )
+    except Exception as exc:
+        logger.error("Erreur notification discipline parent | error=%s", str(exc))
 
 
 # ═══════════════════════════════════════════════════════════════════════════

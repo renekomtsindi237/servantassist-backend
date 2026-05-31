@@ -173,6 +173,8 @@ class UserService:
             user.last_name = data.last_name
         if data.position is not None:
             user.position = data.position
+        if data.birth_date is not None:
+            user.birth_date = data.birth_date
 
         # Activation / desactivation
         if data.is_active is not None and data.is_active != user.is_active:
