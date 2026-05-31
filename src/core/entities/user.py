@@ -61,9 +61,6 @@ class User(UserBase, table=True):
     created_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # Admin who created this user
     invited_by: Optional[UUID] = Field(default=None, foreign_key="users.id")  # For PARENT: who sent invitation
 
-    # Lien parent : UUID d'un User PARENT lié à ce servant (pour convocations)
-    parent_id: Optional[UUID] = Field(default=None, foreign_key="users.id", sa_column_kwargs={"index": True})
-
     # Index HMAC pour les lookups sans déchiffrement (Loi 2024/017 Art. 22)
     # Valeur = HMAC-SHA256(normalize(plaintext)) — opaque pour l'hébergeur.
     email_hmac: Optional[str] = Field(default=None, index=True)

@@ -1,6 +1,7 @@
 """
 Endpoints pour le tableau de bord parent.
-Permet à un PARENT de consulter le profil et l'activité de son enfant servant.
+Permet à un PARENT de consulter les profils et l'activité de ses enfants servants.
+Un servant peut avoir au maximum 3 parents ; un parent peut avoir plusieurs enfants.
 """
 
 import logging
@@ -72,30 +73,11 @@ async def get_current_parent_user(
     return current_user
 
 
-# ── Endpoint ──────────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 
-@router.get(
-    "/my-child",
-    response_model=ChildSummaryResponse,
-    summary="Profil et activité de l'enfant servant",
-    description="Retourne le dossier synthétique de l'enfant lié au compte parent connecté.",
-)
-async def get_my_child(
-    current_parent: Annotated[User, Depends(get_current_parent_user)],
-    session=Depends(get_db_session),
-) -> ChildSummaryResponse:
-    user_repo = UserRepository(session)
-    children = await user_repo.get_children_of(current_parent.id)
-
-    if not children:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aucun enfant servant n'est lié à votre compte. Contactez l'administrateur.",
-        )
-
-    child = children[0]
-
+async def _build_child_summary(child: User, session) -> ChildSummaryResponse:
+    """Construit la fiche synthétique d'un enfant servant."""
     # ── Statistiques de présence ──────────────────────────────────────────
     attendance_repo = AttendanceSessionRepository(session)
     present_count = absent_count = total_sessions = 0
@@ -182,11 +164,39 @@ async def get_my_child(
     )
 
 
+# ── Endpoints ─────────────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/children",
+    response_model=List[ChildSummaryResponse],
+    summary="Profils et activité des enfants servants",
+    description=(
+        "Retourne la liste des dossiers synthétiques de tous les enfants servants liés "
+        "au compte parent connecté. Retourne [] si aucun enfant n'est lié."
+    ),
+)
+async def get_my_children(
+    current_parent: Annotated[User, Depends(get_current_parent_user)],
+    session=Depends(get_db_session),
+) -> List[ChildSummaryResponse]:
+    user_repo = UserRepository(session)
+    children = await user_repo.get_children_of(current_parent.id)
+
+    if not children:
+        return []
+
+    result = []
+    for child in children:
+        result.append(await _build_child_summary(child, session))
+    return result
+
+
 # ── Création du profil enfant ─────────────────────────────────────────────────
 
 
 class ChildCreate(BaseModel):
-    """Données pour créer le profil servant d'un enfant < 13 ans."""
+    """Données pour créer le profil servant d'un enfant."""
 
     first_name: str
     last_name: str
@@ -201,7 +211,7 @@ class ChildCreate(BaseModel):
     summary="Créer le profil servant de son enfant",
     description=(
         "Permet à un PARENT de créer le compte servant de son enfant (typiquement < 13 ans). "
-        "L'email est auto-généré. Le lien parent est fixé automatiquement."
+        "L'email est auto-généré. Le lien parent est créé automatiquement dans servant_parents."
     ),
 )
 async def create_child_profile(
@@ -225,22 +235,25 @@ async def create_child_profile(
         role=UserRole.SERVANT,
         phone_number=data.phone_number,
         birth_date=data.birth_date,
-        parent_id=current_parent.id,
     )
 
-    auth_service = AuthService(UserRepository(session))
+    user_repo = UserRepository(session)
+    auth_service = AuthService(user_repo)
     child = await auth_service.register_user(
         user_create,
         invitation_code=None,
         admin_id=None,
         skip_age_check=True,
     )
+
+    # Lier l'enfant à ce parent via la junction table
+    await user_repo.add_parent_link(child.id, current_parent.id)
+
     return {
         "id": str(child.id),
         "first_name": child.first_name,
         "last_name": child.last_name,
         "email": child.email,
         "phone_number": child.phone_number,
-        "parent_id": str(child.parent_id),
         "is_active": child.is_active,
     }

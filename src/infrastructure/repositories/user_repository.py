@@ -17,6 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import set_committed_value
 from sqlmodel import select
 
+from fastapi import HTTPException, status
+from src.core.entities.servant_parent import ServantParent
 from src.core.entities.user import User, UserRole
 from src.core.interfaces.repository import IRepository
 from src.infrastructure.security.encrypted_model_mixin import EncryptedModelMixin
@@ -196,9 +198,50 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         result = await self.session.exec(stmt)
         return result.first() is not None
 
+    async def get_parents_of(self, servant_id: UUID) -> List[User]:
+        """Retourne tous les parents liés à ce servant (via junction table)."""
+        result = await self.session.exec(
+            select(User)
+            .join(ServantParent, User.id == ServantParent.parent_id)
+            .where(ServantParent.servant_id == servant_id)
+        )
+        parents = list(result.all())
+        self._decrypt_list(parents)
+        return parents
+
     async def get_children_of(self, parent_id: UUID) -> List[User]:
-        """Retourne tous les servants liés à ce parent (parent_id == parent_id)."""
-        result = await self.session.exec(select(User).where(User.parent_id == parent_id))
+        """Retourne tous les servants liés à ce parent (via junction table)."""
+        result = await self.session.exec(
+            select(User)
+            .join(ServantParent, User.id == ServantParent.servant_id)
+            .where(ServantParent.parent_id == parent_id)
+        )
         users = list(result.all())
         self._decrypt_list(users)
         return users
+
+    async def add_parent_link(self, servant_id: UUID, parent_id: UUID) -> None:
+        """Lie un servant à un parent. Max 3 parents par servant."""
+        existing = await self.get_parents_of(servant_id)
+        if len(existing) >= 3:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Un servant ne peut avoir plus de 3 parents liés.",
+            )
+        if any(p.id == parent_id for p in existing):
+            return  # idempotent
+        self.session.add(ServantParent(servant_id=servant_id, parent_id=parent_id))
+        await self.session.commit()
+
+    async def remove_parent_link(self, servant_id: UUID, parent_id: UUID) -> None:
+        """Supprime le lien entre un servant et un parent."""
+        result = await self.session.exec(
+            select(ServantParent).where(
+                ServantParent.servant_id == servant_id,
+                ServantParent.parent_id == parent_id,
+            )
+        )
+        link = result.first()
+        if link:
+            await self.session.delete(link)
+            await self.session.commit()

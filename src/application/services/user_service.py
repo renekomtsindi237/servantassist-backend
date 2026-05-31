@@ -189,24 +189,37 @@ class UserService:
         user.updated_at = utc_now()
         return await self.user_repository.update(user.id, user)
 
-    async def link_parent(self, servant_id: UUID, parent_id: Optional[UUID]) -> User:
-        """Lie ou délie un servant à un parent."""
+    async def link_parent(
+        self, servant_id: UUID, parent_id: Optional[UUID], unlink: bool = False
+    ) -> User:
+        """Lie ou délie un servant à un parent (via junction table servant_parents)."""
         servant = await self.get_user(servant_id)
         if servant.role != UserRole.SERVANT:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Seul un SERVANT peut être lié à un parent.",
             )
-        if parent_id is not None:
+        if unlink:
+            if parent_id is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="parent_id requis pour délier.",
+                )
+            await self.user_repository.remove_parent_link(servant_id, parent_id)
+        else:
+            if parent_id is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="parent_id requis pour lier.",
+                )
             parent = await self.get_user(parent_id)
             if parent.role != UserRole.PARENT:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="L'utilisateur cible doit avoir le rôle PARENT.",
                 )
-        servant.parent_id = parent_id
-        servant.updated_at = utc_now()
-        return await self.user_repository.update(servant.id, servant)
+            await self.user_repository.add_parent_link(servant_id, parent_id)
+        return await self.get_user(servant_id)
 
     async def deactivate_user(self, user_id: UUID, admin: User) -> User:
         """Desactive un compte utilisateur."""

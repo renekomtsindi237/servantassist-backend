@@ -4,7 +4,7 @@ Schemas pour le module Users (gestion des profils et administration).
 
 import re
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -37,7 +37,7 @@ class UserProfileResponse(BaseModel):
     is_active: bool
     phone_number: Optional[str] = None
     profile_photo_url: Optional[str] = None
-    parent_id: Optional[UUID] = None
+    parent_ids: List[UUID] = []
     birth_date: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

@@ -196,10 +196,10 @@ class AttendanceSessionService:
             )
             self.notification_repo.session.add(notif_servant)
 
-            # Email + notification in-app au parent si lié
-            if servant.parent_id:
-                parent = await self.user_repo.get(servant.parent_id)
-                if parent:
+            # Email + notification in-app à TOUS les parents liés
+            parents = await self.user_repo.get_parents_of(servant.id)
+            if parents:
+                for parent in parents:
                     try:
                         await self.email_service.send_parent_convocation_email(
                             to_email=parent.email,

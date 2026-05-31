@@ -225,13 +225,17 @@ class AuthService:
             last_name=user_create.last_name,
             role=user_create.role,
             phone_number=user_create.phone_number,
-            parent_id=getattr(user_create, "parent_id", None),
             birth_date=getattr(user_create, "birth_date", None),
             created_by=admin_id,  # Track who created this user
             invited_by=None,
         )
 
         created_user = await self.user_repository.create(db_user)
+
+        # Lier au parent via junction table si parent_id fourni
+        _parent_id = getattr(user_create, "parent_id", None)
+        if _parent_id:
+            await self.user_repository.add_parent_link(created_user.id, _parent_id)
 
         # Mark invitation as used if applicable
         if user_create.role == UserRole.PARENT and invitation_code and self.invitation_repository:

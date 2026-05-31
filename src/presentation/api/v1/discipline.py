@@ -103,25 +103,28 @@ async def open_discipline_case(
 
 
 async def _notify_parent_discipline(accused_id: UUID, offense_category, session, ws_manager=None) -> None:
-    """Crée une notification in-app pour le parent d'un servant sanctionné."""
+    """Crée une notification in-app pour TOUS les parents d'un servant sanctionné."""
     try:
         user_repo = UserRepository(session)
         servant = await user_repo.get(accused_id)
-        if servant and servant.parent_id:
-            parent = await user_repo.get(servant.parent_id)
-            if parent:
-                child_name = f"{servant.first_name or ''} {servant.last_name or ''}".strip() or "votre enfant"
-                category_label = offense_category.value if hasattr(offense_category, "value") else str(offense_category)
-                notif_svc = NotificationService(session, ws_manager=ws_manager)
-                await notif_svc.send_notification(
-                    recipient_id=parent.id,
-                    notification_type=NotificationType.DISCIPLINE,
-                    channel=NotificationChannel.IN_APP,
-                    priority=NotificationPriority.URGENT,
-                    title="Dossier disciplinaire ouvert",
-                    body=f"Un dossier disciplinaire a été ouvert pour {child_name} (motif : {category_label}).",
-                    related_entity_type="discipline_case",
-                )
+        if not servant:
+            return
+        parents = await user_repo.get_parents_of(servant.id)
+        if not parents:
+            return
+        child_name = f"{servant.first_name or ''} {servant.last_name or ''}".strip() or "votre enfant"
+        category_label = offense_category.value if hasattr(offense_category, "value") else str(offense_category)
+        notif_svc = NotificationService(session, ws_manager=ws_manager)
+        for parent in parents:
+            await notif_svc.send_notification(
+                recipient_id=parent.id,
+                notification_type=NotificationType.DISCIPLINE,
+                channel=NotificationChannel.IN_APP,
+                priority=NotificationPriority.URGENT,
+                title="Dossier disciplinaire ouvert",
+                body=f"Un dossier disciplinaire a été ouvert pour {child_name} (motif : {category_label}).",
+                related_entity_type="discipline_case",
+            )
     except Exception as exc:
         logger.error("Erreur notification discipline parent | error=%s", str(exc))
 

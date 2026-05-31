@@ -248,6 +248,7 @@ async def get_user(
 
 class LinkParentRequest(BaseModel):
     parent_id: Optional[UUID]
+    unlink: bool = False
 
 
 @router.patch("/{user_id}/link-parent", response_model=UserProfileResponse)
@@ -257,9 +258,11 @@ async def link_parent(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_admin_user)],
 ):
-    """Lier ou délier un servant à un parent. Admin uniquement."""
+    """Lier ou délier un servant à un parent. Admin uniquement.
+    Pour délier : passer unlink=true + parent_id du parent à retirer.
+    Un servant peut avoir au maximum 3 parents."""
     service = _get_user_service(session)
-    return await service.link_parent(user_id, data.parent_id)
+    return await service.link_parent(user_id, data.parent_id, unlink=data.unlink)
 
 
 @router.patch("/{user_id}", response_model=UserProfileResponse)

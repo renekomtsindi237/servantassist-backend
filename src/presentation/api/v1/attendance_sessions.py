@@ -186,26 +186,29 @@ async def update_attendance(
 
 
 async def _notify_servant_absent(record: AttendanceRecordResponse, session, ws_manager=None) -> None:
-    """Crée une notification in-app pour le parent du servant marqué absent."""
+    """Crée une notification in-app pour TOUS les parents du servant marqué absent."""
     try:
         user_repo = UserRepository(session)
         servant = await user_repo.get(record.servant_id)
-        if servant and servant.parent_id:
-            parent = await user_repo.get(servant.parent_id)
-            if parent:
-                child_name = f"{servant.first_name or ''} {servant.last_name or ''}".strip() or "votre enfant"
-                session_date = record.created_at.strftime("%d/%m/%Y") if record.created_at else "—"
-                notif_svc = NotificationService(session, ws_manager=ws_manager)
-                await notif_svc.send_notification(
-                    recipient_id=parent.id,
-                    notification_type=NotificationType.ABSENCE_PARENT,
-                    channel=NotificationChannel.IN_APP,
-                    priority=NotificationPriority.HIGH,
-                    title="Absence de votre enfant",
-                    body=f"{child_name} a été marqué(e) absent(e) le {session_date}.",
-                    related_entity_type="attendance_record",
-                    related_entity_id=record.id,
-                )
+        if not servant:
+            return
+        parents = await user_repo.get_parents_of(servant.id)
+        if not parents:
+            return
+        child_name = f"{servant.first_name or ''} {servant.last_name or ''}".strip() or "votre enfant"
+        session_date = record.created_at.strftime("%d/%m/%Y") if record.created_at else "—"
+        notif_svc = NotificationService(session, ws_manager=ws_manager)
+        for parent in parents:
+            await notif_svc.send_notification(
+                recipient_id=parent.id,
+                notification_type=NotificationType.ABSENCE_PARENT,
+                channel=NotificationChannel.IN_APP,
+                priority=NotificationPriority.HIGH,
+                title="Absence de votre enfant",
+                body=f"{child_name} a été marqué(e) absent(e) le {session_date}.",
+                related_entity_type="attendance_record",
+                related_entity_id=record.id,
+            )
     except Exception as exc:
         logger.error("Erreur notification absence servant | error=%s", str(exc))
 
