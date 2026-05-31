@@ -4,12 +4,13 @@ Permet à un PARENT de consulter le profil et l'activité de son enfant servant.
 """
 
 import logging
+import uuid as _uuid
 from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlmodel import select
 
 from src.core.entities.user import User
@@ -179,3 +180,67 @@ async def get_my_child(
         pending_contributions=pending_contributions,
         open_discipline_cases=open_discipline_cases,
     )
+
+
+# ── Création du profil enfant ─────────────────────────────────────────────────
+
+
+class ChildCreate(BaseModel):
+    """Données pour créer le profil servant d'un enfant < 13 ans."""
+
+    first_name: str
+    last_name: str
+    birth_date: datetime
+    phone_number: Optional[str] = None
+    password: str = Field(..., min_length=8)
+
+
+@router.post(
+    "/children",
+    status_code=status.HTTP_201_CREATED,
+    summary="Créer le profil servant de son enfant",
+    description=(
+        "Permet à un PARENT de créer le compte servant de son enfant (typiquement < 13 ans). "
+        "L'email est auto-généré. Le lien parent est fixé automatiquement."
+    ),
+)
+async def create_child_profile(
+    data: ChildCreate,
+    session: Annotated[object, Depends(get_db_session)],
+    current_parent: Annotated[User, Depends(get_current_parent_user)],
+):
+    from src.application.services.auth_service import AuthService
+    from src.core.entities.user import UserRole
+    from src.presentation.schemas.auth import UserCreate
+
+    phone_key = (data.phone_number or "").lstrip("+").replace(" ", "")
+    suffix = str(_uuid.uuid4())[:8]
+    generated_email = f"{phone_key or suffix}@bmra.servant.local"
+
+    user_create = UserCreate(
+        email=generated_email,
+        password=data.password,
+        first_name=data.first_name,
+        last_name=data.last_name,
+        role=UserRole.SERVANT,
+        phone_number=data.phone_number,
+        birth_date=data.birth_date,
+        parent_id=current_parent.id,
+    )
+
+    auth_service = AuthService(UserRepository(session))
+    child = await auth_service.register_user(
+        user_create,
+        invitation_code=None,
+        admin_id=None,
+        skip_age_check=True,
+    )
+    return {
+        "id": str(child.id),
+        "first_name": child.first_name,
+        "last_name": child.last_name,
+        "email": child.email,
+        "phone_number": child.phone_number,
+        "parent_id": str(child.parent_id),
+        "is_active": child.is_active,
+    }

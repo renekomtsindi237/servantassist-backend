@@ -88,16 +88,26 @@ class AuthService:
         user_create: UserCreate,
         invitation_code: Optional[str] = None,
         admin_id: Optional[UUID] = None,
+        skip_age_check: bool = False,
     ) -> User:
         """
         Register a new user with role-based validation
 
         Rules:
-        - SERVANT: Self-registration allowed (no invitation needed)
+        - SERVANT ≥ 13 ans: Self-registration with phone (email auto-generated if absent)
+        - SERVANT < 13 ans: Created by parent via POST /parent/children (skip_age_check=True)
         - PARENT: Requires valid invitation code
         - AUMÔNIER: Only admin can create (not self-register)
         - ADMIN: Only admin can create
         """
+        # Auto-générer un email technique si absent (SERVANT/PARENT sans email)
+        if not user_create.email:
+            import uuid as _uuid
+            phone_key = (getattr(user_create, "phone_number", "") or "").lstrip("+").replace(" ", "")
+            suffix = str(_uuid.uuid4())[:8]
+            generated = f"{phone_key or suffix}@bmra.servant.local"
+            user_create = user_create.model_copy(update={"email": generated})
+
         existing_user = await self.user_repository.get_by_email(user_create.email)
         if existing_user:
             raise HTTPException(
@@ -114,18 +124,18 @@ class AuthService:
                     detail="Phone number already registered",
                 )
 
-        # Validation âge < 14 ans : parent_id obligatoire
-        if getattr(user_create, "birth_date", None):
+        # Validation âge < 13 ans : doit être créé par le parent
+        if not skip_age_check and getattr(user_create, "birth_date", None):
             birth = user_create.birth_date
             if hasattr(birth, "date"):
                 birth = birth.date()
             from datetime import date as _date
 
             age = (_date.today() - birth).days // 365
-            if age < 14 and not getattr(user_create, "parent_id", None):
+            if age < 13 and not getattr(user_create, "parent_id", None):
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="Les servants de moins de 14 ans doivent être liés à un compte parent (parent_id requis).",
+                    detail="Les servants de moins de 13 ans doivent être inscrits par leur parent depuis son tableau de bord.",
                 )
 
         # Role-based registration validation

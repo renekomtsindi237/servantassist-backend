@@ -159,6 +159,12 @@ class Settings(BaseSettings):
     # Mettre à False en développement pour contourner le chiffrement de charge utile.
     PAYLOAD_ENCRYPTION_ENABLED: bool = True
 
+    # ── Google Analytics Data API (service account) ────────────────────────
+    # JSON du compte de service Google Cloud (sur une seule ligne, échappé).
+    # Laisser vide pour désactiver l'intégration GA4.
+    GOOGLE_SA_JSON: str = ""
+    GA4_PROPERTY_ID: str = "539579421"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

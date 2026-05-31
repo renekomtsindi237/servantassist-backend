@@ -32,7 +32,7 @@ class UserPhoneLogin(BaseModel):
 
 
 class UserCreate(BaseModel):
-    email: EmailStr
+    email: Optional[EmailStr] = None  # Auto-généré si absent (SERVANT sans email)
     password: str = Field(
         ...,
         min_length=8,
@@ -76,7 +76,7 @@ class UserCreate(BaseModel):
 class UserCreateWithInvite(BaseModel):
     """Extended schema for registration with invitation code support"""
 
-    email: EmailStr
+    email: Optional[EmailStr] = None  # Auto-généré si absent (SERVANT sans email)
     password: str = Field(
         ...,
         min_length=8,
@@ -87,6 +87,8 @@ class UserCreateWithInvite(BaseModel):
     phone_number: Optional[str] = None
     role: UserRole = UserRole.SERVANT
     invitation_code: Optional[str] = Field(default=None, description="Required for PARENT role")
+    parent_id: Optional[UUID] = None  # Lien optionnel vers un compte parent
+    birth_date: Optional[datetime] = None
 
     @field_validator("password")
     @classmethod
