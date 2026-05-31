@@ -42,8 +42,10 @@ async def audit_user_registered(event: UserRegistered) -> None:
 
 @event_bus.handler(UserRegistered)
 async def notify_user_registered(event: UserRegistered) -> None:
-    """Envoie l'email de bienvenue après inscription publique."""
+    """Envoie l'email de bienvenue — ADMIN et AUMÔNIER uniquement (PARENT/SERVANT n'utilisent pas l'email)."""
     if not event.email or event.created_by_admin:
+        return
+    if event.role not in ("ADMIN", "AUMÔNIER"):
         return
     try:
         await EmailService().send_welcome_email(

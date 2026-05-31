@@ -21,7 +21,7 @@ import logging
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 logger = logging.getLogger(__name__)
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,6 +37,8 @@ from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.discipline_repository import (
     DisciplineCaseRepository,
 )
+from src.application.services.notification_service import NotificationService
+from src.core.entities.notification import NotificationChannel, NotificationPriority, NotificationType
 from src.infrastructure.repositories.responsable_repository import NominationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
@@ -79,6 +81,7 @@ def _get_service(session: AsyncSession) -> DisciplineService:
     status_code=status.HTTP_201_CREATED,
 )
 async def open_discipline_case(
+    request: Request,
     data: DisciplineCaseCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(require_censeur)],
@@ -94,27 +97,30 @@ async def open_discipline_case(
     """
     service = _get_service(session)
     case = await service.open_case(data, reported_by=current_user.id)
-    # Notifier le parent via WhatsApp (fire-and-forget)
-    asyncio.create_task(_notify_parent_discipline(data.accused_user_id, data.offense_category, session))
+    ws_manager = getattr(request.app.state, "ws_manager", None)
+    asyncio.create_task(_notify_parent_discipline(data.accused_user_id, data.offense_category, session, ws_manager))
     return case
 
 
-async def _notify_parent_discipline(accused_id: UUID, offense_category, session) -> None:
-    """Notifie le parent d'un servant via WhatsApp qu'un dossier disciplinaire a été ouvert."""
+async def _notify_parent_discipline(accused_id: UUID, offense_category, session, ws_manager=None) -> None:
+    """Crée une notification in-app pour le parent d'un servant sanctionné."""
     try:
         user_repo = UserRepository(session)
         servant = await user_repo.get(accused_id)
         if servant and servant.parent_id:
             parent = await user_repo.get(servant.parent_id)
-            if parent and parent.phone_number:
-                from src.infrastructure.services.whatsapp_service import WhatsAppService
-
+            if parent:
                 child_name = f"{servant.first_name or ''} {servant.last_name or ''}".strip() or "votre enfant"
                 category_label = offense_category.value if hasattr(offense_category, "value") else str(offense_category)
-                await WhatsAppService().send_child_discipline_alert(
-                    phone_number=parent.phone_number,
-                    child_name=child_name,
-                    offense_category=category_label,
+                notif_svc = NotificationService(session, ws_manager=ws_manager)
+                await notif_svc.send_notification(
+                    recipient_id=parent.id,
+                    notification_type=NotificationType.DISCIPLINE,
+                    channel=NotificationChannel.IN_APP,
+                    priority=NotificationPriority.URGENT,
+                    title="Dossier disciplinaire ouvert",
+                    body=f"Un dossier disciplinaire a été ouvert pour {child_name} (motif : {category_label}).",
+                    related_entity_type="discipline_case",
                 )
     except Exception as exc:
         logger.error("Erreur notification discipline parent | error=%s", str(exc))

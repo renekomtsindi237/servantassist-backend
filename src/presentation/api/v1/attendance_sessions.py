@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 
 from src.application.services.attendance_session_service import AttendanceSessionService
 from src.core.entities.user import User
@@ -17,7 +17,8 @@ from src.infrastructure.repositories.attendance_session_repository import (
     AttendanceSessionRepository,
 )
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.infrastructure.services.email_service import EmailService
+from src.application.services.notification_service import NotificationService
+from src.core.entities.notification import NotificationChannel, NotificationPriority, NotificationType
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_user,
@@ -169,6 +170,7 @@ async def mark_attendance(
     description="Modifie un enregistrement de présence (CENSEUR uniquement)",
 )
 async def update_attendance(
+    request: Request,
     record_id: UUID,
     data: AttendanceRecordUpdate,
     current_user: User = Depends(require_censeur),
@@ -178,40 +180,31 @@ async def update_attendance(
     """Met à jour un enregistrement de présence."""
     record = await service.update_attendance(record_id, data)
     if data.status and data.status.value == "ABSENT":
-        asyncio.create_task(_notify_servant_absent(record, session))
+        ws_manager = getattr(request.app.state, "ws_manager", None)
+        asyncio.create_task(_notify_servant_absent(record, session, ws_manager))
     return record
 
 
-async def _notify_servant_absent(record: AttendanceRecordResponse, session) -> None:
-    """Notifie un servant et son parent (WhatsApp) qu'il a été marqué absent."""
+async def _notify_servant_absent(record: AttendanceRecordResponse, session, ws_manager=None) -> None:
+    """Crée une notification in-app pour le parent du servant marqué absent."""
     try:
         user_repo = UserRepository(session)
         servant = await user_repo.get(record.servant_id)
-        if servant and servant.email:
-            email_svc = EmailService()
-            await email_svc.send_general_notification(
-                to_email=servant.email,
-                user_first_name=servant.first_name or "Servant",
-                title="Absence enregistrée",
-                body=(
-                    "Votre absence a été enregistrée pour la session d'appel.<br><br>"
-                    "Si cette absence est erronée ou si vous souhaitez la justifier, "
-                    "veuillez contacter votre censeur."
-                ),
-            )
-        # Notifier le parent via WhatsApp si le servant est lié à un parent
         if servant and servant.parent_id:
             parent = await user_repo.get(servant.parent_id)
-            if parent and parent.phone_number:
-                from src.infrastructure.services.whatsapp_service import WhatsAppService
-
+            if parent:
                 child_name = f"{servant.first_name or ''} {servant.last_name or ''}".strip() or "votre enfant"
                 session_date = record.created_at.strftime("%d/%m/%Y") if record.created_at else "—"
-                await WhatsAppService().send_child_absent_alert(
-                    phone_number=parent.phone_number,
-                    child_name=child_name,
-                    session_date=session_date,
-                    session_type="Appel hebdomadaire",
+                notif_svc = NotificationService(session, ws_manager=ws_manager)
+                await notif_svc.send_notification(
+                    recipient_id=parent.id,
+                    notification_type=NotificationType.ABSENCE_PARENT,
+                    channel=NotificationChannel.IN_APP,
+                    priority=NotificationPriority.HIGH,
+                    title="Absence de votre enfant",
+                    body=f"{child_name} a été marqué(e) absent(e) le {session_date}.",
+                    related_entity_type="attendance_record",
+                    related_entity_id=record.id,
                 )
     except Exception as exc:
         logger.error("Erreur notification absence servant | error=%s", str(exc))
