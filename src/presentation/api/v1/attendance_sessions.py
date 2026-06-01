@@ -11,14 +11,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Request, status
 
 from src.application.services.attendance_session_service import AttendanceSessionService
+from src.application.services.notification_service import NotificationService
+from src.core.entities.notification import NotificationChannel, NotificationPriority, NotificationType
 from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.attendance_session_repository import (
     AttendanceSessionRepository,
 )
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.application.services.notification_service import NotificationService
-from src.core.entities.notification import NotificationChannel, NotificationPriority, NotificationType
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_user,

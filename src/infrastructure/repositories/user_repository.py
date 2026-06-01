@@ -12,12 +12,12 @@ import math
 from typing import List, Optional, Tuple
 from uuid import UUID
 
+from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import set_committed_value
 from sqlmodel import select
 
-from fastapi import HTTPException, status
 from src.core.entities.servant_parent import ServantParent
 from src.core.entities.user import User, UserRole
 from src.core.interfaces.repository import IRepository
