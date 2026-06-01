@@ -62,40 +62,68 @@ def _base_layout(content: str, preview_text: str = "") -> str:
       <td align="center" style="padding:32px 16px;">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-          <!-- En-tête avec logo -->
+          <!-- En-tête : logo centré + branding -->
           <tr>
-            <td align="center" style="padding:0 0 24px 0;">
-              <table role="presentation" cellpadding="0" cellspacing="0">
+            <td align="center" style="padding:0 0 28px 0;">
+              <img src="{logo}"
+                   alt="ServantAssist — BMRA Mvolyé"
+                   width="80" height="80"
+                   style="display:block;border-radius:50%;border:3px solid {_ACCENT};width:80px;height:80px;object-fit:cover;margin:0 auto 12px auto;box-shadow:0 4px 12px rgba(26,74,122,0.18);">
+              <div style="margin-top:4px;">
+                <span style="font-size:24px;font-weight:700;color:{_PRIMARY};letter-spacing:-0.3px;">Servant</span><span style="font-size:24px;font-weight:300;color:{_TEXT_LIGHT};">Assist</span>
+              </div>
+              <div style="margin-top:2px;font-size:11px;color:{_ACCENT};font-weight:600;letter-spacing:1px;text-transform:uppercase;">
+                BMRA Mvolyé · Yaoundé
+              </div>
+            </td>
+          </tr>
+
+          <!-- Carte principale avec filigrane logo -->
+          <tr>
+            <td style="background-color:{_WHITE};border-radius:16px;border:1px solid {_BORDER};box-shadow:0 2px 8px rgba(0,0,0,0.07);position:relative;overflow:hidden;">
+              <!-- Filigrane centré dans la carte -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="vertical-align:middle;">
-                    <img src="{logo}"
-                         alt="ServantAssist"
-                         width="42" height="42"
-                         style="display:block;border-radius:10px;border:0;width:42px;height:42px;object-fit:cover;">
-                  </td>
-                  <td style="padding-left:12px;vertical-align:middle;">
-                    <span style="font-size:22px;font-weight:700;color:{_PRIMARY};letter-spacing:-0.3px;">Servant</span><span style="font-size:22px;font-weight:300;color:{_TEXT_LIGHT};">Assist</span>
+                  <td align="center" style="padding:0;position:relative;">
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;">
+                      <img src="{logo}"
+                           alt=""
+                           width="220" height="220"
+                           style="display:block;border-radius:50%;opacity:0.045;width:220px;height:220px;object-fit:cover;filter:grayscale(30%);">
+                    </div>
+                    <div style="position:relative;z-index:1;">
+                      {content}
+                    </div>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Carte principale -->
+          <!-- Séparateur décoratif -->
           <tr>
-            <td style="background-color:{_WHITE};border-radius:16px;border:1px solid {_BORDER};box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-              {content}
+            <td align="center" style="padding:16px 0 0 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="width:40px;height:1px;background-color:{_BORDER};"></td>
+                  <td style="width:8px;height:8px;background-color:{_ACCENT};border-radius:50%;margin:0 6px;"></td>
+                  <td style="width:40px;height:1px;background-color:{_BORDER};"></td>
+                </tr>
+              </table>
             </td>
           </tr>
 
           <!-- Pied de page -->
           <tr>
-            <td align="center" style="padding:24px 0 0 0;">
-              <p style="margin:0;font-size:13px;color:{_TEXT_LIGHT};line-height:1.6;">
+            <td align="center" style="padding:12px 0 0 0;">
+              <p style="margin:0;font-size:12px;color:{_TEXT_LIGHT};line-height:1.6;">
                 Cet email a été envoyé automatiquement par <strong style="color:{_PRIMARY};">ServantAssist</strong>.
               </p>
-              <p style="margin:8px 0 0 0;font-size:12px;color:{_TEXT_LIGHT};">
-                &copy; {year} ServantAssist &mdash; Gestion des servants d'autel &mdash; BMRA Mvolyé
+              <p style="margin:6px 0 0 0;font-size:11px;color:{_TEXT_LIGHT};">
+                &copy; {year} &mdash; Basilique Marie Reine des Apôtres &mdash; Mvolyé, Yaoundé &mdash; Cameroun
+              </p>
+              <p style="margin:4px 0 0 0;font-size:11px;color:{_ACCENT};font-style:italic;">
+                Aimer · Unir · Servir
               </p>
             </td>
           </tr>

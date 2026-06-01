@@ -18,7 +18,7 @@ Administration (admin requis) :
     DELETE /{user_id}           Supprimer un utilisateur
 """
 
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
@@ -64,11 +64,13 @@ async def get_my_profile(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     """Recuperer mon profil."""
+    user_repo = UserRepository(session)
     response = UserProfileResponse.model_validate(current_user)
     if current_user.role == UserRole.SERVANT:
         nominations = await NominationRepository(session).get_active_by_user(current_user.id)
         if nominations:
             response.active_poste = nominations[0].poste.value
+        response.parent_ids = [p.id for p in await user_repo.get_parents_of(current_user.id)]
     return response
 
 
@@ -171,6 +173,57 @@ async def delete_my_photo(
     await user_repo.update(current_user.id, current_user)
 
 
+@router.post("/me/accept-terms", response_model=UserProfileResponse, status_code=200)
+async def accept_terms(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    """Enregistre l'acceptation des CGU (traçabilité Loi 2024/017)."""
+    from src.core.utils import utc_now as _utc_now
+    user_repo = UserRepository(session)
+    current_user.terms_accepted_at = _utc_now()
+    current_user.updated_at = _utc_now()
+    updated = await user_repo.update(current_user.id, current_user)
+    return UserProfileResponse.model_validate(updated)
+
+
+class SelfLinkParentRequest(BaseModel):
+    parent_phone: str
+
+
+@router.post("/me/link-parent", response_model=UserProfileResponse)
+async def self_link_parent(
+    data: SelfLinkParentRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    """Lier le servant connecté à un parent via son numéro de téléphone."""
+    if current_user.role != UserRole.SERVANT:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Réservé aux servants.")
+    user_repo = UserRepository(session)
+    parent = await user_repo.get_by_phone(data.parent_phone.strip())
+    if not parent or parent.role != UserRole.PARENT:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aucun compte parent trouvé avec ce numéro.")
+    await user_repo.add_parent_link(current_user.id, parent.id)
+    updated = await user_repo.get(current_user.id)
+    response = UserProfileResponse.model_validate(updated)
+    response.parent_ids = [p.id for p in await user_repo.get_parents_of(current_user.id)]
+    return response
+
+
+@router.delete("/me/link-parent/{parent_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def self_unlink_parent(
+    parent_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    """Délier le servant connecté d'un parent."""
+    if current_user.role != UserRole.SERVANT:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Réservé aux servants.")
+    user_repo = UserRepository(session)
+    await user_repo.remove_parent_link(current_user.id, parent_id)
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  RÉPERTOIRE — accessible à tout utilisateur authentifié
 # ══════════════════════════════════════════════════════════════════════════
@@ -243,7 +296,24 @@ async def get_user(
 ):
     """Detail d'un utilisateur. Admin uniquement."""
     service = _get_user_service(session)
-    return await service.get_user(user_id)
+    user = await service.get_user(user_id)
+    user_repo = UserRepository(session)
+    response = UserProfileResponse.model_validate(user)
+    if user.role == UserRole.SERVANT:
+        response.parent_ids = [p.id for p in await user_repo.get_parents_of(user_id)]
+    return response
+
+
+@router.get("/{user_id}/children", response_model=list[UserProfileResponse])
+async def get_user_children(
+    user_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_admin_user)],
+):
+    """Servants liés à un parent. Admin uniquement."""
+    user_repo = UserRepository(session)
+    children = await user_repo.get_children_of(user_id)
+    return [UserProfileResponse.model_validate(c) for c in children]
 
 
 class LinkParentRequest(BaseModel):

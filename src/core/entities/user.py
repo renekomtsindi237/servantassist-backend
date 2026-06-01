@@ -65,3 +65,6 @@ class User(UserBase, table=True):
     # Valeur = HMAC-SHA256(normalize(plaintext)) — opaque pour l'hébergeur.
     email_hmac: Optional[str] = Field(default=None, index=True)
     phone_hmac: Optional[str] = Field(default=None, index=True)
+
+    # Acceptation des Conditions Générales d'Utilisation (tracé pour conformité)
+    terms_accepted_at: Optional[datetime] = Field(default=None)

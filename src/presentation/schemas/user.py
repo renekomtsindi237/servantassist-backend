@@ -41,6 +41,7 @@ class UserProfileResponse(BaseModel):
     birth_date: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    terms_accepted_at: Optional[datetime] = None
     links: Optional[Dict[str, ResourceLink]] = Field(
         default=None,
         description="Liens vers les ressources liées (HATEOAS léger)",

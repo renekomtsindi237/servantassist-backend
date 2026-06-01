@@ -161,3 +161,16 @@ class VerifyResetCodeResponse(BaseModel):
     """Token JWT à utiliser pour POST /auth/reset-password."""
 
     reset_token: str
+
+
+class RequestResetCodePhoneRequest(BaseModel):
+    """Demande d'envoi d'un code OTP par téléphone (SERVANT/PARENT)."""
+
+    phone_number: str
+
+
+class VerifyResetCodePhoneRequest(BaseModel):
+    """Vérification du code OTP reçu via téléphone."""
+
+    phone_number: str
+    code: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")

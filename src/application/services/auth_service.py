@@ -377,6 +377,53 @@ class AuthService:
 
         return SecurityUtils.create_reset_token(user.email)
 
+    async def request_reset_code_phone(self, phone_number: str, code_repository) -> None:
+        """Génère un code OTP pour réinitialisation via numéro de téléphone (SERVANT/PARENT)."""
+        import random
+        from datetime import timedelta
+
+        from src.core.entities.password_reset_code import PasswordResetCode
+
+        user = await self.user_repository.get_by_phone(phone_number)
+        if not user or not user.is_active:
+            return  # Silencieux pour prévenir l'énumération
+
+        email_key = user.email  # L'email auto-généré sert de clé interne
+        await code_repository.delete_for_email(email_key)
+        await code_repository.delete_expired()
+
+        code = f"{random.randint(0, 999999):06d}"
+        expires_at = utc_now() + timedelta(minutes=15)
+        entry = PasswordResetCode(email=email_key, code=code, expires_at=expires_at)
+        await code_repository.create(entry)
+
+        # TODO: remplacer par SMS Orange/MTN quand l'API est disponible
+        logger.info(
+            "OTP reset par téléphone | user=%s phone=%s code=%s",
+            user.id,
+            phone_number,
+            code,
+        )
+
+    async def verify_reset_code_phone(self, phone_number: str, code: str, code_repository) -> str:
+        """Vérifie le code OTP (flow téléphone) et retourne un reset_token JWT."""
+        user = await self.user_repository.get_by_phone(phone_number)
+        if not user or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Compte introuvable ou inactif.",
+            )
+
+        entry = await code_repository.get_valid(user.email, code)
+        if not entry:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Code invalide ou expiré.",
+            )
+
+        await code_repository.mark_used(entry.id)
+        return SecurityUtils.create_reset_token(user.email)
+
     async def forgot_password(self, email: str, email_service) -> None:
         user = await self.user_repository.get_by_email(email)
         if not user or not user.is_active:

@@ -24,6 +24,7 @@ from src.presentation.dependencies.auth_deps import get_current_active_user
 from src.presentation.schemas.auth import (
     ForgotPasswordRequest,
     RefreshTokenRequest,
+    RequestResetCodePhoneRequest,
     RequestResetCodeRequest,
     ResetPasswordRequest,
     Token,
@@ -32,6 +33,7 @@ from src.presentation.schemas.auth import (
     UserLogin,
     UserPhoneLogin,
     UserResponse,
+    VerifyResetCodePhoneRequest,
     VerifyResetCodeRequest,
     VerifyResetCodeResponse,
 )
@@ -300,6 +302,46 @@ async def reset_password(
 
     await auth_service.reset_password(request.token, request.new_password, email_service)
     return {"message": "Votre mot de passe a été réinitialisé avec succès."}
+
+
+@router.post("/request-reset-code/phone", status_code=status.HTTP_200_OK)
+async def request_reset_code_phone(
+    request: RequestResetCodePhoneRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+):
+    """
+    Demande de code OTP pour SERVANT/PARENT qui utilisent un numéro de téléphone.
+    Le code est journalisé côté serveur — un responsable le communique à l'utilisateur.
+    Retourne toujours 200 OK pour prévenir l'énumération.
+    """
+    from src.infrastructure.repositories.password_reset_code_repository import (
+        PasswordResetCodeRepository,
+    )
+
+    user_repo = UserRepository(session)
+    code_repo = PasswordResetCodeRepository(session)
+    auth_service = AuthService(user_repo)
+
+    await auth_service.request_reset_code_phone(request.phone_number, code_repo)
+    return {"message": "Si ce numéro est enregistré, un code a été généré."}
+
+
+@router.post("/verify-reset-code/phone", response_model=VerifyResetCodeResponse)
+async def verify_reset_code_phone(
+    request: VerifyResetCodePhoneRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+):
+    """Vérifie le code OTP (flow téléphone) et retourne un reset_token JWT."""
+    from src.infrastructure.repositories.password_reset_code_repository import (
+        PasswordResetCodeRepository,
+    )
+
+    user_repo = UserRepository(session)
+    code_repo = PasswordResetCodeRepository(session)
+    auth_service = AuthService(user_repo)
+
+    reset_token = await auth_service.verify_reset_code_phone(request.phone_number, request.code, code_repo)
+    return VerifyResetCodeResponse(reset_token=reset_token)
 
 
 @router.get(
