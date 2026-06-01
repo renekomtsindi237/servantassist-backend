@@ -136,7 +136,10 @@ class AuthService:
             if age < 13 and not getattr(user_create, "parent_id", None):
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="Les servants de moins de 13 ans doivent être inscrits par leur parent depuis son tableau de bord.",
+                    detail=(
+                        "Les servants de moins de 13 ans doivent être inscrits"
+                        " par leur parent depuis son tableau de bord."
+                    ),
                 )
 
         # Role-based registration validation
