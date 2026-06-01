@@ -189,9 +189,7 @@ class UserService:
         user.updated_at = utc_now()
         return await self.user_repository.update(user.id, user)
 
-    async def link_parent(
-        self, servant_id: UUID, parent_id: Optional[UUID], unlink: bool = False
-    ) -> User:
+    async def link_parent(self, servant_id: UUID, parent_id: Optional[UUID], unlink: bool = False) -> User:
         """Lie ou délie un servant à un parent (via junction table servant_parents)."""
         servant = await self.get_user(servant_id)
         if servant.role != UserRole.SERVANT:

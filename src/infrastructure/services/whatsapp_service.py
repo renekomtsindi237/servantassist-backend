@@ -126,9 +126,7 @@ class WhatsAppService:
             logger.error(f"Failed to send child absent alert to {phone_number}: {e}")
             return False
 
-    async def send_child_discipline_alert(
-        self, phone_number: str, child_name: str, offense_category: str
-    ) -> bool:
+    async def send_child_discipline_alert(self, phone_number: str, child_name: str, offense_category: str) -> bool:
         """Notifie un parent qu'un signalement disciplinaire a été ouvert pour son enfant."""
         if not self.enabled or not self.client:
             logger.warning(f"WhatsApp not configured, skipping discipline alert to {phone_number}")

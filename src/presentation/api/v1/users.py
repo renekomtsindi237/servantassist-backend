@@ -180,6 +180,7 @@ async def accept_terms(
 ):
     """Enregistre l'acceptation des CGU (traçabilité Loi 2024/017)."""
     from src.core.utils import utc_now as _utc_now
+
     user_repo = UserRepository(session)
     current_user.terms_accepted_at = _utc_now()
     current_user.updated_at = _utc_now()

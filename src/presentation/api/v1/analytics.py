@@ -22,7 +22,7 @@ router = APIRouter()
 
 _REDIS_KEY_RT = "analytics:ga4:realtime"
 _REDIS_KEY_SUM = "analytics:ga4:summary"
-_TTL_RT = 60   # 1 minute
+_TTL_RT = 60  # 1 minute
 _TTL_SUM = 300  # 5 minutes
 
 
@@ -30,6 +30,7 @@ async def _redis():
     """Tente de récupérer le client Redis applicatif (optionnel)."""
     try:
         from src.infrastructure.security.brute_force import brute_force_guard
+
         return brute_force_guard._redis  # même instance Redis
     except Exception:
         return None

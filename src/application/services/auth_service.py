@@ -103,6 +103,7 @@ class AuthService:
         # Auto-générer un email technique si absent (SERVANT/PARENT sans email)
         if not user_create.email:
             import uuid as _uuid
+
             phone_key = (getattr(user_create, "phone_number", "") or "").lstrip("+").replace(" ", "")
             suffix = str(_uuid.uuid4())[:8]
             generated = f"{phone_key or suffix}@bmra.servant.local"
