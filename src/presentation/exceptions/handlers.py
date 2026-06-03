@@ -100,6 +100,14 @@ _FIELD_LABELS: dict[str, str] = {
 }
 
 
+_PASSWORD_HINTS: dict[str, str] = {
+    "uppercase": "Le mot de passe doit contenir au moins une lettre majuscule.",
+    "lowercase": "Le mot de passe doit contenir au moins une lettre minuscule.",
+    "digit": "Le mot de passe doit contenir au moins un chiffre.",
+    "8 char": "Le mot de passe doit comporter au moins 8 caractères.",
+}
+
+
 def _translate_pydantic(err: dict) -> str:
     err_type = err.get("type", "")
     raw_msg = err.get("msg", "")
@@ -108,9 +116,15 @@ def _translate_pydantic(err: dict) -> str:
     if err_type in _PYDANTIC_MSG:
         return _PYDANTIC_MSG[err_type]
 
-    # Fallback : correspondance partielle
+    # Cas spécial : erreurs de complexité du mot de passe
+    raw_lower = raw_msg.lower()
+    for keyword, french in _PASSWORD_HINTS.items():
+        if keyword in raw_lower:
+            return french
+
+    # Fallback : correspondance partielle sur le type
     for key, msg in _PYDANTIC_MSG.items():
-        if key in err_type or key in raw_msg.lower():
+        if key in err_type or key in raw_lower:
             return msg
 
     # Dernier recours : message original propre
