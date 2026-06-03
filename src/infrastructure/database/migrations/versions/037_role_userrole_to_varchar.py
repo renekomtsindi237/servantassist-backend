@@ -23,11 +23,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Convert role column from userrole enum → VARCHAR(20)
-    # USING role::text casts existing enum values to their string representation
+    # Step 1: drop server_default that references the userrole type
+    op.execute("ALTER TABLE users ALTER COLUMN role DROP DEFAULT")
+    # Step 2: convert column type (USING casts existing enum values to text)
     op.execute("ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(20) USING role::text")
-    # Drop the now-unused PostgreSQL enum type
-    op.execute("DROP TYPE IF EXISTS userrole")
+    # Step 3: restore plain VARCHAR server_default
+    op.execute("ALTER TABLE users ALTER COLUMN role SET DEFAULT 'SERVANT'")
+    # Step 4: drop the now-unused enum type (CASCADE drops any remaining deps)
+    op.execute("DROP TYPE IF EXISTS userrole CASCADE")
 
 
 def downgrade() -> None:
