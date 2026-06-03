@@ -67,10 +67,9 @@ def test_logging_middleware_4xx():
 # ─── OWASPGuard middleware ────────────────────────────────────────────────────
 
 
-def _make_owasp_app() -> FastAPI:
-    import os
-
-    os.environ["ALLOWED_HOSTS"] = "testserver,localhost,127.0.0.1"
+@pytest.fixture()
+def owasp_app(monkeypatch):
+    monkeypatch.setenv("ALLOWED_HOSTS", '["testserver","localhost","127.0.0.1"]')
     from src.presentation.middleware.owasp_guard import OWASPGuardMiddleware
 
     app = FastAPI()
@@ -87,31 +86,26 @@ def _make_owasp_app() -> FastAPI:
     return app
 
 
-def test_owasp_safe_request():
-    app = _make_owasp_app()
-    client = TestClient(app, raise_server_exceptions=False)
+def test_owasp_safe_request(owasp_app):
+    client = TestClient(owasp_app, raise_server_exceptions=False)
     r = client.get("/safe")
-    # OWASP guard may block requests from unknown hosts in test env
     assert r.status_code in (200, 400)
 
 
-def test_owasp_blocks_sql_injection_in_path():
-    app = _make_owasp_app()
-    client = TestClient(app, raise_server_exceptions=False)
+def test_owasp_blocks_sql_injection_in_path(owasp_app):
+    client = TestClient(owasp_app, raise_server_exceptions=False)
     r = client.get("/items/1 UNION SELECT * FROM users")
-    assert r.status_code in (400, 403, 422, 200)  # Either blocked or passes to router
+    assert r.status_code in (400, 403, 422, 200)
 
 
-def test_owasp_blocks_ssti_in_query():
-    app = _make_owasp_app()
-    client = TestClient(app, raise_server_exceptions=False)
+def test_owasp_blocks_ssti_in_query(owasp_app):
+    client = TestClient(owasp_app, raise_server_exceptions=False)
     r = client.get("/safe?q={{7*7}}")
     assert r.status_code in (400, 403, 200)
 
 
-def test_owasp_normal_query_string():
-    app = _make_owasp_app()
-    client = TestClient(app, raise_server_exceptions=False)
+def test_owasp_normal_query_string(owasp_app):
+    client = TestClient(owasp_app, raise_server_exceptions=False)
     r = client.get("/safe?name=jean&age=25")
     assert r.status_code in (200, 400)
 
