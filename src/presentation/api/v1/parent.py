@@ -223,12 +223,10 @@ async def create_child_profile(
     from src.core.entities.user import UserRole
     from src.presentation.schemas.auth import UserCreate
 
-    phone_key = (data.phone_number or "").lstrip("+").replace(" ", "")
-    suffix = str(_uuid.uuid4())[:8]
-    generated_email = f"{phone_key or suffix}@bmra.servant.local"
-
-    user_create = UserCreate(
-        email=generated_email,
+    # Use model_construct to skip Pydantic validators (children may lack phone/email).
+    # auth_service.register_user() auto-generates email via model_copy (bypasses EmailStr).
+    user_create = UserCreate.model_construct(
+        email=None,
         password=data.password,
         first_name=data.first_name,
         last_name=data.last_name,

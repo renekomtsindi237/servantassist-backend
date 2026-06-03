@@ -54,6 +54,8 @@ class _InMemoryStore:
         if not entry:
             return None
         status_code, created_at, body, ct = entry
+        if status_code == 0:  # in-progress sentinel — not a completed response
+            return None
         if time.time() - created_at > _TTL_SECONDS:
             del self._store[key]
             return None

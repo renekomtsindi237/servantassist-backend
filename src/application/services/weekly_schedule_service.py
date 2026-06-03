@@ -436,14 +436,14 @@ class WeeklyScheduleService:
         if not slot_date:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Le jour {slot.day.value} n'existe pas dans la période du classement.",
+                detail=f"Le jour {getattr(slot.day, 'value', slot.day)} n'existe pas dans la période du classement.",
             )
 
         # Validation temporelle stricte : 1h avant → 1h après la messe
         if not is_within_mass_window(slot_date, slot.mass_time):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",  # noqa: E501
+                detail=f"L'ajout de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {getattr(slot.mass_time, 'value', slot.mass_time)} le {getattr(slot.day, 'value', slot.day)}.",  # noqa: E501
             )
 
         # Valider le servant si fourni
@@ -513,7 +513,7 @@ class WeeklyScheduleService:
                     if not is_within_mass_window(slot_date, slot.mass_time):
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {slot.mass_time} le {slot.day.value}.",  # noqa: E501
+                            detail=f"Le retrait de servants n'est autorisé que dans la fenêtre de 1h avant à 1h après la messe de {getattr(slot.mass_time, 'value', slot.mass_time)} le {getattr(slot.day, 'value', slot.day)}.",  # noqa: E501
                         )
 
         deleted = await self.schedule_repo.delete_assignment(assignment_id)

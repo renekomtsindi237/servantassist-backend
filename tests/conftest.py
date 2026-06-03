@@ -113,8 +113,10 @@ from src.presentation.api.v1 import (
     contributions,
     cotisations,
     discipline,
+    dossier,
     financial_entries,
     material,
+    parent,
     poste,
     reports,
     responsables,
@@ -172,6 +174,8 @@ def create_test_app() -> FastAPI:
         tags=["Weekly Schedule"],
     )
     test_app.include_router(communication.router, prefix="/api/v1/communication", tags=["Communication"])
+    test_app.include_router(parent.router, prefix="/api/v1/parent", tags=["Parent"])
+    test_app.include_router(dossier.router, prefix="/api/v1/dossier", tags=["Dossier"])
     return test_app
 
 

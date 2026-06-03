@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column
+from sqlalchemy import Column, String as SAString
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
@@ -43,8 +43,14 @@ class UserBase(SQLModel):
     is_active: bool = Field(default=True)
     phone_number: Optional[str] = Field(default=None, index=True)  # Indexed for PARENT/SERVANT login
     profile_photo_url: Optional[str] = Field(default=None)  # URL de la photo de profil
-    birth_date: Optional[datetime] = Field(default=None)  # Pour les règles d'âge (Art 19, 26)
-    baptism_date: Optional[datetime] = Field(default=None)  # Art 19 : être chrétien baptisé
+    birth_date: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(SAString, nullable=True),
+    )  # Stored as encrypted string; decrypted back to datetime by UserRepository
+    baptism_date: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(SAString, nullable=True),
+    )  # Stored as encrypted string; decrypted back to datetime by UserRepository
     position: Optional[ServantPosition] = Field(
         default=None,
         sa_column=Column(SAEnum(ServantPosition, name="servantposition"), nullable=True),
