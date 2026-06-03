@@ -334,9 +334,22 @@ async def create_parent_direct(
     user_repo = UserRepository(session)
     auth_service = AuthService(user_repo, None)
 
-    created_user = await auth_service.register_user(user_data, invitation_code=None, admin_id=current_admin.id)
-
-    return created_user
+    try:
+        created_user = await auth_service.register_user(user_data, invitation_code=None, admin_id=current_admin.id)
+        return created_user
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(
+            "Failed to create PARENT user | admin_id=%s | email=%s | error=%s",
+            str(current_admin.id),
+            user_data.email,
+            str(e),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La création du compte Parent a échoué. Vérifiez les informations fournies.",
+        )
 
 
 @router.post("/users/servant", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
