@@ -148,10 +148,16 @@ class DatabaseSessionManager:
             await session.close()
 
 
-sessionmanager = DatabaseSessionManager(
-    get_db_url(for_migrations=False),
-    _build_engine_kwargs(),
-)
+try:
+    sessionmanager = DatabaseSessionManager(
+        get_db_url(for_migrations=False),
+        _build_engine_kwargs(),
+    )
+except RuntimeError:
+    # Migration context: only SUPABASE_DB_DIRECT_URL is set; SUPABASE_DB_POOLER_URL
+    # is absent. Alembic env.py imports get_db_url() from this module but never
+    # uses sessionmanager, so deferring creation here is safe.
+    sessionmanager = None  # type: ignore[assignment]
 
 
 async def get_db_session():

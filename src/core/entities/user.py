@@ -4,7 +4,6 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy import Column
-from sqlalchemy import Enum as SAEnum
 from sqlalchemy import String as SAString
 from sqlalchemy import types
 from sqlmodel import Field, SQLModel
@@ -59,6 +58,31 @@ class ServantPosition(str, Enum):
     SERVANT_AUTEL = "SERVANT_AUTEL"
 
 
+class _ServantPositionType(types.TypeDecorator):
+    """VARCHAR(64) column that transparently converts to/from ServantPosition enum.
+
+    Same pattern as _UserRoleType: asyncpg cannot implicitly cast text OID to the
+    PostgreSQL servantposition enum OID, causing DatatypeMismatchError on INSERT.
+    Storing as VARCHAR avoids the mismatch while this decorator surfaces ServantPosition.
+    """
+
+    impl = SAString(64)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if isinstance(value, ServantPosition):
+            return value.value
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            try:
+                return ServantPosition(value)
+            except ValueError:
+                return value
+        return value
+
+
 class UserBase(SQLModel):
     email: str = Field(unique=True, index=True)
     first_name: str
@@ -80,7 +104,7 @@ class UserBase(SQLModel):
     )  # Stored as encrypted string; decrypted back to datetime by UserRepository
     position: Optional[ServantPosition] = Field(
         default=None,
-        sa_column=Column(SAEnum(ServantPosition, name="servantposition"), nullable=True),
+        sa_column=Column(_ServantPositionType(), nullable=True),
     )  # Poste organisationnel (servants uniquement)
 
 
