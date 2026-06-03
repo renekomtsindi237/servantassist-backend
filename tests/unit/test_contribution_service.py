@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests unitaires pour le service de contributions (ECONOME).
 """
 
@@ -80,7 +80,7 @@ def sample_contribution(sample_servant, sample_econome):
 
 
 class TestRecordPayment:
-    """Tests de la méthode record_payment."""
+    """Tests de la mÃ©thode record_payment."""
 
     @pytest.mark.asyncio
     async def test_record_monthly_payment_success(
@@ -92,7 +92,7 @@ class TestRecordPayment:
         sample_econome,
         sample_contribution,
     ):
-        """Test : Enregistrer un paiement mensuel avec succès."""
+        """Test : Enregistrer un paiement mensuel avec succÃ¨s."""
         # Arrange
         mock_user_repo.get.return_value = sample_servant
         mock_contribution_repo.create.return_value = sample_contribution
@@ -128,7 +128,7 @@ class TestRecordPayment:
         sample_servant,
         sample_econome,
     ):
-        """Test : Enregistrer un paiement hebdomadaire avec succès."""
+        """Test : Enregistrer un paiement hebdomadaire avec succÃ¨s."""
         # Arrange
         mock_user_repo.get.return_value = sample_servant
         weekly_contribution = Contribution(
@@ -232,7 +232,7 @@ class TestRecordPayment:
 
 
 class TestGetContribution:
-    """Tests de la méthode get_contribution."""
+    """Tests de la mÃ©thode get_contribution."""
 
     @pytest.mark.asyncio
     async def test_get_contribution_success(
@@ -241,7 +241,7 @@ class TestGetContribution:
         mock_contribution_repo,
         sample_contribution,
     ):
-        """Test : Récupérer une contribution avec succès."""
+        """Test : RÃ©cupÃ©rer une contribution avec succÃ¨s."""
         # Arrange
         mock_contribution_repo.get.return_value = sample_contribution
         mock_contribution_repo.enrich_contribution.return_value = {
@@ -276,7 +276,7 @@ class TestGetContribution:
 
 
 class TestUpdatePayment:
-    """Tests de la méthode update_payment."""
+    """Tests de la mÃ©thode update_payment."""
 
     @pytest.mark.asyncio
     async def test_update_payment_success(
@@ -285,11 +285,11 @@ class TestUpdatePayment:
         mock_contribution_repo,
         sample_contribution,
     ):
-        """Test : Modifier une contribution avec succès."""
+        """Test : Modifier une contribution avec succÃ¨s."""
         # Arrange
         mock_contribution_repo.get.return_value = sample_contribution
         updated_contribution = sample_contribution.model_copy()
-        updated_contribution.notes = "Note modifiée"
+        updated_contribution.notes = "Note modifiÃ©e"
         mock_contribution_repo.update.return_value = updated_contribution
         mock_contribution_repo.enrich_contribution.return_value = {
             **updated_contribution.model_dump(),
@@ -297,13 +297,13 @@ class TestUpdatePayment:
             "recorded_by_name": "Marie Martin",
         }
 
-        data = ContributionUpdate(notes="Note modifiée")
+        data = ContributionUpdate(notes="Note modifiÃ©e")
 
         # Act
         result = await contribution_service.update_payment(sample_contribution.id, data)
 
         # Assert
-        assert result.notes == "Note modifiée"
+        assert result.notes == "Note modifiÃ©e"
 
     @pytest.mark.asyncio
     async def test_update_payment_not_found(
@@ -325,7 +325,7 @@ class TestUpdatePayment:
 
 
 class TestDeletePayment:
-    """Tests de la méthode delete_payment."""
+    """Tests de la mÃ©thode delete_payment."""
 
     @pytest.mark.asyncio
     async def test_delete_payment_success(
@@ -334,7 +334,7 @@ class TestDeletePayment:
         mock_contribution_repo,
         sample_contribution,
     ):
-        """Test : Supprimer une contribution avec succès."""
+        """Test : Supprimer une contribution avec succÃ¨s."""
         # Arrange
         mock_contribution_repo.get.return_value = sample_contribution
         mock_contribution_repo.delete.return_value = True
@@ -364,7 +364,7 @@ class TestDeletePayment:
 
 
 class TestGenerateFinancialReport:
-    """Tests de la méthode generate_financial_report."""
+    """Tests de la mÃ©thode generate_financial_report."""
 
     @pytest.mark.asyncio
     async def test_generate_report_success(
@@ -374,7 +374,7 @@ class TestGenerateFinancialReport:
         mock_user_repo,
         sample_econome,
     ):
-        """Test : Générer un rapport financier avec succès."""
+        """Test : GÃ©nÃ©rer un rapport financier avec succÃ¨s."""
         # Arrange
         mock_contribution_repo.calculate_period_stats.return_value = {
             "total_expected": 10000.0,
@@ -403,7 +403,7 @@ class TestGenerateFinancialReport:
 
 
 class TestGetServantStats:
-    """Tests de la méthode get_servant_stats."""
+    """Tests de la mÃ©thode get_servant_stats."""
 
     @pytest.mark.asyncio
     async def test_get_servant_stats_success(
@@ -451,3 +451,4 @@ class TestGetServantStats:
             )
 
         assert exc_info.value.status_code == 404
+

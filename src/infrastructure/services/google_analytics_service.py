@@ -138,9 +138,12 @@ async def get_today_summary(sa_json_raw: str, property_id: str) -> dict:
 
 
 def _parse_realtime(data: dict) -> dict:
-    totals = {m["name"]: m["value"] for m in data.get("totals", [{}])[0].get("metricValues", [])}
-    metrics_names = [h["name"] for h in data.get("metricHeaders", [])]
+    metric_names = [h["name"] for h in data.get("metricHeaders", [])]
+    totals_list = data.get("totals") or []
+    totals_values = totals_list[0].get("metricValues", []) if totals_list else []
+    totals = {metric_names[i]: v["value"] for i, v in enumerate(totals_values) if i < len(metric_names)}
     dim_names = [h["name"] for h in data.get("dimensionHeaders", [])]
+    metrics_names = metric_names
 
     pages = []
     for row in data.get("rows", []):

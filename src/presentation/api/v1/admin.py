@@ -325,14 +325,10 @@ async def create_parent_direct(
     current_admin: Annotated[User, Depends(get_current_admin_user)],
 ):
     """
-    Create a PARENT user directly (without invitation code)
+    Create a PARENT user directly (without invitation code).
 
-    Admin only. Allows admin to create PARENT accounts directly from their interface.
-    This is secure as it requires admin authentication and only creates PARENT role.
-
-    SECURITY: Only PARENT role can be created. ADMIN and AUMÔNIER are blocked.
+    Admin only. Only PARENT role is allowed here.
     """
-    # SECURITY: Force role to PARENT only
     user_data.role = UserRole.PARENT
 
     user_repo = UserRepository(session)
@@ -341,6 +337,43 @@ async def create_parent_direct(
     created_user = await auth_service.register_user(user_data, invitation_code=None, admin_id=current_admin.id)
 
     return created_user
+
+
+@router.post("/users/servant", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_servant_direct(
+    user_data: UserCreate,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_admin: Annotated[User, Depends(get_current_admin_user)],
+):
+    """
+    Create a SERVANT account directly (admin only).
+
+    The admin can create servant accounts without an invitation code.
+    SECURITY: Only SERVANT role is allowed here.
+    """
+    user_data.role = UserRole.SERVANT
+
+    user_repo = UserRepository(session)
+    auth_service = AuthService(user_repo, None)
+
+    try:
+        created_user = await auth_service.register_user(
+            user_data, invitation_code=None, admin_id=current_admin.id
+        )
+        return created_user
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(
+            "Failed to create SERVANT user | admin_id=%s | email=%s | error=%s",
+            str(current_admin.id),
+            user_data.email,
+            str(e),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La création du compte Servant a échoué. Vérifiez les informations fournies.",
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════

@@ -1,5 +1,5 @@
 """
-Tests unitaires — AuthService (logique métier, repositories mockés).
+Tests unitaires â€" AuthService (logique mÃ©tier, repositories mockÃ©s).
 """
 
 from datetime import timedelta
@@ -37,12 +37,12 @@ def _make_user(
     )
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  AUTHENTICATE — EMAIL LOGIN
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  AUTHENTICATE â€" EMAIL LOGIN
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @pytest.mark.unit
 class TestAuthenticateEmail:
-    """POST /auth/login — login par email."""
+    """POST /auth/login â€" login par email."""
 
     async def test_admin_email_login_success(self):
         user = _make_user(UserRole.ADMIN, email="admin@t.com")
@@ -54,7 +54,7 @@ class TestAuthenticateEmail:
         assert result.email == "admin@t.com"
         assert result.role == UserRole.ADMIN
 
-    async def test_aumonier_email_login_success(self):
+    async def test_AUMÔNIER_email_login_success(self):
         user = _make_user(UserRole.AUMÔNIER, email="aum@t.com")
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=user)
@@ -64,7 +64,7 @@ class TestAuthenticateEmail:
         assert result.role == UserRole.AUMÔNIER
 
     async def test_servant_email_login_rejected_403(self):
-        """Un SERVANT ne peut pas se connecter par email → 403."""
+        """Un SERVANT ne peut pas se connecter par email â†’ 403."""
         user = _make_user(UserRole.SERVANT, email="srv@t.com")
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=user)
@@ -75,7 +75,7 @@ class TestAuthenticateEmail:
         assert exc_info.value.status_code == 403
 
     async def test_parent_email_login_rejected_403(self):
-        """Un PARENT ne peut pas se connecter par email → 403."""
+        """Un PARENT ne peut pas se connecter par email â†’ 403."""
         user = _make_user(UserRole.PARENT, email="par@t.com")
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=user)
@@ -115,12 +115,12 @@ class TestAuthenticateEmail:
         assert exc_info.value.status_code == 403
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  AUTHENTICATE — PHONE LOGIN
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  AUTHENTICATE â€" PHONE LOGIN
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @pytest.mark.unit
 class TestAuthenticatePhone:
-    """POST /auth/login/phone — login par téléphone."""
+    """POST /auth/login/phone â€" login par tÃ©lÃ©phone."""
 
     async def test_servant_phone_login_success(self):
         user = _make_user(UserRole.SERVANT)
@@ -141,7 +141,7 @@ class TestAuthenticatePhone:
         assert result.role == UserRole.PARENT
 
     async def test_admin_phone_login_rejected_403(self):
-        """Un ADMIN ne peut pas se connecter par téléphone → 403."""
+        """Un ADMIN ne peut pas se connecter par tÃ©lÃ©phone â†’ 403."""
         user = _make_user(UserRole.ADMIN, phone="+237600000003")
         repo = AsyncMock()
         repo.get_by_phone = AsyncMock(return_value=user)
@@ -151,7 +151,7 @@ class TestAuthenticatePhone:
             await service.authenticate_user(UserPhoneLogin(phone_number="+237600000003", password=VALID_PASSWORD))
         assert exc_info.value.status_code == 403
 
-    async def test_aumonier_phone_login_rejected_403(self):
+    async def test_AUMÔNIER_phone_login_rejected_403(self):
         user = _make_user(UserRole.AUMÔNIER, phone="+237600000004")
         repo = AsyncMock()
         repo.get_by_phone = AsyncMock(return_value=user)
@@ -191,9 +191,9 @@ class TestAuthenticatePhone:
         assert exc_info.value.status_code == 403
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  REGISTER — SERVANT
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  REGISTER â€" SERVANT
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @pytest.mark.unit
 class TestRegisterServant:
     async def test_servant_self_register_success(self):
@@ -254,9 +254,9 @@ class TestRegisterServant:
         assert exc_info.value.status_code == 400
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  REGISTER — PARENT
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  REGISTER â€" PARENT
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @pytest.mark.unit
 class TestRegisterParent:
     async def test_parent_with_valid_invitation(self):
@@ -387,7 +387,7 @@ class TestRegisterParent:
         assert exc_info.value.status_code == 403
 
     async def test_parent_created_by_admin_no_code_needed(self):
-        """Un admin peut créer un PARENT sans code d'invitation."""
+        """Un admin peut crÃ©er un PARENT sans code d'invitation."""
         created = _make_user(UserRole.PARENT, email="p@t.com")
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=None)
@@ -410,9 +410,9 @@ class TestRegisterParent:
         assert result.role == UserRole.PARENT
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  REGISTER — ADMIN / AUMÔNIER (restrictions)
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  REGISTER â€" ADMIN / AUMÔNIER (restrictions)
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @pytest.mark.unit
 class TestRegisterRestricted:
     async def test_admin_self_register_403(self):
@@ -433,7 +433,7 @@ class TestRegisterRestricted:
             )
         assert exc_info.value.status_code == 403
 
-    async def test_aumonier_self_register_403(self):
+    async def test_AUMÔNIER_self_register_403(self):
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=None)
         service = AuthService(repo)
@@ -452,9 +452,9 @@ class TestRegisterRestricted:
         assert exc_info.value.status_code == 403
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  CREATE TOKENS
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @pytest.mark.unit
 class TestCreateTokens:
     async def test_returns_token_with_bearer_type(self):
@@ -506,3 +506,293 @@ class TestCreateTokens:
         )
         assert payload["role"] == "PARENT"
         assert payload["type"] == "refresh"
+
+
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  FORGOT_PASSWORD / RESET_PASSWORD / OTP FLOWS
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+@pytest.mark.unit
+class TestForgotAndReset:
+
+    async def test_forgot_password_unknown_email_silent(self):
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        service = AuthService(repo)
+        email_svc = AsyncMock()
+        await service.forgot_password("nobody@t.com", email_svc)
+        email_svc.send_reset_password_email.assert_not_called()
+
+    async def test_forgot_password_inactive_user_silent(self):
+        user = _make_user(UserRole.SERVANT, active=False)
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        email_svc = AsyncMock()
+        await service.forgot_password(user.email, email_svc)
+        email_svc.send_reset_password_email.assert_not_called()
+
+    async def test_forgot_password_sends_email(self):
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        email_svc = AsyncMock()
+        email_svc.send_reset_password_email = AsyncMock()
+        await service.forgot_password(user.email, email_svc)
+        email_svc.send_reset_password_email.assert_called_once()
+
+    async def test_request_reset_code_unknown_email_silent(self):
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        email_svc = AsyncMock()
+        await service.request_reset_code("nobody@t.com", code_repo, email_svc)
+        code_repo.create.assert_not_called()
+
+    async def test_request_reset_code_success(self):
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        email_svc = AsyncMock()
+        email_svc.send_reset_code_email = AsyncMock()
+        await service.request_reset_code(user.email, code_repo, email_svc)
+        code_repo.create.assert_called_once()
+        email_svc.send_reset_code_email.assert_called_once()
+
+    async def test_verify_reset_code_invalid(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        code_repo.get_valid = AsyncMock(return_value=None)
+        with pytest.raises(HTTPException) as exc_info:
+            await service.verify_reset_code("u@t.com", "000000", code_repo)
+        assert exc_info.value.status_code == 400
+
+    async def test_verify_reset_code_success(self):
+        from uuid import uuid4 as _uuid4
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        entry = MagicMock()
+        entry.id = _uuid4()
+        code_repo = AsyncMock()
+        code_repo.get_valid = AsyncMock(return_value=entry)
+        code_repo.mark_used = AsyncMock()
+        result = await service.verify_reset_code(user.email, "123456", code_repo)
+        assert isinstance(result, str) and len(result) > 0
+        code_repo.mark_used.assert_called_once_with(entry.id)
+
+    async def test_request_reset_code_phone_not_found_silent(self):
+        repo = AsyncMock()
+        repo.get_by_phone = AsyncMock(return_value=None)
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        await service.request_reset_code_phone("+237699000001", code_repo)
+        code_repo.create.assert_not_called()
+
+    async def test_request_reset_code_phone_success(self):
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_phone = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        await service.request_reset_code_phone(user.phone_number, code_repo)
+        code_repo.create.assert_called_once()
+
+    async def test_verify_reset_code_phone_user_not_found(self):
+        repo = AsyncMock()
+        repo.get_by_phone = AsyncMock(return_value=None)
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        with pytest.raises(HTTPException) as exc_info:
+            await service.verify_reset_code_phone("+237699000001", "123456", code_repo)
+        assert exc_info.value.status_code == 400
+
+    async def test_verify_reset_code_phone_invalid_code(self):
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_phone = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        code_repo.get_valid = AsyncMock(return_value=None)
+        with pytest.raises(HTTPException) as exc_info:
+            await service.verify_reset_code_phone(user.phone_number, "000000", code_repo)
+        assert exc_info.value.status_code == 400
+
+    async def test_verify_reset_code_phone_success(self):
+        from uuid import uuid4 as _uuid4
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_phone = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        entry = MagicMock()
+        entry.id = _uuid4()
+        code_repo = AsyncMock()
+        code_repo.get_valid = AsyncMock(return_value=entry)
+        code_repo.mark_used = AsyncMock()
+        result = await service.verify_reset_code_phone(user.phone_number, "654321", code_repo)
+        assert isinstance(result, str) and len(result) > 0
+
+    async def test_register_servant_auto_generate_email(self):
+        """SERVANT sans email â†’ email auto-gÃ©nÃ©rÃ© en @bmra.servant.local."""
+        created = _make_user(UserRole.SERVANT, email="auto@bmra.servant.local")
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        repo.get_by_phone = AsyncMock(return_value=None)
+        repo.create = AsyncMock(return_value=created)
+        service = AuthService(repo)
+
+        result = await service.register_user(
+            UserCreate(
+                email=None,
+                password=VALID_PASSWORD,
+                first_name="A", last_name="B",
+                phone_number="+237600000099",
+                role=UserRole.SERVANT,
+            )
+        )
+        assert result is not None
+        call_arg = repo.create.call_args[0][0]
+        assert "@bmra.servant.local" in call_arg.email
+
+    async def test_register_servant_age_under_13_rejected(self):
+        """Servant < 13 ans sans parent_id â†’ 422."""
+        from datetime import date as _date, datetime as _dt
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        repo.get_by_phone = AsyncMock(return_value=None)
+        service = AuthService(repo)
+
+        birth = _dt(2020, 1, 1)
+        data = UserCreate(
+            email="young@t.com",
+            password=VALID_PASSWORD,
+            first_name="Y", last_name="O",
+            phone_number="+237600000088",
+            role=UserRole.SERVANT,
+        )
+        data = data.model_copy(update={"birth_date": birth})
+        with pytest.raises(HTTPException) as exc_info:
+            await service.register_user(data)
+        assert exc_info.value.status_code == 422
+
+    async def test_register_parent_invitation_phone_mismatch(self):
+        """Invitation liÃ©e Ã  un tÃ©lÃ©phone, numÃ©ro diffÃ©rent â†’ 403."""
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        repo.get_by_phone = AsyncMock(return_value=None)  # phone unique OK
+        invitation = MagicMock()
+        invitation.email = None
+        invitation.phone_number = "+237699000001"
+        inv_repo = AsyncMock()
+        inv_repo.get_by_code = AsyncMock(return_value=invitation)
+        service = AuthService(repo, inv_repo)
+
+        data = UserCreate(
+            email="p@t.com", password=VALID_PASSWORD,
+            first_name="P", last_name="A",
+            phone_number="+237699000002",
+            role=UserRole.PARENT,
+        )
+        with pytest.raises(HTTPException) as exc_info:
+            await service.register_user(data, invitation_code="CODE")
+        assert exc_info.value.status_code == 403
+
+
+@pytest.mark.unit
+class TestRefreshAndResetPassword:
+
+    async def test_refresh_token_invalid_token(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+        with pytest.raises(HTTPException) as exc:
+            await service.refresh_token("not.a.valid.token")
+        assert exc.value.status_code == 401
+
+    async def test_refresh_token_wrong_type(self):
+        from src.infrastructure.config.settings import get_settings
+        settings = get_settings()
+        user = _make_user(UserRole.ADMIN)
+        repo = AsyncMock()
+        service = AuthService(repo)
+        # Create an access token (type='access', not 'refresh')
+        access = await service.create_tokens(user)
+        with pytest.raises(HTTPException) as exc:
+            await service.refresh_token(access.access_token)
+        assert exc.value.status_code == 401
+
+    async def test_refresh_token_success(self):
+        user = _make_user(UserRole.ADMIN)
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        service = AuthService(repo)
+
+        # Get real refresh token
+        tokens = await service.create_tokens(user)
+
+        with patch("src.infrastructure.security.token_blacklist.token_blacklist") as mock_bl:
+            mock_bl.is_revoked = AsyncMock(return_value=False)
+            mock_bl.revoke = AsyncMock()
+            new_tokens = await service.refresh_token(tokens.refresh_token)
+
+        assert new_tokens.access_token != tokens.access_token
+
+    async def test_reset_password_invalid_token(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+        with pytest.raises(HTTPException) as exc:
+            await service.reset_password("not.a.valid.token", "NewPass123")
+        assert exc.value.status_code == 400
+
+    async def test_reset_password_success(self):
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        repo.update = AsyncMock(return_value=user)
+        service = AuthService(repo)
+
+        reset_tok = SecurityUtils.create_reset_token(user.email)
+
+        with patch("src.infrastructure.security.token_blacklist.token_blacklist") as mock_bl:
+            mock_bl.is_revoked = AsyncMock(return_value=False)
+            mock_bl.revoke = AsyncMock()
+            await service.reset_password(reset_tok, "NewPass123")
+
+        repo.update.assert_called_once()
+
+    async def test_reset_password_with_email_service(self):
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        repo.update = AsyncMock(return_value=user)
+        service = AuthService(repo)
+
+        reset_tok = SecurityUtils.create_reset_token(user.email)
+        email_svc = AsyncMock()
+        email_svc.send_password_changed_email = AsyncMock()
+
+        with patch("src.infrastructure.security.token_blacklist.token_blacklist") as mock_bl:
+            mock_bl.is_revoked = AsyncMock(return_value=False)
+            mock_bl.revoke = AsyncMock()
+            await service.reset_password(reset_tok, "NewPass123", email_service=email_svc)
+
+        email_svc.send_password_changed_email.assert_called_once()
+
+    async def test_reset_password_revoked_token(self):
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        service = AuthService(repo)
+
+        reset_tok = SecurityUtils.create_reset_token(user.email)
+
+        with patch("src.infrastructure.security.token_blacklist.token_blacklist") as mock_bl:
+            mock_bl.is_revoked = AsyncMock(return_value=True)
+            with pytest.raises(HTTPException) as exc:
+                await service.reset_password(reset_tok, "NewPass123")
+        assert exc.value.status_code == 400
+

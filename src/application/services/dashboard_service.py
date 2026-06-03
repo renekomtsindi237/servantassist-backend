@@ -131,7 +131,7 @@ class DashboardService:
                 buckets[key] = {"total": 0, "present": 0, "absent": 0}
             buckets[key]["total"] += 1
             status = getattr(rec, "status", None)
-            if status in (AttendanceStatus.PRESENT, AttendanceStatus.RETARD):
+            if status in (AttendanceStatus.PRESENT, AttendanceStatus.EN_RETARD):
                 buckets[key]["present"] += 1
             else:
                 buckets[key]["absent"] += 1

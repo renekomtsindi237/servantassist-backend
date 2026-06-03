@@ -587,8 +587,8 @@ class TrainingService:
 
         user_stats: dict = defaultdict(lambda: {"scores": [], "attended": 0, "total": 0, "user_id": None})
         for p in all_participations:
-            uid = str(p.user_id)
-            user_stats[uid]["user_id"] = p.user_id
+            uid = str(p.servant_id)
+            user_stats[uid]["user_id"] = p.servant_id
             user_stats[uid]["total"] += 1
             if p.status == ParticipationStatus.PRESENT:
                 user_stats[uid]["attended"] += 1

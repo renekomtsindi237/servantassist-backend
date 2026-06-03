@@ -286,3 +286,80 @@ class TestDeleteUser:
         with pytest.raises(HTTPException) as exc:
             await service.delete_user(uuid4(), admin_user)
         assert exc.value.status_code == 404
+
+
+# =============================================================================
+#  ADMIN : phone uniqueness + link_parent
+# =============================================================================
+@pytest.mark.unit
+class TestAdminUpdatePhoneAndLink:
+    async def test_admin_update_phone_conflict(self, db_session, admin_user, servant_user, parent_user):
+        """Phone number conflict raises 409."""
+        service = _make_service(db_session)
+        with pytest.raises(HTTPException) as exc:
+            await service.admin_update_user(
+                servant_user.id,
+                UserAdminUpdate(phone_number=parent_user.phone_number),
+                admin_user,
+            )
+        assert exc.value.status_code == 409
+
+    async def test_admin_clear_phone_number(self, db_session, admin_user, servant_user):
+        """Setting phone_number='' clears it."""
+        service = _make_service(db_session)
+        updated = await service.admin_update_user(
+            servant_user.id,
+            UserAdminUpdate(phone_number=""),
+            admin_user,
+        )
+        assert updated.phone_number is None
+
+    async def test_link_parent_servant_not_found(self, db_session):
+        from unittest.mock import AsyncMock
+        service = _make_service(db_session)
+        with pytest.raises(HTTPException) as exc:
+            await service.link_parent(uuid4(), uuid4())
+        assert exc.value.status_code == 404
+
+    async def test_link_parent_not_servant_role(self, db_session, admin_user, parent_user):
+        """Trying to link a PARENT as servant raises 400."""
+        service = _make_service(db_session)
+        with pytest.raises(HTTPException) as exc:
+            await service.link_parent(admin_user.id, parent_user.id)
+        assert exc.value.status_code == 400
+
+    async def test_link_parent_requires_parent_id(self, db_session, servant_user):
+        """Unlink without parent_id raises 400."""
+        service = _make_service(db_session)
+        with pytest.raises(HTTPException) as exc:
+            await service.link_parent(servant_user.id, None, unlink=True)
+        assert exc.value.status_code == 400
+
+    async def test_link_parent_link_requires_parent_id(self, db_session, servant_user):
+        """Link without parent_id raises 400."""
+        service = _make_service(db_session)
+        with pytest.raises(HTTPException) as exc:
+            await service.link_parent(servant_user.id, None, unlink=False)
+        assert exc.value.status_code == 400
+
+    async def test_link_parent_target_not_parent_role(self, db_session, servant_user, admin_user):
+        """Link to a non-PARENT user raises 400."""
+        service = _make_service(db_session)
+        with pytest.raises(HTTPException) as exc:
+            await service.link_parent(servant_user.id, admin_user.id, unlink=False)
+        assert exc.value.status_code == 400
+
+    async def test_link_parent_success(self, db_session, servant_user, parent_user):
+        """Successfully links servant to parent."""
+        service = _make_service(db_session)
+        result = await service.link_parent(servant_user.id, parent_user.id, unlink=False)
+        assert result.id == servant_user.id
+
+    async def test_unlink_parent_success(self, db_session, servant_user, parent_user):
+        """Successfully unlinks servant from parent."""
+        service = _make_service(db_session)
+        # Link first
+        await service.link_parent(servant_user.id, parent_user.id, unlink=False)
+        # Then unlink
+        result = await service.link_parent(servant_user.id, parent_user.id, unlink=True)
+        assert result.id == servant_user.id
