@@ -80,6 +80,12 @@ def _build_engine_kwargs() -> dict[str, Any]:
                 "connect_args": {
                     # Timeout de connexion initiale (évite les attentes infinies)
                     "timeout": 10,
+                    # Disable asyncpg prepared-statement cache.
+                    # Supabase Supavisor (session mode, port 5432) reuses connections
+                    # across requests. When a schema changes (e.g. enum → varchar),
+                    # stale cached OIDs cause DatatypeMismatchError. Setting cache size
+                    # to 0 forces fresh parameter-type negotiation on every query.
+                    "statement_cache_size": 0,
                     # Statement timeout : tue toute requête qui dépasse 30s
                     "server_settings": {
                         "statement_timeout": "30000",  # ms
