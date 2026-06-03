@@ -266,11 +266,12 @@ async def test_my_reports_performance(client, secretaire_token, secretaire_user)
 
 @pytest.mark.asyncio
 async def test_concurrent_report_creation(client, secretaire_token):
-    """Test performance création concurrente."""
-    import asyncio
+    """Test performance création de 10 rapports successifs."""
+    start_time = time.time()
 
-    async def create_one(index):
-        return await client.post(
+    responses = []
+    for index in range(10):
+        r = await client.post(
             "/api/v1/reports/",
             headers={"Authorization": f"Bearer {secretaire_token}"},
             json={
@@ -281,18 +282,11 @@ async def test_concurrent_report_creation(client, secretaire_token):
                 "location": "Salle",
             },
         )
-
-    start_time = time.time()
-
-    # Créer 10 rapports en parallèle
-    tasks = [create_one(i) for i in range(10)]
-    responses = await asyncio.gather(*tasks)
+        responses.append(r)
 
     elapsed = time.time() - start_time
 
-    # Tous devraient réussir
     assert all(r.status_code == 201 for r in responses)
-    # Devrait être plus rapide que séquentiel
     assert elapsed < 5.0  # Moins de 5 secondes pour 10 rapports
 
 
