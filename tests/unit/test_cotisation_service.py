@@ -348,7 +348,7 @@ async def test_record_payment_existing_updates():
     svc.payment_repo.update.return_value = updated
     svc.payment_repo.enrich_cotisation.return_value = _enriched_payment(updated)
     data = MemberCotisationCreate(period_id=period.id, user_id=user.id, amount_paid=2500)
-    result = await svc.record_payment(data, uuid4())
+    await svc.record_payment(data, uuid4())
     svc.payment_repo.update.assert_called_once()
     svc.payment_repo.create.assert_not_called()
 

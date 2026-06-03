@@ -717,7 +717,7 @@ class TestGenerateTrainingReport:
         svc = _make_svc(session_repo=session_repo, participation_repo=participation_repo)
         from datetime import timezone as tz
 
-        result = await svc.generate_training_report(
+        await svc.generate_training_report(
             start_date=datetime(2026, 1, 1, tzinfo=tz.utc),
             end_date=datetime(2026, 6, 1, tzinfo=tz.utc),
             generated_by=uuid4(),

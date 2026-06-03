@@ -390,7 +390,7 @@ async def test_update_attendance_justification_auto_sets_absent_justifie():
 
     svc = _make_svc(attendance_repo=attendance_repo)
 
-    result = await svc.update_attendance(att.id, AttendanceUpdate(justification="Maladie"))
+    await svc.update_attendance(att.id, AttendanceUpdate(justification="Maladie"))
 
     assert att.status == AttendanceStatus.ABSENT_JUSTIFIE
     assert att.justified_at is not None

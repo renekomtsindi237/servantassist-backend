@@ -726,7 +726,7 @@ class TestRefreshAndResetPassword:
     async def test_refresh_token_wrong_type(self):
         from src.infrastructure.config.settings import get_settings
 
-        settings = get_settings()
+        get_settings()
         user = _make_user(UserRole.ADMIN)
         repo = AsyncMock()
         service = AuthService(repo)

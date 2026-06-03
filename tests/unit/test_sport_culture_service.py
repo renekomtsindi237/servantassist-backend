@@ -673,8 +673,6 @@ class TestGenerateReport:
         event_repo = AsyncMock()
         event_repo.list_events.return_value = ([], 0)
         participation_repo = AsyncMock()
-        user_repo = AsyncMock()
-
         svc = _make_svc(event_repo=event_repo, participation_repo=participation_repo)
         from datetime import timezone
 

@@ -370,7 +370,7 @@ async def test_get_event_assignments_filters_cancelled():
     svc.event_repo.get.return_value = event
     svc.assignment_repo.list_by_event.return_value = [a_active, a_cancelled]
     svc.assignment_repo.enrich_assignments.return_value = [_enriched_assignment(a_active)]
-    result = await svc.get_event_assignments(event.id)
+    await svc.get_event_assignments(event.id)
     # Only active ones passed to enrich
     passed = svc.assignment_repo.enrich_assignments.call_args[0][0]
     assert len(passed) == 1
