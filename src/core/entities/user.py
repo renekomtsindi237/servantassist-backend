@@ -40,10 +40,9 @@ class UserBase(SQLModel):
     email: str = Field(unique=True, index=True)
     first_name: str
     last_name: str
-    # create_type=False: the 'userrole' PG enum already exists from migrations
     role: UserRole = Field(
         default=UserRole.SERVANT,
-        sa_column=Column(SAEnum(UserRole, name="userrole", create_type=False), nullable=False),
+        sa_column=Column(SAString(20), nullable=False, server_default="SERVANT"),
     )
     is_active: bool = Field(default=True)
     phone_number: Optional[str] = Field(default=None, index=True)  # Indexed for PARENT/SERVANT login
