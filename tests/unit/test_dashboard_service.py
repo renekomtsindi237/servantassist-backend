@@ -18,13 +18,15 @@ NOW = datetime(2026, 6, 1, 10, 0, 0)
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
+
 def _mock_session() -> AsyncMock:
     return AsyncMock()
 
 
 def _user(role=UserRole.SERVANT, is_active=True) -> User:
-    return User(id=uuid4(), first_name="J", last_name="D",
-                email=f"{uuid4().hex[:6]}@t.com", role=role, is_active=is_active)
+    return User(
+        id=uuid4(), first_name="J", last_name="D", email=f"{uuid4().hex[:6]}@t.com", role=role, is_active=is_active
+    )
 
 
 def _exec_returning(value):
@@ -50,15 +52,16 @@ def _svc_with_exec(*side_effects) -> DashboardService:
 
 # ─── get_summary ──────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_summary_empty_db():
     """All zeros when no data."""
     # Calls: users, events count, assignments count, attendances, cotisation period
     svc = _svc_with_exec(
-        [],    # all_users
-        0,     # total_events
-        0,     # total_assign
-        [],    # all attendances
+        [],  # all_users
+        0,  # total_events
+        0,  # total_assign
+        [],  # all attendances
         None,  # cotisation period (None → no period)
     )
     result = await svc.get_summary()
@@ -80,10 +83,10 @@ async def test_get_summary_with_data():
 
     svc = _svc_with_exec(
         [servant, parent],  # all_users
-        10,                 # total_events
-        20,                 # total_assign
+        10,  # total_events
+        20,  # total_assign
         [att_present, att_absent],  # attendances (1 present, 1 absent → 50%)
-        None,               # cotisation period
+        None,  # cotisation period
     )
     result = await svc.get_summary()
     assert result.total_servants == 1
@@ -95,6 +98,7 @@ async def test_get_summary_with_data():
 
 
 # ─── get_attendance_trend ────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_get_attendance_trend_empty():
@@ -172,6 +176,7 @@ async def test_get_attendance_trend_weekly_label():
 
 # ─── get_cotisation_status ───────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_cotisation_status_no_period():
     svc = _svc_with_exec(None)
@@ -218,8 +223,12 @@ async def test_get_cotisation_status_all_paid():
     period.title = "P1"
     period.amount_expected = 5000.0
 
-    cot1 = MagicMock(); cot1.status = CotisationPaymentStatus.PAYE; cot1.amount_paid = 5000.0
-    cot2 = MagicMock(); cot2.status = CotisationPaymentStatus.PAYE; cot2.amount_paid = 5000.0
+    cot1 = MagicMock()
+    cot1.status = CotisationPaymentStatus.PAYE
+    cot1.amount_paid = 5000.0
+    cot2 = MagicMock()
+    cot2.status = CotisationPaymentStatus.PAYE
+    cot2.amount_paid = 5000.0
 
     svc = _svc_with_exec(period, [cot1, cot2])
     result = await svc.get_cotisation_status()
@@ -229,7 +238,9 @@ async def test_get_cotisation_status_all_paid():
 @pytest.mark.asyncio
 async def test_get_cotisation_status_empty_cotisations():
     period = MagicMock(spec=CotisationPeriod)
-    period.id = uuid4(); period.title = "P1"; period.amount_expected = 5000.0
+    period.id = uuid4()
+    period.title = "P1"
+    period.amount_expected = 5000.0
 
     svc = _svc_with_exec(period, [])
     result = await svc.get_cotisation_status()
@@ -237,6 +248,7 @@ async def test_get_cotisation_status_empty_cotisations():
 
 
 # ─── get_upcoming_events ─────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_get_upcoming_events_empty():
@@ -248,12 +260,15 @@ async def test_get_upcoming_events_empty():
 @pytest.mark.asyncio
 async def test_get_upcoming_events_with_events():
     ev = MagicMock(spec=Event)
-    ev.id = uuid4(); ev.title = "Messe du dimanche"
+    ev.id = uuid4()
+    ev.title = "Messe du dimanche"
     ev.start_time = datetime(2026, 6, 8, 8, 0)
     ev.location = "Basilique"
 
-    acc = MagicMock(); acc.status = AssignmentStatus.ACCEPTED
-    pen = MagicMock(); pen.status = AssignmentStatus.PENDING
+    acc = MagicMock()
+    acc.status = AssignmentStatus.ACCEPTED
+    pen = MagicMock()
+    pen.status = AssignmentStatus.PENDING
 
     svc = _svc_with_exec([ev], [acc, pen])
     result = await svc.get_upcoming_events()
@@ -266,7 +281,8 @@ async def test_get_upcoming_events_with_events():
 @pytest.mark.asyncio
 async def test_get_upcoming_events_no_assignments():
     ev = MagicMock(spec=Event)
-    ev.id = uuid4(); ev.title = "Répétition"
+    ev.id = uuid4()
+    ev.title = "Répétition"
     ev.start_time = datetime(2026, 6, 10, 18, 0)
     ev.location = ""
 
@@ -285,6 +301,7 @@ async def test_get_upcoming_events_limit():
 
 # ─── get_top_servants ────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_top_servants_empty():
     svc = _svc_with_exec([])
@@ -294,13 +311,19 @@ async def test_get_top_servants_empty():
 
 @pytest.mark.asyncio
 async def test_get_top_servants_ranked():
-    s1 = _user(role=UserRole.SERVANT); s2 = _user(role=UserRole.SERVANT)
-    s1.first_name = "Alice"; s1.last_name = "A"
-    s2.first_name = "Bob"; s2.last_name = "B"
+    s1 = _user(role=UserRole.SERVANT)
+    s2 = _user(role=UserRole.SERVANT)
+    s1.first_name = "Alice"
+    s1.last_name = "A"
+    s2.first_name = "Bob"
+    s2.last_name = "B"
 
-    att_s1_present = MagicMock(); att_s1_present.status = AttendanceStatus.PRESENT
-    att_s2_present = MagicMock(); att_s2_present.status = AttendanceStatus.PRESENT
-    att_s2_absent = MagicMock(); att_s2_absent.status = AttendanceStatus.ABSENT
+    att_s1_present = MagicMock()
+    att_s1_present.status = AttendanceStatus.PRESENT
+    att_s2_present = MagicMock()
+    att_s2_present.status = AttendanceStatus.PRESENT
+    att_s2_absent = MagicMock()
+    att_s2_absent.status = AttendanceStatus.ABSENT
 
     # servants list, then attendances for s1 (1/1=100%), then for s2 (1/2=50%)
     svc = _svc_with_exec([s1, s2], [att_s1_present], [att_s2_present, att_s2_absent])
@@ -319,7 +342,8 @@ async def test_get_top_servants_ranked():
 @pytest.mark.asyncio
 async def test_get_top_servants_no_attendance():
     s = _user(role=UserRole.SERVANT)
-    s.first_name = "X"; s.last_name = "Y"
+    s.first_name = "X"
+    s.last_name = "Y"
     svc = _svc_with_exec([s], [])
     result = await svc.get_top_servants()
     assert result[0].attendance_rate_percent == 0.0
@@ -329,8 +353,10 @@ async def test_get_top_servants_no_attendance():
 @pytest.mark.asyncio
 async def test_get_top_servants_en_retard_counted_as_present():
     s = _user(role=UserRole.SERVANT)
-    s.first_name = "X"; s.last_name = "Y"
-    att = MagicMock(); att.status = AttendanceStatus.EN_RETARD
+    s.first_name = "X"
+    s.last_name = "Y"
+    att = MagicMock()
+    att.status = AttendanceStatus.EN_RETARD
     svc = _svc_with_exec([s], [att])
     result = await svc.get_top_servants()
     assert result[0].attendance_rate_percent == 100.0

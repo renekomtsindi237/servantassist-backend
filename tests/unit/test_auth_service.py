@@ -512,6 +512,7 @@ class TestCreateTokens:
 #  FORGOT_PASSWORD / RESET_PASSWORD / OTP FLOWS
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
+
 @pytest.mark.unit
 class TestForgotAndReset:
 
@@ -574,6 +575,7 @@ class TestForgotAndReset:
 
     async def test_verify_reset_code_success(self):
         from uuid import uuid4 as _uuid4
+
         user = _make_user(UserRole.SERVANT)
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=user)
@@ -626,6 +628,7 @@ class TestForgotAndReset:
 
     async def test_verify_reset_code_phone_success(self):
         from uuid import uuid4 as _uuid4
+
         user = _make_user(UserRole.SERVANT)
         repo = AsyncMock()
         repo.get_by_phone = AsyncMock(return_value=user)
@@ -651,7 +654,8 @@ class TestForgotAndReset:
             UserCreate(
                 email=None,
                 password=VALID_PASSWORD,
-                first_name="A", last_name="B",
+                first_name="A",
+                last_name="B",
                 phone_number="+237600000099",
                 role=UserRole.SERVANT,
             )
@@ -663,6 +667,7 @@ class TestForgotAndReset:
     async def test_register_servant_age_under_13_rejected(self):
         """Servant < 13 ans sans parent_id â†’ 422."""
         from datetime import date as _date, datetime as _dt
+
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=None)
         repo.get_by_phone = AsyncMock(return_value=None)
@@ -672,7 +677,8 @@ class TestForgotAndReset:
         data = UserCreate(
             email="young@t.com",
             password=VALID_PASSWORD,
-            first_name="Y", last_name="O",
+            first_name="Y",
+            last_name="O",
             phone_number="+237600000088",
             role=UserRole.SERVANT,
         )
@@ -694,8 +700,10 @@ class TestForgotAndReset:
         service = AuthService(repo, inv_repo)
 
         data = UserCreate(
-            email="p@t.com", password=VALID_PASSWORD,
-            first_name="P", last_name="A",
+            email="p@t.com",
+            password=VALID_PASSWORD,
+            first_name="P",
+            last_name="A",
             phone_number="+237699000002",
             role=UserRole.PARENT,
         )
@@ -716,6 +724,7 @@ class TestRefreshAndResetPassword:
 
     async def test_refresh_token_wrong_type(self):
         from src.infrastructure.config.settings import get_settings
+
         settings = get_settings()
         user = _make_user(UserRole.ADMIN)
         repo = AsyncMock()
@@ -795,4 +804,3 @@ class TestRefreshAndResetPassword:
             with pytest.raises(HTTPException) as exc:
                 await service.reset_password(reset_tok, "NewPass123")
         assert exc.value.status_code == 400
-

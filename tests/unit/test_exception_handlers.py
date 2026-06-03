@@ -31,7 +31,6 @@ from src.presentation.exceptions.handlers import (
     validation_exception_handler,
 )
 
-
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 
@@ -57,41 +56,48 @@ class TestErrorResponse:
     def test_body_contains_detail(self):
         resp = _error_response(400, "Bad input")
         import json
+
         body = json.loads(resp.body)
         assert body["detail"] == "Bad input"
 
     def test_error_id_included(self):
         import json
+
         resp = _error_response(500, "Error", error_id="abc123")
         body = json.loads(resp.body)
         assert body["error_id"] == "abc123"
 
     def test_detail_as_info(self):
         import json
+
         resp = _error_response(400, "Error", detail="Extra detail")
         body = json.loads(resp.body)
         assert body["info"] == "Extra detail"
 
     def test_errors_list_included(self):
         import json
+
         resp = _error_response(422, "Validation", errors=[{"champ": "email", "message": "Invalide"}])
         body = json.loads(resp.body)
         assert body["errors"][0]["champ"] == "email"
 
     def test_no_error_id_when_none(self):
         import json
+
         resp = _error_response(400, "Error", error_id=None)
         body = json.loads(resp.body)
         assert "error_id" not in body
 
     def test_no_info_when_detail_none(self):
         import json
+
         resp = _error_response(400, "Error", detail=None)
         body = json.loads(resp.body)
         assert "info" not in body
 
     def test_no_errors_when_none(self):
         import json
+
         resp = _error_response(400, "Error", errors=None)
         body = json.loads(resp.body)
         assert "errors" not in body
@@ -180,6 +186,7 @@ class TestValidationExceptionHandler:
         req = make_mock_request()
 
         try:
+
             class M(pydantic.BaseModel):
                 email: str
 
@@ -187,9 +194,11 @@ class TestValidationExceptionHandler:
         except pydantic.ValidationError as e:
             exc = RequestValidationError(errors=e.errors())
         else:
-            exc = RequestValidationError(errors=[
-                {"loc": ("body", "email"), "msg": "field required", "type": "missing", "input": None, "url": ""}
-            ])
+            exc = RequestValidationError(
+                errors=[
+                    {"loc": ("body", "email"), "msg": "field required", "type": "missing", "input": None, "url": ""}
+                ]
+            )
 
         resp = await validation_exception_handler(req, exc)
         assert resp.status_code == 422
@@ -199,10 +208,12 @@ class TestValidationExceptionHandler:
         import json
 
         req = make_mock_request()
-        exc = RequestValidationError(errors=[
-            {"loc": ("body", "email"), "msg": "field required", "type": "missing", "input": None, "url": ""},
-            {"loc": ("body", "password"), "msg": "field required", "type": "missing", "input": None, "url": ""},
-        ])
+        exc = RequestValidationError(
+            errors=[
+                {"loc": ("body", "email"), "msg": "field required", "type": "missing", "input": None, "url": ""},
+                {"loc": ("body", "password"), "msg": "field required", "type": "missing", "input": None, "url": ""},
+            ]
+        )
         resp = await validation_exception_handler(req, exc)
         body = json.loads(resp.body)
         assert "errors" in body
@@ -213,9 +224,17 @@ class TestValidationExceptionHandler:
         import json
 
         req = make_mock_request()
-        exc = RequestValidationError(errors=[
-            {"loc": ("body", "email"), "msg": "invalid email", "type": "value_error.email", "input": None, "url": ""},
-        ])
+        exc = RequestValidationError(
+            errors=[
+                {
+                    "loc": ("body", "email"),
+                    "msg": "invalid email",
+                    "type": "value_error.email",
+                    "input": None,
+                    "url": "",
+                },
+            ]
+        )
         resp = await validation_exception_handler(req, exc)
         body = json.loads(resp.body)
         # "email" field → "l'adresse e-mail" label
@@ -226,9 +245,11 @@ class TestValidationExceptionHandler:
         import json
 
         req = make_mock_request()
-        exc = RequestValidationError(errors=[
-            {"loc": ("body",), "msg": "invalid", "type": "missing", "input": None, "url": ""},
-        ])
+        exc = RequestValidationError(
+            errors=[
+                {"loc": ("body",), "msg": "invalid", "type": "missing", "input": None, "url": ""},
+            ]
+        )
         resp = await validation_exception_handler(req, exc)
         body = json.loads(resp.body)
         # "body" loc should be stripped

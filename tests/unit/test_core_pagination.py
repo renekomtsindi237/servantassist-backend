@@ -10,8 +10,8 @@ from src.core.pagination import (
     encode_cursor,
 )
 
-
 # ─── encode_cursor / decode_cursor ───────────────────────────────────────────
+
 
 def test_encode_decode_roundtrip():
     uid = uuid4()
@@ -48,6 +48,7 @@ def test_decode_cursor_short_invalid():
 
 # ─── OffsetPage ──────────────────────────────────────────────────────────────
 
+
 def test_offset_page_has_next_true():
     page = OffsetPage(items=[1, 2, 3], total=20, limit=5, offset=0)
     assert page.has_next is True
@@ -76,6 +77,7 @@ def test_offset_page_exact_last():
 
 
 # ─── CursorPage ──────────────────────────────────────────────────────────────
+
 
 def test_cursor_page_has_next_false():
     page = CursorPage(items=[1, 2, 3], next_cursor=None, limit=5)

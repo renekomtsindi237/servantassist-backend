@@ -22,7 +22,6 @@ from src.core.entities.training import (
     TrainingStatus,
 )
 
-
 # ── Factories ──────────────────────────────────────────────────────────────
 
 
@@ -632,6 +631,7 @@ class TestRemoveMaterialFromSession:
 #  Coverage completion — generate_training_report + mark_attendance extras
 # =============================================================================
 
+
 class TestGenerateTrainingReport:
 
     @pytest.mark.asyncio
@@ -642,6 +642,7 @@ class TestGenerateTrainingReport:
 
         svc = _make_svc(session_repo=session_repo, participation_repo=participation_repo)
         from datetime import timezone as tz
+
         result = await svc.generate_training_report(
             start_date=datetime(2026, 1, 1, tzinfo=tz.utc),
             end_date=datetime(2026, 6, 1, tzinfo=tz.utc),
@@ -667,6 +668,7 @@ class TestGenerateTrainingReport:
 
         svc = _make_svc(session_repo=session_repo, participation_repo=participation_repo)
         from datetime import timezone as tz
+
         result = await svc.generate_training_report(
             start_date=datetime(2026, 1, 1, tzinfo=tz.utc),
             end_date=datetime(2026, 6, 1, tzinfo=tz.utc),
@@ -697,6 +699,7 @@ class TestGenerateTrainingReport:
 
         svc = _make_svc(session_repo=session_repo, participation_repo=participation_repo)
         from datetime import timezone as tz
+
         result = await svc.generate_training_report(
             start_date=datetime(2026, 1, 1, tzinfo=tz.utc),
             end_date=datetime(2026, 6, 1, tzinfo=tz.utc),
@@ -713,6 +716,7 @@ class TestGenerateTrainingReport:
 
         svc = _make_svc(session_repo=session_repo, participation_repo=participation_repo)
         from datetime import timezone as tz
+
         result = await svc.generate_training_report(
             start_date=datetime(2026, 1, 1, tzinfo=tz.utc),
             end_date=datetime(2026, 6, 1, tzinfo=tz.utc),
@@ -720,7 +724,9 @@ class TestGenerateTrainingReport:
             level=TrainingLevel.AVANCE,
         )
         session_repo.list_sessions.assert_called_once_with(
-            skip=0, limit=1000, level=TrainingLevel.AVANCE,
+            skip=0,
+            limit=1000,
+            level=TrainingLevel.AVANCE,
             start_date=datetime(2026, 1, 1, tzinfo=tz.utc),
             end_date=datetime(2026, 6, 1, tzinfo=tz.utc),
         )

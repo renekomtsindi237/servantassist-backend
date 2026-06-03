@@ -25,6 +25,7 @@ TODAY = datetime(2026, 6, 1, 0, 0, 0)
 
 # ─── Factories ────────────────────────────────────────────────────────────────
 
+
 def _make_attendance(**kwargs) -> Attendance:
     return Attendance(
         id=kwargs.pop("id", uuid4()),
@@ -82,6 +83,7 @@ def _make_svc(attendance_repo=None, user_repo=None) -> AttendanceService:
 
 
 # ─── record_attendance ────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_record_attendance_user_not_found():
@@ -192,6 +194,7 @@ async def test_record_attendance_success_with_justification():
 
 
 # ─── record_batch ──────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_record_batch_user_not_found():
@@ -339,6 +342,7 @@ async def test_record_batch_with_justification_sets_justified_at():
 
 # ─── update_attendance ────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_update_attendance_not_found():
     attendance_repo = AsyncMock()
@@ -416,6 +420,7 @@ async def test_update_attendance_justification_no_status_change_when_not_absent(
 
 # ─── get_attendance ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_attendance_not_found():
     attendance_repo = AsyncMock()
@@ -445,6 +450,7 @@ async def test_get_attendance_success():
 
 
 # ─── list_attendances ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_list_attendances_empty():
@@ -523,6 +529,7 @@ async def test_list_attendances_passes_filters():
 
 
 # ─── get_user_stats ───────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_get_user_stats_user_not_found():

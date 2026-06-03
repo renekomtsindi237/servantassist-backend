@@ -23,7 +23,6 @@ from src.core.entities.sport_culture import (
     SportType,
 )
 
-
 # ── Factories ──────────────────────────────────────────────────────────────
 
 
@@ -569,6 +568,7 @@ class TestUpdateTeam:
 # ═══════════════════════════════════════════════════════════════════════════
 #  Coverage completion — generate_report, get_statistics, get_servant_stats
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestGetStatistics:
 

@@ -331,9 +331,7 @@ class TestWeeklyScheduleSlots:
         assert len(body.get("slots", [])) >= 1
 
     @pytest.mark.asyncio
-    async def test_add_servant_to_slot(
-        self, client: AsyncClient, admin_user: User, servant_user: User
-    ):
+    async def test_add_servant_to_slot(self, client: AsyncClient, admin_user: User, servant_user: User):
         """Create template with a slot, then add servant to that slot."""
         start = _next_monday() + timedelta(weeks=9)
         end = start + timedelta(days=6)
@@ -363,9 +361,7 @@ class TestWeeklyScheduleSlots:
         assert resp.status_code in (201, 200, 400, 404)  # 400 if outside time window
 
     @pytest.mark.asyncio
-    async def test_update_slot_notes(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_update_slot_notes(self, client: AsyncClient, admin_user: User):
         """Create template with slot, update slot notes."""
         start = _next_monday() + timedelta(weeks=10)
         end = start + timedelta(days=6)

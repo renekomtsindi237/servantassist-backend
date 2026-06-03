@@ -688,9 +688,7 @@ async def test_delete_mass_success():
 async def test_add_assignment_mass_not_found():
     svc = _make_svc()
     svc.schedule_repo.get_mass.return_value = None
-    data = SundayMassAssignmentCreate(
-        position=LiturgicalPosition.ACOLYTE_1, servant_name="Jean"
-    )
+    data = SundayMassAssignmentCreate(position=LiturgicalPosition.ACOLYTE_1, servant_name="Jean")
     with pytest.raises(Exception) as exc:
         await svc.add_assignment_to_mass(uuid4(), data, uuid4())
     assert exc.value.status_code == 404
@@ -702,9 +700,7 @@ async def test_add_assignment_template_not_found():
     svc = _make_svc()
     svc.schedule_repo.get_mass.return_value = mass
     svc.schedule_repo.get_template.return_value = None
-    data = SundayMassAssignmentCreate(
-        position=LiturgicalPosition.ACOLYTE_1, servant_name="Jean"
-    )
+    data = SundayMassAssignmentCreate(position=LiturgicalPosition.ACOLYTE_1, servant_name="Jean")
     with pytest.raises(Exception) as exc:
         await svc.add_assignment_to_mass(mass.id, data, uuid4())
     assert exc.value.status_code == 404
@@ -718,9 +714,7 @@ async def test_add_assignment_outside_time_window():
     svc.schedule_repo.get_mass.return_value = mass
     svc.schedule_repo.get_template.return_value = tpl
 
-    data = SundayMassAssignmentCreate(
-        position=LiturgicalPosition.ACOLYTE_1, servant_name="Jean"
-    )
+    data = SundayMassAssignmentCreate(position=LiturgicalPosition.ACOLYTE_1, servant_name="Jean")
     with mock.patch(
         "src.application.services.sunday_schedule_service.is_within_mass_window",
         return_value=False,
@@ -739,9 +733,7 @@ async def test_add_assignment_servant_not_found():
     svc.schedule_repo.get_template.return_value = tpl
     svc.user_repo.get.return_value = None
 
-    data = SundayMassAssignmentCreate(
-        position=LiturgicalPosition.ACOLYTE_1, servant_id=uuid4(), servant_name=None
-    )
+    data = SundayMassAssignmentCreate(position=LiturgicalPosition.ACOLYTE_1, servant_id=uuid4(), servant_name=None)
     with mock.patch(
         "src.application.services.sunday_schedule_service.is_within_mass_window",
         return_value=True,
@@ -760,9 +752,7 @@ async def test_add_assignment_not_servant_role():
     svc.schedule_repo.get_template.return_value = tpl
     svc.user_repo.get.return_value = _make_user(role=UserRole.PARENT)
 
-    data = SundayMassAssignmentCreate(
-        position=LiturgicalPosition.ACOLYTE_1, servant_id=uuid4(), servant_name=None
-    )
+    data = SundayMassAssignmentCreate(position=LiturgicalPosition.ACOLYTE_1, servant_id=uuid4(), servant_name=None)
     with mock.patch(
         "src.application.services.sunday_schedule_service.is_within_mass_window",
         return_value=True,
@@ -785,9 +775,7 @@ async def test_add_assignment_success_with_servant_id():
     svc.schedule_repo.create_assignment.return_value = a
     svc.schedule_repo.enrich_assignment.return_value = _enriched_assignment(a)
 
-    data = SundayMassAssignmentCreate(
-        position=LiturgicalPosition.ACOLYTE_1, servant_id=servant.id, servant_name=None
-    )
+    data = SundayMassAssignmentCreate(position=LiturgicalPosition.ACOLYTE_1, servant_id=servant.id, servant_name=None)
     with mock.patch(
         "src.application.services.sunday_schedule_service.is_within_mass_window",
         return_value=True,

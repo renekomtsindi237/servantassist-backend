@@ -8,8 +8,8 @@ from uuid import uuid4
 from src.core.utils import maybe_to_naive_utc, to_naive_utc, utc_now
 from src.infrastructure.events.bus import EventBus
 
-
 # ─── core utils ───────────────────────────────────────────────────────────────
+
 
 def test_utc_now_returns_datetime():
     result = utc_now()
@@ -48,6 +48,7 @@ def test_maybe_to_naive_utc_aware():
 
 # ─── event bus ────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_event_bus_publish_calls_handlers():
     from src.core.events.domain_events import UserRegistered
@@ -60,10 +61,7 @@ async def test_event_bus_publish_calls_handlers():
         called.append(event.user_id)
 
     uid = uuid4()
-    event = UserRegistered(
-        user_id=uid, email="u@t.com", first_name="J",
-        role="SERVANT", created_by_admin=False
-    )
+    event = UserRegistered(user_id=uid, email="u@t.com", first_name="J", role="SERVANT", created_by_admin=False)
     await bus.publish(event)
     assert uid in called
 
@@ -78,10 +76,7 @@ async def test_event_bus_handler_exception_does_not_propagate():
     async def failing_handler(event: UserRegistered):
         raise RuntimeError("Handler broke")
 
-    event = UserRegistered(
-        user_id=uuid4(), email="u@t.com", first_name="J",
-        role="SERVANT", created_by_admin=False
-    )
+    event = UserRegistered(user_id=uuid4(), email="u@t.com", first_name="J", role="SERVANT", created_by_admin=False)
     # Should not raise
     try:
         await bus.publish(event)
@@ -91,23 +86,23 @@ async def test_event_bus_handler_exception_does_not_propagate():
 
 # ─── register_all_handlers ────────────────────────────────────────────────────
 
+
 def test_register_all_handlers_runs():
     from src.infrastructure.events.handlers import register_all_handlers
+
     # Should not raise
     register_all_handlers()
 
 
 # ─── audit handlers ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_audit_user_registered():
     from src.infrastructure.events.handlers import audit_user_registered
     from src.core.events.domain_events import UserRegistered
 
-    event = UserRegistered(
-        user_id=uuid4(), email="u@t.com", first_name="J",
-        role="SERVANT", created_by_admin=False
-    )
+    event = UserRegistered(user_id=uuid4(), email="u@t.com", first_name="J", role="SERVANT", created_by_admin=False)
     await audit_user_registered(event)
 
 
@@ -116,10 +111,7 @@ async def test_notify_user_registered_skip_no_email():
     from src.infrastructure.events.handlers import notify_user_registered
     from src.core.events.domain_events import UserRegistered
 
-    event = UserRegistered(
-        user_id=uuid4(), email=None, first_name="J",
-        role="ADMIN", created_by_admin=True
-    )
+    event = UserRegistered(user_id=uuid4(), email=None, first_name="J", role="ADMIN", created_by_admin=True)
     # No email → should return silently
     await notify_user_registered(event)
 
@@ -129,10 +121,7 @@ async def test_notify_user_registered_skip_non_admin_role():
     from src.infrastructure.events.handlers import notify_user_registered
     from src.core.events.domain_events import UserRegistered
 
-    event = UserRegistered(
-        user_id=uuid4(), email="u@t.com", first_name="J",
-        role="SERVANT", created_by_admin=False
-    )
+    event = UserRegistered(user_id=uuid4(), email="u@t.com", first_name="J", role="SERVANT", created_by_admin=False)
     with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
         await notify_user_registered(event)
     MockEmail.assert_not_called()
@@ -144,8 +133,7 @@ async def test_notify_user_registered_admin_sends_welcome():
     from src.core.events.domain_events import UserRegistered
 
     event = UserRegistered(
-        user_id=uuid4(), email="admin@t.com", first_name="René",
-        role="ADMIN", created_by_admin=False
+        user_id=uuid4(), email="admin@t.com", first_name="René", role="ADMIN", created_by_admin=False
     )
     with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
         instance = AsyncMock()
@@ -160,10 +148,7 @@ async def test_audit_user_invited():
     from src.infrastructure.events.handlers import audit_user_invited
     from src.core.events.domain_events import UserInvited
 
-    event = UserInvited(
-        invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT",
-        email="p@t.com", phone_number=None
-    )
+    event = UserInvited(invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT", email="p@t.com", phone_number=None)
     await audit_user_invited(event)
 
 
@@ -173,8 +158,7 @@ async def test_notify_user_invited_no_email():
     from src.core.events.domain_events import UserInvited
 
     event = UserInvited(
-        invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT",
-        email=None, phone_number="+237699000001"
+        invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT", email=None, phone_number="+237699000001"
     )
     await notify_user_invited(event)
 
@@ -184,10 +168,7 @@ async def test_notify_user_invited_sends_email():
     from src.infrastructure.events.handlers import notify_user_invited
     from src.core.events.domain_events import UserInvited
 
-    event = UserInvited(
-        invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT",
-        email="p@t.com", phone_number=None
-    )
+    event = UserInvited(invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT", email="p@t.com", phone_number=None)
     # The handler imports EmailService locally — just ensure it runs without error
     await notify_user_invited(event)
 
@@ -234,8 +215,7 @@ async def test_audit_discipline_case_opened():
     from src.core.events.domain_events import DisciplineCaseOpened
 
     event = DisciplineCaseOpened(
-        case_id=uuid4(), accused_user_id=uuid4(),
-        offense_category="ABSENCE", opened_by_id=uuid4()
+        case_id=uuid4(), accused_user_id=uuid4(), offense_category="ABSENCE", opened_by_id=uuid4()
     )
     await audit_discipline_case_opened(event)
 
@@ -246,8 +226,7 @@ async def test_audit_discipline_sanction():
     from src.core.events.domain_events import DisciplineSanctionIssued
 
     event = DisciplineSanctionIssued(
-        case_id=uuid4(), accused_user_id=uuid4(),
-        sanction_type="AVERTISSEMENT", issued_by_id=uuid4()
+        case_id=uuid4(), accused_user_id=uuid4(), sanction_type="AVERTISSEMENT", issued_by_id=uuid4()
     )
     await audit_discipline_sanction(event)
 
@@ -257,8 +236,5 @@ async def test_audit_attendance_recorded():
     from src.infrastructure.events.handlers import audit_attendance_recorded
     from src.core.events.domain_events import AttendanceRecorded
 
-    event = AttendanceRecorded(
-        attendance_id=uuid4(), user_id=uuid4(),
-        attendance_type="MESSE", status="PRESENT"
-    )
+    event = AttendanceRecorded(attendance_id=uuid4(), user_id=uuid4(), attendance_type="MESSE", status="PRESENT")
     await audit_attendance_recorded(event)

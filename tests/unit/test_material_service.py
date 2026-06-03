@@ -23,7 +23,6 @@ from src.core.entities.material import (
     TaskType,
 )
 
-
 # ── Factories ──────────────────────────────────────────────────────────────
 
 

@@ -20,6 +20,7 @@ def _make_ws(send_ok=True) -> AsyncMock:
 
 # ─── _WsConn ──────────────────────────────────────────────────────────────────
 
+
 def test_ws_conn_init():
     ws = _make_ws()
     conn = _WsConn(ws, "user_1")
@@ -29,6 +30,7 @@ def test_ws_conn_init():
 
 
 # ─── ConnectionManager basics ─────────────────────────────────────────────────
+
 
 def test_initial_state():
     mgr = ConnectionManager()
@@ -51,7 +53,8 @@ async def test_connect_registers_websocket():
 @pytest.mark.asyncio
 async def test_connect_multiple_for_same_user():
     mgr = ConnectionManager()
-    ws1 = _make_ws(); ws2 = _make_ws()
+    ws1 = _make_ws()
+    ws2 = _make_ws()
 
     await mgr.connect(ws1, "user_1")
     await mgr.connect(ws2, "user_1")
@@ -92,7 +95,8 @@ async def test_disconnect_unknown_user_no_error():
 @pytest.mark.asyncio
 async def test_disconnect_one_of_two_sockets():
     mgr = ConnectionManager()
-    ws1 = _make_ws(); ws2 = _make_ws()
+    ws1 = _make_ws()
+    ws2 = _make_ws()
     await mgr.connect(ws1, "user_1")
     await mgr.connect(ws2, "user_1")
 
@@ -103,6 +107,7 @@ async def test_disconnect_one_of_two_sockets():
 
 
 # ─── send_to_user ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_send_to_user_no_connections():
@@ -151,10 +156,12 @@ async def test_send_to_user_one_dead_one_alive():
 
 # ─── broadcast ────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_broadcast_multiple_users():
     mgr = ConnectionManager()
-    ws1 = _make_ws(); ws2 = _make_ws()
+    ws1 = _make_ws()
+    ws2 = _make_ws()
     await mgr.connect(ws1, "user_1")
     await mgr.connect(ws2, "user_2")
 
@@ -172,7 +179,8 @@ async def test_broadcast_empty_list():
 @pytest.mark.asyncio
 async def test_broadcast_all():
     mgr = ConnectionManager()
-    ws1 = _make_ws(); ws2 = _make_ws()
+    ws1 = _make_ws()
+    ws2 = _make_ws()
     await mgr.connect(ws1, "u1")
     await mgr.connect(ws2, "u2")
 
@@ -181,6 +189,7 @@ async def test_broadcast_all():
 
 
 # ─── record_pong ──────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_record_pong_updates_timestamp():
@@ -203,6 +212,7 @@ async def test_record_pong_unknown_user():
 
 
 # ─── heartbeat ────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_start_and_stop_heartbeat():
@@ -232,6 +242,7 @@ async def test_stop_heartbeat_no_task():
 
 
 # ─── _remove_dead ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_remove_dead_cleans_user_if_empty():

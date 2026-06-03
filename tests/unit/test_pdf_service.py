@@ -13,8 +13,8 @@ from src.infrastructure.services.pdf_service import (
 )
 from io import BytesIO
 
-
 # ─── helpers ─────────────────────────────────────────────────────────────────
+
 
 def test_base_doc_creates_document():
     buf = BytesIO()
@@ -51,6 +51,7 @@ def test_footer_text_returns_elements():
 
 
 # ─── PDFService ───────────────────────────────────────────────────────────────
+
 
 def test_generate_certificate_returns_bytes():
     svc = PDFService()

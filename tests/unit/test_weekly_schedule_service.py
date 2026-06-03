@@ -33,14 +33,13 @@ from src.presentation.schemas.weekly_schedule import (
     WeeklyScheduleTemplateUpdate,
 )
 
-
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 
 def _make_template(
     status: ScheduleStatus = ScheduleStatus.DRAFT,
     start_date: datetime = datetime(2026, 2, 9, tzinfo=timezone.utc),  # Monday
-    end_date: datetime = datetime(2026, 2, 15, tzinfo=timezone.utc),   # Sunday
+    end_date: datetime = datetime(2026, 2, 15, tzinfo=timezone.utc),  # Sunday
 ) -> WeeklyScheduleTemplate:
     return WeeklyScheduleTemplate(
         id=uuid4(),
@@ -665,8 +664,8 @@ class TestAddServantToSlot:
         """Template covers Mon-Fri, slot.day=SAMEDI → day not found → 400."""
         schedule_repo = AsyncMock()
         template = _make_template(
-            start_date=datetime(2026, 2, 9),   # Monday
-            end_date=datetime(2026, 2, 13),    # Friday
+            start_date=datetime(2026, 2, 9),  # Monday
+            end_date=datetime(2026, 2, 13),  # Friday
         )
         slot = _make_slot(template, day=WeekDay.SAMEDI)
         schedule_repo.get_slot.return_value = slot
@@ -762,9 +761,7 @@ class TestAddServantToSlot:
             "src.application.services.weekly_schedule_service.is_within_mass_window",
             return_value=True,
         ):
-            result = await svc.add_servant_to_slot(
-                slot.id, SlotServantCreate(servant_name="Jean"), uuid4()
-            )
+            result = await svc.add_servant_to_slot(slot.id, SlotServantCreate(servant_name="Jean"), uuid4())
         assert result.slot_id == slot.id
         schedule_repo.create_assignment.assert_called_once()
 

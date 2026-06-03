@@ -316,6 +316,7 @@ class TestAdminUpdatePhoneAndLink:
 
     async def test_link_parent_servant_not_found(self, db_session):
         from unittest.mock import AsyncMock
+
         service = _make_service(db_session)
         with pytest.raises(HTTPException) as exc:
             await service.link_parent(uuid4(), uuid4())

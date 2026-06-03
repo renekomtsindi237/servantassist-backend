@@ -13,8 +13,8 @@ from src.infrastructure.services.google_analytics_service import (
     get_today_summary,
 )
 
-
 # ─── _sa_json ─────────────────────────────────────────────────────────────────
+
 
 def test_sa_json_empty_string():
     assert _sa_json("") is None
@@ -35,6 +35,7 @@ def test_sa_json_valid():
 
 # ─── _mock_realtime / _mock_summary ──────────────────────────────────────────
 
+
 def test_mock_realtime():
     r = _mock_realtime()
     assert r["source"] == "mock"
@@ -49,6 +50,7 @@ def test_mock_summary():
 
 
 # ─── _parse_realtime ──────────────────────────────────────────────────────────
+
 
 def test_parse_realtime_empty():
     result = _parse_realtime({})
@@ -65,9 +67,7 @@ def test_parse_realtime_with_data():
             {"name": "screenPageViews"},
         ],
         "dimensionHeaders": [],
-        "totals": [
-            {"metricValues": [{"value": "42"}, {"value": "100"}, {"value": "200"}]}
-        ],
+        "totals": [{"metricValues": [{"value": "42"}, {"value": "100"}, {"value": "200"}]}],
         "rows": [],
     }
     result = _parse_realtime(data)
@@ -90,6 +90,7 @@ def test_parse_realtime_with_empty_totals():
 
 
 # ─── _parse_summary ───────────────────────────────────────────────────────────
+
 
 def test_parse_summary_empty():
     result = _parse_summary({})
@@ -123,8 +124,11 @@ def test_parse_summary_with_data():
             {
                 "dimensionValues": [{"value": "/dashboard"}],
                 "metricValues": [
-                    {"value": "3"}, {"value": "5"},
-                    {"value": "20"}, {"value": "0.2"}, {"value": "90"},
+                    {"value": "3"},
+                    {"value": "5"},
+                    {"value": "20"},
+                    {"value": "0.2"},
+                    {"value": "90"},
                 ],
             }
         ],
@@ -138,6 +142,7 @@ def test_parse_summary_with_data():
 
 
 # ─── get_realtime ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_get_realtime_no_sa():
@@ -173,8 +178,10 @@ async def test_get_realtime_api_success():
         "rows": [],
     }
 
-    with patch("src.infrastructure.services.google_analytics_service._get_access_token", return_value="token123"), \
-         patch("httpx.AsyncClient") as MockClient:
+    with (
+        patch("src.infrastructure.services.google_analytics_service._get_access_token", return_value="token123"),
+        patch("httpx.AsyncClient") as MockClient,
+    ):
         instance = AsyncMock()
         instance.__aenter__ = AsyncMock(return_value=instance)
         instance.__aexit__ = AsyncMock(return_value=None)
@@ -190,8 +197,10 @@ async def test_get_realtime_api_success():
 async def test_get_realtime_api_exception():
     sa = '{"client_email": "sa@test.com", "private_key": "key"}'
 
-    with patch("src.infrastructure.services.google_analytics_service._get_access_token", return_value="tok"), \
-         patch("httpx.AsyncClient") as MockClient:
+    with (
+        patch("src.infrastructure.services.google_analytics_service._get_access_token", return_value="tok"),
+        patch("httpx.AsyncClient") as MockClient,
+    ):
         instance = AsyncMock()
         instance.__aenter__ = AsyncMock(return_value=instance)
         instance.__aexit__ = AsyncMock(return_value=None)
@@ -204,6 +213,7 @@ async def test_get_realtime_api_exception():
 
 
 # ─── get_today_summary ───────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_get_today_summary_no_sa():
@@ -226,12 +236,12 @@ async def test_get_today_summary_success():
     sa = '{"client_email": "sa@test.com", "private_key": "key"}'
 
     mock_response = MagicMock()
-    mock_response.json.return_value = {
-        "metricHeaders": [], "dimensionHeaders": [], "totals": [], "rows": []
-    }
+    mock_response.json.return_value = {"metricHeaders": [], "dimensionHeaders": [], "totals": [], "rows": []}
 
-    with patch("src.infrastructure.services.google_analytics_service._get_access_token", return_value="token123"), \
-         patch("httpx.AsyncClient") as MockClient:
+    with (
+        patch("src.infrastructure.services.google_analytics_service._get_access_token", return_value="token123"),
+        patch("httpx.AsyncClient") as MockClient,
+    ):
         instance = AsyncMock()
         instance.__aenter__ = AsyncMock(return_value=instance)
         instance.__aexit__ = AsyncMock(return_value=None)
@@ -247,8 +257,10 @@ async def test_get_today_summary_success():
 async def test_get_today_summary_exception():
     sa = '{"client_email": "sa@test.com", "private_key": "key"}'
 
-    with patch("src.infrastructure.services.google_analytics_service._get_access_token", return_value="tok"), \
-         patch("httpx.AsyncClient") as MockClient:
+    with (
+        patch("src.infrastructure.services.google_analytics_service._get_access_token", return_value="tok"),
+        patch("httpx.AsyncClient") as MockClient,
+    ):
         instance = AsyncMock()
         instance.__aenter__ = AsyncMock(return_value=instance)
         instance.__aexit__ = AsyncMock(return_value=None)

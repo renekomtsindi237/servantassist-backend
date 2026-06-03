@@ -320,8 +320,7 @@ async def test_record_payment_new_partial_payment():
     period = _make_period(amount_expected=5000)
     user = _make_user()
     payment = _make_payment(
-        period_id=period.id, user_id=user.id, amount_paid=2500,
-        status=CotisationStatus.PAYE_PARTIELLEMENT
+        period_id=period.id, user_id=user.id, amount_paid=2500, status=CotisationStatus.PAYE_PARTIELLEMENT
     )
     svc = _make_svc()
     svc.period_repo.get.return_value = period
@@ -339,8 +338,7 @@ async def test_record_payment_existing_updates():
     period = _make_period(amount_expected=5000)
     user = _make_user()
     existing = _make_payment(
-        period_id=period.id, user_id=user.id, amount_paid=2500,
-        status=CotisationStatus.PAYE_PARTIELLEMENT
+        period_id=period.id, user_id=user.id, amount_paid=2500, status=CotisationStatus.PAYE_PARTIELLEMENT
     )
     updated = _make_payment(period_id=period.id, user_id=user.id, amount_paid=5000)
     svc = _make_svc()

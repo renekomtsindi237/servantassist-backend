@@ -342,6 +342,7 @@ async def test_list_postes_one_occupied():
     svc.nomination_repo.enrich_nomination.return_value = _enriched_nomination(nom)
 
     call_count = 0
+
     async def get_active_by_poste(poste):
         nonlocal call_count
         call_count += 1
@@ -608,9 +609,11 @@ async def test_create_council_meeting():
 async def test_record_council_attendance_meeting_not_found():
     svc = _make_svc()
     svc.council_repo.get_meeting.return_value = None
-    data = CouncilAttendanceRecordList(attendances=[
-        CouncilAttendanceRecord(responsable_id=uuid4(), is_present=True),
-    ])
+    data = CouncilAttendanceRecordList(
+        attendances=[
+            CouncilAttendanceRecord(responsable_id=uuid4(), is_present=True),
+        ]
+    )
     with pytest.raises(Exception) as exc:
         await svc.record_council_attendance(uuid4(), data)
     assert exc.value.status_code == 404
@@ -623,10 +626,12 @@ async def test_record_council_attendance_success():
     svc.council_repo.get_meeting.return_value = meeting
     r1_id = uuid4()
     r2_id = uuid4()
-    data = CouncilAttendanceRecordList(attendances=[
-        CouncilAttendanceRecord(responsable_id=r1_id, is_present=True),
-        CouncilAttendanceRecord(responsable_id=r2_id, is_present=False, excuse="Malade"),
-    ])
+    data = CouncilAttendanceRecordList(
+        attendances=[
+            CouncilAttendanceRecord(responsable_id=r1_id, is_present=True),
+            CouncilAttendanceRecord(responsable_id=r2_id, is_present=False, excuse="Malade"),
+        ]
+    )
     results = await svc.record_council_attendance(meeting.id, data)
     assert len(results) == 2
     assert svc.council_repo.add_attendance.call_count == 2

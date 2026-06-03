@@ -22,6 +22,7 @@ NOW = datetime(2026, 6, 1, 10, 0, 0)
 
 # ─── Factories ────────────────────────────────────────────────────────────────
 
+
 def _make_notification(
     channel=NotificationChannel.IN_APP,
     notification_type=NotificationType.GENERAL,
@@ -69,6 +70,7 @@ def _make_svc(session=None) -> NotificationService:
 
 
 # ─── send_notification — IN_APP ───────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_send_notification_in_app_no_ws():
@@ -200,6 +202,7 @@ async def test_send_notification_whatsapp_no_phone():
 
 # ─── _send_email ─────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_send_email_user_not_found():
     svc = _make_svc()
@@ -259,6 +262,7 @@ async def test_send_email_exception():
 
 
 # ─── _dispatch_email ──────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_dispatch_email_affectation():
@@ -328,6 +332,7 @@ async def test_dispatch_email_discipline_general():
 
 
 # ─── _send_whatsapp ───────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_send_whatsapp_user_not_found():
@@ -404,6 +409,7 @@ async def test_send_whatsapp_exception():
 
 # ─── broadcast ────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_broadcast_to_unknown_target():
     svc = _make_svc()
@@ -459,6 +465,7 @@ async def test_broadcast_success_two_recipients():
 
 
 # ─── _resolve_recipients ──────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_resolve_recipients_unknown_returns_empty():
@@ -529,6 +536,7 @@ async def test_resolve_recipients_subgroup():
 
 # ─── get_user_notifications ───────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_user_notifications():
     svc = _make_svc()
@@ -552,6 +560,7 @@ async def test_get_user_notifications():
 
 
 # ─── get_notification ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_get_notification_not_found():
@@ -587,6 +596,7 @@ async def test_get_notification_success():
 
 # ─── mark_as_read / get_user_stats ───────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_mark_as_read():
     svc = _make_svc()
@@ -613,6 +623,7 @@ async def test_get_user_stats():
 
 # ─── get_all_notifications ────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_all_notifications():
     svc = _make_svc()
@@ -631,6 +642,7 @@ async def test_get_all_notifications():
 
 
 # ─── get_preferences ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_get_preferences_no_existing():
@@ -668,6 +680,7 @@ async def test_get_preferences_with_existing():
 
 
 # ─── update_preference ───────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_update_preference():

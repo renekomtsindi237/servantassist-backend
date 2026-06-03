@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 from starlette.requests import Request
 from starlette.responses import Response
 
-
 # ─── LoggingMiddleware ────────────────────────────────────────────────────────
+
 
 def _make_logging_app() -> FastAPI:
     from src.presentation.middleware.logging_middleware import LoggingMiddleware
@@ -65,8 +65,10 @@ def test_logging_middleware_4xx():
 
 # ─── OWASPGuard middleware ────────────────────────────────────────────────────
 
+
 def _make_owasp_app() -> FastAPI:
     import os
+
     os.environ["ALLOWED_HOSTS"] = "testserver,localhost,127.0.0.1"
     from src.presentation.middleware.owasp_guard import OWASPGuardMiddleware
 
@@ -114,6 +116,7 @@ def test_owasp_normal_query_string():
 
 
 # ─── LoggingMiddleware dispatch unit ─────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_logging_middleware_dispatch_200():

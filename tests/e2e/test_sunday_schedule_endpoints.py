@@ -643,9 +643,7 @@ class TestSundayMassAssignments:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
-    async def test_remove_nonexistent_assignment_returns_404(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_remove_nonexistent_assignment_returns_404(self, client: AsyncClient, admin_user: User):
         resp = await client.delete(
             f"/api/v1/sunday-schedule/assignments/{uuid4()}",
             headers=make_auth_header(admin_user),
@@ -661,9 +659,7 @@ class TestSundayMassAssignments:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
-    async def test_mark_presence_nonexistent_returns_404(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_mark_presence_nonexistent_returns_404(self, client: AsyncClient, admin_user: User):
         resp = await client.patch(
             f"/api/v1/sunday-schedule/assignments/{uuid4()}/presence",
             json={"is_present": True},
@@ -728,9 +724,7 @@ class TestSundayScheduleHistory:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
-    async def test_history_nonexistent_template_returns_empty(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_history_nonexistent_template_returns_empty(self, client: AsyncClient, admin_user: User):
         """Historique d'un template inexistant retourne liste vide ou 404."""
         resp = await client.get(
             f"/api/v1/sunday-schedule/{uuid4()}/history",

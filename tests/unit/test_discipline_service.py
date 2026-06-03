@@ -213,9 +213,9 @@ async def test_convoke_success():
     svc.case_repo.get.return_value = case
     svc.case_repo.update.return_value = case
     svc.case_repo.enrich_case.return_value = _enriched_case(case)
-    result = await svc.convoke(case.id, DisciplineConvocation(
-        convocation_date=NOW, convocation_notes="Présence requise"
-    ))
+    result = await svc.convoke(
+        case.id, DisciplineConvocation(convocation_date=NOW, convocation_notes="Présence requise")
+    )
     assert result.id == case.id
 
 

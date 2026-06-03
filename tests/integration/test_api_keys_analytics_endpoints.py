@@ -2,6 +2,7 @@
 
 import sys
 import os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
@@ -89,25 +90,34 @@ def _token(user: User) -> str:
 @pytest_asyncio.fixture()
 async def admin_user(db_session):
     return await _create_user(
-        db_session, id=uuid4(), email="admin@t.com",
+        db_session,
+        id=uuid4(),
+        email="admin@t.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
-        first_name="Admin", last_name="Test",
-        role=UserRole.ADMIN, is_active=True,
+        first_name="Admin",
+        last_name="Test",
+        role=UserRole.ADMIN,
+        is_active=True,
     )
 
 
 @pytest_asyncio.fixture()
 async def servant_user(db_session):
     return await _create_user(
-        db_session, id=uuid4(), email="servant@t.com",
+        db_session,
+        id=uuid4(),
+        email="servant@t.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
-        first_name="Servant", last_name="Test",
-        role=UserRole.SERVANT, is_active=True,
+        first_name="Servant",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
         phone_number="+237600000001",
     )
 
 
 # ─── API Keys tests ───────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_create_api_key_as_servant(client, servant_user):
@@ -247,6 +257,7 @@ async def test_delete_api_key_forbidden_not_owner(client, servant_user, admin_us
 
 
 # ─── Analytics tests ──────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_analytics_realtime_as_admin(client, admin_user):

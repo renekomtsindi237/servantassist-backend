@@ -16,7 +16,6 @@ from src.core.entities.user import User
 from src.core.entities.servant_parent import ServantParent
 from tests.conftest import VALID_PASSWORD, make_auth_header
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  GET /parent/children
 # ═══════════════════════════════════════════════════════════════════════════
@@ -53,9 +52,7 @@ class TestGetMyChildren:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
-    async def test_parent_with_no_children_returns_empty_list(
-        self, client: AsyncClient, parent_user: User
-    ):
+    async def test_parent_with_no_children_returns_empty_list(self, client: AsyncClient, parent_user: User):
         resp = await client.get(
             "/api/v1/parent/children",
             headers=make_auth_header(parent_user),
@@ -167,9 +164,7 @@ class TestCreateChildProfile:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
-    async def test_parent_creates_child_successfully(
-        self, client: AsyncClient, parent_user: User
-    ):
+    async def test_parent_creates_child_successfully(self, client: AsyncClient, parent_user: User):
         resp = await client.post(
             "/api/v1/parent/children",
             json={
@@ -189,9 +184,7 @@ class TestCreateChildProfile:
         assert body["is_active"] is True
 
     @pytest.mark.asyncio
-    async def test_created_child_appears_in_children_list(
-        self, client: AsyncClient, parent_user: User
-    ):
+    async def test_created_child_appears_in_children_list(self, client: AsyncClient, parent_user: User):
         # Create child
         create_resp = await client.post(
             "/api/v1/parent/children",
@@ -216,9 +209,7 @@ class TestCreateChildProfile:
         assert child_id in ids
 
     @pytest.mark.asyncio
-    async def test_child_without_phone_uses_uuid_email(
-        self, client: AsyncClient, parent_user: User
-    ):
+    async def test_child_without_phone_uses_uuid_email(self, client: AsyncClient, parent_user: User):
         resp = await client.post(
             "/api/v1/parent/children",
             json={
@@ -235,9 +226,7 @@ class TestCreateChildProfile:
         assert "@bmra.servant.local" in body.get("email", "")
 
     @pytest.mark.asyncio
-    async def test_missing_required_fields_returns_422(
-        self, client: AsyncClient, parent_user: User
-    ):
+    async def test_missing_required_fields_returns_422(self, client: AsyncClient, parent_user: User):
         resp = await client.post(
             "/api/v1/parent/children",
             json={"first_name": "Incomplete"},  # missing last_name, birth_date, password
@@ -246,9 +235,7 @@ class TestCreateChildProfile:
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_short_password_returns_422(
-        self, client: AsyncClient, parent_user: User
-    ):
+    async def test_short_password_returns_422(self, client: AsyncClient, parent_user: User):
         resp = await client.post(
             "/api/v1/parent/children",
             json={

@@ -357,9 +357,7 @@ async def create_servant_direct(
     auth_service = AuthService(user_repo, None)
 
     try:
-        created_user = await auth_service.register_user(
-            user_data, invitation_code=None, admin_id=current_admin.id
-        )
+        created_user = await auth_service.register_user(user_data, invitation_code=None, admin_id=current_admin.id)
         return created_user
     except HTTPException:
         raise

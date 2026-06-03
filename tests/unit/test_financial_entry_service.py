@@ -342,9 +342,7 @@ async def test_get_statistics_no_entries():
 @pytest.mark.asyncio
 async def test_get_summary_by_category():
     svc = _make_svc()
-    svc.entry_repo.get_summary_by_category.return_value = [
-        {"category": "COTISATION", "total_amount": 30000}
-    ]
+    svc.entry_repo.get_summary_by_category.return_value = [{"category": "COTISATION", "total_amount": 30000}]
     result = await svc.get_summary_by_category(START, END)
     assert len(result) == 1
 

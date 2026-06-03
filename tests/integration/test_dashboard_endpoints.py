@@ -28,6 +28,7 @@ VALID_PASSWORD = "TestPass1"
 
 # ─── Test app including dashboard + classement ────────────────────────────────
 
+
 def _make_app() -> FastAPI:
     from src.presentation.api.v1 import dashboard, classement, auth, users, admin
 
@@ -93,35 +94,48 @@ def _token(user: User) -> str:
 @pytest_asyncio.fixture()
 async def admin_user(db_session):
     return await _create_user(
-        db_session, id=uuid4(), email="admin@t.com",
+        db_session,
+        id=uuid4(),
+        email="admin@t.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
-        first_name="Admin", last_name="Test",
-        role=UserRole.ADMIN, is_active=True,
+        first_name="Admin",
+        last_name="Test",
+        role=UserRole.ADMIN,
+        is_active=True,
     )
 
 
 @pytest_asyncio.fixture()
 async def aumonier_user(db_session):
     return await _create_user(
-        db_session, id=uuid4(), email="aumonier@t.com",
+        db_session,
+        id=uuid4(),
+        email="aumonier@t.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
-        first_name="Aumonier", last_name="Test",
-        role=UserRole.AUMÔNIER, is_active=True,
+        first_name="Aumonier",
+        last_name="Test",
+        role=UserRole.AUMÔNIER,
+        is_active=True,
     )
 
 
 @pytest_asyncio.fixture()
 async def servant_user(db_session):
     return await _create_user(
-        db_session, id=uuid4(), email="servant@t.com",
+        db_session,
+        id=uuid4(),
+        email="servant@t.com",
         hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
-        first_name="Servant", last_name="Test",
-        role=UserRole.SERVANT, is_active=True,
+        first_name="Servant",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
         phone_number="+237600000001",
     )
 
 
 # ─── Dashboard tests ──────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_dashboard_summary_as_admin(client, admin_user):
@@ -246,6 +260,7 @@ async def test_dashboard_top_servants_limit(client, admin_user):
 
 
 # ─── Classement tests ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_classement_list_published_unauthenticated(client):

@@ -32,7 +32,6 @@ from src.application.queries.user_queries import (
 )
 from src.core.entities.user import UserRole
 
-
 # ── CreateInvitationCommand ────────────────────────────────────────────────
 
 

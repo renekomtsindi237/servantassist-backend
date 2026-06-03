@@ -18,7 +18,6 @@ from src.core.entities.attendance_session import AttendanceRecord, AttendanceSes
 from src.core.entities.user import User
 from tests.conftest import make_auth_header
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 #  Accès non authentifié
 # ═══════════════════════════════════════════════════════════════════════════
@@ -38,9 +37,7 @@ class TestDossierAuth:
 
 class TestDossierRBAC:
     @pytest.mark.asyncio
-    async def test_servant_can_read_own_dossier(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_servant_can_read_own_dossier(self, client: AsyncClient, servant_user: User):
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
             headers=make_auth_header(servant_user),
@@ -61,9 +58,7 @@ class TestDossierRBAC:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
-    async def test_admin_can_read_any_dossier(
-        self, client: AsyncClient, admin_user: User, servant_user: User
-    ):
+    async def test_admin_can_read_any_dossier(self, client: AsyncClient, admin_user: User, servant_user: User):
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
             headers=make_auth_header(admin_user),
@@ -71,9 +66,7 @@ class TestDossierRBAC:
         assert resp.status_code == 200
 
     @pytest.mark.asyncio
-    async def test_aumonier_can_read_any_dossier(
-        self, client: AsyncClient, aumonier_user: User, servant_user: User
-    ):
+    async def test_aumonier_can_read_any_dossier(self, client: AsyncClient, aumonier_user: User, servant_user: User):
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
             headers=make_auth_header(aumonier_user),
@@ -81,9 +74,7 @@ class TestDossierRBAC:
         assert resp.status_code == 200
 
     @pytest.mark.asyncio
-    async def test_parent_can_read_any_dossier(
-        self, client: AsyncClient, parent_user: User, servant_user: User
-    ):
+    async def test_parent_can_read_any_dossier(self, client: AsyncClient, parent_user: User, servant_user: User):
         # PARENT is not SERVANT, so no cross-access restriction
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
@@ -99,9 +90,7 @@ class TestDossierRBAC:
 
 class TestDossierNotFound:
     @pytest.mark.asyncio
-    async def test_nonexistent_user_returns_404(
-        self, client: AsyncClient, admin_user: User
-    ):
+    async def test_nonexistent_user_returns_404(self, client: AsyncClient, admin_user: User):
         random_id = uuid4()
         resp = await client.get(
             f"/api/v1/dossier/{random_id}",
@@ -117,9 +106,7 @@ class TestDossierNotFound:
 
 class TestDossierStructure:
     @pytest.mark.asyncio
-    async def test_response_has_user_info(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_response_has_user_info(self, client: AsyncClient, servant_user: User):
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
             headers=make_auth_header(servant_user),
@@ -133,9 +120,7 @@ class TestDossierStructure:
         assert "last_name" in user_info
 
     @pytest.mark.asyncio
-    async def test_response_has_attendance_stats(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_response_has_attendance_stats(self, client: AsyncClient, servant_user: User):
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
             headers=make_auth_header(servant_user),
@@ -151,9 +136,7 @@ class TestDossierStructure:
         assert "attendance_rate" in stats
 
     @pytest.mark.asyncio
-    async def test_response_has_all_required_sections(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_response_has_all_required_sections(self, client: AsyncClient, servant_user: User):
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
             headers=make_auth_header(servant_user),
@@ -167,9 +150,7 @@ class TestDossierStructure:
         assert "generated_at" in body
 
     @pytest.mark.asyncio
-    async def test_empty_servant_has_zero_stats(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_empty_servant_has_zero_stats(self, client: AsyncClient, servant_user: User):
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
             headers=make_auth_header(servant_user),
@@ -213,9 +194,7 @@ class TestDossierStructure:
         assert nominations[0]["poste"] == "DELEGUE"
 
     @pytest.mark.asyncio
-    async def test_sections_are_lists(
-        self, client: AsyncClient, servant_user: User
-    ):
+    async def test_sections_are_lists(self, client: AsyncClient, servant_user: User):
         resp = await client.get(
             f"/api/v1/dossier/{servant_user.id}",
             headers=make_auth_header(servant_user),
