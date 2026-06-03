@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import Column
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy import String as SAString
+from sqlalchemy import types
 from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
@@ -16,6 +17,28 @@ class UserRole(str, Enum):
     SERVANT = "SERVANT"
     PARENT = "PARENT"
     AUMÔNIER = "AUMÔNIER"
+
+
+class _UserRoleType(types.TypeDecorator):
+    """VARCHAR(20) column that transparently converts to/from UserRole enum.
+
+    Needed because asyncpg binary protocol cannot implicitly cast text OID to
+    the PostgreSQL userrole enum OID. Storing as VARCHAR avoids the mismatch
+    while this decorator ensures SQLAlchemy always surfaces a UserRole value.
+    """
+
+    impl = SAString(20)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if isinstance(value, UserRole):
+            return value.value
+        return value  # already a plain string or None
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            return UserRole(value)
+        return value
 
 
 class ServantPosition(str, Enum):
@@ -42,7 +65,7 @@ class UserBase(SQLModel):
     last_name: str
     role: UserRole = Field(
         default=UserRole.SERVANT,
-        sa_column=Column(SAString(20), nullable=False, server_default="SERVANT"),
+        sa_column=Column(_UserRoleType(), nullable=False, server_default="SERVANT"),
     )
     is_active: bool = Field(default=True)
     phone_number: Optional[str] = Field(default=None, index=True)  # Indexed for PARENT/SERVANT login
