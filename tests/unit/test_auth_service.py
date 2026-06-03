@@ -666,7 +666,8 @@ class TestForgotAndReset:
 
     async def test_register_servant_age_under_13_rejected(self):
         """Servant < 13 ans sans parent_id â†’ 422."""
-        from datetime import date as _date, datetime as _dt
+        from datetime import date as _date
+        from datetime import datetime as _dt
 
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=None)

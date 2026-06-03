@@ -1,9 +1,10 @@
 """Unit tests for domain event handlers and core utils."""
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
+
+import pytest
 
 from src.core.utils import maybe_to_naive_utc, to_naive_utc, utc_now
 from src.infrastructure.events.bus import EventBus
@@ -99,8 +100,8 @@ def test_register_all_handlers_runs():
 
 @pytest.mark.asyncio
 async def test_audit_user_registered():
-    from src.infrastructure.events.handlers import audit_user_registered
     from src.core.events.domain_events import UserRegistered
+    from src.infrastructure.events.handlers import audit_user_registered
 
     event = UserRegistered(user_id=uuid4(), email="u@t.com", first_name="J", role="SERVANT", created_by_admin=False)
     await audit_user_registered(event)
@@ -108,8 +109,8 @@ async def test_audit_user_registered():
 
 @pytest.mark.asyncio
 async def test_notify_user_registered_skip_no_email():
-    from src.infrastructure.events.handlers import notify_user_registered
     from src.core.events.domain_events import UserRegistered
+    from src.infrastructure.events.handlers import notify_user_registered
 
     event = UserRegistered(user_id=uuid4(), email=None, first_name="J", role="ADMIN", created_by_admin=True)
     # No email → should return silently
@@ -118,8 +119,8 @@ async def test_notify_user_registered_skip_no_email():
 
 @pytest.mark.asyncio
 async def test_notify_user_registered_skip_non_admin_role():
-    from src.infrastructure.events.handlers import notify_user_registered
     from src.core.events.domain_events import UserRegistered
+    from src.infrastructure.events.handlers import notify_user_registered
 
     event = UserRegistered(user_id=uuid4(), email="u@t.com", first_name="J", role="SERVANT", created_by_admin=False)
     with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
@@ -129,8 +130,8 @@ async def test_notify_user_registered_skip_non_admin_role():
 
 @pytest.mark.asyncio
 async def test_notify_user_registered_admin_sends_welcome():
-    from src.infrastructure.events.handlers import notify_user_registered
     from src.core.events.domain_events import UserRegistered
+    from src.infrastructure.events.handlers import notify_user_registered
 
     event = UserRegistered(
         user_id=uuid4(), email="admin@t.com", first_name="René", role="ADMIN", created_by_admin=False
@@ -145,8 +146,8 @@ async def test_notify_user_registered_admin_sends_welcome():
 
 @pytest.mark.asyncio
 async def test_audit_user_invited():
-    from src.infrastructure.events.handlers import audit_user_invited
     from src.core.events.domain_events import UserInvited
+    from src.infrastructure.events.handlers import audit_user_invited
 
     event = UserInvited(invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT", email="p@t.com", phone_number=None)
     await audit_user_invited(event)
@@ -154,8 +155,8 @@ async def test_audit_user_invited():
 
 @pytest.mark.asyncio
 async def test_notify_user_invited_no_email():
-    from src.infrastructure.events.handlers import notify_user_invited
     from src.core.events.domain_events import UserInvited
+    from src.infrastructure.events.handlers import notify_user_invited
 
     event = UserInvited(
         invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT", email=None, phone_number="+237699000001"
@@ -165,8 +166,8 @@ async def test_notify_user_invited_no_email():
 
 @pytest.mark.asyncio
 async def test_notify_user_invited_sends_email():
-    from src.infrastructure.events.handlers import notify_user_invited
     from src.core.events.domain_events import UserInvited
+    from src.infrastructure.events.handlers import notify_user_invited
 
     event = UserInvited(invitation_id=uuid4(), created_by_id=uuid4(), role="PARENT", email="p@t.com", phone_number=None)
     # The handler imports EmailService locally — just ensure it runs without error
@@ -175,8 +176,8 @@ async def test_notify_user_invited_sends_email():
 
 @pytest.mark.asyncio
 async def test_audit_password_reset():
-    from src.infrastructure.events.handlers import audit_password_reset
     from src.core.events.domain_events import PasswordReset
+    from src.infrastructure.events.handlers import audit_password_reset
 
     event = PasswordReset(user_id=uuid4(), reset_by_admin_id=None)
     await audit_password_reset(event)
@@ -184,8 +185,8 @@ async def test_audit_password_reset():
 
 @pytest.mark.asyncio
 async def test_audit_user_deactivated():
-    from src.infrastructure.events.handlers import audit_user_deactivated
     from src.core.events.domain_events import UserDeactivated
+    from src.infrastructure.events.handlers import audit_user_deactivated
 
     event = UserDeactivated(user_id=uuid4(), deactivated_by_id=uuid4())
     await audit_user_deactivated(event)
@@ -193,8 +194,8 @@ async def test_audit_user_deactivated():
 
 @pytest.mark.asyncio
 async def test_audit_user_activated():
-    from src.infrastructure.events.handlers import audit_user_activated
     from src.core.events.domain_events import UserActivated
+    from src.infrastructure.events.handlers import audit_user_activated
 
     event = UserActivated(user_id=uuid4())
     await audit_user_activated(event)
@@ -202,8 +203,8 @@ async def test_audit_user_activated():
 
 @pytest.mark.asyncio
 async def test_audit_user_deleted():
-    from src.infrastructure.events.handlers import audit_user_deleted
     from src.core.events.domain_events import UserDeleted
+    from src.infrastructure.events.handlers import audit_user_deleted
 
     event = UserDeleted(user_id=uuid4(), deleted_by_id=uuid4())
     await audit_user_deleted(event)
@@ -211,8 +212,8 @@ async def test_audit_user_deleted():
 
 @pytest.mark.asyncio
 async def test_audit_discipline_case_opened():
-    from src.infrastructure.events.handlers import audit_discipline_case_opened
     from src.core.events.domain_events import DisciplineCaseOpened
+    from src.infrastructure.events.handlers import audit_discipline_case_opened
 
     event = DisciplineCaseOpened(
         case_id=uuid4(), accused_user_id=uuid4(), offense_category="ABSENCE", opened_by_id=uuid4()
@@ -222,8 +223,8 @@ async def test_audit_discipline_case_opened():
 
 @pytest.mark.asyncio
 async def test_audit_discipline_sanction():
-    from src.infrastructure.events.handlers import audit_discipline_sanction
     from src.core.events.domain_events import DisciplineSanctionIssued
+    from src.infrastructure.events.handlers import audit_discipline_sanction
 
     event = DisciplineSanctionIssued(
         case_id=uuid4(), accused_user_id=uuid4(), sanction_type="AVERTISSEMENT", issued_by_id=uuid4()
@@ -233,8 +234,8 @@ async def test_audit_discipline_sanction():
 
 @pytest.mark.asyncio
 async def test_audit_attendance_recorded():
-    from src.infrastructure.events.handlers import audit_attendance_recorded
     from src.core.events.domain_events import AttendanceRecorded
+    from src.infrastructure.events.handlers import audit_attendance_recorded
 
     event = AttendanceRecorded(attendance_id=uuid4(), user_id=uuid4(), attendance_type="MESSE", status="PRESENT")
     await audit_attendance_recorded(event)

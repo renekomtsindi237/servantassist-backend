@@ -3,8 +3,9 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, String as SAString
+from sqlalchemy import Column
 from sqlalchemy import Enum as SAEnum
+from sqlalchemy import String as SAString
 from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now

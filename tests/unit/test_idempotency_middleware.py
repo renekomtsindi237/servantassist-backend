@@ -19,9 +19,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from src.presentation.middleware.idempotency import (
+    _TTL_SECONDS,
     IdempotencyMiddleware,
     _InMemoryStore,
-    _TTL_SECONDS,
 )
 
 # ── _InMemoryStore ─────────────────────────────────────────────────────────
@@ -187,8 +187,9 @@ class TestIdempotencyMiddlewareDispatch:
     @pytest.mark.asyncio
     async def test_in_progress_returns_409(self):
         """Second concurrent POST with same key → 409."""
-        from src.presentation.middleware.idempotency import _memory_store
         import hashlib
+
+        from src.presentation.middleware.idempotency import _memory_store
 
         app = MagicMock()
         middleware = IdempotencyMiddleware(app=app)
@@ -212,8 +213,9 @@ class TestIdempotencyMiddlewareDispatch:
     @pytest.mark.asyncio
     async def test_cache_hit_returns_cached_response(self):
         """Second POST with same key after success → cached response."""
-        from src.presentation.middleware.idempotency import _memory_store
         import hashlib
+
+        from src.presentation.middleware.idempotency import _memory_store
 
         app = MagicMock()
         middleware = IdempotencyMiddleware(app=app)
@@ -239,8 +241,9 @@ class TestIdempotencyMiddlewareDispatch:
     @pytest.mark.asyncio
     async def test_non_2xx_response_not_cached(self):
         """POST with non-2xx response → not cached, key removed."""
-        from src.presentation.middleware.idempotency import _memory_store
         import hashlib
+
+        from src.presentation.middleware.idempotency import _memory_store
 
         app = MagicMock()
         middleware = IdempotencyMiddleware(app=app)
@@ -264,8 +267,9 @@ class TestIdempotencyMiddlewareDispatch:
     @pytest.mark.asyncio
     async def test_2xx_response_cached(self):
         """POST with 2xx response → cached for subsequent calls."""
-        from src.presentation.middleware.idempotency import _memory_store
         import hashlib
+
+        from src.presentation.middleware.idempotency import _memory_store
 
         app = MagicMock()
         middleware = IdempotencyMiddleware(app=app)

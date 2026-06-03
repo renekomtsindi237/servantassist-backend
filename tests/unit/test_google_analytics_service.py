@@ -1,7 +1,8 @@
 """Unit tests for google_analytics_service module."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from src.infrastructure.services.google_analytics_service import (
     _mock_realtime,

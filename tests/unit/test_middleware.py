@@ -1,7 +1,8 @@
 """Unit tests for HTTP middleware (logging, owasp_guard, error_handler)."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.requests import Request
@@ -120,8 +121,9 @@ def test_owasp_normal_query_string():
 
 @pytest.mark.asyncio
 async def test_logging_middleware_dispatch_200():
-    from src.presentation.middleware.logging_middleware import LoggingMiddleware
     from starlette.applications import Starlette
+
+    from src.presentation.middleware.logging_middleware import LoggingMiddleware
 
     app = Starlette()
     mw = LoggingMiddleware(app)
@@ -145,8 +147,9 @@ async def test_logging_middleware_dispatch_200():
 
 @pytest.mark.asyncio
 async def test_logging_middleware_dispatch_500():
-    from src.presentation.middleware.logging_middleware import LoggingMiddleware
     from starlette.applications import Starlette
+
+    from src.presentation.middleware.logging_middleware import LoggingMiddleware
 
     app = Starlette()
     mw = LoggingMiddleware(app)
@@ -170,8 +173,9 @@ async def test_logging_middleware_dispatch_500():
 
 @pytest.mark.asyncio
 async def test_logging_middleware_audit_path_dispatch():
-    from src.presentation.middleware.logging_middleware import LoggingMiddleware
     from starlette.applications import Starlette
+
+    from src.presentation.middleware.logging_middleware import LoggingMiddleware
 
     app = Starlette()
     mw = LoggingMiddleware(app)
@@ -195,8 +199,9 @@ async def test_logging_middleware_audit_path_dispatch():
 
 @pytest.mark.asyncio
 async def test_logging_middleware_no_client():
-    from src.presentation.middleware.logging_middleware import LoggingMiddleware
     from starlette.applications import Starlette
+
+    from src.presentation.middleware.logging_middleware import LoggingMiddleware
 
     app = Starlette()
     mw = LoggingMiddleware(app)

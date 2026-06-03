@@ -1,15 +1,17 @@
 """Unit tests for DashboardService."""
 
-import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
+import pytest
+
 from src.application.services.dashboard_service import DashboardService
 from src.core.entities.assignment import Assignment, AssignmentStatus
 from src.core.entities.attendance import Attendance, AttendanceStatus
-from src.core.entities.cotisation import CotisationPeriod, MemberCotisation
+from src.core.entities.cotisation import CotisationPeriod
 from src.core.entities.cotisation import CotisationStatus as CotisationPaymentStatus
+from src.core.entities.cotisation import MemberCotisation
 from src.core.entities.event import Event
 from src.core.entities.user import User, UserRole
 

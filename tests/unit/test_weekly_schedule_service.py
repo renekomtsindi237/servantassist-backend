@@ -3,8 +3,7 @@ Unit tests for WeeklyScheduleService.
 Covers all CRUD methods, status transitions, slot management, and error paths.
 """
 
-from datetime import datetime, timezone
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 

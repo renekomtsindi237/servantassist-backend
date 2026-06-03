@@ -1,9 +1,13 @@
 """Integration tests for api_keys and analytics endpoints."""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from datetime import timedelta
+from typing import AsyncGenerator
+from uuid import uuid4
 
 import pytest
 import pytest_asyncio
@@ -13,21 +17,18 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import AsyncGenerator
-from uuid import uuid4
-from datetime import timedelta
 
 from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
-from src.infrastructure.security.utils import SecurityUtils
 from src.infrastructure.repositories.user_repository import UserRepository
+from src.infrastructure.security.utils import SecurityUtils
 
 TEST_DB = "sqlite+aiosqlite:///:memory:"
 VALID_PASSWORD = "TestPass1"
 
 
 def _make_app() -> FastAPI:
-    from src.presentation.api.v1 import api_keys, analytics, auth, users
+    from src.presentation.api.v1 import analytics, api_keys, auth, users
 
     app = FastAPI()
     app.include_router(api_keys.router, prefix="/api/v1/api-keys")

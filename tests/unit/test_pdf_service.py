@@ -1,6 +1,7 @@
 """Unit tests for PDFService — verifies PDF generation returns bytes."""
 
 from datetime import datetime
+from io import BytesIO
 
 import pytest
 
@@ -11,7 +12,6 @@ from src.infrastructure.services.pdf_service import (
     _header_elements,
     _styles,
 )
-from io import BytesIO
 
 # ─── helpers ─────────────────────────────────────────────────────────────────
 

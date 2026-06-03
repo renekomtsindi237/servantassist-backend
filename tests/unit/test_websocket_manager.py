@@ -1,9 +1,10 @@
 """Unit tests for ConnectionManager WebSocket manager."""
 
 import asyncio
-import pytest
 import time
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from src.infrastructure.websocket.connection_manager import ConnectionManager, _WsConn
 

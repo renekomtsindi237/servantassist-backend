@@ -1,10 +1,10 @@
 """Unit tests for AttendanceSessionService — coverage complète."""
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
+import pytest
 from fastapi import HTTPException
 
 from src.application.services.attendance_session_service import AttendanceSessionService

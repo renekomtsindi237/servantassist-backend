@@ -12,8 +12,8 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 
-from src.core.entities.user import User
 from src.core.entities.servant_parent import ServantParent
+from src.core.entities.user import User
 from tests.conftest import VALID_PASSWORD, make_auth_header
 
 # ═══════════════════════════════════════════════════════════════════════════

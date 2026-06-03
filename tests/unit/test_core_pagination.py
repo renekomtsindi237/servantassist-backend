@@ -1,7 +1,8 @@
 """Unit tests for core.pagination utilities."""
 
-import pytest
 from uuid import UUID, uuid4
+
+import pytest
 
 from src.core.pagination import (
     CursorPage,

@@ -19,7 +19,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 
-from src.core.exceptions import ServantAssistException, ValidationException, NotFoundException
+from src.core.exceptions import NotFoundException, ServantAssistException, ValidationException
 from src.presentation.exceptions.handlers import (
     _client_ip,
     _error_response,
@@ -180,8 +180,9 @@ class TestValidationExceptionHandler:
     @pytest.mark.asyncio
     async def test_returns_422(self):
         import json
-        from pydantic import ValidationError
+
         import pydantic
+        from pydantic import ValidationError
 
         req = make_mock_request()
 
@@ -263,6 +264,7 @@ class TestHttpExceptionHandler:
     @pytest.mark.asyncio
     async def test_4xx_no_error_id(self):
         import json
+
         from fastapi.exceptions import HTTPException
 
         req = make_mock_request()
@@ -275,6 +277,7 @@ class TestHttpExceptionHandler:
     @pytest.mark.asyncio
     async def test_5xx_has_error_id(self):
         import json
+
         from fastapi.exceptions import HTTPException
 
         req = make_mock_request()
@@ -287,6 +290,7 @@ class TestHttpExceptionHandler:
     @pytest.mark.asyncio
     async def test_detail_in_body(self):
         import json
+
         from fastapi.exceptions import HTTPException
 
         req = make_mock_request()
@@ -298,6 +302,7 @@ class TestHttpExceptionHandler:
     @pytest.mark.asyncio
     async def test_401_no_error_id(self):
         import json
+
         from fastapi.exceptions import HTTPException
 
         req = make_mock_request()

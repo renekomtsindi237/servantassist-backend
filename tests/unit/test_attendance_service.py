@@ -2,11 +2,11 @@
 Unit tests for AttendanceService.
 """
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
+import pytest
 from fastapi import HTTPException
 
 from src.application.services.attendance_service import AttendanceService

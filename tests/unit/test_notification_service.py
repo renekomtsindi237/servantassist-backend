@@ -2,10 +2,11 @@
 Unit tests for NotificationService.
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
+
+import pytest
 
 from src.application.services.notification_service import NotificationService
 from src.core.entities.notification import (
