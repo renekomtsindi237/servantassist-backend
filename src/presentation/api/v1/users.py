@@ -26,7 +26,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.user_service import UserService
-from src.core.entities.user import User, UserRole
+from src.core.entities.user import ServantPosition, User, UserRole
 from src.core.utils import utc_now
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.responsable_repository import NominationRepository
@@ -34,6 +34,7 @@ from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.services.storage_service import StorageService
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
+    get_current_admin_or_aumonier,
     get_current_admin_user,
 )
 from src.presentation.schemas.user import (
@@ -281,7 +282,7 @@ async def list_directory(
 @router.get("/", response_model=PaginatedResponse[UserProfileResponse])
 async def list_users(
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_user)],
+    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
     role: Optional[UserRole] = Query(None, description="Filtrer par role"),
     is_active: Optional[bool] = Query(None, description="Filtrer par statut actif"),
     search: Optional[str] = Query(None, max_length=100, description="Recherche par nom ou email"),
@@ -311,9 +312,9 @@ async def list_users(
 async def get_user(
     user_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_user)],
+    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
 ):
-    """Detail d'un utilisateur. Admin uniquement."""
+    """Detail d'un utilisateur. Admin ou Aumônier."""
     service = _get_user_service(session)
     user = await service.get_user(user_id)
     user_repo = UserRepository(session)
@@ -352,6 +353,32 @@ async def link_parent(
     Un servant peut avoir au maximum 3 parents."""
     service = _get_user_service(session)
     return await service.link_parent(user_id, data.parent_id, unlink=data.unlink)
+
+
+class PositionUpdateRequest(BaseModel):
+    position: Optional[ServantPosition] = None
+
+
+@router.patch("/{user_id}/position", response_model=UserProfileResponse)
+async def update_servant_position(
+    user_id: UUID,
+    data: PositionUpdateRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+):
+    """Met à jour le poste d'un servant. Admin ou Aumônier.
+
+    Seul le champ `position` est modifiable via cet endpoint.
+    Les autres modifications de profil restent réservées à l'admin.
+    """
+    user_repo = UserRepository(session)
+    user = await user_repo.get(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+    user.position = data.position
+    user.updated_at = utc_now()
+    updated = await user_repo.update(user_id, user)
+    return UserProfileResponse.model_validate(updated)
 
 
 @router.patch("/{user_id}", response_model=UserProfileResponse)
