@@ -188,6 +188,24 @@ async def accept_terms(
     return UserProfileResponse.model_validate(updated)
 
 
+@router.post("/me/data-consent", response_model=UserProfileResponse, status_code=200)
+async def record_data_consent(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    """Enregistre le consentement explicite au traitement des données personnelles.
+
+    Conformément à l'article 9 de la Loi n° 2024/017 du 22 décembre 2024 :
+    le consentement est libre, spécifique, éclairé et non-ambigu (action positive).
+    Le timestamp UTC est enregistré pour traçabilité légale.
+    """
+    user_repo = UserRepository(session)
+    current_user.data_consent_at = utc_now()
+    current_user.updated_at = utc_now()
+    updated = await user_repo.update(current_user.id, current_user)
+    return UserProfileResponse.model_validate(updated)
+
+
 class SelfLinkParentRequest(BaseModel):
     parent_phone: str
 

@@ -125,3 +125,6 @@ class User(UserBase, table=True):
 
     # Acceptation des Conditions Générales d'Utilisation (tracé pour conformité)
     terms_accepted_at: Optional[datetime] = Field(default=None)
+
+    # Consentement explicite au traitement des données personnelles (Loi 2024/017 Art. 9)
+    data_consent_at: Optional[datetime] = Field(default=None)
