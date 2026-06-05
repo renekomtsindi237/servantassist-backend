@@ -516,8 +516,11 @@ jobs:
 
             echo "==> Pull code"
             cd /opt/servantassist/servantassist-backend
-            chmod -R u+w .git 2>/dev/null || true
-            git pull origin main
+            find .git/objects -type d -exec chmod u+rwx {} \; 2>/dev/null || true
+            find .git/objects -type f -exec chmod u+rw {} \; 2>/dev/null || true
+            find .git/objects -type f -size 0 -delete 2>/dev/null || true
+            git fetch origin main
+            git reset --hard FETCH_HEAD
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.staging
             # (idempotent : ne remplace pas si déjà définie avec la même valeur)
@@ -688,8 +691,11 @@ jobs:
 
             echo "==> Pull code (production)"
             cd /opt/servantassist/servantassist-backend
-            chmod -R u+w .git 2>/dev/null || true
-            git pull origin main
+            find .git/objects -type d -exec chmod u+rwx {} \; 2>/dev/null || true
+            find .git/objects -type f -exec chmod u+rw {} \; 2>/dev/null || true
+            find .git/objects -type f -size 0 -delete 2>/dev/null || true
+            git fetch origin main
+            git reset --hard FETCH_HEAD
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.production
             if [ -n "${FIELD_ENCRYPTION_KEY:-}" ]; then
