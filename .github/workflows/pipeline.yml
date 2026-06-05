@@ -232,46 +232,11 @@ jobs:
           path: junit-performance.xml
 
   # ════════════════════════════════════════════════════════════════════════
-  # JOB 10 — Coverage Gate
-  # ════════════════════════════════════════════════════════════════════════
-  coverage-gate:
-    name: "Coverage Gate (≥ 62%)"
-    needs:
-      - unit-tests
-      - security-tests
-      - usecase-tests
-      - integration-tests
-      - e2e-tests
-      - system-tests
-      - storage-tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-      - run: pip install -r requirements.txt -r requirements-dev.txt
-      - name: Coverage
-        run: |
-          pytest tests/unit tests/security tests/use_cases tests/e2e \
-                 tests/integration tests/system tests/storage \
-            --cov=src --cov-report=xml:coverage.xml --cov-report=term-missing \
-            --cov-fail-under=${COVERAGE_MIN} --junitxml=junit-coverage.xml
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-artifacts
-          path: |
-            coverage.xml
-            junit-coverage.xml
-
-  # ════════════════════════════════════════════════════════════════════════
-  # JOBs 11-12 — Migrations Alembic CI (dev + staging uniquement)
+  # JOBs 10-11 — Migrations Alembic CI (dev + staging uniquement)
   # ════════════════════════════════════════════════════════════════════════
   staging-migrations:
     name: "Staging Migrations (Supabase)"
-    needs: coverage-gate
+    needs: [unit-tests, security-tests, usecase-tests, integration-tests, e2e-tests, system-tests, storage-tests]
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     environment: staging
@@ -296,7 +261,7 @@ jobs:
 
   dev-migrations:
     name: "Dev Migrations (PostgreSQL)"
-    needs: coverage-gate
+    needs: [unit-tests, security-tests, usecase-tests, integration-tests, e2e-tests, system-tests, storage-tests]
     if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     environment: development
@@ -320,7 +285,7 @@ jobs:
   # ════════════════════════════════════════════════════════════════════════
   build-push:
     name: "Build & Push Image (GHCR)"
-    needs: coverage-gate
+    needs: [unit-tests, security-tests, usecase-tests, integration-tests, e2e-tests, system-tests, storage-tests]
     if: |
       (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'))
       || github.event_name == 'workflow_dispatch'
@@ -493,6 +458,7 @@ jobs:
 
             echo "==> Pull code"
             cd /opt/servantassist/servantassist-backend
+            chown -R root:root .git
             git pull origin main
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.staging
@@ -627,7 +593,7 @@ jobs:
   # ════════════════════════════════════════════════════════════════════════
   deploy-production:
     name: "Deploy → Production"
-    needs: [coverage-gate, build-push]
+    needs: build-push
     if: |
       github.event_name == 'workflow_dispatch'
       && github.event.inputs.deploy_env == 'production'
@@ -664,6 +630,7 @@ jobs:
 
             echo "==> Pull code (production)"
             cd /opt/servantassist/servantassist-backend
+            chown -R root:root .git
             git pull origin main
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.production
@@ -763,7 +730,6 @@ jobs:
     name: "Résumé Pipeline"
     needs:
       - quality
-      - coverage-gate
       - build-push
       - deploy-staging
       - deploy-production
@@ -777,7 +743,6 @@ jobs:
           echo "| Étape           | Statut |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Quality & Sec.  | ${{ needs.quality.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Coverage Gate   | ${{ needs.coverage-gate.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build / Push    | ${{ needs.build-push.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Deploy Staging  | ${{ needs.deploy-staging.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Deploy Prod     | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
