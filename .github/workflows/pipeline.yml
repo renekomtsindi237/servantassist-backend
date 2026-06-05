@@ -516,6 +516,7 @@ jobs:
 
             echo "==> Pull code"
             cd /opt/servantassist/servantassist-backend
+            sudo chown -R "$(id -u):$(id -g)" .git
             git pull origin main
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.staging
@@ -687,6 +688,7 @@ jobs:
 
             echo "==> Pull code (production)"
             cd /opt/servantassist/servantassist-backend
+            sudo chown -R "$(id -u):$(id -g)" .git
             git pull origin main
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.production
