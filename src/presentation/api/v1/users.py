@@ -254,7 +254,7 @@ async def list_directory(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
     role: Optional[UserRole] = Query(None, description="Filtrer par rôle"),
-    is_active: Optional[bool] = Query(True, description="Filtrer par statut actif"),
+    is_active: Optional[bool] = Query(None, description="Filtrer par statut actif"),
     search: Optional[str] = Query(None, max_length=100, description="Recherche par nom"),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
