@@ -491,18 +491,9 @@ jobs:
             ENVFILE="/opt/servantassist/servantassist-backend/.env.staging"
             DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
 
-            echo "==> Pull code (reclone propre)"
-            REPO_URL="https://github.com/renekomtsindi237/servantassist-backend.git"
-            REPO_DIR="/opt/servantassist/servantassist-backend"
-            cp "$ENVFILE" /tmp/.env.staging.bak 2>/dev/null || true
-            rm -rf "${REPO_DIR}.new" 2>/dev/null || true
-            git clone --depth=1 --branch main "$REPO_URL" "${REPO_DIR}.new"
-            [ -f /tmp/.env.staging.bak ] && cp /tmp/.env.staging.bak "${REPO_DIR}.new/.env.staging" || true
-            rm -rf "${REPO_DIR}.old" 2>/dev/null || true
-            [ -d "$REPO_DIR" ] && mv "$REPO_DIR" "${REPO_DIR}.old" 2>/dev/null || true
-            mv "${REPO_DIR}.new" "$REPO_DIR"
-            rm -rf "${REPO_DIR}.old" 2>/dev/null || true
-            cd "$REPO_DIR"
+            echo "==> Pull code"
+            cd /opt/servantassist/servantassist-backend
+            git pull origin main
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.staging
             # (idempotent : ne remplace pas si déjà définie avec la même valeur)
@@ -671,18 +662,9 @@ jobs:
             ENVFILE="/opt/servantassist/servantassist-backend/.env.production"
             DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.production.yml"
 
-            echo "==> Pull code (reclone propre — production)"
-            REPO_URL="https://github.com/renekomtsindi237/servantassist-backend.git"
-            REPO_DIR="/opt/servantassist/servantassist-backend"
-            cp "$ENVFILE" /tmp/.env.production.bak 2>/dev/null || true
-            rm -rf "${REPO_DIR}.new" 2>/dev/null || true
-            git clone --depth=1 --branch main "$REPO_URL" "${REPO_DIR}.new"
-            [ -f /tmp/.env.production.bak ] && cp /tmp/.env.production.bak "${REPO_DIR}.new/.env.production" || true
-            rm -rf "${REPO_DIR}.old" 2>/dev/null || true
-            [ -d "$REPO_DIR" ] && mv "$REPO_DIR" "${REPO_DIR}.old" 2>/dev/null || true
-            mv "${REPO_DIR}.new" "$REPO_DIR"
-            rm -rf "${REPO_DIR}.old" 2>/dev/null || true
-            cd "$REPO_DIR"
+            echo "==> Pull code (production)"
+            cd /opt/servantassist/servantassist-backend
+            git pull origin main
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.production
             if [ -n "${FIELD_ENCRYPTION_KEY:-}" ]; then
