@@ -267,7 +267,7 @@ jobs:
             junit-coverage.xml
 
   # ════════════════════════════════════════════════════════════════════════
-  # JOBs 11-13 — Migrations Alembic CI (branch-specific)
+  # JOBs 11-12 — Migrations Alembic CI (dev + staging uniquement)
   # ════════════════════════════════════════════════════════════════════════
   staging-migrations:
     name: "Staging Migrations (Supabase)"
@@ -306,31 +306,6 @@ jobs:
       DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY_DEV }}
       SECRET_KEY: ${{ secrets.SECRET_KEY_DEV }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-      - run: pip install -r requirements.txt -r requirements-dev.txt
-      - run: alembic upgrade head
-
-  production-migrations:
-    name: "Production Migrations (Supabase)"
-    needs: coverage-gate
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: production
-    env:
-      APP_ENV: production
-      APP_DEBUG: "False"
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL_PROD }}
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_PROD }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_PROD }}
-      SUPABASE_DB_DIRECT_URL: ${{ secrets.SUPABASE_DB_DIRECT_URL_PROD }}
-      SUPABASE_DB_POOLER_URL: ${{ secrets.SUPABASE_DB_POOLER_URL_PROD }}
-      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY_PROD }}
-      SECRET_KEY: ${{ secrets.SECRET_KEY_PROD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -516,13 +491,18 @@ jobs:
             ENVFILE="/opt/servantassist/servantassist-backend/.env.staging"
             DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
 
-            echo "==> Pull code"
-            cd /opt/servantassist/servantassist-backend
-            find .git/objects -type d -exec chmod u+rwx {} \; 2>/dev/null || true
-            find .git/objects -type f -exec chmod u+rw {} \; 2>/dev/null || true
-            find .git/objects -type f -size 0 -delete 2>/dev/null || true
-            git fetch origin main
-            git reset --hard FETCH_HEAD
+            echo "==> Pull code (reclone propre)"
+            REPO_URL="https://github.com/renekomtsindi237/servantassist-backend.git"
+            REPO_DIR="/opt/servantassist/servantassist-backend"
+            cp "$ENVFILE" /tmp/.env.staging.bak 2>/dev/null || true
+            rm -rf "${REPO_DIR}.new" 2>/dev/null || true
+            git clone --depth=1 --branch main "$REPO_URL" "${REPO_DIR}.new"
+            [ -f /tmp/.env.staging.bak ] && cp /tmp/.env.staging.bak "${REPO_DIR}.new/.env.staging" || true
+            rm -rf "${REPO_DIR}.old" 2>/dev/null || true
+            [ -d "$REPO_DIR" ] && mv "$REPO_DIR" "${REPO_DIR}.old" 2>/dev/null || true
+            mv "${REPO_DIR}.new" "$REPO_DIR"
+            rm -rf "${REPO_DIR}.old" 2>/dev/null || true
+            cd "$REPO_DIR"
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.staging
             # (idempotent : ne remplace pas si déjà définie avec la même valeur)
@@ -691,13 +671,18 @@ jobs:
             ENVFILE="/opt/servantassist/servantassist-backend/.env.production"
             DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.production.yml"
 
-            echo "==> Pull code (production)"
-            cd /opt/servantassist/servantassist-backend
-            find .git/objects -type d -exec chmod u+rwx {} \; 2>/dev/null || true
-            find .git/objects -type f -exec chmod u+rw {} \; 2>/dev/null || true
-            find .git/objects -type f -size 0 -delete 2>/dev/null || true
-            git fetch origin main
-            git reset --hard FETCH_HEAD
+            echo "==> Pull code (reclone propre — production)"
+            REPO_URL="https://github.com/renekomtsindi237/servantassist-backend.git"
+            REPO_DIR="/opt/servantassist/servantassist-backend"
+            cp "$ENVFILE" /tmp/.env.production.bak 2>/dev/null || true
+            rm -rf "${REPO_DIR}.new" 2>/dev/null || true
+            git clone --depth=1 --branch main "$REPO_URL" "${REPO_DIR}.new"
+            [ -f /tmp/.env.production.bak ] && cp /tmp/.env.production.bak "${REPO_DIR}.new/.env.production" || true
+            rm -rf "${REPO_DIR}.old" 2>/dev/null || true
+            [ -d "$REPO_DIR" ] && mv "$REPO_DIR" "${REPO_DIR}.old" 2>/dev/null || true
+            mv "${REPO_DIR}.new" "$REPO_DIR"
+            rm -rf "${REPO_DIR}.old" 2>/dev/null || true
+            cd "$REPO_DIR"
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.production
             if [ -n "${FIELD_ENCRYPTION_KEY:-}" ]; then
