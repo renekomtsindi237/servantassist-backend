@@ -456,10 +456,16 @@ jobs:
             ENVFILE="/opt/servantassist/servantassist-backend/.env.staging"
             DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.staging.yml"
 
-            echo "==> Pull code"
-            cd /opt/servantassist/servantassist-backend
-            chown -R root:root .git
-            git pull origin main
+            echo "==> Update code"
+            TMP=$(mktemp -d)
+            curl -fsSL \
+              -H "Authorization: token ${GHCR_READ_TOKEN}" \
+              "https://api.github.com/repos/renekomtsindi237/servantassist-backend/tarball/main" \
+              -o "${TMP}/repo.tar.gz"
+            mkdir -p /opt/servantassist/servantassist-backend
+            tar -xzf "${TMP}/repo.tar.gz" --strip-components=1 \
+              -C /opt/servantassist/servantassist-backend
+            rm -rf "${TMP}"
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.staging
             # (idempotent : ne remplace pas si déjà définie avec la même valeur)
@@ -628,10 +634,16 @@ jobs:
             ENVFILE="/opt/servantassist/servantassist-backend/.env.production"
             DC="docker compose --env-file $ENVFILE -f /opt/servantassist/servantassist-backend/docker-compose.production.yml"
 
-            echo "==> Pull code (production)"
-            cd /opt/servantassist/servantassist-backend
-            chown -R root:root .git
-            git pull origin main
+            echo "==> Update code (production)"
+            TMP=$(mktemp -d)
+            curl -fsSL \
+              -H "Authorization: token ${GHCR_READ_TOKEN}" \
+              "https://api.github.com/repos/renekomtsindi237/servantassist-backend/tarball/main" \
+              -o "${TMP}/repo.tar.gz"
+            mkdir -p /opt/servantassist/servantassist-backend
+            tar -xzf "${TMP}/repo.tar.gz" --strip-components=1 \
+              -C /opt/servantassist/servantassist-backend
+            rm -rf "${TMP}"
 
             # Garantit que FIELD_ENCRYPTION_KEY est toujours présente dans .env.production
             if [ -n "${FIELD_ENCRYPTION_KEY:-}" ]; then
