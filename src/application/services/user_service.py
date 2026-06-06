@@ -54,8 +54,17 @@ class UserService:
     async def update_profile(self, user: User, data: UserProfileUpdate) -> User:
         """
         Mise a jour du profil par l'utilisateur lui-meme.
-        Seuls first_name, last_name, phone_number sont modifiables.
+        Champs modifiables : first_name, last_name, phone_number, email.
         """
+        # Verifier l'unicite de l'email si modifie
+        if data.email is not None and data.email != user.email:
+            if await self.user_repository.email_exists(data.email, exclude_id=user.id):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Cet email est deja utilise par un autre compte.",
+                )
+            user.email = data.email
+
         # Verifier l'unicite du telephone si modifie
         if data.phone_number is not None and data.phone_number != user.phone_number:
             if data.phone_number != "" and await self.user_repository.phone_exists(
@@ -112,6 +121,7 @@ class UserService:
         search: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        exclude_admin: bool = False,
     ) -> PaginatedResponse[UserProfileResponse]:
         """Liste paginee des utilisateurs avec filtres."""
         users, total = await self.user_repository.list_paginated(
@@ -120,6 +130,7 @@ class UserService:
             search=search,
             page=page,
             page_size=page_size,
+            exclude_role=UserRole.ADMIN if exclude_admin else None,
         )
         total_pages = math.ceil(total / page_size) if total > 0 else 1
         return PaginatedResponse(

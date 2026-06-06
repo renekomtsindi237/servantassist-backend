@@ -119,6 +119,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         search: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        exclude_role: Optional[UserRole] = None,
     ) -> Tuple[List[User], int]:
         """
         Liste paginée avec filtres. La recherche textuelle est effectuée
@@ -127,6 +128,8 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         stmt = select(User)
         if role is not None:
             stmt = stmt.where(User.role == role)
+        if exclude_role is not None:
+            stmt = stmt.where(User.role != exclude_role)
         if is_active is not None:
             stmt = stmt.where(User.is_active == is_active)
 

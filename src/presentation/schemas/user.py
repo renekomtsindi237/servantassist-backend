@@ -58,6 +58,7 @@ class UserProfileUpdate(BaseModel):
     first_name: Optional[str] = Field(None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(None, min_length=1, max_length=100)
     phone_number: Optional[str] = None
+    email: Optional[EmailStr] = None
 
     @field_validator("phone_number")
     @classmethod

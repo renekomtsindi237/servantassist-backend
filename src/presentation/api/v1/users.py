@@ -263,6 +263,7 @@ async def list_directory(
     Répertoire des membres — accessible à tout utilisateur authentifié.
 
     Utile pour les pages «Membres», sélecteurs de servant, etc.
+    L'ADMIN n'est jamais retourné : il est invisible pour les autres rôles.
     """
     service = _get_user_service(session)
     return await service.list_users(
@@ -271,6 +272,7 @@ async def list_directory(
         search=search,
         page=page,
         page_size=page_size,
+        exclude_admin=True,
     )
 
 
@@ -299,12 +301,15 @@ async def list_users(
     - `page` / `page_size` : pagination
     """
     service = _get_user_service(session)
+    # L'aumônier ne voit pas l'ADMIN dans la liste (support invisible)
+    exclude_admin = current_user.role != UserRole.ADMIN
     return await service.list_users(
         role=role,
         is_active=is_active,
         search=search,
         page=page,
         page_size=page_size,
+        exclude_admin=exclude_admin,
     )
 
 
