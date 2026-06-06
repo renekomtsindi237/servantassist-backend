@@ -26,7 +26,7 @@ class UserProfileResponse(BaseModel):
     """Profil complet d'un utilisateur (lecture)."""
 
     id: UUID
-    email: EmailStr
+    email: str
     first_name: str
     last_name: str
     role: UserRole
