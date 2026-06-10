@@ -196,6 +196,7 @@ class TestInjectionAttempts:
 
     @pytest.mark.parametrize("payload", XSS_PAYLOADS)
     async def test_xss_in_registration(self, client: AsyncClient, payload):
+        import re
         import uuid as _uuid
 
         resp = await client.post(
@@ -209,13 +210,16 @@ class TestInjectionAttempts:
                 "role": "SERVANT",
             },
         )
-        # L'API doit stocker les valeurs brutes sans les exécuter.
+        # HTML tags are stripped by the sanitization layer before storage.
         # 201 = succès, 422 = rejeté par validation
         assert resp.status_code in (201, 422)
         if resp.status_code == 201:
             body = resp.json()
-            # Le champ est stocké tel quel (pas interprété)
-            assert body["first_name"] == payload
+            expected = re.sub(r"<[^>]+>", "", payload).strip()
+            # Stored value must equal the sanitized input (no HTML tags)
+            assert body["first_name"] == expected
+            assert "<" not in body["first_name"]
+            assert ">" not in body["first_name"]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
