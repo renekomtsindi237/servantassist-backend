@@ -82,11 +82,20 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
 
     # ── Lecture ────────────────────────────────────────────────────────
 
+    async def _load_parent_ids(self, user: User) -> None:
+        """Populate transient parent_ids on a SERVANT user from the junction table."""
+        result = await self.session.exec(
+            select(ServantParent.parent_id).where(ServantParent.servant_id == user.id)
+        )
+        object.__setattr__(user, "parent_ids", list(result.all()))
+
     async def get(self, id: UUID) -> Optional[User]:
         result = await self.session.exec(select(User).where(User.id == id))
         user = result.first()
         if user:
             self._decrypt_model(user)
+            if user.role == UserRole.SERVANT:
+                await self._load_parent_ids(user)
         return user
 
     async def get_by_email(self, email: str) -> Optional[User]:
@@ -165,6 +174,8 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         await self.session.refresh(user)
         self._decrypt_model(user)
         self.session.expunge(user)
+        if user.role == UserRole.SERVANT:
+            await self._load_parent_ids(user)
         return user
 
     async def update(self, id: UUID, entity: User) -> User:
@@ -174,6 +185,8 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
         await self.session.refresh(entity)
         self._decrypt_model(entity)
         self.session.expunge(entity)
+        if entity.role == UserRole.SERVANT:
+            await self._load_parent_ids(entity)
         return entity
 
     async def delete(self, id: UUID) -> bool:

@@ -9,6 +9,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+
+def _strip_html(value: Optional[str]) -> Optional[str]:
+    """Remove HTML/script tags from a string to prevent stored XSS."""
+    if value is None:
+        return None
+    return re.sub(r"<[^>]+>", "", value).strip()
+
 from src.core.entities.user import ServantPosition, UserRole
 
 # PaginatedResponse est défini une seule fois dans common.py et
@@ -60,6 +67,11 @@ class UserProfileUpdate(BaseModel):
     phone_number: Optional[str] = None
     email: Optional[EmailStr] = None
 
+    @field_validator("first_name", "last_name", mode="before")
+    @classmethod
+    def sanitize_name(cls, v: Optional[str]) -> Optional[str]:
+        return _strip_html(v)
+
     @field_validator("phone_number")
     @classmethod
     def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
@@ -101,6 +113,11 @@ class UserAdminUpdate(BaseModel):
     is_active: Optional[bool] = None
     position: Optional[ServantPosition] = None
     birth_date: Optional[datetime] = None
+
+    @field_validator("first_name", "last_name", mode="before")
+    @classmethod
+    def sanitize_name(cls, v: Optional[str]) -> Optional[str]:
+        return _strip_html(v)
 
     @field_validator("phone_number")
     @classmethod

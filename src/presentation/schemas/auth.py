@@ -5,6 +5,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+
+def _strip_html(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    return re.sub(r"<[^>]+>", "", value).strip()
+
 from src.core.entities.user import UserRole
 
 
@@ -44,6 +50,11 @@ class UserCreate(BaseModel):
     role: UserRole = UserRole.SERVANT
     birth_date: Optional[datetime] = None
     parent_id: Optional[UUID] = None
+
+    @field_validator("first_name", "last_name", mode="before")
+    @classmethod
+    def sanitize_name(cls, v: Optional[str]) -> Optional[str]:
+        return _strip_html(v)
 
     @field_validator("password")
     @classmethod
@@ -89,6 +100,11 @@ class UserCreateWithInvite(BaseModel):
     invitation_code: Optional[str] = Field(default=None, description="Required for PARENT role")
     parent_id: Optional[UUID] = None  # Lien optionnel vers un compte parent
     birth_date: Optional[datetime] = None
+
+    @field_validator("first_name", "last_name", mode="before")
+    @classmethod
+    def sanitize_name(cls, v: Optional[str]) -> Optional[str]:
+        return _strip_html(v)
 
     @field_validator("password")
     @classmethod

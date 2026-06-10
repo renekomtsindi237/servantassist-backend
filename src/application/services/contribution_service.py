@@ -104,6 +104,25 @@ class ContributionService:
                     detail="Le montant mensuel doit être de 500 FCFA.",
                 )
 
+        # Vérifier les doublons : une seule contribution par (servant, mois, année, mode)
+        existing, count = await self.contribution_repo.list(
+            servant_id=data.servant_id,
+            month=data.month,
+            year=data.year,
+            payment_mode=data.payment_mode,
+            page=1,
+            page_size=1,
+        )
+        if count > 0:
+            mode_label = "mensuelle" if data.payment_mode == PaymentMode.MONTHLY else "hebdomadaire"
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"Une contribution {mode_label} existe déjà pour ce servant "
+                    f"pour {data.month}/{data.year}."
+                ),
+            )
+
         # Créer la contribution
         contribution = Contribution(
             servant_id=data.servant_id,

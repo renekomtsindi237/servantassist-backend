@@ -17,6 +17,15 @@ class UserRole(str, Enum):
     PARENT = "PARENT"
     AUMÔNIER = "AUMÔNIER"
 
+    @classmethod
+    def _missing_(cls, value: object) -> "UserRole | None":
+        """Accept ASCII variant 'AUMONIER' (without accent) as an alias."""
+        if isinstance(value, str):
+            normalized = value.upper().replace("Ô", "O").replace("ô", "o")
+            if normalized == "AUMONIER":
+                return cls.AUMÔNIER
+        return None
+
 
 class _UserRoleType(types.TypeDecorator):
     """VARCHAR(20) column that transparently converts to/from UserRole enum.
@@ -36,7 +45,10 @@ class _UserRoleType(types.TypeDecorator):
 
     def process_result_value(self, value, dialect):
         if value is not None:
-            return UserRole(value)
+            try:
+                return UserRole(value)
+            except ValueError:
+                return UserRole._missing_(value)
         return value
 
 
