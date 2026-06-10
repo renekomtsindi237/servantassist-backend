@@ -117,10 +117,7 @@ class ContributionService:
             mode_label = "mensuelle" if data.payment_mode == PaymentMode.MONTHLY else "hebdomadaire"
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=(
-                    f"Une contribution {mode_label} existe déjà pour ce servant "
-                    f"pour {data.month}/{data.year}."
-                ),
+                detail=f"Une contribution {mode_label} existe déjà pour ce servant pour {data.month}/{data.year}.",
             )
 
         # Créer la contribution

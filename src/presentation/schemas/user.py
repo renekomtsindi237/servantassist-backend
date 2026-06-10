@@ -16,6 +16,7 @@ def _strip_html(value: Optional[str]) -> Optional[str]:
         return None
     return re.sub(r"<[^>]+>", "", value).strip()
 
+
 from src.core.entities.user import ServantPosition, UserRole
 
 # PaginatedResponse est défini une seule fois dans common.py et

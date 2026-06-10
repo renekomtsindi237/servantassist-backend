@@ -84,9 +84,7 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
 
     async def _load_parent_ids(self, user: User) -> None:
         """Populate transient parent_ids on a SERVANT user from the junction table."""
-        result = await self.session.exec(
-            select(ServantParent.parent_id).where(ServantParent.servant_id == user.id)
-        )
+        result = await self.session.exec(select(ServantParent.parent_id).where(ServantParent.servant_id == user.id))
         object.__setattr__(user, "parent_ids", list(result.all()))
 
     async def get(self, id: UUID) -> Optional[User]:

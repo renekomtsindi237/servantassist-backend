@@ -11,6 +11,7 @@ def _strip_html(value: Optional[str]) -> Optional[str]:
         return None
     return re.sub(r"<[^>]+>", "", value).strip()
 
+
 from src.core.entities.user import UserRole
 
 
