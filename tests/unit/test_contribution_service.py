@@ -95,6 +95,7 @@ class TestRecordPayment:
         """Test : Enregistrer un paiement mensuel avec succÃ¨s."""
         # Arrange
         mock_user_repo.get.return_value = sample_servant
+        mock_contribution_repo.list.return_value = ([], 0)  # no duplicate
         mock_contribution_repo.create.return_value = sample_contribution
         mock_contribution_repo.enrich_contribution.return_value = {
             **sample_contribution.model_dump(),
@@ -131,6 +132,7 @@ class TestRecordPayment:
         """Test : Enregistrer un paiement hebdomadaire avec succÃ¨s."""
         # Arrange
         mock_user_repo.get.return_value = sample_servant
+        mock_contribution_repo.list.return_value = ([], 0)  # no duplicate
         weekly_contribution = Contribution(
             id=uuid4(),
             servant_id=sample_servant.id,
