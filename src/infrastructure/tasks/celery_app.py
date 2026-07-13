@@ -23,7 +23,12 @@ celery_app = Celery(
     "servantassist",
     broker=_redis_url,
     backend=_redis_url,
-    include=["src.infrastructure.tasks.scheduled"],
+    include=[
+        "src.infrastructure.tasks.scheduled",
+        "src.infrastructure.tasks.email_tasks",
+        "src.infrastructure.tasks.pdf_tasks",
+        "src.infrastructure.tasks.reminder_tasks",
+    ],
 )
 
 celery_app.conf.update(
@@ -52,6 +57,16 @@ celery_app.conf.update(
         "cleanup-notifications": {
             "task": "src.infrastructure.tasks.scheduled.cleanup_notifications",
             "schedule": crontab(hour=2, minute=0),
+            "options": {"queue": "default"},
+        },
+        "send-cotisation-reminders": {
+            "task": "src.infrastructure.tasks.reminder_tasks.send_cotisation_reminders",
+            "schedule": crontab(hour=9, minute=0, day_of_week="monday"),
+            "options": {"queue": "default"},
+        },
+        "send-event-day-reminders": {
+            "task": "src.infrastructure.tasks.reminder_tasks.send_event_day_reminders",
+            "schedule": crontab(hour=7, minute=30),
             "options": {"queue": "default"},
         },
     },

@@ -95,6 +95,8 @@ class DisciplineService:
                 accused_user_id=data.accused_user_id,
                 opened_by_id=reported_by,
                 offense_category=data.offense_category.value,
+                accused_email=user.email if user.email else None,
+                accused_first_name=user.first_name if user.first_name else None,
             )
         )
         enriched = await self.case_repo.enrich_case(created)

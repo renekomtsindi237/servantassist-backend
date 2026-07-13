@@ -25,7 +25,7 @@ _SUCCESS_LIGHT = "#ECFDF5"  # Fond vert clair
 def _logo_url() -> str:
     """URL absolue vers le logo ServantAssist (utilisé dans les emails)."""
     settings = get_settings()
-    return f"{settings.APP_URL}/static/images/logo_servant.jpeg"
+    return f"{settings.APP_URL}/static/images/logo_servant_mail.png"
 
 
 def _base_layout(content: str, preview_text: str = "") -> str:

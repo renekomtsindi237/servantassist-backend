@@ -43,6 +43,8 @@ class PasswordReset(DomainEvent):
 
     user_id: UUID = field(default=None)
     reset_by_admin_id: Optional[UUID] = field(default=None)
+    email: Optional[str] = field(default=None)
+    first_name: Optional[str] = field(default=None)
 
 
 @dataclass(frozen=True)
@@ -79,6 +81,8 @@ class DisciplineCaseOpened(DomainEvent):
     accused_user_id: UUID = field(default=None)
     opened_by_id: UUID = field(default=None)
     offense_category: str = field(default="")
+    accused_email: Optional[str] = field(default=None)
+    accused_first_name: Optional[str] = field(default=None)
 
 
 @dataclass(frozen=True)

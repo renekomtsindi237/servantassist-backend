@@ -274,7 +274,13 @@ class UserService:
         user.hashed_password = SecurityUtils.get_password_hash(data.new_password)
         user.updated_at = utc_now()
         await self.user_repository.update(user.id, user)
-        await event_bus.publish(PasswordReset(user_id=user_id))
+        await event_bus.publish(
+            PasswordReset(
+                user_id=user_id,
+                email=user.email if user.email else None,
+                first_name=user.first_name if user.first_name else None,
+            )
+        )
 
     async def delete_user(self, user_id: UUID, admin: User) -> None:
         """

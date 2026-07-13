@@ -99,6 +99,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = "noreply@servantassist.com"
     SMTP_FROM_NAME: str = "ServantAssist"
+    SMTP_REPLY_TO: str = ""
     SMTP_USE_TLS: bool = True
 
     # Frontend (pour les liens dans les emails)

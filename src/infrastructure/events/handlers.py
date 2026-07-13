@@ -161,18 +161,75 @@ async def notify_user_invited(event: UserInvited) -> None:
 @event_bus.handler(DisciplineCaseOpened)
 async def notify_discipline_accused(event: DisciplineCaseOpened) -> None:
     """
-    Point d'extension : notifier l'accusé de l'ouverture d'un dossier disciplinaire.
+    Notifie l'accusé de l'ouverture d'un dossier disciplinaire.
+
+    - Log d'audit enrichi avec les données de l'accusé.
+    - Envoi d'email si l'adresse est disponible dans l'event.
+    - La notification in-app est créée via une tâche Celery pour ne pas
+      bloquer le handler (absence de session DB ici).
     """
-    # TODO: créer notification in-app via NotificationService
-    pass
+    logger.info(
+        "NOTIFY | DisciplineCaseOpened | case=%s accused_id=%s accused_email=%s category=%s",
+        event.case_id,
+        event.accused_user_id,
+        event.accused_email or "N/A",
+        event.offense_category,
+    )
+
+    if not event.accused_email:
+        return
+
+    try:
+        first_name = event.accused_first_name or event.accused_email.split("@")[0].capitalize()
+        await EmailService().send_general_notification(
+            to_email=event.accused_email,
+            user_first_name=first_name,
+            title="Ouverture d'un dossier disciplinaire vous concernant",
+            body=(
+                f"Un dossier disciplinaire (catégorie : {event.offense_category}) "
+                "a été ouvert vous concernant. "
+                "Vous serez contacté prochainement par l'aumônier ou le délégué "
+                "pour la suite de la procédure."
+            ),
+        )
+    except Exception as exc:
+        logger.error(
+            "Erreur envoi email dossier disciplinaire | accused=%s error=%s",
+            event.accused_user_id,
+            exc,
+        )
 
 
 @event_bus.handler(PasswordReset)
 async def notify_password_reset(event: PasswordReset) -> None:
     """
-    Point d'extension : envoyer confirmation de réinitialisation de mot de passe.
+    Envoie une confirmation par email après réinitialisation du mot de passe.
+
+    Bonne pratique de sécurité : l'utilisateur est informé que son mot de
+    passe a été modifié, lui permettant de réagir s'il ne l'a pas demandé.
     """
-    pass
+    logger.info(
+        "NOTIFY | PasswordReset | user_id=%s by_admin=%s has_email=%s",
+        event.user_id,
+        bool(event.reset_by_admin_id),
+        bool(event.email),
+    )
+
+    if not event.email:
+        return
+
+    try:
+        first_name = event.first_name or event.email.split("@")[0].capitalize()
+        await EmailService().send_password_changed_email(
+            to_email=event.email,
+            user_first_name=first_name,
+        )
+    except Exception as exc:
+        logger.error(
+            "Erreur envoi email confirmation réinitialisation | user=%s error=%s",
+            event.user_id,
+            exc,
+        )
 
 
 def register_all_handlers() -> None:

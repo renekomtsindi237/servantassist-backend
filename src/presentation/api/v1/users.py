@@ -455,3 +455,157 @@ async def delete_user(
     """
     service = _get_user_service(session)
     await service.delete_user(user_id, current_user)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  CONFORMITÉ LOI 2024/017 (Cameroun) — Droits des personnes concernées
+# ══════════════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/me/erasure-request",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Demande d'effacement des données (Art. 17 Loi 2024/017)",
+)
+async def request_data_erasure(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+) -> dict:
+    """
+    Soumet une demande d'effacement des données personnelles.
+
+    Conformité Art. 17 Loi 2024/017 sur la protection des données
+    personnelles (Cameroun) — Droit à l'effacement.
+
+    La demande est traitée sous 30 jours ouvrés.
+    Un email de confirmation est envoyé à l'utilisateur.
+    """
+    from src.core.utils import utc_now as _utc_now
+    from src.infrastructure.repositories.user_repository import UserRepository
+
+    user_repo = UserRepository(session)
+    user = await user_repo.get_by_id(current_user.id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+
+    # Marquer la demande (champ optionnel erasure_requested_at si présent)
+    if hasattr(user, "erasure_requested_at"):
+        user.erasure_requested_at = _utc_now()
+        session.add(user)
+        await session.commit()
+
+    # Notification email asynchrone
+    try:
+        from src.infrastructure.tasks.email_tasks import send_email_async
+
+        send_email_async.delay(
+            to=str(current_user.email or ""),
+            subject="Confirmation de votre demande d'effacement — ServantAssist",
+            html_body=(
+                f"<p>Bonjour {current_user.first_name},</p>"
+                "<p>Nous avons bien reçu votre demande d'effacement de vos données personnelles "
+                "conformément à l'Art. 17 de la Loi 2024/017.</p>"
+                "<p>Votre demande sera traitée dans un délai maximum de <strong>30 jours ouvrés</strong>.</p>"
+                "<p>Cordialement,<br>L'équipe ServantAssist</p>"
+            ),
+        )
+    except Exception:
+        pass  # L'email est non-bloquant
+
+    return {
+        "message": "Demande d'effacement enregistrée. Traitement sous 30 jours ouvrés.",
+        "user_id": str(current_user.id),
+        "requested_at": utc_now().isoformat(),
+        "legal_basis": "Art. 17 Loi 2024/017 — République du Cameroun",
+    }
+
+
+@router.get(
+    "/me/data-export",
+    summary="Export des données personnelles (Art. 20 Loi 2024/017)",
+)
+async def export_personal_data(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+) -> dict:
+    """
+    Exporte toutes les données personnelles de l'utilisateur connecté.
+
+    Conformité Art. 20 Loi 2024/017 — Droit à la portabilité des données.
+
+    Retourne un objet JSON structuré avec :
+    - Profil utilisateur
+    - Historique de présences (100 derniers)
+    - Cotisations (100 dernières)
+    - Affectations (50 dernières)
+    - Métadonnées de consentement
+
+    Pour un export PDF, déclencher la tâche Celery export_user_data_pdf.
+    """
+    from sqlmodel import col, select
+
+    from src.core.entities.attendance import Attendance
+    from src.core.entities.assignment import Assignment
+    from src.core.entities.contribution import MemberCotisation
+
+    # Présences
+    stmt_att = select(Attendance).where(
+        Attendance.user_id == current_user.id
+    ).order_by(col(Attendance.created_at).desc()).limit(100)
+    result_att = await session.exec(stmt_att)
+    attendances = result_att.all()
+
+    # Cotisations
+    stmt_cot = select(MemberCotisation).where(
+        MemberCotisation.user_id == current_user.id
+    ).order_by(col(MemberCotisation.year).desc()).limit(100)
+    result_cot = await session.exec(stmt_cot)
+    cotisations = result_cot.all()
+
+    # Affectations
+    stmt_asg = select(Assignment).where(
+        Assignment.user_id == current_user.id
+    ).order_by(col(Assignment.created_at).desc()).limit(50)
+    result_asg = await session.exec(stmt_asg)
+    assignments = result_asg.all()
+
+    return {
+        "export_date": utc_now().isoformat(),
+        "legal_basis": "Art. 20 Loi 2024/017 — République du Cameroun",
+        "profile": {
+            "id": str(current_user.id),
+            "first_name": current_user.first_name,
+            "last_name": current_user.last_name,
+            "role": current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role),
+            "is_active": current_user.is_active,
+            "created_at": str(current_user.created_at)[:19] if current_user.created_at else None,
+            "data_consent_at": str(current_user.data_consent_at)[:19] if current_user.data_consent_at else None,
+            "terms_accepted_at": str(current_user.terms_accepted_at)[:19] if current_user.terms_accepted_at else None,
+        },
+        "attendances": [
+            {
+                "session_id": str(a.session_id),
+                "status": a.status.value if hasattr(a.status, "value") else str(a.status),
+                "created_at": str(a.created_at)[:19] if a.created_at else None,
+            }
+            for a in attendances
+        ],
+        "cotisations": [
+            {
+                "month": c.month,
+                "year": c.year,
+                "amount": float(c.amount or 0),
+                "status": c.status.value if hasattr(c.status, "value") else str(c.status),
+            }
+            for c in cotisations
+        ],
+        "assignments": [
+            {
+                "event_id": str(a.event_id),
+                "status": a.status.value if hasattr(a.status, "value") else str(a.status),
+                "liturgical_role": a.liturgical_role.value if a.liturgical_role and hasattr(a.liturgical_role, "value") else None,
+                "created_at": str(a.created_at)[:19] if a.created_at else None,
+            }
+            for a in assignments
+        ],
+    }

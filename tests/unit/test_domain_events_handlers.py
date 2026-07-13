@@ -239,3 +239,205 @@ async def test_audit_attendance_recorded():
 
     event = AttendanceRecorded(attendance_id=uuid4(), user_id=uuid4(), attendance_type="MESSE", status="PRESENT")
     await audit_attendance_recorded(event)
+
+
+# ─── notify_discipline_accused (nouveau handler) ──────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_notify_discipline_accused_no_email_skips():
+    """Sans email dans l'event, le handler doit retourner silencieusement."""
+    from src.core.events.domain_events import DisciplineCaseOpened
+    from src.infrastructure.events.handlers import notify_discipline_accused
+
+    event = DisciplineCaseOpened(
+        case_id=uuid4(),
+        accused_user_id=uuid4(),
+        opened_by_id=uuid4(),
+        offense_category="ABSENCE",
+        accused_email=None,
+        accused_first_name=None,
+    )
+    with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
+        await notify_discipline_accused(event)
+    MockEmail.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_notify_discipline_accused_sends_email():
+    """Avec un email, le handler doit appeler send_general_notification."""
+    from src.core.events.domain_events import DisciplineCaseOpened
+    from src.infrastructure.events.handlers import notify_discipline_accused
+
+    event = DisciplineCaseOpened(
+        case_id=uuid4(),
+        accused_user_id=uuid4(),
+        opened_by_id=uuid4(),
+        offense_category="COMPORTEMENT",
+        accused_email="servant@bmra.org",
+        accused_first_name="Jean",
+    )
+    with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
+        instance = AsyncMock()
+        instance.send_general_notification = AsyncMock(return_value=True)
+        MockEmail.return_value = instance
+        await notify_discipline_accused(event)
+
+    instance.send_general_notification.assert_called_once()
+    call_kwargs = instance.send_general_notification.call_args.kwargs
+    assert call_kwargs["to_email"] == "servant@bmra.org"
+    assert call_kwargs["user_first_name"] == "Jean"
+    assert "disciplinaire" in call_kwargs["title"].lower()
+
+
+@pytest.mark.asyncio
+async def test_notify_discipline_accused_email_error_handled():
+    """Une exception dans l'envoi email ne doit pas propager."""
+    from src.core.events.domain_events import DisciplineCaseOpened
+    from src.infrastructure.events.handlers import notify_discipline_accused
+
+    event = DisciplineCaseOpened(
+        case_id=uuid4(),
+        accused_user_id=uuid4(),
+        opened_by_id=uuid4(),
+        offense_category="ABSENCE",
+        accused_email="servant@bmra.org",
+        accused_first_name=None,
+    )
+    with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
+        instance = AsyncMock()
+        instance.send_general_notification = AsyncMock(side_effect=ConnectionError("SMTP down"))
+        MockEmail.return_value = instance
+        # Should not raise
+        await notify_discipline_accused(event)
+
+
+@pytest.mark.asyncio
+async def test_notify_discipline_accused_derives_firstname_from_email():
+    """Si first_name absent, le prénom est dérivé du nom d'utilisateur de l'email."""
+    from src.core.events.domain_events import DisciplineCaseOpened
+    from src.infrastructure.events.handlers import notify_discipline_accused
+
+    event = DisciplineCaseOpened(
+        case_id=uuid4(),
+        accused_user_id=uuid4(),
+        opened_by_id=uuid4(),
+        offense_category="ABSENCE",
+        accused_email="pierre.martin@bmra.org",
+        accused_first_name=None,
+    )
+    with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
+        instance = AsyncMock()
+        instance.send_general_notification = AsyncMock(return_value=True)
+        MockEmail.return_value = instance
+        await notify_discipline_accused(event)
+
+    call_kwargs = instance.send_general_notification.call_args.kwargs
+    assert call_kwargs["user_first_name"] == "Pierre.martin"
+
+
+# ─── notify_password_reset (nouveau handler) ──────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_notify_password_reset_no_email_skips():
+    """Sans email dans l'event, le handler doit retourner silencieusement."""
+    from src.core.events.domain_events import PasswordReset
+    from src.infrastructure.events.handlers import notify_password_reset
+
+    event = PasswordReset(user_id=uuid4(), reset_by_admin_id=uuid4(), email=None, first_name=None)
+    with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
+        await notify_password_reset(event)
+    MockEmail.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_notify_password_reset_sends_confirmation_email():
+    """Avec email, le handler doit appeler send_password_changed_email."""
+    from src.core.events.domain_events import PasswordReset
+    from src.infrastructure.events.handlers import notify_password_reset
+
+    event = PasswordReset(
+        user_id=uuid4(),
+        reset_by_admin_id=uuid4(),
+        email="rene@bmra.org",
+        first_name="René",
+    )
+    with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
+        instance = AsyncMock()
+        instance.send_password_changed_email = AsyncMock(return_value=True)
+        MockEmail.return_value = instance
+        await notify_password_reset(event)
+
+    instance.send_password_changed_email.assert_called_once_with(
+        to_email="rene@bmra.org",
+        user_first_name="René",
+    )
+
+
+@pytest.mark.asyncio
+async def test_notify_password_reset_email_error_handled():
+    """Une exception dans l'envoi email ne doit pas propager."""
+    from src.core.events.domain_events import PasswordReset
+    from src.infrastructure.events.handlers import notify_password_reset
+
+    event = PasswordReset(user_id=uuid4(), email="user@bmra.org", first_name="Jean")
+    with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
+        instance = AsyncMock()
+        instance.send_password_changed_email = AsyncMock(side_effect=TimeoutError("SMTP timeout"))
+        MockEmail.return_value = instance
+        # Should not raise
+        await notify_password_reset(event)
+
+
+@pytest.mark.asyncio
+async def test_notify_password_reset_derives_firstname_from_email():
+    """Si first_name absent, le prénom est dérivé du nom d'utilisateur email."""
+    from src.core.events.domain_events import PasswordReset
+    from src.infrastructure.events.handlers import notify_password_reset
+
+    event = PasswordReset(user_id=uuid4(), email="dupont@bmra.org", first_name=None)
+    with patch("src.infrastructure.events.handlers.EmailService") as MockEmail:
+        instance = AsyncMock()
+        instance.send_password_changed_email = AsyncMock(return_value=True)
+        MockEmail.return_value = instance
+        await notify_password_reset(event)
+
+    call_kwargs = instance.send_password_changed_email.call_args.kwargs
+    assert call_kwargs["user_first_name"] == "Dupont"
+
+
+@pytest.mark.asyncio
+async def test_password_reset_event_carries_email():
+    """Le domaine PasswordReset transporte maintenant email et first_name."""
+    from src.core.events.domain_events import PasswordReset
+
+    uid = uuid4()
+    event = PasswordReset(
+        user_id=uid,
+        reset_by_admin_id=None,
+        email="admin@bmra.org",
+        first_name="Admin",
+    )
+    assert event.email == "admin@bmra.org"
+    assert event.first_name == "Admin"
+    assert event.user_id == uid
+
+
+@pytest.mark.asyncio
+async def test_discipline_case_opened_event_carries_contact():
+    """DisciplineCaseOpened transporte maintenant accused_email et accused_first_name."""
+    from src.core.events.domain_events import DisciplineCaseOpened
+
+    cid = uuid4()
+    event = DisciplineCaseOpened(
+        case_id=cid,
+        accused_user_id=uuid4(),
+        opened_by_id=uuid4(),
+        offense_category="ABSENCE",
+        accused_email="servant@bmra.org",
+        accused_first_name="Pierre",
+    )
+    assert event.accused_email == "servant@bmra.org"
+    assert event.accused_first_name == "Pierre"
+    assert event.case_id == cid

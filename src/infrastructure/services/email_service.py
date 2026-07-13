@@ -76,6 +76,8 @@ class EmailService:
         msg["Subject"] = subject
         msg["X-Mailer"] = "ServantAssist/1.0"
         msg["X-Priority"] = "3"  # Normal
+        if self._settings.SMTP_REPLY_TO:
+            msg["Reply-To"] = self._settings.SMTP_REPLY_TO
 
         # Version texte brut (fallback)
         plain_text = (
