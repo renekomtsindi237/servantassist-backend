@@ -58,7 +58,7 @@ from src.presentation.api.v1 import (
     auth,
     classement,
     communication,
-    contributions,
+    convocation,
     cotisations,
     dashboard,
     discipline,
@@ -262,6 +262,7 @@ app.include_router(responsables.router, prefix="/api/v1/responsables", tags=["Re
 app.include_router(poste.router, prefix="/api/v1/poste", tags=["Postes (Dynamic)"])
 app.include_router(discipline.router, prefix="/api/v1/discipline", tags=["Discipline"])
 app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
+app.include_router(convocation.router, prefix="/api/v1/convocations", tags=["Convocations"])
 app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
 app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
 app.include_router(
@@ -269,7 +270,6 @@ app.include_router(
     prefix="/api/v1/attendance-sessions",
     tags=["Attendance Sessions"],
 )
-app.include_router(contributions.router, prefix="/api/v1/contributions", tags=["Contributions"])
 app.include_router(
     financial_entries.router,
     prefix="/api/v1/financial-entries",

@@ -22,7 +22,6 @@ def _make_user(**kw):
     u.is_active = kw.get("is_active", True)
     u.hashed_password = kw.get("hashed_password", "$2b$hash")
     u.updated_at = kw.get("updated_at", None)
-    u.position = kw.get("position", None)
     u.birth_date = kw.get("birth_date", None)
     return u
 

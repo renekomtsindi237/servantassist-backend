@@ -330,6 +330,18 @@ class PosteActionRepository:
             if target_event:
                 target_event_title = target_event.title
 
+        # Approbateur (optionnel — sorties de fonds DEPENSE)
+        approver_first_name = None
+        approver_last_name = None
+        if action.approved_by:
+            appr_stmt = select(User).where(User.id == action.approved_by)
+            appr_result = await self.session.exec(appr_stmt)
+            approver = appr_result.first()
+            if approver:
+                decrypt_str_fields(approver, _USER_PII)
+                approver_first_name = approver.first_name
+                approver_last_name = approver.last_name
+
         return {
             "id": action.id,
             "poste": action.poste,
@@ -345,10 +357,14 @@ class PosteActionRepository:
             "created_by": action.created_by,
             "created_at": action.created_at,
             "updated_at": action.updated_at,
+            "approved_by": action.approved_by,
+            "approved_at": action.approved_at,
             "author_first_name": author.first_name if author else None,
             "author_last_name": author.last_name if author else None,
             "target_user_name": target_user_name,
             "target_event_title": target_event_title,
+            "approver_first_name": approver_first_name,
+            "approver_last_name": approver_last_name,
         }
 
     async def enrich_actions(self, actions: List[PosteAction]) -> List[Dict]:

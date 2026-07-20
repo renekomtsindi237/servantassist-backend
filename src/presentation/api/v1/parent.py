@@ -18,6 +18,7 @@ from src.core.entities.user import User
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.attendance_session_repository import AttendanceSessionRepository
 from src.infrastructure.repositories.cotisation_repository import MemberCotisationRepository
+from src.infrastructure.repositories.responsable_repository import NominationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import get_current_active_user
 
@@ -47,7 +48,7 @@ class ChildSummaryResponse(BaseModel):
     phone_number: Optional[str] = None
     profile_photo_url: Optional[str] = None
     birth_date: Optional[str] = None
-    position: Optional[str] = None
+    active_poste: Optional[str] = None
 
     attendance_rate: float
     present_count: int
@@ -146,6 +147,14 @@ async def _build_child_summary(child: User, session) -> ChildSummaryResponse:
         else:
             birth_date_str = child.birth_date.isoformat()
 
+    active_poste: Optional[str] = None
+    try:
+        nominations = await NominationRepository(session).get_active_by_user(child.id)
+        if nominations:
+            active_poste = nominations[0].poste.value
+    except Exception:
+        pass
+
     return ChildSummaryResponse(
         id=child.id,
         first_name=child.first_name or "",
@@ -153,7 +162,7 @@ async def _build_child_summary(child: User, session) -> ChildSummaryResponse:
         phone_number=child.phone_number,
         profile_photo_url=child.profile_photo_url,
         birth_date=birth_date_str,
-        position=child.position.value if child.position else None,
+        active_poste=active_poste,
         attendance_rate=round(attendance_rate, 1),
         present_count=present_count,
         absent_count=absent_count,

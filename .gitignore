@@ -23,12 +23,19 @@ venv/
 env/
 ENV/
 .venv
+.venv*/
 
 # Environment — fichiers de secrets (ne jamais committer)
 .env
 .env.local
 .env.staging
 .env.production
+
+# Celery beat — état local du scheduler (binaire, régénéré au démarrage)
+celerybeat-schedule
+
+# Identifiants de démonstration générés localement (scripts/seed_demo_data.py)
+scripts/seed_credentials.csv
 # Les fichiers *.example sont versionnés (templates sans secrets)
 
 # IDE

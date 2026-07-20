@@ -17,7 +17,7 @@ def _strip_html(value: Optional[str]) -> Optional[str]:
     return re.sub(r"<[^>]+>", "", value).strip()
 
 
-from src.core.entities.user import ServantPosition, UserRole
+from src.core.entities.user import UserRole
 
 # PaginatedResponse est défini une seule fois dans common.py et
 # ré-exporté ici pour la compatibilité descendante de tous les imports existants.
@@ -34,13 +34,11 @@ class UserProfileResponse(BaseModel):
     """Profil complet d'un utilisateur (lecture)."""
 
     id: UUID
-    email: str
+    email: Optional[str] = None
     first_name: str
     last_name: str
     role: UserRole
-    position: Optional[ServantPosition] = None
     # Poste actif issu de la table nominations (PosteResponsable.value).
-    # Prend le dessus sur position pour le calcul des permissions côté client.
     active_poste: Optional[str] = None
     is_active: bool
     phone_number: Optional[str] = None
@@ -112,7 +110,6 @@ class UserAdminUpdate(BaseModel):
     phone_number: Optional[str] = None
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = None
-    position: Optional[ServantPosition] = None
     birth_date: Optional[datetime] = None
 
     @field_validator("first_name", "last_name", mode="before")

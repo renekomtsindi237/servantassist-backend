@@ -17,6 +17,7 @@ import pytest
 from httpx import AsyncClient
 
 from src.infrastructure.config.settings import get_settings
+from tests.e2e.test_auth_endpoints import _verify_phone
 
 settings = get_settings()
 
@@ -34,9 +35,13 @@ class TestServantRegistrationAndLogin:
         "role": "SERVANT",
     }
 
-    async def test_full_servant_flow(self, client: AsyncClient):
+    async def test_full_servant_flow(self, client: AsyncClient, db_session):
         # ── Étape 1 : Inscription ────────────────────────────────────
-        resp = await client.post("/api/v1/auth/register", json=self.SERVANT_DATA)
+        token = await _verify_phone(client, db_session, self.SERVANT_DATA["phone_number"])
+        resp = await client.post(
+            "/api/v1/auth/register",
+            json={**self.SERVANT_DATA, "phone_verification_token": token},
+        )
         assert resp.status_code == 201, f"Registration failed: {resp.text}"
 
         body = resp.json()
@@ -66,7 +71,7 @@ class TestServantRegistrationAndLogin:
             settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
-        assert payload["sub"] == self.SERVANT_DATA["email"]
+        assert payload["sub"] == body["id"]
         assert payload["role"] == "SERVANT"
 
         # ── Étape 4 : Login par email → rejeté (403) ────────────────
@@ -79,22 +84,26 @@ class TestServantRegistrationAndLogin:
         )
         assert email_resp.status_code == 403
 
-    async def test_servant_default_role_omission(self, client: AsyncClient):
+    async def test_servant_default_role_omission(self, client: AsyncClient, db_session):
         """L'omission du rôle doit donner SERVANT par défaut."""
+        phone = "+237690000099"
+        token = await _verify_phone(client, db_session, phone)
         data = {
             "email": "default.role@test.com",
             "password": "DefaultPass1",
             "first_name": "Default",
             "last_name": "Role",
-            "phone_number": "+237690000099",
+            "phone_number": phone,
+            "phone_verification_token": token,
             # pas de "role" → SERVANT par défaut
         }
         resp = await client.post("/api/v1/auth/register", json=data)
         assert resp.status_code == 201
         assert resp.json()["role"] == "SERVANT"
 
-    async def test_servant_duplicate_email_rejected(self, client: AsyncClient):
+    async def test_servant_duplicate_email_rejected(self, client: AsyncClient, db_session):
         """Deux inscriptions avec le même email → 400."""
+        token1 = await _verify_phone(client, db_session, "+237690000010")
         data = {
             "email": "duplicate@test.com",
             "password": "DuplicatePass1",
@@ -102,36 +111,47 @@ class TestServantRegistrationAndLogin:
             "last_name": "User",
             "phone_number": "+237690000010",
             "role": "SERVANT",
+            "phone_verification_token": token1,
         }
         resp1 = await client.post("/api/v1/auth/register", json=data)
         assert resp1.status_code == 201
 
+        token2 = await _verify_phone(client, db_session, "+237690000011")
         data["phone_number"] = "+237690000011"  # Changer le téléphone
+        data["phone_verification_token"] = token2
         resp2 = await client.post("/api/v1/auth/register", json=data)
         assert resp2.status_code == 400
         assert "already registered" in resp2.json()["detail"].lower()
 
-    async def test_servant_duplicate_phone_rejected(self, client: AsyncClient):
+    async def test_servant_duplicate_phone_rejected(self, client: AsyncClient, db_session):
         """Deux inscriptions avec le même téléphone → 400."""
+        phone = "+237690000020"
+        token1 = await _verify_phone(client, db_session, phone)
         data1 = {
             "email": "first@test.com",
             "password": "FirstPass1",
             "first_name": "First",
             "last_name": "User",
-            "phone_number": "+237690000020",
+            "phone_number": phone,
             "role": "SERVANT",
+            "phone_verification_token": token1,
         }
+        resp1 = await client.post("/api/v1/auth/register", json=data1)
+        assert resp1.status_code == 201
+
+        # Le même numéro est déjà utilisé — la vérification OTP réussirait à
+        # nouveau (aucune contrainte d'unicité sur PhoneVerificationCode),
+        # mais register_user() doit rejeter à l'étape d'unicité du téléphone.
+        token2 = await _verify_phone(client, db_session, phone)
         data2 = {
             "email": "second@test.com",
             "password": "SecondPass1",
             "first_name": "Second",
             "last_name": "User",
-            "phone_number": "+237690000020",  # Même numéro
+            "phone_number": phone,  # Même numéro
             "role": "SERVANT",
+            "phone_verification_token": token2,
         }
-        resp1 = await client.post("/api/v1/auth/register", json=data1)
-        assert resp1.status_code == 201
-
         resp2 = await client.post("/api/v1/auth/register", json=data2)
         assert resp2.status_code == 400
         assert "phone" in resp2.json()["detail"].lower()

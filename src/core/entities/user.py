@@ -52,51 +52,11 @@ class _UserRoleType(types.TypeDecorator):
         return value
 
 
-class ServantPosition(str, Enum):
-    DELEGUE = "DELEGUE"
-    VICE_DELEGUE = "VICE_DELEGUE"
-    CENSEUR = "CENSEUR"
-    CENSEUR_ADJOINT = "CENSEUR_ADJOINT"
-    SECRETAIRE_GENERAL = "SECRETAIRE_GENERAL"
-    SECRETAIRE_GENERAL_ADJOINT = "SECRETAIRE_GENERAL_ADJOINT"
-    ECONOME = "ECONOME"
-    COMMISSAIRE_AUX_COMPTES = "COMMISSAIRE_AUX_COMPTES"
-    INTENDANT = "INTENDANT"
-    CHARGE_LITURGIE = "CHARGE_LITURGIE"
-    CEREMONIARE = "CEREMONIARE"
-    CHARGE_SPORTS_CULTURE = "CHARGE_SPORTS_CULTURE"
-    CHARGE_CLASSEMENT = "CHARGE_CLASSEMENT"
-    CONSEILLER = "CONSEILLER"
-    SERVANT_AUTEL = "SERVANT_AUTEL"
-
-
-class _ServantPositionType(types.TypeDecorator):
-    """VARCHAR(64) column that transparently converts to/from ServantPosition enum.
-
-    Same pattern as _UserRoleType: asyncpg cannot implicitly cast text OID to the
-    PostgreSQL servantposition enum OID, causing DatatypeMismatchError on INSERT.
-    Storing as VARCHAR avoids the mismatch while this decorator surfaces ServantPosition.
-    """
-
-    impl = SAString(64)
-    cache_ok = True
-
-    def process_bind_param(self, value, dialect):
-        if isinstance(value, ServantPosition):
-            return value.value
-        return value
-
-    def process_result_value(self, value, dialect):
-        if value is not None:
-            try:
-                return ServantPosition(value)
-            except ValueError:
-                return value
-        return value
-
-
 class UserBase(SQLModel):
-    email: str = Field(unique=True, index=True)
+    # Optionnel pour SERVANT/PARENT (identifiant de connexion = téléphone) —
+    # jamais généré artificiellement : NULL si non fourni. L'identité du JWT
+    # repose sur User.id, pas sur l'email (voir AuthService.create_tokens).
+    email: Optional[str] = Field(default=None, unique=True, index=True)
     first_name: str
     last_name: str
     role: UserRole = Field(
@@ -114,10 +74,6 @@ class UserBase(SQLModel):
         default=None,
         sa_column=Column(SAString, nullable=True),
     )  # Stored as encrypted string; decrypted back to datetime by UserRepository
-    position: Optional[ServantPosition] = Field(
-        default=None,
-        sa_column=Column(_ServantPositionType(), nullable=True),
-    )  # Poste organisationnel (servants uniquement)
 
 
 class User(UserBase, table=True):
@@ -140,3 +96,11 @@ class User(UserBase, table=True):
 
     # Consentement explicite au traitement des données personnelles (Loi 2024/017 Art. 9)
     data_consent_at: Optional[datetime] = Field(default=None)
+
+    # Connexion via fournisseur OAuth (Google) — connexion uniquement,
+    # ne remplace pas hashed_password. oauth_subject est chiffré comme les
+    # autres champs PII (voir UserRepository.ENCRYPTED_FIELDS) ; oauth_subject_hmac
+    # sert de clé de recherche (Loi 2024/017 Art. 22).
+    oauth_provider: Optional[str] = Field(default=None, sa_column=Column(SAString(16), nullable=True))
+    oauth_subject: Optional[str] = Field(default=None)
+    oauth_subject_hmac: Optional[str] = Field(default=None, index=True)

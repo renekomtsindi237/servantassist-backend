@@ -21,16 +21,29 @@ from sqlmodel import select
 from src.core.entities.servant_parent import ServantParent
 from src.core.entities.user import User, UserRole
 from src.core.interfaces.repository import IRepository
+from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.encrypted_model_mixin import EncryptedModelMixin
 from src.infrastructure.security.field_encryption import get_encryptor
 
-_PII_FIELDS = ("first_name", "last_name", "email", "phone_number")
+_PII_FIELDS = ("first_name", "last_name", "email", "phone_number", "oauth_subject")
 _PII_DATE_FIELDS = ("birth_date", "baptism_date")
+
+
+def default_profile_photo_url() -> str:
+    """Photo de profil par défaut (`static/images/profil.jpeg`, identique à
+    `servantassist-web/public/profil.jpeg`) — appliquée à tout utilisateur
+    n'ayant pas encore uploadé sa propre photo (`POST /users/me/photo` écrase
+    cette valeur dès l'upload)."""
+    return f"{get_settings().APP_URL.rstrip('/')}/static/images/profil.jpeg"
 
 
 class UserRepository(EncryptedModelMixin, IRepository[User]):
     ENCRYPTED_FIELDS = _PII_FIELDS
-    HMAC_INDEX_MAP = {"email": "email_hmac", "phone_number": "phone_hmac"}
+    HMAC_INDEX_MAP = {
+        "email": "email_hmac",
+        "phone_number": "phone_hmac",
+        "oauth_subject": "oauth_subject_hmac",
+    }
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -78,7 +91,18 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
                 try:
                     set_committed_value(model, field, dt.fromisoformat(enc.decrypt(val)))
                 except (ValueError, Exception):
-                    pass
+                    # Repli : la valeur est peut-être une date ISO en clair
+                    # (donnée antérieure au chiffrement PII, cf. commentaire
+                    # équivalent dans EncryptedModelMixin). Si même ça échoue,
+                    # c'est un blob chiffré indéchiffrable (clé tournée,
+                    # donnée orpheline) — on ne le laisse JAMAIS remonter tel
+                    # quel : Pydantic validerait ce champ comme une date et
+                    # ferait planter toute la réponse (y compris une liste
+                    # paginée entière à cause d'un seul enregistrement).
+                    try:
+                        set_committed_value(model, field, dt.fromisoformat(val))
+                    except (ValueError, Exception):
+                        set_committed_value(model, field, None)
 
     # ── Lecture ────────────────────────────────────────────────────────
 
@@ -96,7 +120,14 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
                 await self._load_parent_ids(user)
         return user
 
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: Optional[str]) -> Optional[User]:
+        # Défense en profondeur : email est optionnel pour SERVANT/PARENT.
+        # hmac_index(None) retourne None, et `Column == None` se compile en
+        # `IS NULL` côté SQL — sans cette garde, un email vide/None
+        # retournerait un utilisateur ARBITRAIRE parmi tous les comptes sans
+        # email, pas "aucun utilisateur trouvé".
+        if not email:
+            return None
         email_hmac = get_encryptor().hmac_index(email)
         result = await self.session.exec(select(User).where(User.email_hmac == email_hmac))
         user = result.first()
@@ -107,6 +138,19 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
     async def get_by_phone(self, phone_number: str) -> Optional[User]:
         phone_hmac = get_encryptor().hmac_index(phone_number)
         result = await self.session.exec(select(User).where(User.phone_hmac == phone_hmac))
+        user = result.first()
+        if user:
+            self._decrypt_model(user)
+        return user
+
+    async def get_by_oauth_subject(self, provider: str, subject: str) -> Optional[User]:
+        subject_hmac = get_encryptor().hmac_index(subject)
+        result = await self.session.exec(
+            select(User).where(
+                User.oauth_provider == provider,
+                User.oauth_subject_hmac == subject_hmac,
+            )
+        )
         user = result.first()
         if user:
             self._decrypt_model(user)
@@ -166,6 +210,8 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
     # ── Écriture ──────────────────────────────────────────────────────
 
     async def create(self, user: User) -> User:
+        if not user.profile_photo_url:
+            user.profile_photo_url = default_profile_photo_url()
         self._encrypt_model(user)
         self.session.add(user)
         await self.session.commit()
@@ -196,7 +242,10 @@ class UserRepository(EncryptedModelMixin, IRepository[User]):
             return True
         return False
 
-    async def email_exists(self, email: str, exclude_id: Optional[UUID] = None) -> bool:
+    async def email_exists(self, email: Optional[str], exclude_id: Optional[UUID] = None) -> bool:
+        # Même garde que get_by_email() : email est optionnel désormais.
+        if not email:
+            return False
         email_hmac = get_encryptor().hmac_index(email)
         stmt = select(User).where(User.email_hmac == email_hmac)
         if exclude_id:

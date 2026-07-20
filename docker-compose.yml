@@ -5,7 +5,6 @@
 #   Test:  docker compose --profile test up --abort-on-container-exit
 #   Prod:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 # ──────────────────────────────────────────────────────────────────────────
-version: "3.9"
 
 services:
   # ── PostgreSQL ────────────────────────────────────────────────────
@@ -87,6 +86,15 @@ services:
       REDIS_URL: "redis://redis:6379/0"
       APP_ENV: development
     command: celery -A src.infrastructure.tasks.celery_app worker --loglevel=info --concurrency=2
+    # Le HEALTHCHECK de l'image (cible /health en HTTP sur :8000) ne convient
+    # qu'au service `backend` — surchargé ici avec le ping Celery natif, sinon
+    # ce conteneur reste "unhealthy" en permanence bien que fonctionnel.
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A src.infrastructure.tasks.celery_app inspect ping -t 5 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
 
   # ── Celery Beat (scheduler) ───────────────────────────────────────
   celery-beat:
@@ -108,6 +116,11 @@ services:
       REDIS_URL: "redis://redis:6379/0"
       APP_ENV: development
     command: celery -A src.infrastructure.tasks.celery_app beat --loglevel=info
+    # Beat n'a pas de worker à interroger (c'est le planificateur) — pas
+    # d'équivalent simple à "inspect ping" ; on désactive le healthcheck HTTP
+    # hérité plutôt que de le laisser échouer indéfiniment contre le port 8000.
+    healthcheck:
+      disable: true
 
   # ── Flower (Celery monitoring UI) ─────────────────────────────────
   flower:
@@ -126,6 +139,14 @@ services:
     environment:
       REDIS_URL: "redis://redis:6379/0"
     command: celery -A src.infrastructure.tasks.celery_app flower --port=5555
+    # Flower sert son interface HTTP sur :5555, pas :8000 comme le healthcheck
+    # hérité de l'image le suppose.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
 
   # ── Tests (profil « test ») ───────────────────────────────────────
   test:

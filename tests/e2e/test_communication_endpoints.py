@@ -113,6 +113,61 @@ class TestSendNotification:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
+    async def test_send_notification_secretaire_success(
+        self, client: AsyncClient, secretaire_user: User, servant_user: User
+    ):
+        """Art. 8d : le Secretaire (General) transmet les informations aux servants."""
+        resp = await client.post(
+            "/api/v1/communication/notify",
+            json={
+                "recipient_id": str(servant_user.id),
+                "notification_type": "GENERAL",
+                "channel": "IN_APP",
+                "title": "Information du secretariat",
+                "body": "Reunion deplacee a 7h30.",
+            },
+            headers=make_auth_header(secretaire_user),
+        )
+        assert resp.status_code == 201
+        assert resp.json()["sent_by"] == str(secretaire_user.id)
+
+    @pytest.mark.asyncio
+    async def test_send_notification_secretaire_adjoint_success(
+        self, client: AsyncClient, secretaire_adjoint_user: User, servant_user: User
+    ):
+        """Art. 8d : le Secretaire General Adjoint transmet aussi les informations."""
+        resp = await client.post(
+            "/api/v1/communication/notify",
+            json={
+                "recipient_id": str(servant_user.id),
+                "notification_type": "GENERAL",
+                "channel": "IN_APP",
+                "title": "Information du secretariat",
+                "body": "Repetition avancee a 6h.",
+            },
+            headers=make_auth_header(secretaire_adjoint_user),
+        )
+        assert resp.status_code == 201
+
+    @pytest.mark.asyncio
+    async def test_send_notification_econome_forbidden(
+        self, client: AsyncClient, econome_user: User, servant_user: User
+    ):
+        """Un poste sans lien avec la communication n'a pas acces a /notify."""
+        resp = await client.post(
+            "/api/v1/communication/notify",
+            json={
+                "recipient_id": str(servant_user.id),
+                "notification_type": "GENERAL",
+                "channel": "IN_APP",
+                "title": "Test",
+                "body": "Test",
+            },
+            headers=make_auth_header(econome_user),
+        )
+        assert resp.status_code == 403
+
+    @pytest.mark.asyncio
     async def test_send_notification_admin_success(self, client: AsyncClient, admin_user: User, servant_user: User):
         """Un admin peut envoyer une notification."""
         resp = await client.post(
@@ -230,6 +285,28 @@ class TestBroadcastNotification:
             headers=make_auth_header(servant_user),
         )
         assert resp.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_broadcast_secretaire_success(
+        self,
+        client: AsyncClient,
+        secretaire_user: User,
+        servant_user: User,
+    ):
+        """Art. 8d : le Secretariat peut diffuser une information a tous les servants."""
+        resp = await client.post(
+            "/api/v1/communication/broadcast",
+            json={
+                "target": "servants",
+                "notification_type": "GENERAL",
+                "channel": "IN_APP",
+                "title": "Annonce du secretariat",
+                "body": "La reunion de samedi est maintenue.",
+            },
+            headers=make_auth_header(secretaire_user),
+        )
+        assert resp.status_code == 201
+        assert resp.json()["target"] == "servants"
 
 
 # ═══════════════════════════════════════════════════════════════════════════

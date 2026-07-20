@@ -9,22 +9,25 @@ Regles du reglement interieur :
 """
 
 import math
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
 
 from src.core.entities.cotisation import (
+    FIXED_AMOUNTS,
     CotisationPeriod,
     CotisationStatus,
     CotisationType,
     MemberCotisation,
+    PeriodType,
 )
 from src.core.entities.user import UserRole
 from src.core.interfaces.repositories import (
     ICotisationPeriodRepository,
     IMemberCotisationRepository,
+    INominationRepository,
     IUserRepository,
 )
 from src.core.utils import utc_now
@@ -48,10 +51,12 @@ class CotisationService:
         period_repo: ICotisationPeriodRepository,
         payment_repo: IMemberCotisationRepository,
         user_repo: IUserRepository,
+        nomination_repo: Optional[INominationRepository] = None,
     ):
         self.period_repo = period_repo
         self.payment_repo = payment_repo
         self.user_repo = user_repo
+        self.nomination_repo = nomination_repo
 
     # ══════════════════════════════════════════════════════════════════
     #  PERIODES
@@ -62,6 +67,17 @@ class CotisationService:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="La date de fin doit etre posterieure a la date de debut.",
+            )
+
+        fixed_amount = FIXED_AMOUNTS.get((data.cotisation_type, data.period_type))
+        if fixed_amount is not None and data.amount_expected != fixed_amount:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Le montant pour une cotisation {data.cotisation_type.value} "
+                    f"{data.period_type.value.lower()} doit etre de {fixed_amount:.0f} FCFA "
+                    f"(Art. 22 du reglement interieur)."
+                ),
             )
 
         period = CotisationPeriod(
@@ -76,7 +92,60 @@ class CotisationService:
             created_by=created_by,
         )
         created = await self.period_repo.create(period)
+
+        # Obligatoire pour chaque servant sans poste de responsabilite actif
+        # — l'obligation EN_ATTENTE est creee immediatement pour chacun,
+        # plutot que de deduire l'absence de paiement par l'absence de
+        # ligne. Concerne :
+        # - ORDINAIRE mensuel/hebdomadaire (Art. 22 : cotisation reguliere)
+        # - SPECIALE (Art. 23 : camp spirituel, fete de fin d'annee —
+        #   "obligatoires pour tous les servants")
+        # - AUBE (Art. 21 : entretien/confection des aubes, "obligatoire
+        #   pour les nouveaux et les anciens")
+        # AMENDE (penalite individuelle) et AUTRE (contribution volontaire)
+        # ne generent jamais d'obligation automatique.
+        is_ordinaire_periodique = data.cotisation_type == CotisationType.ORDINAIRE and data.period_type in (
+            PeriodType.MENSUEL,
+            PeriodType.HEBDOMADAIRE,
+        )
+        is_obligatoire_evenementielle = data.cotisation_type in (
+            CotisationType.SPECIALE,
+            CotisationType.AUBE,
+        )
+        if is_ordinaire_periodique or is_obligatoire_evenementielle:
+            await self._create_obligations_for_period(created)
+
         return await self._build_period_response(created)
+
+    async def _create_obligations_for_period(self, period: CotisationPeriod) -> None:
+        """
+        Cree une obligation EN_ATTENTE pour chaque servant sans poste de
+        responsabilite actif — rend la cotisation reellement obligatoire et
+        interrogeable (Art. 21, 22, 23), pas seulement deduite par l'absence
+        de paiement enregistre.
+        """
+        if self.nomination_repo is None:
+            return
+
+        servants, _ = await self.user_repo.list_paginated(
+            role=UserRole.SERVANT, is_active=True, page_size=10000
+        )
+        active_nominations = await self.nomination_repo.list_all_active()
+        postes_by_user = {n.user_id for n in active_nominations}
+
+        for servant in servants:
+            if servant.id in postes_by_user:
+                continue  # responsable — exempte de la cotisation obligatoire
+            existing = await self.payment_repo.get_by_period_and_user(period.id, servant.id)
+            if existing:
+                continue
+            obligation = MemberCotisation(
+                period_id=period.id,
+                user_id=servant.id,
+                amount_paid=0,
+                status=CotisationStatus.EN_ATTENTE,
+            )
+            await self.payment_repo.create(obligation)
 
     async def update_period(self, period_id: UUID, data: CotisationPeriodUpdate) -> CotisationPeriodResponse:
         period = await self.period_repo.get(period_id)
@@ -90,6 +159,16 @@ class CotisationService:
         if data.description is not None:
             period.description = data.description
         if data.amount_expected is not None:
+            fixed_amount = FIXED_AMOUNTS.get((period.cotisation_type, period.period_type))
+            if fixed_amount is not None and data.amount_expected != fixed_amount:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Le montant pour une cotisation {period.cotisation_type.value} "
+                        f"{period.period_type.value.lower()} doit etre de {fixed_amount:.0f} FCFA "
+                        f"(Art. 22 du reglement interieur)."
+                    ),
+                )
             period.amount_expected = data.amount_expected
         if data.end_date is not None:
             period.end_date = data.end_date
@@ -193,6 +272,28 @@ class CotisationService:
                 detail="Utilisateur introuvable.",
             )
 
+        # Exclusivite mensuel/hebdomadaire (Art. 22) : un servant choisit un
+        # seul mode de cotisation ordinaire, jamais les deux simultanement
+        # sur une periode qui se chevauche.
+        if period.cotisation_type == CotisationType.ORDINAIRE and period.period_type in (
+            PeriodType.MENSUEL,
+            PeriodType.HEBDOMADAIRE,
+        ):
+            other_period_type = (
+                PeriodType.HEBDOMADAIRE if period.period_type == PeriodType.MENSUEL else PeriodType.MENSUEL
+            )
+            overlapping = await self.payment_repo.get_overlapping_ordinaire_payment(
+                data.user_id, other_period_type, period.start_date, period.end_date
+            )
+            if overlapping:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        f"Ce servant a deja choisi le mode {other_period_type.value}. "
+                        "Impossible de cumuler mensuel et hebdomadaire sur la meme periode."
+                    ),
+                )
+
         existing = await self.payment_repo.get_by_period_and_user(data.period_id, data.user_id)
         if existing:
             # Mettre a jour le paiement existant (paiement supplementaire)
@@ -272,3 +373,67 @@ class CotisationService:
             total_remaining=total_remaining,
             taux_recouvrement=round(taux, 1),
         )
+
+    async def check_payment_compliance(self, user_id: UUID) -> dict:
+        """
+        Verifie la conformite des cotisations ordinaires d'un servant (Art. 48, 50) :
+        - 2 periodes ordinaires consecutives manquees -> convocation des parents
+        - 6 periodes ordinaires consecutives manquees -> radiation
+        """
+        six_months_ago = utc_now() - timedelta(days=180)
+        periods = await self.period_repo.list_ordinaire_since(six_months_ago)
+        periods = sorted(periods, key=lambda p: p.start_date, reverse=True)
+
+        consecutive_missing = 0
+        max_consecutive_missing = 0
+        for period in periods:
+            payment = await self.payment_repo.get_by_period_and_user(period.id, user_id)
+            paid = payment is not None and payment.status in (
+                CotisationStatus.PAYE,
+                CotisationStatus.PAYE_PARTIELLEMENT,
+                CotisationStatus.EXONERE,
+            )
+            if paid:
+                consecutive_missing = 0
+            else:
+                consecutive_missing += 1
+                max_consecutive_missing = max(max_consecutive_missing, consecutive_missing)
+
+        needs_parent_convocation = max_consecutive_missing >= 2
+
+        if needs_parent_convocation:
+            # Enregistrement structure de la convocation (Art. 48-49),
+            # idempotent — ne cree pas de doublon si deja EN_ATTENTE.
+            try:
+                from src.core.entities.convocation import ConvocationMotif
+                from src.application.services.convocation_service import ConvocationService
+                from src.infrastructure.repositories.convocation_repository import (
+                    ConvocationRepository,
+                )
+
+                convocation_service = ConvocationService(
+                    convocation_repo=ConvocationRepository(self.period_repo.session),
+                    user_repo=self.user_repo,
+                )
+                user = await self.user_repo.get(user_id)
+                if user:
+                    await convocation_service.create_if_not_pending(
+                        servant_id=user_id,
+                        motif=ConvocationMotif.NON_COTISATION,
+                        details=(
+                            f"{max_consecutive_missing} periodes de cotisation ordinaire "
+                            "consecutives non reglees."
+                        ),
+                        # Declenchement automatique (pas d'utilisateur "current" dans ce contexte).
+                        convened_by=UUID("00000000-0000-0000-0000-000000000000"),
+                    )
+            except Exception:
+                pass  # Le calcul de conformite ne doit jamais echouer a cause de la convocation
+
+        return {
+            "user_id": user_id,
+            "consecutive_missing_periods": max_consecutive_missing,
+            "needs_parent_convocation": needs_parent_convocation,
+            "flagged_for_radiation": max_consecutive_missing >= 6,
+            "checked_at": utc_now(),
+        }

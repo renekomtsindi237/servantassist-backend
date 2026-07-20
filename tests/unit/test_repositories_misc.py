@@ -145,7 +145,9 @@ async def test_password_reset_code_delete_expired():
 
 
 @pytest.mark.asyncio
-async def test_password_reset_code_delete_for_email():
+async def test_password_reset_code_delete_for_user():
+    from uuid import uuid4
+
     from src.infrastructure.repositories.password_reset_code_repository import PasswordResetCodeRepository
 
     session = _mock_session()
@@ -154,7 +156,7 @@ async def test_password_reset_code_delete_for_email():
     session.exec = AsyncMock(return_value=_exec_result())
     session.commit = AsyncMock()
 
-    await repo.delete_for_email("test@example.com")
+    await repo.delete_for_user(uuid4())
     session.exec.assert_called_once()
     session.commit.assert_called_once()
 

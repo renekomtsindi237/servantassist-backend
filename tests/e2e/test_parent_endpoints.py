@@ -209,7 +209,7 @@ class TestCreateChildProfile:
         assert child_id in ids
 
     @pytest.mark.asyncio
-    async def test_child_without_phone_uses_uuid_email(self, client: AsyncClient, parent_user: User):
+    async def test_child_without_email_stays_null(self, client: AsyncClient, parent_user: User):
         resp = await client.post(
             "/api/v1/parent/children",
             json={
@@ -222,8 +222,8 @@ class TestCreateChildProfile:
         )
         assert resp.status_code == 201
         body = resp.json()
-        # Auto-generated email should contain @bmra.servant.local
-        assert "@bmra.servant.local" in body.get("email", "")
+        # Plus d'auto-génération : NULL reste NULL, pas de valeur technique.
+        assert body.get("email") is None
 
     @pytest.mark.asyncio
     async def test_missing_required_fields_returns_422(self, client: AsyncClient, parent_user: User):

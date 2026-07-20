@@ -18,11 +18,13 @@ from sqlmodel import select
 from src.core.entities.discipline import (
     DisciplineCase,
     DisciplineCaseStatus,
+    DisciplineCaseVote,
     OffenseCategory,
     SanctionSeverity,
     SanctionType,
 )
 from src.core.entities.user import User
+from src.core.utils import utc_now
 from src.infrastructure.security.encrypted_model_mixin import EncryptedModelMixin
 from src.infrastructure.security.field_encryption import decrypt_str_fields
 
@@ -106,6 +108,18 @@ class DisciplineCaseRepository(EncryptedModelMixin):
             result = await self.session.exec(stmt)
             counts[st.value] = result.one()
         return counts
+
+    async def count_by_offense_category_since(
+        self, user_id: UUID, category: OffenseCategory, since: datetime
+    ) -> int:
+        """Nombre de dossiers pour un motif donne depuis une date (ex. Art. 48 : tenue incorrecte 3x)."""
+        stmt = select(func.count()).where(
+            DisciplineCase.accused_user_id == user_id,
+            DisciplineCase.offense_category == category,
+            DisciplineCase.offense_date >= since,
+        )
+        result = await self.session.exec(stmt)
+        return result.one()
 
     async def count_active_cases(self, user_id: UUID) -> int:
         """Nombre de dossiers en cours pour un utilisateur."""
@@ -200,3 +214,52 @@ class DisciplineCaseRepository(EncryptedModelMixin):
             await self.session.commit()
             return True
         return False
+
+    # ── Votes du conseil de discipline ──────────────────────────────────
+
+    async def upsert_vote(
+        self,
+        case_id: UUID,
+        poste: str,
+        voter_user_id: UUID,
+        sanction_type: SanctionType,
+        notes: Optional[str] = None,
+    ) -> DisciplineCaseVote:
+        """Enregistre le vote d'un siege ; un revote ecrase le choix precedent."""
+        stmt = select(DisciplineCaseVote).where(
+            DisciplineCaseVote.case_id == case_id,
+            DisciplineCaseVote.poste == poste,
+        )
+        existing = (await self.session.exec(stmt)).first()
+        if existing:
+            existing.voter_user_id = voter_user_id
+            existing.sanction_type = sanction_type
+            existing.notes = notes
+            existing.voted_at = utc_now()
+            self.session.add(existing)
+            await self.session.commit()
+            await self.session.refresh(existing)
+            return existing
+
+        vote = DisciplineCaseVote(
+            case_id=case_id,
+            poste=poste,
+            voter_user_id=voter_user_id,
+            sanction_type=sanction_type,
+            notes=notes,
+        )
+        self.session.add(vote)
+        await self.session.commit()
+        await self.session.refresh(vote)
+        return vote
+
+    async def list_votes(self, case_id: UUID) -> List[DisciplineCaseVote]:
+        stmt = select(DisciplineCaseVote).where(DisciplineCaseVote.case_id == case_id)
+        result = await self.session.exec(stmt)
+        return list(result.all())
+
+    async def delete_votes(self, case_id: UUID) -> None:
+        votes = await self.list_votes(case_id)
+        for vote in votes:
+            await self.session.delete(vote)
+        await self.session.commit()

@@ -231,26 +231,28 @@ class TestUserCreateWithInvite:
 # ═══════════════════════════════════════════════════════════════════════════
 @pytest.mark.unit
 class TestTokenData:
+    USER_ID = "12345678-1234-1234-1234-123456789012"
+
     def test_valid(self):
-        td = TokenData(email="u@t.com", role=UserRole.ADMIN)
-        assert td.email == "u@t.com"
+        td = TokenData(user_id=self.USER_ID, role=UserRole.ADMIN)
+        assert str(td.user_id) == self.USER_ID
         assert td.role == UserRole.ADMIN
 
     def test_missing_role_raises(self):
         with pytest.raises(ValidationError):
-            TokenData(email="u@t.com")
+            TokenData(user_id=self.USER_ID)
 
-    def test_missing_email_raises(self):
+    def test_missing_user_id_raises(self):
         with pytest.raises(ValidationError):
             TokenData(role=UserRole.ADMIN)
 
     def test_invalid_role_raises(self):
         with pytest.raises(ValidationError):
-            TokenData(email="u@t.com", role="INVALID_ROLE")
+            TokenData(user_id=self.USER_ID, role="INVALID_ROLE")
 
     def test_all_valid_roles(self):
         for role in UserRole:
-            td = TokenData(email="u@t.com", role=role)
+            td = TokenData(user_id=self.USER_ID, role=role)
             assert td.role == role
 
 

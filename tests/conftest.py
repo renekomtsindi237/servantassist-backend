@@ -51,7 +51,6 @@ from src.core.entities.attendance_session import (
     AttendanceSession,
     AttendanceStatus,
 )
-from src.core.entities.contribution import Contribution, PaymentMode
 from src.core.entities.cotisation import (
     CotisationPeriod,
     CotisationStatus,
@@ -110,7 +109,7 @@ from src.presentation.api.v1 import (
     attendance_sessions,
     auth,
     communication,
-    contributions,
+    convocation,
     cotisations,
     discipline,
     dossier,
@@ -146,6 +145,7 @@ def create_test_app() -> FastAPI:
     test_app.include_router(poste.router, prefix="/api/v1/poste", tags=["Poste Actions"])
     test_app.include_router(discipline.router, prefix="/api/v1/discipline", tags=["Discipline"])
     test_app.include_router(cotisations.router, prefix="/api/v1/cotisations", tags=["Cotisations"])
+    test_app.include_router(convocation.router, prefix="/api/v1/convocations", tags=["Convocations"])
     test_app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["Attendance"])
     test_app.include_router(subgroups.router, prefix="/api/v1/subgroups", tags=["Sub-Groups"])
     test_app.include_router(
@@ -153,7 +153,6 @@ def create_test_app() -> FastAPI:
         prefix="/api/v1/attendance-sessions",
         tags=["Attendance Sessions"],
     )
-    test_app.include_router(contributions.router, prefix="/api/v1/contributions", tags=["Contributions"])
     test_app.include_router(
         financial_entries.router,
         prefix="/api/v1/financial-entries",
@@ -315,7 +314,7 @@ async def inactive_user(db_session: AsyncSession) -> User:
 def make_access_token(user: User, expires: timedelta | None = None) -> str:
     """Génère un access token pour un utilisateur de test."""
     return SecurityUtils.create_access_token(
-        subject=user.email,
+        subject=user.id,
         role=user.role.value,
         expires_delta=expires or timedelta(minutes=30),
     )
@@ -454,6 +453,156 @@ async def censeur_user(db_session: AsyncSession, aumonier_user: User) -> User:
 @pytest_asyncio.fixture()
 async def censeur_token(censeur_user: User) -> str:
     return make_access_token(censeur_user)
+
+
+@pytest_asyncio.fixture()
+async def censeur_adjoint_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with CENSEUR_ADJOINT nomination."""
+    user = await _make_user(
+        db_session,
+        id=uuid4(),
+        email="censeur_adjoint@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Censeur",
+        last_name="Adjoint",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(
+        Nomination(
+            user_id=user.id,
+            poste=PosteResponsable.CENSEUR_ADJOINT,
+            status=NominationStatus.ACTIVE,
+            nominated_by=aumonier_user.id,
+        )
+    )
+    await db_session.commit()
+    return user
+
+
+@pytest_asyncio.fixture()
+async def censeur_adjoint_token(censeur_adjoint_user: User) -> str:
+    return make_access_token(censeur_adjoint_user)
+
+
+@pytest_asyncio.fixture()
+async def accompagnateur_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with ACCOMPAGNATEUR nomination."""
+    user = await _make_user(
+        db_session,
+        id=uuid4(),
+        email="accompagnateur@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Accompagnateur",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(
+        Nomination(
+            user_id=user.id,
+            poste=PosteResponsable.ACCOMPAGNATEUR,
+            status=NominationStatus.ACTIVE,
+            nominated_by=aumonier_user.id,
+        )
+    )
+    await db_session.commit()
+    return user
+
+
+@pytest_asyncio.fixture()
+async def accompagnateur_token(accompagnateur_user: User) -> str:
+    return make_access_token(accompagnateur_user)
+
+
+@pytest_asyncio.fixture()
+async def delegue_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with DELEGUE nomination."""
+    user = await _make_user(
+        db_session,
+        id=uuid4(),
+        email="delegue@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Delegue",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(
+        Nomination(
+            user_id=user.id,
+            poste=PosteResponsable.DELEGUE,
+            status=NominationStatus.ACTIVE,
+            nominated_by=aumonier_user.id,
+        )
+    )
+    await db_session.commit()
+    return user
+
+
+@pytest_asyncio.fixture()
+async def delegue_token(delegue_user: User) -> str:
+    return make_access_token(delegue_user)
+
+
+@pytest_asyncio.fixture()
+async def vice_delegue_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with VICE_DELEGUE nomination."""
+    user = await _make_user(
+        db_session,
+        id=uuid4(),
+        email="vice-delegue@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="ViceDelegue",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(
+        Nomination(
+            user_id=user.id,
+            poste=PosteResponsable.VICE_DELEGUE,
+            status=NominationStatus.ACTIVE,
+            nominated_by=aumonier_user.id,
+        )
+    )
+    await db_session.commit()
+    return user
+
+
+@pytest_asyncio.fixture()
+async def vice_delegue_token(vice_delegue_user: User) -> str:
+    return make_access_token(vice_delegue_user)
+
+
+@pytest_asyncio.fixture()
+async def ceremoniaire_user(db_session: AsyncSession, aumonier_user: User) -> User:
+    """User with CEREMONIAIRE nomination."""
+    user = await _make_user(
+        db_session,
+        id=uuid4(),
+        email="ceremoniaire@test.com",
+        hashed_password=SecurityUtils.get_password_hash(VALID_PASSWORD),
+        first_name="Ceremoniaire",
+        last_name="Test",
+        role=UserRole.SERVANT,
+        is_active=True,
+    )
+    db_session.add(
+        Nomination(
+            user_id=user.id,
+            poste=PosteResponsable.CEREMONIAIRE,
+            status=NominationStatus.ACTIVE,
+            nominated_by=aumonier_user.id,
+        )
+    )
+    await db_session.commit()
+    return user
+
+
+@pytest_asyncio.fixture()
+async def ceremoniaire_token(ceremoniaire_user: User) -> str:
+    return make_access_token(ceremoniaire_user)
 
 
 @pytest_asyncio.fixture()
@@ -879,34 +1028,6 @@ async def sample_subgroup_member(
     await db_session.commit()
     await db_session.refresh(member)
     return member
-
-
-@pytest_asyncio.fixture()
-async def sample_contribution(
-    db_session: AsyncSession,
-    servant_user: User,
-    econome_user: User,
-) -> Contribution:
-    """Contribution de test."""
-    contribution = Contribution(
-        id=uuid4(),
-        servant_id=servant_user.id,
-        amount=500.0,
-        payment_mode=PaymentMode.MONTHLY,
-        payment_date=datetime.now(timezone.utc),
-        month=2,
-        year=2026,
-        recorded_by=econome_user.id,
-    )
-    db_session.add(contribution)
-    await db_session.commit()
-    await db_session.refresh(contribution)
-    return contribution
-
-
-@pytest_asyncio.fixture()
-async def contribution_id(sample_contribution: Contribution) -> str:
-    return str(sample_contribution.id)
 
 
 @pytest_asyncio.fixture()

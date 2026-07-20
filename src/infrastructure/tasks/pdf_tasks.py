@@ -83,7 +83,7 @@ async def _export_user_data_pdf_async(user_id: UUID) -> Optional[bytes]:
     from sqlmodel import col, select
 
     from src.core.entities.attendance import Attendance
-    from src.core.entities.contribution import MemberCotisation
+    from src.core.entities.cotisation import CotisationPeriod, MemberCotisation
     from src.core.entities.user import User
     from src.infrastructure.database.session import sessionmanager
 
@@ -97,7 +97,11 @@ async def _export_user_data_pdf_async(user_id: UUID) -> Optional[bytes]:
         result_att = await session.exec(stmt_att)
         attendances = result_att.all()
 
-        stmt_cot = select(MemberCotisation).where(MemberCotisation.user_id == user_id)
+        stmt_cot = (
+            select(MemberCotisation, CotisationPeriod)
+            .join(CotisationPeriod, MemberCotisation.period_id == CotisationPeriod.id)
+            .where(MemberCotisation.user_id == user_id)
+        )
         result_cot = await session.exec(stmt_cot)
         cotisations = result_cot.all()
 
@@ -155,15 +159,14 @@ async def _export_user_data_pdf_async(user_id: UUID) -> Optional[bytes]:
 
     if cotisations:
         story.append(Paragraph(f"Cotisations ({len(cotisations)} enregistrements)", styles["Heading2"]))
-        cot_data = [["Mois", "Année", "Montant (XAF)", "Statut"]]
-        for c in cotisations[:50]:
+        cot_data = [["Période", "Montant payé (XAF)", "Statut"]]
+        for c, period in cotisations[:50]:
             cot_data.append([
-                c.month or "",
-                str(c.year) if c.year else "",
-                f"{c.amount:,.0f}" if c.amount else "0",
+                period.title if period else "",
+                f"{c.amount_paid:,.0f}" if c.amount_paid else "0",
                 c.status.value if hasattr(c.status, "value") else str(c.status),
             ])
-        cot_table = Table(cot_data, colWidths=[4 * cm, 3 * cm, 5 * cm, 5 * cm])
+        cot_table = Table(cot_data, colWidths=[7 * cm, 5 * cm, 5 * cm])
         cot_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -296,14 +299,17 @@ async def _generate_financial_report_async(period: str, year: int) -> bytes:
     from reportlab.lib.units import cm
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
     from reportlab.lib.styles import getSampleStyleSheet
-    from sqlmodel import col, select
+    from sqlalchemy import func
+    from sqlmodel import select
 
-    from src.core.entities.contribution import MemberCotisation
+    from src.core.entities.cotisation import CotisationPeriod, MemberCotisation
     from src.infrastructure.database.session import sessionmanager
 
     async with sessionmanager.session() as session:
-        stmt = select(MemberCotisation).where(
-            MemberCotisation.year == year,
+        stmt = (
+            select(MemberCotisation, CotisationPeriod)
+            .join(CotisationPeriod, MemberCotisation.period_id == CotisationPeriod.id)
+            .where(func.extract("year", CotisationPeriod.start_date) == year)
         )
         result = await session.exec(stmt)
         cotisations = result.all()
@@ -317,18 +323,18 @@ async def _generate_financial_report_async(period: str, year: int) -> bytes:
     story.append(Paragraph(f"Généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y')}", styles["Normal"]))
     story.append(Spacer(1, 0.5 * cm))
 
-    total = sum(c.amount or 0 for c in cotisations)
-    paid = sum(c.amount or 0 for c in cotisations if str(getattr(c.status, "value", c.status)) == "PAID")
+    total = sum(p.amount_expected or 0 for _, p in cotisations)
+    paid = sum(c.amount_paid or 0 for c, _ in cotisations)
     story.append(Paragraph(f"Total attendu : {total:,.0f} XAF | Collecté : {paid:,.0f} XAF | Taux : {paid/total*100:.1f}%" if total else "Aucune donnée", styles["Normal"]))
     story.append(Spacer(1, 0.5 * cm))
 
     if cotisations:
-        rows = [["Servant", "Mois", "Montant (XAF)", "Statut"]]
-        for c in cotisations[:100]:
+        rows = [["Servant", "Période", "Montant payé (XAF)", "Statut"]]
+        for c, p in cotisations[:100]:
             rows.append([
                 str(c.user_id)[:8] + "...",
-                c.month or "",
-                f"{c.amount:,.0f}" if c.amount else "0",
+                p.title if p else "",
+                f"{c.amount_paid:,.0f}" if c.amount_paid else "0",
                 str(getattr(c.status, "value", c.status)),
             ])
         table = Table(rows, colWidths=[5 * cm, 3 * cm, 5 * cm, 4 * cm])

@@ -22,7 +22,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    email: str
+    user_id: UUID
     role: UserRole
 
 
@@ -38,6 +38,12 @@ class UserPhoneLogin(BaseModel):
     password: str
 
 
+class OAuthLoginRequest(BaseModel):
+    """Connexion via jeton d'identité Google (vérifié côté backend)."""
+
+    id_token: str
+
+
 class UserCreate(BaseModel):
     email: Optional[EmailStr] = None  # Auto-généré si absent (SERVANT sans email)
     password: str = Field(
@@ -51,6 +57,9 @@ class UserCreate(BaseModel):
     role: UserRole = UserRole.SERVANT
     birth_date: Optional[datetime] = None
     parent_id: Optional[UUID] = None
+    # Jeton renvoyé par POST /auth/register/verify-phone-code — requis pour
+    # l'inscription publique SERVANT/PARENT (voir AuthService.register_user).
+    phone_verification_token: Optional[str] = None
 
     @field_validator("first_name", "last_name", mode="before")
     @classmethod
@@ -101,6 +110,9 @@ class UserCreateWithInvite(BaseModel):
     invitation_code: Optional[str] = Field(default=None, description="Required for PARENT role")
     parent_id: Optional[UUID] = None  # Lien optionnel vers un compte parent
     birth_date: Optional[datetime] = None
+    # Jeton renvoyé par POST /auth/register/verify-phone-code — requis pour
+    # l'inscription publique SERVANT/PARENT (voir AuthService.register_user).
+    phone_verification_token: Optional[str] = None
 
     @field_validator("first_name", "last_name", mode="before")
     @classmethod
@@ -136,7 +148,7 @@ class UserCreateWithInvite(BaseModel):
 
 class UserResponse(BaseModel):
     id: UUID
-    email: EmailStr
+    email: Optional[EmailStr] = None
     first_name: str
     last_name: str
     role: UserRole
@@ -191,3 +203,22 @@ class VerifyResetCodePhoneRequest(BaseModel):
 
     phone_number: str
     code: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class PhoneVerificationRequest(BaseModel):
+    """Demande d'envoi d'un code OTP pour vérifier un numéro à l'inscription."""
+
+    phone_number: str
+
+
+class PhoneVerificationCheck(BaseModel):
+    """Vérification du code OTP envoyé lors de l'inscription."""
+
+    phone_number: str
+    code: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class PhoneVerificationResponse(BaseModel):
+    """Jeton à fournir dans UserCreateWithInvite.phone_verification_token."""
+
+    verification_token: str

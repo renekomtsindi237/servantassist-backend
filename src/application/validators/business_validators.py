@@ -13,8 +13,6 @@ import re
 from datetime import date, datetime
 from typing import Optional
 
-from src.core.entities.user import ServantPosition
-
 # ── Téléphone ─────────────────────────────────────────────────────────────────
 
 _PHONE_PATTERN = re.compile(r"^\+237[0-9]{9}$")
@@ -95,31 +93,6 @@ def validate_birthdate(date_value: Optional[str | date]) -> Optional[date]:
 
 # ── Position / Poste ──────────────────────────────────────────────────────────
 
-_VALID_POSITIONS = {p.value for p in ServantPosition}
-
-
-def validate_servant_position(position: Optional[str]) -> Optional[str]:
-    """
-    Valide un poste de servant dans l'organe exécutif.
-
-    Args:
-        position: valeur de poste (insensible à la casse) ou None.
-
-    Returns:
-        Valeur de poste normalisée en majuscules, ou None.
-
-    Raises:
-        ValueError: si le poste n'est pas dans l'enum ServantPosition.
-    """
-    if position is None:
-        return None
-    upper = position.upper().strip()
-    if upper not in _VALID_POSITIONS:
-        raise ValueError(
-            f"Poste invalide : '{position}'. "
-            f"Valeurs acceptées : {sorted(_VALID_POSITIONS)}."
-        )
-    return upper
 
 
 # ── Montant de cotisation ─────────────────────────────────────────────────────

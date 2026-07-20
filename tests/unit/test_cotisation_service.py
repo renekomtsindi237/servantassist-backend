@@ -100,7 +100,7 @@ def _enriched_payment(p: MemberCotisation) -> dict:
     }
 
 
-def _make_svc(period_repo=None, payment_repo=None, user_repo=None) -> CotisationService:
+def _make_svc(period_repo=None, payment_repo=None, user_repo=None, nomination_repo=None) -> CotisationService:
     if period_repo is None:
         period_repo = MagicMock()
         period_repo.create = AsyncMock()
@@ -108,12 +108,14 @@ def _make_svc(period_repo=None, payment_repo=None, user_repo=None) -> Cotisation
         period_repo.update = AsyncMock()
         period_repo.delete = AsyncMock()
         period_repo.list_all = AsyncMock(return_value=([], 0))
+        period_repo.list_ordinaire_since = AsyncMock(return_value=[])
     if payment_repo is None:
         payment_repo = MagicMock()
         payment_repo.create = AsyncMock()
         payment_repo.get = AsyncMock(return_value=None)
         payment_repo.update = AsyncMock()
         payment_repo.get_by_period_and_user = AsyncMock(return_value=None)
+        payment_repo.get_overlapping_ordinaire_payment = AsyncMock(return_value=None)
         payment_repo.get_period_stats = AsyncMock(return_value=_period_stats())
         payment_repo.list_by_period = AsyncMock(return_value=[])
         payment_repo.list_by_user = AsyncMock(return_value=[])
@@ -122,7 +124,11 @@ def _make_svc(period_repo=None, payment_repo=None, user_repo=None) -> Cotisation
     if user_repo is None:
         user_repo = MagicMock()
         user_repo.get = AsyncMock(return_value=None)
-    return CotisationService(period_repo, payment_repo, user_repo)
+        user_repo.list_paginated = AsyncMock(return_value=([], 0))
+    if nomination_repo is None:
+        nomination_repo = MagicMock()
+        nomination_repo.list_all_active = AsyncMock(return_value=[])
+    return CotisationService(period_repo, payment_repo, user_repo, nomination_repo)
 
 
 # ── create_period ──────────────────────────────────────────────────────────
@@ -144,12 +150,13 @@ async def test_create_period_end_before_start():
 
 @pytest.mark.asyncio
 async def test_create_period_success():
-    period = _make_period()
+    period = _make_period(cotisation_type=CotisationType.SPECIALE, amount_expected=5000)
     svc = _make_svc()
     svc.period_repo.create.return_value = period
     svc.payment_repo.get_period_stats.return_value = _period_stats()
     data = CotisationPeriodCreate(
-        title="Cot Juin",
+        title="Camp spirituel",
+        cotisation_type=CotisationType.SPECIALE,
         amount_expected=5000,
         start_date=START,
         end_date=END,
@@ -157,6 +164,316 @@ async def test_create_period_success():
     result = await svc.create_period(data, uuid4())
     assert result.id == period.id
     assert result.total_members == 5
+
+
+@pytest.mark.asyncio
+async def test_create_period_ordinaire_mensuel_wrong_amount_rejected():
+    """Une cotisation ORDINAIRE/MENSUEL doit valoir exactement 500 FCFA (Art. 22)."""
+    svc = _make_svc()
+    data = CotisationPeriodCreate(
+        title="Cotisation Juin",
+        cotisation_type=CotisationType.ORDINAIRE,
+        period_type=PeriodType.MENSUEL,
+        amount_expected=400,
+        start_date=START,
+        end_date=END,
+    )
+    with pytest.raises(Exception) as exc:
+        await svc.create_period(data, uuid4())
+    assert exc.value.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_create_period_ordinaire_hebdomadaire_wrong_amount_rejected():
+    """Une cotisation ORDINAIRE/HEBDOMADAIRE doit valoir exactement 100 FCFA (Art. 22)."""
+    svc = _make_svc()
+    data = CotisationPeriodCreate(
+        title="Cotisation samedi",
+        cotisation_type=CotisationType.ORDINAIRE,
+        period_type=PeriodType.HEBDOMADAIRE,
+        amount_expected=50,
+        start_date=START,
+        end_date=END,
+    )
+    with pytest.raises(Exception) as exc:
+        await svc.create_period(data, uuid4())
+    assert exc.value.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_create_period_ordinaire_mensuel_correct_amount_accepted():
+    period = _make_period(cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.MENSUEL, amount_expected=500)
+    svc = _make_svc()
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+    data = CotisationPeriodCreate(
+        title="Cotisation Juin",
+        cotisation_type=CotisationType.ORDINAIRE,
+        period_type=PeriodType.MENSUEL,
+        amount_expected=500,
+        start_date=START,
+        end_date=END,
+    )
+    result = await svc.create_period(data, uuid4())
+    assert result.id == period.id
+
+
+@pytest.mark.asyncio
+async def test_create_period_ordinaire_hebdomadaire_correct_amount_accepted():
+    period = _make_period(
+        cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.HEBDOMADAIRE, amount_expected=100
+    )
+    svc = _make_svc()
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+    data = CotisationPeriodCreate(
+        title="Cotisation samedi",
+        cotisation_type=CotisationType.ORDINAIRE,
+        period_type=PeriodType.HEBDOMADAIRE,
+        amount_expected=100,
+        start_date=START,
+        end_date=END,
+    )
+    result = await svc.create_period(data, uuid4())
+    assert result.id == period.id
+
+
+@pytest.mark.asyncio
+async def test_create_period_aube_free_amount_accepted():
+    """La cotisation AUBE (Art. 21) reste a montant libre."""
+    period = _make_period(cotisation_type=CotisationType.AUBE, period_type=PeriodType.ANNUEL, amount_expected=3000)
+    svc = _make_svc()
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+    data = CotisationPeriodCreate(
+        title="Cotisation aubes 2026",
+        cotisation_type=CotisationType.AUBE,
+        period_type=PeriodType.ANNUEL,
+        amount_expected=3000,
+        start_date=START,
+        end_date=END,
+    )
+    result = await svc.create_period(data, uuid4())
+    assert result.id == period.id
+
+
+# ── create_period : obligation automatique (Art. 22, cotisation obligatoire) ─
+
+
+def _make_nomination(user_id):
+    n = MagicMock()
+    n.user_id = user_id
+    return n
+
+
+@pytest.mark.asyncio
+async def test_create_period_ordinaire_creates_obligations_for_non_responsables():
+    """Chaque servant sans poste actif recoit une obligation EN_ATTENTE (Art. 22)."""
+    period = _make_period(cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.MENSUEL, amount_expected=500)
+    servant_libre = _make_user()
+    servant_responsable = _make_user()
+
+    user_repo = MagicMock()
+    user_repo.list_paginated = AsyncMock(return_value=([servant_libre, servant_responsable], 2))
+    nomination_repo = MagicMock()
+    nomination_repo.list_all_active = AsyncMock(return_value=[_make_nomination(servant_responsable.id)])
+
+    svc = _make_svc(user_repo=user_repo, nomination_repo=nomination_repo)
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+    svc.payment_repo.get_by_period_and_user.return_value = None
+
+    data = CotisationPeriodCreate(
+        title="Cotisation Juin",
+        cotisation_type=CotisationType.ORDINAIRE,
+        period_type=PeriodType.MENSUEL,
+        amount_expected=500,
+        start_date=START,
+        end_date=END,
+    )
+    await svc.create_period(data, uuid4())
+
+    svc.payment_repo.create.assert_called_once()
+    created_obligation = svc.payment_repo.create.call_args[0][0]
+    assert created_obligation.user_id == servant_libre.id
+    assert created_obligation.status == CotisationStatus.EN_ATTENTE
+    assert created_obligation.amount_paid == 0
+
+
+@pytest.mark.asyncio
+async def test_create_period_ordinaire_skips_existing_obligation():
+    """Si une obligation/paiement existe deja pour ce servant, pas de doublon."""
+    period = _make_period(cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.MENSUEL, amount_expected=500)
+    servant = _make_user()
+
+    user_repo = MagicMock()
+    user_repo.list_paginated = AsyncMock(return_value=([servant], 1))
+    nomination_repo = MagicMock()
+    nomination_repo.list_all_active = AsyncMock(return_value=[])
+
+    svc = _make_svc(user_repo=user_repo, nomination_repo=nomination_repo)
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+    svc.payment_repo.get_by_period_and_user.return_value = _make_payment(period_id=period.id, user_id=servant.id)
+
+    data = CotisationPeriodCreate(
+        title="Cotisation Juin",
+        cotisation_type=CotisationType.ORDINAIRE,
+        period_type=PeriodType.MENSUEL,
+        amount_expected=500,
+        start_date=START,
+        end_date=END,
+    )
+    await svc.create_period(data, uuid4())
+
+    svc.payment_repo.create.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_create_period_speciale_creates_obligations():
+    """Art. 23 : camp spirituel/fete de fin d'annee sont obligatoires pour tous les servants."""
+    period = _make_period(cotisation_type=CotisationType.SPECIALE, amount_expected=10000)
+    servant = _make_user()
+
+    user_repo = MagicMock()
+    user_repo.list_paginated = AsyncMock(return_value=([servant], 1))
+    nomination_repo = MagicMock()
+    nomination_repo.list_all_active = AsyncMock(return_value=[])
+
+    svc = _make_svc(user_repo=user_repo, nomination_repo=nomination_repo)
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+    svc.payment_repo.get_by_period_and_user.return_value = None
+
+    data = CotisationPeriodCreate(
+        title="Camp spirituel",
+        cotisation_type=CotisationType.SPECIALE,
+        amount_expected=10000,
+        start_date=START,
+        end_date=END,
+    )
+    await svc.create_period(data, uuid4())
+
+    svc.payment_repo.create.assert_called_once()
+    created_obligation = svc.payment_repo.create.call_args[0][0]
+    assert created_obligation.user_id == servant.id
+    assert created_obligation.status == CotisationStatus.EN_ATTENTE
+
+
+@pytest.mark.asyncio
+async def test_create_period_aube_creates_obligations():
+    """Art. 21 : la cotisation aube est obligatoire pour les nouveaux et les anciens."""
+    period = _make_period(
+        cotisation_type=CotisationType.AUBE, period_type=PeriodType.ANNUEL, amount_expected=3000
+    )
+    servant = _make_user()
+
+    user_repo = MagicMock()
+    user_repo.list_paginated = AsyncMock(return_value=([servant], 1))
+    nomination_repo = MagicMock()
+    nomination_repo.list_all_active = AsyncMock(return_value=[])
+
+    svc = _make_svc(user_repo=user_repo, nomination_repo=nomination_repo)
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+    svc.payment_repo.get_by_period_and_user.return_value = None
+
+    data = CotisationPeriodCreate(
+        title="Cotisation aubes 2026",
+        cotisation_type=CotisationType.AUBE,
+        period_type=PeriodType.ANNUEL,
+        amount_expected=3000,
+        start_date=START,
+        end_date=END,
+    )
+    await svc.create_period(data, uuid4())
+
+    svc.payment_repo.create.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_create_period_amende_does_not_create_obligations():
+    """Une AMENDE est individuelle (penalite ciblee) : pas d'obligation pour tous."""
+    period = _make_period(
+        cotisation_type=CotisationType.AMENDE, period_type=PeriodType.PONCTUEL, amount_expected=1000
+    )
+    servant = _make_user()
+
+    user_repo = MagicMock()
+    user_repo.list_paginated = AsyncMock(return_value=([servant], 1))
+    nomination_repo = MagicMock()
+    nomination_repo.list_all_active = AsyncMock(return_value=[])
+
+    svc = _make_svc(user_repo=user_repo, nomination_repo=nomination_repo)
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+
+    data = CotisationPeriodCreate(
+        title="Amende",
+        cotisation_type=CotisationType.AMENDE,
+        period_type=PeriodType.PONCTUEL,
+        amount_expected=1000,
+        start_date=START,
+        end_date=END,
+    )
+    await svc.create_period(data, uuid4())
+
+    user_repo.list_paginated.assert_not_called()
+    svc.payment_repo.create.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_create_period_autre_does_not_create_obligations():
+    """Une contribution AUTRE est volontaire : pas d'obligation automatique."""
+    period = _make_period(cotisation_type=CotisationType.AUTRE, amount_expected=500)
+    servant = _make_user()
+
+    user_repo = MagicMock()
+    user_repo.list_paginated = AsyncMock(return_value=([servant], 1))
+    nomination_repo = MagicMock()
+    nomination_repo.list_all_active = AsyncMock(return_value=[])
+
+    svc = _make_svc(user_repo=user_repo, nomination_repo=nomination_repo)
+    svc.period_repo.create.return_value = period
+    svc.payment_repo.get_period_stats.return_value = _period_stats()
+
+    data = CotisationPeriodCreate(
+        title="Don volontaire",
+        cotisation_type=CotisationType.AUTRE,
+        amount_expected=500,
+        start_date=START,
+        end_date=END,
+    )
+    await svc.create_period(data, uuid4())
+
+    user_repo.list_paginated.assert_not_called()
+    svc.payment_repo.create.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_create_period_ordinaire_without_nomination_repo_skips_silently():
+    """Si aucun nomination_repo n'est injecte (retro-compatibilite), pas de crash."""
+    period = _make_period(cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.MENSUEL, amount_expected=500)
+    period_repo = MagicMock()
+    period_repo.create = AsyncMock(return_value=period)
+    payment_repo = MagicMock()
+    payment_repo.get_period_stats = AsyncMock(return_value=_period_stats())
+    payment_repo.create = AsyncMock()
+    user_repo = MagicMock()
+    user_repo.get = AsyncMock(return_value=None)
+
+    svc = CotisationService(period_repo, payment_repo, user_repo)  # nomination_repo omis
+    data = CotisationPeriodCreate(
+        title="Cotisation Juin",
+        cotisation_type=CotisationType.ORDINAIRE,
+        period_type=PeriodType.MENSUEL,
+        amount_expected=500,
+        start_date=START,
+        end_date=END,
+    )
+    result = await svc.create_period(data, uuid4())
+    assert result.id == period.id
+    payment_repo.create.assert_not_called()
 
 
 # ── update_period ──────────────────────────────────────────────────────────
@@ -173,7 +490,7 @@ async def test_update_period_not_found():
 
 @pytest.mark.asyncio
 async def test_update_period_success():
-    period = _make_period()
+    period = _make_period(cotisation_type=CotisationType.SPECIALE)
     svc = _make_svc()
     svc.period_repo.get.return_value = period
     svc.period_repo.update.return_value = period
@@ -181,6 +498,17 @@ async def test_update_period_success():
     data = CotisationPeriodUpdate(title="Nouveau Titre", is_active=False, amount_expected=6000)
     result = await svc.update_period(period.id, data)
     assert result.id == period.id
+
+
+@pytest.mark.asyncio
+async def test_update_period_ordinaire_wrong_amount_rejected():
+    period = _make_period(cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.MENSUEL)
+    svc = _make_svc()
+    svc.period_repo.get.return_value = period
+    data = CotisationPeriodUpdate(amount_expected=6000)
+    with pytest.raises(Exception) as exc:
+        await svc.update_period(period.id, data)
+    assert exc.value.status_code == 400
 
 
 # ── get_period ─────────────────────────────────────────────────────────────
@@ -430,4 +758,121 @@ async def test_get_bilan_zero_members():
     svc.payment_repo.enrich_cotisations.return_value = []
     result = await svc.get_bilan(period.id)
     assert result.taux_recouvrement == 0.0
-    assert result.total_remaining == 0
+
+
+# ── record_payment : exclusivite mensuel/hebdomadaire (Art. 22) ────────────
+
+
+@pytest.mark.asyncio
+async def test_record_payment_rejects_cumul_mensuel_hebdo():
+    """Un servant deja inscrit en hebdomadaire ne peut pas payer une periode mensuelle qui chevauche."""
+    period = _make_period(
+        cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.MENSUEL, amount_expected=500
+    )
+    user = _make_user()
+    overlapping = _make_payment(user_id=user.id)
+    svc = _make_svc()
+    svc.period_repo.get.return_value = period
+    svc.user_repo.get.return_value = user
+    svc.payment_repo.get_overlapping_ordinaire_payment.return_value = overlapping
+    data = MemberCotisationCreate(period_id=period.id, user_id=user.id, amount_paid=500)
+    with pytest.raises(Exception) as exc:
+        await svc.record_payment(data, uuid4())
+    assert exc.value.status_code == 409
+    svc.payment_repo.create.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_record_payment_allows_when_no_overlap():
+    period = _make_period(
+        cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.HEBDOMADAIRE, amount_expected=100
+    )
+    user = _make_user()
+    payment = _make_payment(period_id=period.id, user_id=user.id, amount_paid=100)
+    svc = _make_svc()
+    svc.period_repo.get.return_value = period
+    svc.user_repo.get.return_value = user
+    svc.payment_repo.get_overlapping_ordinaire_payment.return_value = None
+    svc.payment_repo.get_by_period_and_user.return_value = None
+    svc.payment_repo.create.return_value = payment
+    svc.payment_repo.enrich_cotisation.return_value = _enriched_payment(payment)
+    data = MemberCotisationCreate(period_id=period.id, user_id=user.id, amount_paid=100)
+    result = await svc.record_payment(data, uuid4())
+    assert result.id == payment.id
+
+
+@pytest.mark.asyncio
+async def test_record_payment_speciale_ignores_exclusivity():
+    """Les cotisations SPECIALE/AUBE ne sont pas soumises a la regle d'exclusivite."""
+    period = _make_period(cotisation_type=CotisationType.SPECIALE, amount_expected=10000)
+    user = _make_user()
+    payment = _make_payment(period_id=period.id, user_id=user.id, amount_paid=10000)
+    svc = _make_svc()
+    svc.period_repo.get.return_value = period
+    svc.user_repo.get.return_value = user
+    svc.payment_repo.get_by_period_and_user.return_value = None
+    svc.payment_repo.create.return_value = payment
+    svc.payment_repo.enrich_cotisation.return_value = _enriched_payment(payment)
+    data = MemberCotisationCreate(period_id=period.id, user_id=user.id, amount_paid=10000)
+    result = await svc.record_payment(data, uuid4())
+    assert result.id == payment.id
+    svc.payment_repo.get_overlapping_ordinaire_payment.assert_not_called()
+
+
+# ── check_payment_compliance (Art. 48, 50) ─────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_check_payment_compliance_no_periods():
+    svc = _make_svc()
+    svc.period_repo.list_ordinaire_since.return_value = []
+    result = await svc.check_payment_compliance(uuid4())
+    assert result["needs_parent_convocation"] is False
+    assert result["flagged_for_radiation"] is False
+
+
+@pytest.mark.asyncio
+async def test_check_payment_compliance_two_consecutive_missing():
+    user_id = uuid4()
+    p1 = _make_period(id=uuid4(), start_date=datetime(2026, 5, 1), end_date=datetime(2026, 5, 31))
+    p2 = _make_period(id=uuid4(), start_date=datetime(2026, 4, 1), end_date=datetime(2026, 4, 30))
+    svc = _make_svc()
+    svc.period_repo.list_ordinaire_since.return_value = [p1, p2]
+    svc.payment_repo.get_by_period_and_user.return_value = None
+    result = await svc.check_payment_compliance(user_id)
+    assert result["consecutive_missing_periods"] == 2
+    assert result["needs_parent_convocation"] is True
+    assert result["flagged_for_radiation"] is False
+
+
+@pytest.mark.asyncio
+async def test_check_payment_compliance_six_consecutive_missing_flags_radiation():
+    user_id = uuid4()
+    periods = [
+        _make_period(id=uuid4(), start_date=datetime(2026, m, 1), end_date=datetime(2026, m, 28))
+        for m in range(6, 0, -1)
+    ]
+    svc = _make_svc()
+    svc.period_repo.list_ordinaire_since.return_value = periods
+    svc.payment_repo.get_by_period_and_user.return_value = None
+    result = await svc.check_payment_compliance(user_id)
+    assert result["consecutive_missing_periods"] == 6
+    assert result["flagged_for_radiation"] is True
+
+
+@pytest.mark.asyncio
+async def test_check_payment_compliance_paid_resets_streak():
+    user_id = uuid4()
+    p1 = _make_period(id=uuid4(), start_date=datetime(2026, 5, 1), end_date=datetime(2026, 5, 31))
+    p2 = _make_period(id=uuid4(), start_date=datetime(2026, 4, 1), end_date=datetime(2026, 4, 30))
+    paid = _make_payment(period_id=p1.id, user_id=user_id, status=CotisationStatus.PAYE)
+    svc = _make_svc()
+    svc.period_repo.list_ordinaire_since.return_value = [p1, p2]
+
+    async def _get_by_period_and_user(period_id, uid):
+        return paid if period_id == p1.id else None
+
+    svc.payment_repo.get_by_period_and_user.side_effect = _get_by_period_and_user
+    result = await svc.check_payment_compliance(user_id)
+    assert result["consecutive_missing_periods"] == 1
+    assert result["needs_parent_convocation"] is False

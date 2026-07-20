@@ -2,8 +2,8 @@
 Endpoints du module Communication / Notifications.
 
 Endpoints :
-- POST   /notify           : envoyer une notification individuelle (admin/aumonier)
-- POST   /broadcast        : envoyer a un groupe (admin/aumonier)
+- POST   /notify           : envoyer une notification individuelle (admin/aumonier/secretariat)
+- POST   /broadcast        : envoyer a un groupe (admin/aumonier/secretariat)
 - GET    /me               : mes notifications IN_APP
 - GET    /me/stats         : mes statistiques
 - GET    /me/{id}          : detail d'une notification
@@ -40,6 +40,7 @@ from src.infrastructure.database.session import get_db_session
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_admin_or_aumonier,
+    require_secretariat_or_admin,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,8 @@ def _get_service(session: AsyncSession, request: Request = None) -> Notification
 
 
 # ══════════════════════════════════════════════════════════════════════════
-#  Admin / Aumonier : envoi
+#  Admin / Aumonier / Secretariat : envoi (Art. 8d — transmission des
+#  informations a la portee des servants de messe)
 # ══════════════════════════════════════════════════════════════════════════
 
 
@@ -76,7 +78,7 @@ def _get_service(session: AsyncSession, request: Request = None) -> Notification
 async def send_notification(
     data: NotificationSend,
     request: Request,
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_secretariat_or_admin)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
     """Envoie une notification a un utilisateur specifique."""
@@ -105,7 +107,7 @@ async def send_notification(
 async def broadcast_notification(
     data: NotificationBroadcast,
     request: Request,
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(require_secretariat_or_admin)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
     """

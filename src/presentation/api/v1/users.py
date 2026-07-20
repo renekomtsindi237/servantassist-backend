@@ -26,11 +26,14 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.user_service import UserService
-from src.core.entities.user import ServantPosition, User, UserRole
+from src.core.entities.user import User, UserRole
 from src.core.utils import utc_now
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.responsable_repository import NominationRepository
-from src.infrastructure.repositories.user_repository import UserRepository
+from src.infrastructure.repositories.user_repository import (
+    UserRepository,
+    default_profile_photo_url,
+)
 from src.infrastructure.services.storage_service import StorageService
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
@@ -157,9 +160,16 @@ async def delete_my_photo(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     """
-    Supprimer ma photo de profil.
+    Supprimer ma photo de profil personnalisee.
+
+    Tout utilisateur a une photo par defaut (`default_profile_photo_url()`,
+    identique a `profil.jpeg` cote web) des sa creation ou en l'absence
+    d'upload -- ce n'est jamais "aucune photo". Supprimer sa photo revient
+    donc a revenir a cette valeur par defaut ; un 404 signifie seulement
+    qu'il n'y a pas de photo personnalisee a retirer.
     """
-    if not current_user.profile_photo_url:
+    default_url = default_profile_photo_url()
+    if not current_user.profile_photo_url or current_user.profile_photo_url == default_url:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Aucune photo de profil a supprimer.",
@@ -168,7 +178,7 @@ async def delete_my_photo(
     storage = StorageService()
     await storage.delete_file(current_user.profile_photo_url)
 
-    current_user.profile_photo_url = None
+    current_user.profile_photo_url = default_url
     current_user.updated_at = utc_now()
     user_repo = UserRepository(session)
     await user_repo.update(current_user.id, current_user)
@@ -360,32 +370,6 @@ async def link_parent(
     return await service.link_parent(user_id, data.parent_id, unlink=data.unlink)
 
 
-class PositionUpdateRequest(BaseModel):
-    position: Optional[ServantPosition] = None
-
-
-@router.patch("/{user_id}/position", response_model=UserProfileResponse)
-async def update_servant_position(
-    user_id: UUID,
-    data: PositionUpdateRequest,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
-):
-    """Met à jour le poste d'un servant. Admin ou Aumônier.
-
-    Seul le champ `position` est modifiable via cet endpoint.
-    Les autres modifications de profil restent réservées à l'admin.
-    """
-    user_repo = UserRepository(session)
-    user = await user_repo.get(user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
-    user.position = data.position
-    user.updated_at = utc_now()
-    updated = await user_repo.update(user_id, user)
-    return UserProfileResponse.model_validate(updated)
-
-
 @router.patch("/{user_id}", response_model=UserProfileResponse)
 async def admin_update_user(
     user_id: UUID,
@@ -546,7 +530,7 @@ async def export_personal_data(
 
     from src.core.entities.attendance import Attendance
     from src.core.entities.assignment import Assignment
-    from src.core.entities.contribution import MemberCotisation
+    from src.core.entities.cotisation import MemberCotisation
 
     # Présences
     stmt_att = select(Attendance).where(

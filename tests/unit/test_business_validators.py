@@ -8,7 +8,6 @@ from datetime import date, timedelta
 from src.application.validators.business_validators import (
     validate_cameroon_phone,
     validate_birthdate,
-    validate_servant_position,
     validate_cotisation_amount,
     validate_contribution_period,
 )
@@ -103,34 +102,6 @@ class TestValidateBirthdate:
         adult = date.today() - timedelta(days=365 * 20)
         result = validate_birthdate(adult.isoformat())
         assert result == adult
-
-
-# ── validate_servant_position ──────────────────────────────────────────────────
-
-
-class TestValidateServantPosition:
-    def test_none_returns_none(self):
-        assert validate_servant_position(None) is None
-
-    def test_valid_delegue(self):
-        result = validate_servant_position("DELEGUE")
-        assert result == "DELEGUE"
-
-    def test_valid_econome(self):
-        result = validate_servant_position("ECONOME")
-        assert result == "ECONOME"
-
-    def test_case_insensitive(self):
-        result = validate_servant_position("delegue")
-        assert result == "DELEGUE"
-
-    def test_invalid_position_raises(self):
-        with pytest.raises(ValueError, match="invalide"):
-            validate_servant_position("PRESIDENT")
-
-    def test_empty_string_raises(self):
-        with pytest.raises(ValueError, match="invalide"):
-            validate_servant_position("")
 
 
 # ── validate_cotisation_amount ─────────────────────────────────────────────────

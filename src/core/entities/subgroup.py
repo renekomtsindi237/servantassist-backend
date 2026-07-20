@@ -11,12 +11,65 @@ Le Charge du classement utilise les sous-groupes pour planifier les tours.
 """
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
+from sqlalchemy import Column
+from sqlalchemy import String as SAString
+from sqlalchemy import types
 from sqlmodel import Field, SQLModel
 
 from src.core.utils import utc_now
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Enums
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class SubGroupCategory(str, Enum):
+    """
+    Categorie structuree d'un sous-groupe (Art. 26, 33-34 du reglement).
+
+    - ASPIRANTS : servants de moins de 12 ans et nouveaux servants
+    - CONFIRMES : servants de 12 ans et plus
+    - AINES : servants aptes au service, moyenne >= 14/20 (max 7 membres,
+      eligibles a la fonction de responsable)
+    - CHORALE : organe ouvert a tout servant (Art. 33-34)
+    - AUTRE : sous-groupe libre (ex. equipes de service)
+    """
+
+    ASPIRANTS = "ASPIRANTS"
+    CONFIRMES = "CONFIRMES"
+    AINES = "AINES"
+    CHORALE = "CHORALE"
+    AUTRE = "AUTRE"
+
+
+# Nombre maximum de membres du sous-groupe des Aines (Art. 26.4) — regle
+# metier dediee, independante du max_members generique configurable.
+AINES_MAX_MEMBERS = 7
+
+
+class _SubGroupCategoryType(types.TypeDecorator):
+    """VARCHAR(32) column that transparently converts to/from SubGroupCategory enum."""
+
+    impl = SAString(32)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if isinstance(value, SubGroupCategory):
+            return value.value
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            try:
+                return SubGroupCategory(value)
+            except ValueError:
+                return value
+        return value
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Table : Sous-groupes
@@ -40,6 +93,10 @@ class SubGroup(SQLModel, table=True):
     service_schedule: Optional[str] = Field(default=None, max_length=500)
     is_active: bool = Field(default=True)
     max_members: Optional[int] = Field(default=None, ge=1)
+    category: SubGroupCategory = Field(
+        default=SubGroupCategory.AUTRE,
+        sa_column=Column(_SubGroupCategoryType(), nullable=False, server_default="AUTRE"),
+    )
     # Metadata
     created_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=utc_now)

@@ -20,12 +20,12 @@ class PasswordResetCodeRepository:
         await self.session.refresh(code)
         return code
 
-    async def get_valid(self, email: str, code: str) -> Optional[PasswordResetCode]:
+    async def get_valid(self, user_id: UUID, code: str) -> Optional[PasswordResetCode]:
         """Retourne le code s'il est valide (non utilisé et non expiré)."""
         now = utc_now()
         result = await self.session.exec(
             select(PasswordResetCode)
-            .where(PasswordResetCode.email == email)
+            .where(PasswordResetCode.user_id == user_id)
             .where(PasswordResetCode.code == code)
             .where(PasswordResetCode.used == False)  # noqa: E712
             .where(PasswordResetCode.expires_at > now)
@@ -45,7 +45,7 @@ class PasswordResetCodeRepository:
         await self.session.exec(delete(PasswordResetCode).where(PasswordResetCode.expires_at < utc_now()))
         await self.session.commit()
 
-    async def delete_for_email(self, email: str) -> None:
-        """Supprime tous les codes existants pour cet email avant d'en créer un nouveau."""
-        await self.session.exec(delete(PasswordResetCode).where(PasswordResetCode.email == email))
+    async def delete_for_user(self, user_id: UUID) -> None:
+        """Supprime tous les codes existants pour cet utilisateur avant d'en créer un nouveau."""
+        await self.session.exec(delete(PasswordResetCode).where(PasswordResetCode.user_id == user_id))
         await self.session.commit()

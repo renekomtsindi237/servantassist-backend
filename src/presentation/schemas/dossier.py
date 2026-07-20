@@ -77,7 +77,7 @@ class DossierUserInfo(BaseModel):
     id: UUID
     first_name: str
     last_name: str
-    email: str
+    email: Optional[str] = None
     role: str
     phone_number: Optional[str]
     profile_photo_url: Optional[str]

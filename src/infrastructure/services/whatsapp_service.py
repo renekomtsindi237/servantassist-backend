@@ -71,9 +71,10 @@ class WhatsAppService:
             logger.error(f"Failed to send WhatsApp message to {phone_number}: {str(e)}")
             return False
 
-    async def send_login_otp(self, phone_number: str, otp_code: str) -> bool:
+    async def send_otp_code(self, phone_number: str, otp_code: str) -> bool:
         """
-        Send OTP code via WhatsApp for login verification
+        Send a 6-digit OTP code via WhatsApp — used for phone password-reset
+        and phone verification at registration.
 
         Args:
             phone_number: Phone number with country code

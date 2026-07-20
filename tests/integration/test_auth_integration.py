@@ -17,6 +17,7 @@ from src.core.entities.user import User, UserRole
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.security.utils import SecurityUtils
 from tests.conftest import VALID_PASSWORD
+from tests.e2e.test_auth_endpoints import _verify_phone
 
 # ── Helper ───────────────────────────────────────────────────────────────
 
@@ -158,7 +159,8 @@ class TestPhoneLogin:
 
 @pytest.mark.integration
 class TestRegister:
-    async def test_register_servant_success(self, client: AsyncClient):
+    async def test_register_servant_success(self, client: AsyncClient, db_session):
+        token = await _verify_phone(client, db_session, "+237600009001")
         response = await client.post(
             "/api/v1/auth/register",
             json={
@@ -166,7 +168,9 @@ class TestRegister:
                 "password": "NewPass1!",
                 "first_name": "Nouveau",
                 "last_name": "Servant",
+                "phone_number": "+237600009001",
                 "role": "SERVANT",
+                "phone_verification_token": token,
             },
         )
         assert response.status_code == 201
@@ -175,16 +179,22 @@ class TestRegister:
         assert body["role"] == "SERVANT"
         assert "hashed_password" not in body
 
-    async def test_register_duplicate_email_returns_409(self, client: AsyncClient):
+    async def test_register_duplicate_email_returns_409(self, client: AsyncClient, db_session):
+        token1 = await _verify_phone(client, db_session, "+237600009002")
         payload = {
             "email": "duplicate@test.com",
             "password": "NewPass1!",
             "first_name": "A",
             "last_name": "B",
+            "phone_number": "+237600009002",
             "role": "SERVANT",
+            "phone_verification_token": token1,
         }
         await client.post("/api/v1/auth/register", json=payload)
-        response = await client.post("/api/v1/auth/register", json=payload)
+
+        token2 = await _verify_phone(client, db_session, "+237600009003")
+        payload2 = {**payload, "phone_number": "+237600009003", "phone_verification_token": token2}
+        response = await client.post("/api/v1/auth/register", json=payload2)
         assert response.status_code in (400, 409)
 
     async def test_register_admin_forbidden(self, client: AsyncClient):

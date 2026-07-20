@@ -6,10 +6,11 @@ Chaque responsable accede a ses propres endpoints via le prefixe de son poste :
     /api/v1/poste/{slug}/actions       CRUD des actions
 
 Slugs disponibles :
-    conseiller, delegue, vice-delegue, secretariat, secretariat-adjoint,
-    censeur, censeur-adjoint, economat, finances, liturgie, liturgie-adjoint,
-    ceremoniaire, classement-dimanche, classement-semaine, intendance,
-    sport-culture
+    conseiller, accompagnateur, delegue, vice-delegue, secretariat,
+    secretariat-adjoint, censeur, censeur-adjoint, economat, finances,
+    liturgie, liturgie-adjoint, ceremoniaire, classement-dimanche,
+    classement-semaine, intendance, intendance-adjoint, sport-culture,
+    sport-culture-adjoint
 
 L'Aumonier et l'Admin peuvent aussi acceder a tous les postes en lecture.
 """
@@ -34,7 +35,10 @@ from src.infrastructure.repositories.responsable_repository import (
     PosteActionRepository,
 )
 from src.infrastructure.repositories.user_repository import UserRepository
-from src.presentation.dependencies.auth_deps import get_current_active_user
+from src.presentation.dependencies.auth_deps import (
+    get_current_active_user,
+    get_current_admin_or_aumonier,
+)
 from src.presentation.schemas.responsable import (
     PosteActionCreate,
     PosteActionResponse,
@@ -238,6 +242,30 @@ async def update_action(
     await _verify_write_access(session, current_user, poste)
     service = _get_service(session)
     return await service.update_action(action_id, data, updated_by=current_user.id)
+
+
+@router.post(
+    "/{slug}/actions/{action_id}/approve",
+    response_model=PosteActionResponse,
+)
+async def approve_depense_action(
+    slug: str,
+    action_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+):
+    """
+    Approuver une sortie de fonds (categorie DEPENSE).
+
+    **Accessible a :** Aumonier, Admin uniquement.
+
+    Le reglement interieur exige que l'Econome n'opere des sorties de fonds
+    que sous le controle et l'accord de l'Aumonier. Une action DEPENSE reste
+    BROUILLON jusqu'a cette approbation explicite.
+    """
+    _resolve_slug(slug)
+    service = _get_service(session)
+    return await service.approve_action(action_id, approved_by=current_user.id)
 
 
 @router.delete(

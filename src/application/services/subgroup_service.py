@@ -14,7 +14,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.subgroup import AINES_MAX_MEMBERS, SubGroup, SubGroupCategory, SubGroupMember
 from src.core.entities.user import User, UserRole
 from src.core.interfaces.repositories import ISubGroupRepository, ITrainingParticipationRepository, IUserRepository
 from src.core.utils import utc_now
@@ -57,6 +57,7 @@ class SubGroupService:
             description=data.description,
             service_schedule=data.service_schedule,
             max_members=data.max_members,
+            category=data.category,
             created_by=created_by,
         )
         created = await self.group_repo.create(group)
@@ -85,6 +86,8 @@ class SubGroupService:
             group.max_members = data.max_members
         if data.is_active is not None:
             group.is_active = data.is_active
+        if data.category is not None:
+            group.category = data.category
         group.updated_at = utc_now()
 
         updated = await self.group_repo.update(group)
@@ -125,6 +128,7 @@ class SubGroupService:
             service_schedule=group.service_schedule,
             is_active=group.is_active,
             max_members=group.max_members,
+            category=group.category,
             created_by=group.created_by,
             created_at=group.created_at,
             updated_at=group.updated_at,
@@ -217,12 +221,53 @@ class SubGroupService:
             return None
         return await self._build_group_response(group)
 
-    async def reclassify_servant(self, user_id: UUID) -> Optional[SubGroupResponse]:
+    # Libelle par defaut utilise si un sous-groupe canonique doit etre cree.
+    _CANONICAL_GROUP_NAMES = {
+        SubGroupCategory.ASPIRANTS: "Aspirants",
+        SubGroupCategory.CONFIRMES: "Confirmés",
+        SubGroupCategory.AINES: "Aînés",
+        SubGroupCategory.CHORALE: "Chorale",
+    }
+
+    async def get_or_create_canonical_group(
+        self, category: SubGroupCategory, created_by: UUID
+    ) -> SubGroup:
+        """
+        Recupere le sous-groupe canonique d'une categorie (Aspirants, Confirmes,
+        Aines, Chorale), ou le cree s'il n'existe pas encore — plutot que
+        d'echouer silencieusement comme le faisait l'ancienne logique basee
+        sur une correspondance de nom exact.
+        """
+        existing = await self.group_repo.get_by_category(category)
+        if existing:
+            return existing
+
+        name = self._CANONICAL_GROUP_NAMES.get(category, category.value)
+        # Le nom peut deja exister sous une autre categorie (donnees legacy) :
+        # dans ce cas, on rattache le groupe existant a la bonne categorie.
+        by_name = await self.group_repo.get_by_name(name)
+        if by_name:
+            by_name.category = category
+            by_name.updated_at = utc_now()
+            return await self.group_repo.update(by_name)
+
+        group = SubGroup(
+            name=name,
+            category=category,
+            max_members=AINES_MAX_MEMBERS if category == SubGroupCategory.AINES else None,
+            created_by=created_by,
+        )
+        return await self.group_repo.create(group)
+
+    async def reclassify_servant(
+        self, user_id: UUID, system_user_id: Optional[UUID] = None
+    ) -> Optional[SubGroupResponse]:
         """
         Reclassification automatique selon l'Article 26 :
         - Aspirants : < 12 ans
         - Confirmés : >= 12 ans
-        - Aînés : >= 15 ans + moyenne >= 14/20
+        - Aînés : >= 15 ans + moyenne >= 14/20, dans la limite de 7 membres
+          (Art. 26.4 — au-dela, le servant reste Confirmé)
         """
         user = await self.user_repo.get(user_id)
         if not user or user.role != UserRole.SERVANT or not user.birth_date:
@@ -233,23 +278,29 @@ class SubGroupService:
         birth = user.birth_date.replace(tzinfo=timezone.utc) if user.birth_date.tzinfo is None else user.birth_date
         age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
 
-        # Déterminer le groupe cible
-        target_name = "ASPIRANTS"
+        # Déterminer la catégorie cible
+        target_category = SubGroupCategory.ASPIRANTS
         if age >= 12:
-            target_name = "CONFIRMÉS"
+            target_category = SubGroupCategory.CONFIRMES
 
         if age >= 15:
             # Vérifier les notes pour les Aînés (Article 26.4)
             stats = await self.training_repo.get_servant_stats(user_id)
             if stats.average_score and stats.average_score >= 70:  # 14/20 = 70%
-                target_name = "AÎNÉS"
+                target_category = SubGroupCategory.AINES
 
-        # Trouver le groupe
-        group = await self.group_repo.get_by_name(target_name)
-        if not group:
-            # Fallback si le groupe n'existe pas (on ne le crée pas automatiquement
-            # pour éviter les erreurs de foreign key sur created_by)
-            return None
+        added_by = system_user_id or UUID("00000000-0000-0000-0000-000000000000")
+        group = await self.get_or_create_canonical_group(target_category, added_by)
+
+        # Plafond des Aînés (Art. 26.4) : au-dela de 7 membres, rester Confirmé.
+        if target_category == SubGroupCategory.AINES:
+            count = await self.group_repo.get_member_count(group.id)
+            current = await self.group_repo.get_active_membership(user_id)
+            already_aine = current and current.sub_group_id == group.id
+            if count >= AINES_MAX_MEMBERS and not already_aine:
+                group = await self.get_or_create_canonical_group(
+                    SubGroupCategory.CONFIRMES, added_by
+                )
 
         # Vérifier si déjà dans ce groupe
         current = await self.group_repo.get_active_membership(user_id)
@@ -263,9 +314,7 @@ class SubGroupService:
         membership = SubGroupMember(
             sub_group_id=group.id,
             user_id=user_id,
-            added_by=UUID("00000000-0000-0000-0000-000000000000"),  # System
+            added_by=added_by,
         )
-        # Note: system ID bypass check if repo allows it. In a real app we'd need a valid user.
-        # But here we commit to BDD for RI compliance.
         await self.group_repo.add_member(membership)
         return await self._build_group_response(group)

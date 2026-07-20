@@ -13,6 +13,8 @@ Paiements :
     POST   /payments             Enregistrer un paiement
     GET    /periods/{id}/payments  Paiements d'une periode
     GET    /my                   Mes cotisations (self-service)
+    GET    /servant/{id}         Historique des cotisations d'un servant (self/parent/econome/admin/aumonier)
+    GET    /servant/{id}/compliance  Conformite des cotisations ordinaires (Art. 48, 50)
 
 Accessible a : Aumonier, Admin (toutes operations)
                Econome (enregistrement de paiements via son poste)
@@ -22,17 +24,18 @@ Accessible a : Aumonier, Admin (toutes operations)
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services.cotisation_service import CotisationService
 from src.core.entities.cotisation import CotisationType
-from src.core.entities.user import User
+from src.core.entities.user import User, UserRole
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.cotisation_repository import (
     CotisationPeriodRepository,
     MemberCotisationRepository,
 )
+from src.infrastructure.repositories.responsable_repository import NominationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
@@ -57,6 +60,7 @@ def _get_service(session: AsyncSession) -> CotisationService:
         period_repo=CotisationPeriodRepository(session),
         payment_repo=MemberCotisationRepository(session),
         user_repo=UserRepository(session),
+        nomination_repo=NominationRepository(session),
     )
 
 
@@ -268,3 +272,73 @@ async def get_my_cotisations(
     """
     service = _get_service(session)
     return await service.get_user_payments(current_user.id)
+
+
+async def _verify_servant_cotisations_access(
+    session: AsyncSession, user: User, servant_id: UUID
+) -> None:
+    """
+    Verifie que l'utilisateur peut consulter l'historique de cotisations
+    d'un servant donne : le servant lui-meme, l'un de ses parents lies,
+    l'Econome (via nomination active), ou Admin/Aumonier.
+    """
+    if user.id == servant_id:
+        return
+    if user.role in (UserRole.ADMIN, UserRole.AUMÔNIER):
+        return
+    if user.role == UserRole.SERVANT:
+        nom_repo = NominationRepository(session)
+        nominations = await nom_repo.get_active_by_user(user.id)
+        if any(n.poste.value == "ECONOME" for n in nominations):
+            return
+    if user.role == UserRole.PARENT:
+        user_repo = UserRepository(session)
+        parents = await user_repo.get_parents_of(servant_id)
+        if any(p.id == user.id for p in parents):
+            return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Accès réservé au servant concerné, à l'un de ses parents, à l'Économe ou à l'Admin/Aumônier.",
+    )
+
+
+@router.get(
+    "/servant/{servant_id}",
+    response_model=List[MemberCotisationResponse],
+    summary="Historique des cotisations d'un servant",
+    description="Accessible au servant lui-même, à l'un de ses parents liés, à l'Économe, ou à l'Admin/Aumônier.",
+)
+async def get_servant_cotisations(
+    servant_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    """
+    Historique complet des cotisations d'un servant (paiements individuels).
+
+    **Accessible a :** le servant lui-même, l'un de ses parents liés
+    (table `servant_parents`), l'Économe (via nomination active), Admin, Aumônier.
+    """
+    await _verify_servant_cotisations_access(session, current_user, servant_id)
+    service = _get_service(session)
+    return await service.get_user_payments(servant_id)
+
+
+@router.get(
+    "/servant/{servant_id}/compliance",
+    response_model=dict,
+    summary="Vérifier la conformité des cotisations ordinaires",
+    description="Vérifie si le servant est à jour ou en retard (Art. 48, 50)",
+)
+async def get_payment_compliance(
+    servant_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    """
+    Vérifie la conformité des cotisations ordinaires d'un servant.
+
+    **Accessible a :** Tout utilisateur authentifie.
+    """
+    service = _get_service(session)
+    return await service.check_payment_compliance(servant_id)

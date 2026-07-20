@@ -3,6 +3,7 @@ Tests unitaires â€" AuthService (logique mÃ©tier, repositories mockÃ©s).
 """
 
 from datetime import timedelta
+from typing import Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
@@ -21,7 +22,7 @@ HASHED = SecurityUtils.get_password_hash(VALID_PASSWORD)
 
 def _make_user(
     role: UserRole,
-    email: str = "u@t.com",
+    email: Optional[str] = "u@t.com",
     phone: str = "+237600000001",
     active: bool = True,
 ) -> User:
@@ -113,6 +114,107 @@ class TestAuthenticateEmail:
         with pytest.raises(HTTPException) as exc_info:
             await service.authenticate_user(UserLogin(email="admin@t.com", password=VALID_PASSWORD))
         assert exc_info.value.status_code == 403
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  AUTHENTICATE — OAUTH (Google, connexion uniquement)
+# ═══════════════════════════════════════════════════════════════════════
+@pytest.mark.unit
+class TestAuthenticateOAuth:
+    """POST /auth/oauth/{provider} — connexion via jeton Google vérifié."""
+
+    def _identity(self, email="oauth@t.com", verified=True, subject="sub-123"):
+        from src.infrastructure.services.oauth_verifier import OAuthIdentity
+
+        return OAuthIdentity(email=email, email_verified=verified, subject=subject)
+
+    async def test_google_login_success_existing_user(self):
+        user = _make_user(UserRole.AUMÔNIER, email="oauth@t.com")
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        repo.update = AsyncMock(return_value=user)
+        service = AuthService(repo)
+
+        with patch(
+            "src.infrastructure.services.oauth_verifier.verify_google_id_token",
+            return_value=self._identity(),
+        ):
+            result = await service.authenticate_oauth("google", "fake-token")
+
+        assert result.email == "oauth@t.com"
+        repo.update.assert_awaited_once()
+
+    async def test_already_linked_does_not_call_update(self):
+        user = _make_user(UserRole.AUMÔNIER, email="oauth@t.com")
+        user.oauth_provider = "google"
+        user.oauth_subject = "sub-123"
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        repo.update = AsyncMock(return_value=user)
+        service = AuthService(repo)
+
+        with patch(
+            "src.infrastructure.services.oauth_verifier.verify_google_id_token",
+            return_value=self._identity(subject="sub-123"),
+        ):
+            await service.authenticate_oauth("google", "fake-token")
+
+        repo.update.assert_not_awaited()
+
+    async def test_unverified_email_401(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+
+        with patch(
+            "src.infrastructure.services.oauth_verifier.verify_google_id_token",
+            return_value=self._identity(verified=False),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await service.authenticate_oauth("google", "fake-token")
+        assert exc_info.value.status_code == 401
+        repo.get_by_email.assert_not_awaited()
+
+    async def test_no_matching_account_404(self):
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        service = AuthService(repo)
+
+        with patch(
+            "src.infrastructure.services.oauth_verifier.verify_google_id_token",
+            return_value=self._identity(),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await service.authenticate_oauth("google", "fake-token")
+        assert exc_info.value.status_code == 404
+
+    async def test_inactive_account_403(self):
+        user = _make_user(UserRole.AUMÔNIER, email="oauth@t.com", active=False)
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=user)
+        service = AuthService(repo)
+
+        with patch(
+            "src.infrastructure.services.oauth_verifier.verify_google_id_token",
+            return_value=self._identity(),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await service.authenticate_oauth("google", "fake-token")
+        assert exc_info.value.status_code == 403
+
+    async def test_invalid_token_401(self):
+        from src.infrastructure.services.oauth_verifier import OAuthVerificationError
+
+        repo = AsyncMock()
+        service = AuthService(repo)
+
+        with patch(
+            "src.infrastructure.services.oauth_verifier.verify_google_id_token",
+            side_effect=OAuthVerificationError("bad signature"),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await service.authenticate_oauth("google", "fake-token")
+        assert exc_info.value.status_code == 401
+        repo.get_by_email.assert_not_awaited()
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -476,6 +578,13 @@ class TestCreateTokens:
 
         user = _make_user(UserRole.SERVANT)
         repo = AsyncMock()
+        # SERVANT triggers a NominationRepository lookup (position claim
+        # sourced from Nomination) — mock an empty result explicitly rather
+        # than relying on AsyncMock's default recursive child behavior.
+        exec_result = MagicMock()
+        exec_result.all = MagicMock(return_value=[])
+        repo.session = MagicMock()
+        repo.session.exec = AsyncMock(return_value=exec_result)
         service = AuthService(repo)
 
         token = await service.create_tokens(user)
@@ -485,7 +594,7 @@ class TestCreateTokens:
             algorithms=[settings.JWT_ALGORITHM],
         )
         assert payload["role"] == "SERVANT"
-        assert payload["sub"] == user.email
+        assert payload["sub"] == str(user.id)
 
     async def test_refresh_token_contains_role_and_type(self):
         import jwt as jose_jwt
@@ -606,6 +715,43 @@ class TestForgotAndReset:
         await service.request_reset_code_phone(user.phone_number, code_repo)
         code_repo.create.assert_called_once()
 
+    async def test_request_reset_code_phone_sends_via_whatsapp(self):
+        """Le code doit réellement être envoyé (plus seulement loggé — ancien TODO corrigé)."""
+        user = _make_user(UserRole.SERVANT, phone="+237699000002")
+        repo = AsyncMock()
+        repo.get_by_phone = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+
+        with patch(
+            "src.infrastructure.services.whatsapp_service.WhatsAppService.send_otp_code",
+            new_callable=AsyncMock,
+            return_value=True,
+        ) as mock_send:
+            await service.request_reset_code_phone(user.phone_number, code_repo)
+
+        mock_send.assert_awaited_once()
+        sent_phone, sent_code = mock_send.call_args.args
+        assert sent_phone == "+237699000002"
+        assert len(sent_code) == 6 and sent_code.isdigit()
+
+    async def test_request_reset_code_phone_whatsapp_failure_is_silent(self):
+        """Un échec d'envoi WhatsApp (Twilio down/non configuré) ne doit jamais remonter au client."""
+        user = _make_user(UserRole.SERVANT)
+        repo = AsyncMock()
+        repo.get_by_phone = AsyncMock(return_value=user)
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+
+        with patch(
+            "src.infrastructure.services.whatsapp_service.WhatsAppService.send_otp_code",
+            new_callable=AsyncMock,
+            side_effect=Exception("Twilio down"),
+        ):
+            await service.request_reset_code_phone(user.phone_number, code_repo)  # ne doit pas lever
+
+        code_repo.create.assert_called_once()
+
     async def test_verify_reset_code_phone_user_not_found(self):
         repo = AsyncMock()
         repo.get_by_phone = AsyncMock(return_value=None)
@@ -641,9 +787,200 @@ class TestForgotAndReset:
         result = await service.verify_reset_code_phone(user.phone_number, "654321", code_repo)
         assert isinstance(result, str) and len(result) > 0
 
-    async def test_register_servant_auto_generate_email(self):
-        """SERVANT sans email â†’ email auto-gÃ©nÃ©rÃ© en @bmra.servant.local."""
-        created = _make_user(UserRole.SERVANT, email="auto@bmra.servant.local")
+
+# ═══════════════════════════════════════════════════════════════════════
+#  VÉRIFICATION DU TÉLÉPHONE À L'INSCRIPTION (aucun compte n'existe encore)
+# ═══════════════════════════════════════════════════════════════════════
+@pytest.mark.unit
+class TestPhoneVerification:
+    async def test_send_phone_verification_code_creates_entry_and_sends(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+
+        with patch(
+            "src.infrastructure.services.whatsapp_service.WhatsAppService.send_otp_code",
+            new_callable=AsyncMock,
+            return_value=True,
+        ) as mock_send:
+            await service.send_phone_verification_code("+237611110001", code_repo)
+
+        code_repo.create.assert_called_once()
+        mock_send.assert_awaited_once()
+        sent_phone, sent_code = mock_send.call_args.args
+        assert sent_phone == "+237611110001"
+        assert len(sent_code) == 6 and sent_code.isdigit()
+
+    async def test_send_phone_verification_code_whatsapp_failure_is_silent(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+
+        with patch(
+            "src.infrastructure.services.whatsapp_service.WhatsAppService.send_otp_code",
+            new_callable=AsyncMock,
+            side_effect=Exception("Twilio down"),
+        ):
+            await service.send_phone_verification_code("+237611110002", code_repo)  # ne doit pas lever
+
+        code_repo.create.assert_called_once()
+
+    async def test_send_phone_verification_code_rate_limited_after_5_sends(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        phone = "+237611110003"
+
+        with patch(
+            "src.infrastructure.services.whatsapp_service.WhatsAppService.send_otp_code",
+            new_callable=AsyncMock,
+            return_value=True,
+        ):
+            for _ in range(5):
+                await service.send_phone_verification_code(phone, code_repo)
+            with pytest.raises(HTTPException) as exc_info:
+                await service.send_phone_verification_code(phone, code_repo)
+        assert exc_info.value.status_code == 429
+
+    async def test_verify_phone_code_invalid_code_400(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        code_repo.get_valid_by_phone_hmac = AsyncMock(return_value=None)
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.verify_phone_code("+237611110004", "000000", code_repo)
+        assert exc_info.value.status_code == 400
+
+    async def test_verify_phone_code_success_returns_token(self):
+        from uuid import uuid4 as _uuid4
+
+        repo = AsyncMock()
+        service = AuthService(repo)
+        entry = MagicMock()
+        entry.id = _uuid4()
+        code_repo = AsyncMock()
+        code_repo.get_valid_by_phone_hmac = AsyncMock(return_value=entry)
+        code_repo.mark_verified = AsyncMock()
+
+        token = await service.verify_phone_code("+237611110005", "123456", code_repo)
+
+        assert isinstance(token, str) and len(token) > 0
+        code_repo.mark_verified.assert_awaited_once_with(entry.id, token)
+
+    async def test_verify_phone_code_rate_limited_after_5_failures(self):
+        repo = AsyncMock()
+        service = AuthService(repo)
+        code_repo = AsyncMock()
+        code_repo.get_valid_by_phone_hmac = AsyncMock(return_value=None)
+        phone = "+237611110006"
+
+        for _ in range(5):
+            with pytest.raises(HTTPException):
+                await service.verify_phone_code(phone, "000000", code_repo)
+        with pytest.raises(HTTPException) as exc_info:
+            await service.verify_phone_code(phone, "000000", code_repo)
+        assert exc_info.value.status_code == 429
+
+
+class TestRegisterPhoneVerification:
+    """register_user(require_phone_verification=True) — inscription publique uniquement."""
+
+    async def test_register_requires_verification_token_when_flag_set(self):
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        repo.get_by_phone = AsyncMock(return_value=None)
+        service = AuthService(repo)
+
+        data = UserCreate(
+            email="v@t.com",
+            password=VALID_PASSWORD,
+            first_name="V",
+            last_name="T",
+            phone_number="+237622220001",
+            role=UserRole.SERVANT,
+        )
+        with pytest.raises(HTTPException) as exc_info:
+            await service.register_user(data, require_phone_verification=True)
+        assert exc_info.value.status_code == 400
+
+    async def test_register_rejects_invalid_or_unknown_token(self):
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        repo.get_by_phone = AsyncMock(return_value=None)
+        service = AuthService(repo)
+        phone_repo = AsyncMock()
+        phone_repo.get_by_token = AsyncMock(return_value=None)
+
+        data = UserCreate(
+            email="v2@t.com",
+            password=VALID_PASSWORD,
+            first_name="V",
+            last_name="T",
+            phone_number="+237622220002",
+            role=UserRole.SERVANT,
+        )
+        data = data.model_copy(update={"phone_verification_token": "bad-token"})
+        with pytest.raises(HTTPException) as exc_info:
+            await service.register_user(
+                data,
+                require_phone_verification=True,
+                phone_verification_repository=phone_repo,
+            )
+        assert exc_info.value.status_code == 400
+
+    async def test_register_succeeds_with_valid_token(self):
+        created = _make_user(UserRole.SERVANT, email="v3@t.com")
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        repo.get_by_phone = AsyncMock(return_value=None)
+        repo.create = AsyncMock(return_value=created)
+        service = AuthService(repo)
+        phone_repo = AsyncMock()
+        phone_repo.get_by_token = AsyncMock(return_value=MagicMock())  # entrée vérifiée trouvée
+
+        data = UserCreate(
+            email="v3@t.com",
+            password=VALID_PASSWORD,
+            first_name="V",
+            last_name="T",
+            phone_number="+237622220003",
+            role=UserRole.SERVANT,
+        )
+        data = data.model_copy(update={"phone_verification_token": "good-token"})
+        result = await service.register_user(
+            data,
+            require_phone_verification=True,
+            phone_verification_repository=phone_repo,
+        )
+        assert result is not None
+        phone_repo.get_by_token.assert_awaited_once()
+
+    async def test_register_parent_children_flow_unaffected(self):
+        """POST /parent/children (skip_age_check=True) ne passe jamais
+        require_phone_verification — doit continuer à fonctionner sans token."""
+        created = _make_user(UserRole.SERVANT, email="child@bmra.servant.local")
+        repo = AsyncMock()
+        repo.get_by_email = AsyncMock(return_value=None)
+        repo.get_by_phone = AsyncMock(return_value=None)
+        repo.create = AsyncMock(return_value=created)
+        service = AuthService(repo)
+
+        data = UserCreate.model_construct(
+            email=None,
+            password=VALID_PASSWORD,
+            first_name="Enfant",
+            last_name="Test",
+            role=UserRole.SERVANT,
+            phone_number=None,
+            birth_date=None,
+        )
+        result = await service.register_user(data, invitation_code=None, admin_id=None, skip_age_check=True)
+        assert result is not None
+
+    async def test_register_servant_no_email_stays_null(self):
+        """SERVANT sans email → email reste None en base (plus d'auto-génération)."""
+        created = _make_user(UserRole.SERVANT, email=None)
         repo = AsyncMock()
         repo.get_by_email = AsyncMock(return_value=None)
         repo.get_by_phone = AsyncMock(return_value=None)
@@ -662,7 +999,8 @@ class TestForgotAndReset:
         )
         assert result is not None
         call_arg = repo.create.call_args[0][0]
-        assert "@bmra.servant.local" in call_arg.email
+        assert call_arg.email is None
+        repo.get_by_email.assert_not_awaited()  # aucune vérification d'unicité sur None
 
     async def test_register_servant_age_under_13_rejected(self):
         """Servant < 13 ans sans parent_id â†’ 422."""
@@ -739,7 +1077,7 @@ class TestRefreshAndResetPassword:
     async def test_refresh_token_success(self):
         user = _make_user(UserRole.ADMIN)
         repo = AsyncMock()
-        repo.get_by_email = AsyncMock(return_value=user)
+        repo.get = AsyncMock(return_value=user)
         service = AuthService(repo)
 
         # Get real refresh token
@@ -762,11 +1100,11 @@ class TestRefreshAndResetPassword:
     async def test_reset_password_success(self):
         user = _make_user(UserRole.SERVANT)
         repo = AsyncMock()
-        repo.get_by_email = AsyncMock(return_value=user)
+        repo.get = AsyncMock(return_value=user)
         repo.update = AsyncMock(return_value=user)
         service = AuthService(repo)
 
-        reset_tok = SecurityUtils.create_reset_token(user.email)
+        reset_tok = SecurityUtils.create_reset_token(user.id)
 
         with patch("src.infrastructure.security.token_blacklist.token_blacklist") as mock_bl:
             mock_bl.is_revoked = AsyncMock(return_value=False)
@@ -778,11 +1116,11 @@ class TestRefreshAndResetPassword:
     async def test_reset_password_with_email_service(self):
         user = _make_user(UserRole.SERVANT)
         repo = AsyncMock()
-        repo.get_by_email = AsyncMock(return_value=user)
+        repo.get = AsyncMock(return_value=user)
         repo.update = AsyncMock(return_value=user)
         service = AuthService(repo)
 
-        reset_tok = SecurityUtils.create_reset_token(user.email)
+        reset_tok = SecurityUtils.create_reset_token(user.id)
         email_svc = AsyncMock()
         email_svc.send_password_changed_email = AsyncMock()
 
@@ -798,7 +1136,7 @@ class TestRefreshAndResetPassword:
         repo = AsyncMock()
         service = AuthService(repo)
 
-        reset_tok = SecurityUtils.create_reset_token(user.email)
+        reset_tok = SecurityUtils.create_reset_token(user.id)
 
         with patch("src.infrastructure.security.token_blacklist.token_blacklist") as mock_bl:
             mock_bl.is_revoked = AsyncMock(return_value=True)

@@ -11,6 +11,7 @@ from src.core.events.domain_events import UserInvited, UserRegistered
 from src.core.interfaces.repositories import IInvitationRepository, IUserRepository
 from src.core.utils import utc_now
 from src.infrastructure.events.bus import event_bus
+from src.infrastructure.repositories.responsable_repository import NominationRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.security.utils import SecurityUtils
 from src.presentation.schemas.auth import Token, UserCreate, UserLogin, UserPhoneLogin
@@ -83,38 +84,93 @@ class AuthService:
 
         return user
 
+    async def authenticate_oauth(self, provider: str, id_token: str) -> User:
+        """
+        Connexion via jeton d'identité Google, déjà vérifié par
+        `oauth_verifier`. **Ne crée jamais de compte** — l'inscription reste
+        le formulaire multi-étapes existant ; l'utilisateur doit déjà exister
+        (retrouvé par email vérifié) pour que la connexion OAuth aboutisse.
+        """
+        from src.infrastructure.config.settings import get_settings
+        from src.infrastructure.services.oauth_verifier import (
+            OAuthVerificationError,
+            verify_google_id_token,
+        )
+
+        settings = get_settings()
+        try:
+            identity = verify_google_id_token(id_token, settings.GOOGLE_OAUTH_CLIENT_ID)
+        except OAuthVerificationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(exc),
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from exc
+
+        if not identity.email or not identity.email_verified:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="L'e-mail associé à ce compte n'est pas vérifié par le fournisseur.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        user = await self.user_repository.get_by_email(identity.email)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Aucun compte ServantAssist n'est associé à cet e-mail. Veuillez d'abord vous inscrire.",
+            )
+
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is inactive",
+            )
+
+        if user.oauth_provider != provider or user.oauth_subject != identity.subject:
+            user.oauth_provider = provider
+            user.oauth_subject = identity.subject
+            try:
+                user = await self.user_repository.update(user.id, user)
+            except Exception:  # noqa: BLE001
+                logger.warning("Échec de la liaison OAuth pour %s (non bloquant)", user.id)
+
+        return user
+
     async def register_user(
         self,
         user_create: UserCreate,
         invitation_code: Optional[str] = None,
         admin_id: Optional[UUID] = None,
         skip_age_check: bool = False,
+        require_phone_verification: bool = False,
+        phone_verification_repository=None,
     ) -> User:
         """
         Register a new user with role-based validation
 
         Rules:
-        - SERVANT ≥ 13 ans: Self-registration with phone (email auto-generated if absent)
+        - SERVANT ≥ 13 ans: Self-registration with phone (email reste NULL si non fourni)
         - SERVANT < 13 ans: Created by parent via POST /parent/children (skip_age_check=True)
         - PARENT: Requires valid invitation code
         - AUMÔNIER: Only admin can create (not self-register)
         - ADMIN: Only admin can create
+
+        `require_phone_verification=True` (utilisé uniquement par l'inscription
+        publique SERVANT/PARENT via POST /auth/register) exige un
+        `phone_verification_token` valide obtenu via /auth/register/verify-phone-code.
+        Non utilisé par POST /parent/children (skip_age_check=True), qui crée des
+        enfants sans téléphone vérifiable.
         """
-        # Auto-générer un email technique si absent (SERVANT/PARENT sans email)
-        if not user_create.email:
-            import uuid as _uuid
-
-            phone_key = (getattr(user_create, "phone_number", "") or "").lstrip("+").replace(" ", "")
-            suffix = str(_uuid.uuid4())[:8]
-            generated = f"{phone_key or suffix}@bmra.servant.local"
-            user_create = user_create.model_copy(update={"email": generated})
-
-        existing_user = await self.user_repository.get_by_email(user_create.email)
-        if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered",
-            )
+        # Aucune génération d'email technique : NULL reste NULL. L'identité du
+        # JWT repose sur User.id (voir create_tokens), pas sur l'email.
+        if user_create.email:
+            existing_user = await self.user_repository.get_by_email(user_create.email)
+            if existing_user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email already registered",
+                )
 
         # Check phone uniqueness for PARENT/SERVANT
         if user_create.role in [UserRole.PARENT, UserRole.SERVANT] and user_create.phone_number:
@@ -220,6 +276,24 @@ class AuthService:
                     detail="An Aumonier account already exists. There can only be one.",
                 )
 
+        # Vérification du numéro de téléphone (inscription publique uniquement) —
+        # dernière porte avant la création effective du compte, pour laisser les
+        # autres règles métier (email/téléphone dupliqué, âge, invitation) s'exprimer
+        # avec leur propre code d'erreur en premier.
+        if require_phone_verification:
+            from src.infrastructure.security.field_encryption import get_encryptor
+
+            token = getattr(user_create, "phone_verification_token", None)
+            verified_entry = None
+            if token and user_create.phone_number and phone_verification_repository is not None:
+                phone_hmac = get_encryptor().hmac_index(user_create.phone_number)
+                verified_entry = await phone_verification_repository.get_by_token(phone_hmac, token)
+            if not verified_entry:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Numéro de téléphone non vérifié. Veuillez vérifier votre numéro avant de continuer.",
+                )
+
         # Create user
         hashed_password = SecurityUtils.get_password_hash(user_create.password)
         db_user = User(
@@ -257,17 +331,30 @@ class AuthService:
         return created_user
 
     async def create_tokens(self, user: User) -> Token:
-        """Create access + refresh tokens with role and position embedded in the payload."""
+        """Create access + refresh tokens with role and position embedded in the payload.
+
+        Le `sub` du JWT est `user.id` (toujours présent), pas l'email — l'email
+        est optionnel pour SERVANT/PARENT (identifiant de connexion = téléphone).
+
+        The `position` claim is sourced from the servant's active `Nomination`
+        (Nomination/PosteResponsable is the sole source of truth for postes).
+        """
         access_token_expires = timedelta(minutes=30)
-        position = user.position.value if user.position else None
+        position: Optional[str] = None
+        if user.role == UserRole.SERVANT:
+            nominations = await NominationRepository(self.user_repository.session).get_active_by_user(
+                user.id
+            )
+            if nominations:
+                position = nominations[0].poste.value
         access_token = SecurityUtils.create_access_token(
-            subject=user.email,
+            subject=user.id,
             role=user.role.value,
             position=position,
             expires_delta=access_token_expires,
         )
         refresh_token = SecurityUtils.create_refresh_token(
-            subject=user.email,
+            subject=user.id,
             role=user.role.value,
             position=position,
         )
@@ -294,20 +381,21 @@ class AuthService:
                 settings.JWT_SECRET_KEY,
                 algorithms=[settings.JWT_ALGORITHM],
             )
-            email: str = payload.get("sub")
+            sub: str = payload.get("sub")
             token_type: str = payload.get("type")
             old_jti: str = payload.get("jti")
             exp: float = payload.get("exp", _time.time())
-            if email is None or token_type != "refresh":
+            if sub is None or token_type != "refresh":
                 raise credentials_exception
-        except jwt.PyJWTError:
+            user_id = UUID(sub)
+        except (jwt.PyJWTError, ValueError):
             raise credentials_exception
 
         # Vérifier que le refresh token n'a pas été révoqué
         if old_jti and await token_blacklist.is_revoked(old_jti):
             raise credentials_exception
 
-        user = await self.user_repository.get_by_email(email)
+        user = await self.user_repository.get(user_id)
         if not user or not user.is_active:
             raise credentials_exception
 
@@ -333,15 +421,15 @@ class AuthService:
         if not user or not user.is_active:
             return  # Silencieux pour prévenir l'énumération
 
-        # Nettoyer les anciens codes pour cet email
-        await code_repository.delete_for_email(email)
+        # Nettoyer les anciens codes pour cet utilisateur
+        await code_repository.delete_for_user(user.id)
         await code_repository.delete_expired()
 
         code = f"{random.randint(0, 999999):06d}"
         expires_at = utc_now() + timedelta(minutes=15)
 
         entry = PasswordResetCode(
-            email=email,
+            user_id=user.id,
             code=code,
             expires_at=expires_at,
         )
@@ -363,7 +451,14 @@ class AuthService:
         code_repository,
     ) -> str:
         """Vérifie le code OTP et retourne un JWT reset_token."""
-        entry = await code_repository.get_valid(email, code)
+        user = await self.user_repository.get_by_email(email)
+        if not user or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Compte introuvable ou inactif.",
+            )
+
+        entry = await code_repository.get_valid(user.id, code)
         if not entry:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -372,14 +467,7 @@ class AuthService:
 
         await code_repository.mark_used(entry.id)
 
-        user = await self.user_repository.get_by_email(email)
-        if not user or not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Compte introuvable ou inactif.",
-            )
-
-        return SecurityUtils.create_reset_token(user.email)
+        return SecurityUtils.create_reset_token(user.id)
 
     async def request_reset_code_phone(self, phone_number: str, code_repository) -> None:
         """Génère un code OTP pour réinitialisation via numéro de téléphone (SERVANT/PARENT)."""
@@ -387,27 +475,24 @@ class AuthService:
         from datetime import timedelta
 
         from src.core.entities.password_reset_code import PasswordResetCode
+        from src.infrastructure.services.whatsapp_service import WhatsAppService
 
         user = await self.user_repository.get_by_phone(phone_number)
         if not user or not user.is_active:
             return  # Silencieux pour prévenir l'énumération
 
-        email_key = user.email  # L'email auto-généré sert de clé interne
-        await code_repository.delete_for_email(email_key)
+        await code_repository.delete_for_user(user.id)
         await code_repository.delete_expired()
 
         code = f"{random.randint(0, 999999):06d}"
         expires_at = utc_now() + timedelta(minutes=15)
-        entry = PasswordResetCode(email=email_key, code=code, expires_at=expires_at)
+        entry = PasswordResetCode(user_id=user.id, code=code, expires_at=expires_at)
         await code_repository.create(entry)
 
-        # TODO: remplacer par SMS Orange/MTN quand l'API est disponible
-        logger.info(
-            "OTP reset par téléphone | user=%s phone=%s code=%s",
-            user.id,
-            phone_number,
-            code,
-        )
+        try:
+            await WhatsAppService().send_otp_code(phone_number, code)
+        except Exception as exc:  # noqa: BLE001 — ne jamais faire échouer la réponse (anti-énumération)
+            logger.warning("Envoi OTP reset par téléphone échoué | user=%s | error=%s", user.id, str(exc))
 
     async def verify_reset_code_phone(self, phone_number: str, code: str, code_repository) -> str:
         """Vérifie le code OTP (flow téléphone) et retourne un reset_token JWT."""
@@ -418,7 +503,7 @@ class AuthService:
                 detail="Compte introuvable ou inactif.",
             )
 
-        entry = await code_repository.get_valid(user.email, code)
+        entry = await code_repository.get_valid(user.id, code)
         if not entry:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -426,7 +511,72 @@ class AuthService:
             )
 
         await code_repository.mark_used(entry.id)
-        return SecurityUtils.create_reset_token(user.email)
+        return SecurityUtils.create_reset_token(user.id)
+
+    async def send_phone_verification_code(self, phone_number: str, code_repository) -> None:
+        """Envoie un code OTP pour vérifier qu'un numéro appartient bien à la
+        personne qui s'inscrit (aucun compte n'existe encore à ce stade)."""
+        import random
+        from datetime import timedelta
+
+        from src.core.entities.phone_verification_code import PhoneVerificationCode
+        from src.infrastructure.security.brute_force import brute_force_guard
+        from src.infrastructure.security.field_encryption import get_encryptor
+        from src.infrastructure.services.whatsapp_service import WhatsAppService
+
+        identifier = f"phone-otp-send:{phone_number}"
+        is_locked, remaining = await brute_force_guard.check_locked(identifier)
+        if is_locked:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Trop de demandes de code. Réessayez dans {remaining} secondes.",
+                headers={"Retry-After": str(remaining)},
+            )
+        await brute_force_guard.record_failure(identifier)
+
+        phone_hmac = get_encryptor().hmac_index(phone_number)
+        await code_repository.delete_for_phone_hmac(phone_hmac)
+        await code_repository.delete_expired()
+
+        code = f"{random.randint(0, 999999):06d}"
+        expires_at = utc_now() + timedelta(minutes=15)
+        entry = PhoneVerificationCode(phone_hmac=phone_hmac, code=code, expires_at=expires_at)
+        await code_repository.create(entry)
+
+        try:
+            await WhatsAppService().send_otp_code(phone_number, code)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Envoi OTP vérification téléphone échoué | phone=%s | error=%s", phone_number, str(exc))
+
+    async def verify_phone_code(self, phone_number: str, code: str, code_repository) -> str:
+        """Vérifie le code OTP et retourne un jeton opaque à fournir à /auth/register."""
+        import secrets
+
+        from src.infrastructure.security.brute_force import brute_force_guard
+        from src.infrastructure.security.field_encryption import get_encryptor
+
+        identifier = f"phone-otp-verify:{phone_number}"
+        is_locked, remaining = await brute_force_guard.check_locked(identifier)
+        if is_locked:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Trop de tentatives. Réessayez dans {remaining} secondes.",
+                headers={"Retry-After": str(remaining)},
+            )
+
+        phone_hmac = get_encryptor().hmac_index(phone_number)
+        entry = await code_repository.get_valid_by_phone_hmac(phone_hmac, code)
+        if not entry:
+            await brute_force_guard.record_failure(identifier)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Code invalide ou expiré.",
+            )
+
+        await brute_force_guard.record_success(identifier)
+        token = secrets.token_urlsafe(24)
+        await code_repository.mark_verified(entry.id, token)
+        return token
 
     async def forgot_password(self, email: str, email_service) -> None:
         user = await self.user_repository.get_by_email(email)
@@ -434,7 +584,7 @@ class AuthService:
             # Return silently to prevent email enumeration
             return
 
-        reset_token = SecurityUtils.create_reset_token(user.email)
+        reset_token = SecurityUtils.create_reset_token(user.id)
         await email_service.send_reset_password_email(
             to_email=user.email,
             token=reset_token,
@@ -457,19 +607,20 @@ class AuthService:
         )
         try:
             payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-            email: str = payload.get("sub")
+            sub: str = payload.get("sub")
             token_type: str = payload.get("type")
             jti: str | None = payload.get("jti")
             exp: float = float(payload.get("exp", _time.time()))
-            if email is None or token_type != "reset":
+            if sub is None or token_type != "reset":
                 raise credentials_exception
-        except jwt.PyJWTError:
+            user_id = UUID(sub)
+        except (jwt.PyJWTError, ValueError):
             raise credentials_exception
 
         if jti and await token_blacklist.is_revoked(jti):
             raise credentials_exception
 
-        user = await self.user_repository.get_by_email(email)
+        user = await self.user_repository.get(user_id)
         if not user or not user.is_active:
             raise credentials_exception
 

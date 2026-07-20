@@ -43,7 +43,7 @@ class TestPasswordResetFlow:
     async def test_reset_password_with_valid_token(self, client: AsyncClient, admin_user: User):
         """Réinitialisation complète avec token valide."""
         # Générer un reset token manuellement (en production, envoyé par email)
-        reset_token = SecurityUtils.create_reset_token(admin_user.email)
+        reset_token = SecurityUtils.create_reset_token(admin_user.id)
 
         new_password = "NouveauPass1"
 
@@ -79,7 +79,7 @@ class TestPasswordResetFlow:
 
     async def test_reset_with_access_token_fails(self, client: AsyncClient, admin_user: User):
         """Un access token ne peut pas servir de reset token."""
-        access_token = SecurityUtils.create_access_token(subject=admin_user.email, role="ADMIN")
+        access_token = SecurityUtils.create_access_token(subject=admin_user.id, role="ADMIN")
         resp = await client.post(
             "/api/v1/auth/reset-password",
             json={"token": access_token, "new_password": "NewPass1"},

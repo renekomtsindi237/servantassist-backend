@@ -617,7 +617,7 @@ def _patch_get_current_user_deps(user_obj, blacklisted=False):
     import src.infrastructure.security.token_blacklist as bl_module
 
     mock_user_repo = MagicMock()
-    mock_user_repo.get_by_email = AsyncMock(return_value=user_obj)
+    mock_user_repo.get = AsyncMock(return_value=user_obj)
 
     mock_blacklist = MagicMock()
     mock_blacklist.is_revoked = AsyncMock(return_value=blacklisted)
@@ -647,7 +647,7 @@ async def test_get_current_user_valid_token():
     from src.presentation.dependencies.auth_deps import get_current_user
 
     user = _make_user(UserRole.SERVANT)
-    payload = {"sub": user.email, "role": user.role.value, "jti": None}
+    payload = {"sub": str(user.id), "role": user.role.value, "jti": None}
 
     with patch("jwt.decode", return_value=payload):
         with _patch_get_current_user_deps(user, blacklisted=False):
@@ -669,7 +669,7 @@ async def test_get_current_user_invalid_token():
 
 
 @pytest.mark.asyncio
-async def test_get_current_user_missing_email_in_payload():
+async def test_get_current_user_missing_user_id_in_payload():
     from src.presentation.dependencies.auth_deps import get_current_user
 
     payload = {"sub": None, "role": "SERVANT", "jti": None}
@@ -686,7 +686,7 @@ async def test_get_current_user_refresh_token_rejected():
     """Tokens with type='refresh' should be rejected."""
     from src.presentation.dependencies.auth_deps import get_current_user
 
-    payload = {"sub": "user@test.com", "role": "SERVANT", "jti": "abc", "type": "refresh"}
+    payload = {"sub": str(uuid4()), "role": "SERVANT", "jti": "abc", "type": "refresh"}
 
     with patch("jwt.decode", return_value=payload):
         with pytest.raises(HTTPException) as exc_info:
@@ -700,7 +700,7 @@ async def test_get_current_user_blacklisted_token():
     from src.presentation.dependencies.auth_deps import get_current_user
 
     user = _make_user(UserRole.SERVANT)
-    payload = {"sub": user.email, "role": user.role.value, "jti": "blacklisted-jti"}
+    payload = {"sub": str(user.id), "role": user.role.value, "jti": "blacklisted-jti"}
 
     with patch("jwt.decode", return_value=payload):
         with _patch_get_current_user_deps(user, blacklisted=True):
@@ -714,7 +714,7 @@ async def test_get_current_user_blacklisted_token():
 async def test_get_current_user_not_found_in_db():
     from src.presentation.dependencies.auth_deps import get_current_user
 
-    payload = {"sub": "notfound@test.com", "role": "SERVANT", "jti": None}
+    payload = {"sub": str(uuid4()), "role": "SERVANT", "jti": None}
 
     with patch("jwt.decode", return_value=payload):
         with _patch_get_current_user_deps(None, blacklisted=False):
@@ -730,7 +730,7 @@ async def test_get_current_user_role_mismatch():
 
     user = _make_user(UserRole.ADMIN)  # DB says ADMIN
     # But token says SERVANT
-    payload = {"sub": user.email, "role": "SERVANT", "jti": None}
+    payload = {"sub": str(user.id), "role": "SERVANT", "jti": None}
 
     with patch("jwt.decode", return_value=payload):
         with _patch_get_current_user_deps(user, blacklisted=False):

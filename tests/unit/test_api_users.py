@@ -41,7 +41,6 @@ def _make_user_entity(role_value="SERVANT"):
     user.phone_number = "+237600000000"
     user.is_active = True
     user.profile_photo_url = None
-    user.position = None
     user.terms_accepted_at = None
     user.data_consent_at = None
     return user
@@ -423,39 +422,6 @@ def test_record_data_consent():
         with patch("src.presentation.api.v1.users.UserProfileResponse") as mock_cls:
             mock_cls.model_validate.return_value = profile
             response = client.post("/users/me/data-consent")
-
-    assert response.status_code == 200
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  PATCH /{user_id}/position
-# ─────────────────────────────────────────────────────────────────────────────
-
-def test_update_servant_position_not_found():
-    client, user, session = _build_client(role="ADMIN")
-
-    mock_user_repo = MagicMock()
-    mock_user_repo.get = AsyncMock(return_value=None)
-
-    with patch("src.presentation.api.v1.users.UserRepository", return_value=mock_user_repo):
-        response = client.patch(f"/users/{uuid4()}/position", json={"position": None})
-
-    assert response.status_code == 404
-
-
-def test_update_servant_position_success():
-    client, user, session = _build_client(role="ADMIN")
-    target = _make_user_entity("SERVANT")
-    profile = _make_profile_response("SERVANT")
-
-    mock_user_repo = MagicMock()
-    mock_user_repo.get = AsyncMock(return_value=target)
-    mock_user_repo.update = AsyncMock(return_value=target)
-
-    with patch("src.presentation.api.v1.users.UserRepository", return_value=mock_user_repo):
-        with patch("src.presentation.api.v1.users.UserProfileResponse") as mock_cls:
-            mock_cls.model_validate.return_value = profile
-            response = client.patch(f"/users/{target.id}/position", json={"position": None})
 
     assert response.status_code == 200
 

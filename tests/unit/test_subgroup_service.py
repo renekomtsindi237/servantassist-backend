@@ -13,17 +13,20 @@ import pytest
 from fastapi import HTTPException
 
 from src.application.services.subgroup_service import SubGroupService
-from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.subgroup import AINES_MAX_MEMBERS, SubGroup, SubGroupCategory, SubGroupMember
 from src.core.entities.user import User, UserRole
 from src.presentation.schemas.subgroup import SubGroupCreate, SubGroupMemberAdd, SubGroupUpdate
 
 
-def _mock_group(name="Groupe A", is_active=True, max_members=None, id=None) -> SubGroup:
+def _mock_group(
+    name="Groupe A", is_active=True, max_members=None, id=None, category=SubGroupCategory.AUTRE
+) -> SubGroup:
     g = MagicMock(spec=SubGroup)
     g.id = id or uuid4()
     g.name = name
     g.is_active = is_active
     g.max_members = max_members
+    g.category = category
     g.description = "Description"
     g.service_schedule = "Semaine 1"
     g.created_by = uuid4()
@@ -484,19 +487,28 @@ class TestReclassifyServant:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_returns_none_when_target_group_not_found(self):
+    async def test_creates_canonical_group_when_missing(self):
+        """Le groupe canonique est cree automatiquement s'il n'existe pas (ne renvoie plus None)."""
         user = _mock_user(role=UserRole.SERVANT)
         user.birth_date = datetime(2020, 1, 1)  # Young child — ASPIRANTS group
         user_repo = AsyncMock()
         user_repo.get.return_value = user
 
         group_repo = AsyncMock()
+        group_repo.get_by_category.return_value = None
         group_repo.get_by_name.return_value = None
+        created_group = _mock_group(name="Aspirants", category=SubGroupCategory.ASPIRANTS)
+        group_repo.create.return_value = created_group
+        group_repo.get_active_membership.return_value = None
+        group_repo.get_member_count.return_value = 0
+        group_repo.get_members.return_value = []
+        group_repo.enrich_members.return_value = []
 
         svc = _mock_svc(group_repo=group_repo, user_repo=user_repo)
         result = await svc.reclassify_servant(user.id)
 
-        assert result is None
+        group_repo.create.assert_called_once()
+        assert result is not None
 
     @pytest.mark.asyncio
     async def test_assigns_aspirant_for_young_servant(self):
@@ -505,9 +517,9 @@ class TestReclassifyServant:
         user_repo = AsyncMock()
         user_repo.get.return_value = user
 
-        group = _mock_group(name="ASPIRANTS")
+        group = _mock_group(name="Aspirants", category=SubGroupCategory.ASPIRANTS)
         group_repo = AsyncMock()
-        group_repo.get_by_name.return_value = group
+        group_repo.get_by_category.return_value = group
         group_repo.get_active_membership.return_value = None
         membership = MagicMock(spec=SubGroupMember)
         group_repo.add_member.return_value = membership
@@ -518,7 +530,7 @@ class TestReclassifyServant:
         svc = _mock_svc(group_repo=group_repo, user_repo=user_repo)
         result = await svc.reclassify_servant(user.id)
 
-        group_repo.get_by_name.assert_called_once_with("ASPIRANTS")
+        group_repo.get_by_category.assert_any_call(SubGroupCategory.ASPIRANTS)
         assert result is not None
 
     @pytest.mark.asyncio
@@ -528,12 +540,12 @@ class TestReclassifyServant:
         user_repo = AsyncMock()
         user_repo.get.return_value = user
 
-        group = _mock_group(name="ASPIRANTS")
+        group = _mock_group(name="Aspirants", category=SubGroupCategory.ASPIRANTS)
         membership = MagicMock()
         membership.sub_group_id = group.id
 
         group_repo = AsyncMock()
-        group_repo.get_by_name.return_value = group
+        group_repo.get_by_category.return_value = group
         group_repo.get_active_membership.return_value = membership
         group_repo.get_member_count.return_value = 1
         group_repo.get_members.return_value = []
@@ -544,3 +556,132 @@ class TestReclassifyServant:
 
         group_repo.add_member.assert_not_called()
         assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_reclassify_13yo_good_average_stays_confirme(self):
+        """
+        Seuil d'age assume : un servant de 13 ans (< 15 ans) avec une bonne
+        moyenne reste Confirme — il ne devient pas Aine avant 15 ans, meme
+        si le reglement fourni ne precise pas explicitement ce seuil (garde-fou
+        pour eviter qu'un tres jeune servant devienne eligible responsable).
+        """
+        user = _mock_user(role=UserRole.SERVANT)
+        user.birth_date = datetime(2013, 1, 1, tzinfo=timezone.utc)  # ~13 ans
+        user_repo = AsyncMock()
+        user_repo.get.return_value = user
+
+        training_repo = AsyncMock()
+        stats = MagicMock()
+        stats.average_score = 95.0
+        training_repo.get_servant_stats.return_value = stats
+
+        group = _mock_group(name="Confirmés", category=SubGroupCategory.CONFIRMES)
+        group_repo = AsyncMock()
+        group_repo.get_by_category.return_value = group
+        group_repo.get_active_membership.return_value = None
+        group_repo.get_member_count.return_value = 0
+        group_repo.get_members.return_value = []
+        group_repo.enrich_members.return_value = []
+
+        svc = _mock_svc(group_repo=group_repo, user_repo=user_repo, training_repo=training_repo)
+        result = await svc.reclassify_servant(user.id)
+
+        group_repo.get_by_category.assert_any_call(SubGroupCategory.CONFIRMES)
+        assert result is not None
+        assert result.category == SubGroupCategory.CONFIRMES
+
+    @pytest.mark.asyncio
+    async def test_reclassify_15yo_good_average_becomes_aine(self):
+        user = _mock_user(role=UserRole.SERVANT)
+        user.birth_date = datetime(2011, 1, 1, tzinfo=timezone.utc)  # ~15 ans
+        user_repo = AsyncMock()
+        user_repo.get.return_value = user
+
+        training_repo = AsyncMock()
+        stats = MagicMock()
+        stats.average_score = 75.0  # >= 70% (14/20)
+        training_repo.get_servant_stats.return_value = stats
+
+        aines_group = _mock_group(name="Aînés", category=SubGroupCategory.AINES, max_members=AINES_MAX_MEMBERS)
+        group_repo = AsyncMock()
+        group_repo.get_by_category.return_value = aines_group
+        group_repo.get_active_membership.return_value = None
+        group_repo.get_member_count.return_value = 2  # sous le plafond de 7
+        group_repo.get_members.return_value = []
+        group_repo.enrich_members.return_value = []
+
+        svc = _mock_svc(group_repo=group_repo, user_repo=user_repo, training_repo=training_repo)
+        result = await svc.reclassify_servant(user.id)
+
+        group_repo.get_by_category.assert_any_call(SubGroupCategory.AINES)
+        assert result is not None
+        assert result.category == SubGroupCategory.AINES
+
+    @pytest.mark.asyncio
+    async def test_aines_capacity_full_stays_confirme(self):
+        """Le sous-groupe des Aines est plafonne a 7 membres (Art. 26.4)."""
+        user = _mock_user(role=UserRole.SERVANT)
+        user.birth_date = datetime(2011, 1, 1, tzinfo=timezone.utc)  # ~15 ans
+        user_repo = AsyncMock()
+        user_repo.get.return_value = user
+
+        training_repo = AsyncMock()
+        stats = MagicMock()
+        stats.average_score = 90.0
+        training_repo.get_servant_stats.return_value = stats
+
+        aines_group = _mock_group(name="Aînés", category=SubGroupCategory.AINES, max_members=AINES_MAX_MEMBERS)
+        confirmes_group = _mock_group(name="Confirmés", category=SubGroupCategory.CONFIRMES)
+
+        def _get_by_category(category):
+            if category == SubGroupCategory.AINES:
+                return aines_group
+            return confirmes_group
+
+        group_repo = AsyncMock()
+        group_repo.get_by_category.side_effect = _get_by_category
+        group_repo.get_active_membership.return_value = None
+        group_repo.get_member_count.return_value = AINES_MAX_MEMBERS  # deja complet
+        group_repo.get_members.return_value = []
+        group_repo.enrich_members.return_value = []
+
+        svc = _mock_svc(group_repo=group_repo, user_repo=user_repo, training_repo=training_repo)
+        result = await svc.reclassify_servant(user.id)
+
+        assert result is not None
+        assert result.category == SubGroupCategory.CONFIRMES
+
+
+# ── get_or_create_canonical_group ──────────────────────────────────────────
+
+
+class TestGetOrCreateCanonicalGroup:
+    @pytest.mark.asyncio
+    async def test_get_or_create_canonical_group_chorale(self):
+        """La chorale (Art. 33-34) est un SubGroup de categorie CHORALE, cree a la demande."""
+        group_repo = AsyncMock()
+        group_repo.get_by_category.return_value = None
+        group_repo.get_by_name.return_value = None
+        created = _mock_group(name="Chorale", category=SubGroupCategory.CHORALE)
+        group_repo.create.return_value = created
+
+        svc = _mock_svc(group_repo=group_repo)
+        result = await svc.get_or_create_canonical_group(SubGroupCategory.CHORALE, uuid4())
+
+        group_repo.create.assert_called_once()
+        created_group_arg = group_repo.create.call_args[0][0]
+        assert created_group_arg.category == SubGroupCategory.CHORALE
+        assert created_group_arg.max_members is None
+        assert result.category == SubGroupCategory.CHORALE
+
+    @pytest.mark.asyncio
+    async def test_get_or_create_canonical_group_returns_existing(self):
+        existing = _mock_group(name="Chorale", category=SubGroupCategory.CHORALE)
+        group_repo = AsyncMock()
+        group_repo.get_by_category.return_value = existing
+
+        svc = _mock_svc(group_repo=group_repo)
+        result = await svc.get_or_create_canonical_group(SubGroupCategory.CHORALE, uuid4())
+
+        group_repo.create.assert_not_called()
+        assert result is existing

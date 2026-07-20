@@ -182,8 +182,6 @@ class UserService:
             user.first_name = data.first_name
         if data.last_name is not None:
             user.last_name = data.last_name
-        if data.position is not None:
-            user.position = data.position
         if data.birth_date is not None:
             user.birth_date = data.birth_date
 

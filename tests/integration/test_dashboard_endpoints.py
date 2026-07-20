@@ -86,7 +86,7 @@ async def _create_user(db_session: AsyncSession, **kwargs) -> User:
 
 def _token(user: User) -> str:
     return SecurityUtils.create_access_token(
-        subject=user.email,
+        subject=user.id,
         role=user.role.value,
         expires_delta=timedelta(minutes=30),
     )

@@ -1,9 +1,9 @@
 """
-Endpoints de gestion des postes de responsable (Aumonier / Admin).
+Endpoints de gestion des postes de responsable.
 
 Gestion des nominations :
-    POST   /nominations              Nommer un servant a un poste
-    DELETE /nominations/{id}         Revoquer une nomination
+    POST   /nominations              Nommer un servant a un poste (Aumonier uniquement)
+    DELETE /nominations/{id}         Revoquer une nomination (Aumonier uniquement)
     GET    /nominations              Toutes les nominations actives
     GET    /nominations/history      Historique des nominations
     GET    /nominations/me           Mes nominations (servant)
@@ -11,6 +11,13 @@ Gestion des nominations :
 Reference des postes :
     GET    /postes                   Liste de tous les postes (avec titulaires)
     GET    /postes/{poste}           Detail d'un poste
+
+Conseil des Responsables (Art. 12) :
+    POST   /council-meetings                        Creer une reunion (Delegue/SG)
+    GET    /council-meetings                         Historique paginee des reunions
+    POST   /council-meetings/{id}/attendance          Enregistrer les presences (Delegue/SG)
+    GET    /council-meetings/{id}/attendance          Presences enregistrees pour une reunion
+    GET    /council-meetings/responsable/{id}/monitor Controle d'assiduite (Art. 15)
 """
 
 import asyncio
@@ -35,11 +42,13 @@ from src.infrastructure.repositories.user_repository import UserRepository
 from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_admin_or_aumonier,
+    get_current_aumonier_user,
     require_delegue,
     require_delegue_or_sg,
 )
 from src.presentation.schemas.responsable import (
     CouncilAttendanceRecordList,
+    CouncilAttendanceResponse,
     CouncilMeetingCreate,
     CouncilMeetingResponse,
     NominationCreate,
@@ -47,6 +56,7 @@ from src.presentation.schemas.responsable import (
     PosteDetailResponse,
     PosteListResponse,
 )
+from src.presentation.schemas.user import PaginatedResponse
 
 router = APIRouter()
 
@@ -78,12 +88,12 @@ def _get_service(session: AsyncSession) -> ResponsableService:
 async def create_nomination(
     data: NominationCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(get_current_aumonier_user)],
 ):
     """
     Nommer un servant a un poste de responsable.
 
-    **Accessible a :** Aumonier, Admin.
+    **Accessible a :** Aumonier uniquement (Art. 2.1 du reglement interieur).
 
     Validations :
     - L'utilisateur doit etre un SERVANT actif
@@ -129,12 +139,12 @@ async def _notify_nomination(user_id: UUID, poste_label: str, session) -> None:
 async def revoke_nomination(
     nomination_id: UUID,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_admin_or_aumonier)],
+    current_user: Annotated[User, Depends(get_current_aumonier_user)],
 ):
     """
     Revoquer une nomination (retirer un servant de son poste).
 
-    **Accessible a :** Aumonier, Admin.
+    **Accessible a :** Aumonier uniquement (Art. 2.1 du reglement interieur).
     """
     service = _get_service(session)
     return await service.revoke(nomination_id, revoked_by=current_user.id)
@@ -241,6 +251,23 @@ async def create_council_meeting(
     return await service.create_council_meeting(data, created_by=current_user.id)
 
 
+@router.get(
+    "/council-meetings",
+    response_model=PaginatedResponse[CouncilMeetingResponse],
+    summary="Historique des réunions du conseil",
+    description="Liste paginée, les plus récentes d'abord, avec décompte des présences. Accessible au Délégué ou au Secrétaire Général.",  # noqa: E501
+)
+async def list_council_meetings(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(require_delegue_or_sg)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+):
+    """Historique paginé des réunions du conseil des responsables."""
+    service = _get_service(session)
+    return await service.list_council_meetings(page=page, page_size=page_size)
+
+
 @router.post(
     "/council-meetings/{meeting_id}/attendance",
     response_model=List[dict],
@@ -256,6 +283,22 @@ async def record_council_attendance(
     """Enregistre les présences au conseil."""
     service = _get_service(session)
     return await service.record_council_attendance(meeting_id, data, recorded_by=current_user.id)
+
+
+@router.get(
+    "/council-meetings/{meeting_id}/attendance",
+    response_model=List[CouncilAttendanceResponse],
+    summary="Présences enregistrées pour une réunion",
+    description="Accessible au Délégué ou au Secrétaire Général",
+)
+async def get_council_attendance(
+    meeting_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(require_delegue_or_sg)],
+):
+    """Liste des présences enregistrées pour une réunion donnée."""
+    service = _get_service(session)
+    return await service.list_council_attendances(meeting_id)
 
 
 @router.get(

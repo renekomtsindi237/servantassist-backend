@@ -34,6 +34,15 @@ class SubGroupRepository:
         result = await self.session.exec(stmt)
         return result.first()
 
+    async def get_by_category(self, category) -> Optional[SubGroup]:
+        """Recupere le premier sous-groupe actif d'une categorie donnee."""
+        stmt = select(SubGroup).where(
+            SubGroup.category == category,
+            SubGroup.is_active.is_(True),
+        )
+        result = await self.session.exec(stmt)
+        return result.first()
+
     async def list_all(self, active_only: bool = True) -> List[SubGroup]:
         stmt = select(SubGroup)
         if active_only:

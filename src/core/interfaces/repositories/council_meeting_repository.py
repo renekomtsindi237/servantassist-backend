@@ -1,4 +1,4 @@
-from typing import List, Optional, Protocol, runtime_checkable
+from typing import List, Optional, Protocol, Tuple, runtime_checkable
 from uuid import UUID
 
 from src.core.entities.council_meeting import CouncilMeeting
@@ -13,3 +13,7 @@ class ICouncilMeetingRepository(Protocol):
     async def add_attendance(self, meeting_id: UUID, user_id: UUID, **kwargs) -> object: ...
 
     async def get_responsable_attendances(self, user_id: UUID) -> List: ...
+
+    async def list_meetings(self, page: int, page_size: int) -> Tuple[List[CouncilMeeting], int]: ...
+
+    async def list_attendances(self, meeting_id: UUID) -> List: ...

@@ -100,17 +100,19 @@ def test_maybe_to_naive_utc_aware():
 def test_password_reset_code_creation():
     """PasswordResetCode can be instantiated with required fields."""
     from datetime import timedelta
+    from uuid import uuid4
 
     from src.core.entities.password_reset_code import PasswordResetCode
 
     expires = datetime.utcnow() + timedelta(minutes=10)
+    user_id = uuid4()
     code = PasswordResetCode(
-        email="test@example.com",
+        user_id=user_id,
         code="123456",
         expires_at=expires,
     )
     assert isinstance(code.id, UUID)
-    assert code.email == "test@example.com"
+    assert code.user_id == user_id
     assert code.code == "123456"
     assert code.expires_at == expires
     assert code.used is False

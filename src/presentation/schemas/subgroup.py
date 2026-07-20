@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from src.core.entities.subgroup import SubGroupCategory
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  Sous-groupes
 # ═══════════════════════════════════════════════════════════════════════════
@@ -20,6 +22,7 @@ class SubGroupCreate(BaseModel):
     description: Optional[str] = Field(None, max_length=500)
     service_schedule: Optional[str] = Field(None, max_length=500)
     max_members: Optional[int] = Field(None, ge=1)
+    category: SubGroupCategory = SubGroupCategory.AUTRE
 
 
 class SubGroupUpdate(BaseModel):
@@ -30,6 +33,7 @@ class SubGroupUpdate(BaseModel):
     service_schedule: Optional[str] = Field(None, max_length=500)
     max_members: Optional[int] = Field(None, ge=1)
     is_active: Optional[bool] = None
+    category: Optional[SubGroupCategory] = None
 
 
 class SubGroupMemberAdd(BaseModel):
@@ -66,6 +70,7 @@ class SubGroupResponse(BaseModel):
     service_schedule: Optional[str] = None
     is_active: bool
     max_members: Optional[int] = None
+    category: SubGroupCategory = SubGroupCategory.AUTRE
     created_by: UUID
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

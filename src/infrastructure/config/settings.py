@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # ── Connexion OAuth (Google) — connexion uniquement ─────────────────
+    # Google Cloud Console → API et services → Identifiants → ID client OAuth 2.0.
+    # Laisser vide pour désactiver le bouton "Se connecter avec Google".
+    GOOGLE_OAUTH_CLIENT_ID: str = ""
+
     # Cloudflare R2 (S3-compatible) — identifiants communs
     # Valeurs vides = R2 désactivé (fallback stockage local en dev/staging)
     CLOUDFLARE_R2_ENDPOINT: str = ""

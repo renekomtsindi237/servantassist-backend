@@ -32,9 +32,10 @@ from src.core.utils import utc_now
 class CotisationType(str, Enum):
     """Types de cotisation prevus par le reglement."""
 
-    ORDINAIRE = "ORDINAIRE"  # Cotisation reguliere
-    SPECIALE = "SPECIALE"  # Pour un evenement specifique
+    ORDINAIRE = "ORDINAIRE"  # Cotisation reguliere (mensuelle ou hebdomadaire, montant fixe)
+    SPECIALE = "SPECIALE"  # Pour un evenement specifique (recollection, camp spirituel, journee d'amitie...)
     AMENDE = "AMENDE"  # Penalite financiere
+    AUBE = "AUBE"  # Cotisation annuelle pour l'entretien/confection des aubes (Art. 21)
     AUTRE = "AUTRE"  # Contribution volontaire
 
 
@@ -56,6 +57,22 @@ class PeriodType(str, Enum):
     EVENEMENT = "EVENEMENT"  # Lie a un evenement specifique
     ANNUEL = "ANNUEL"  # Cotisation annuelle
     PONCTUEL = "PONCTUEL"  # Ponctuel (amende, etc.)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Montants fixes (Art. 22 du reglement)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Chaque servant choisit un mode de cotisation ordinaire : MENSUEL (500 FCFA)
+# OU HEBDOMADAIRE (100 FCFA/samedi) — jamais les deux simultanement sur la
+# meme periode (cf. CotisationService.record_payment). Les cotisations
+# SPECIALE (recollection/camp spirituel/journee d'amitie, rattachees a un
+# Event via event_id) et AUBE (annuelle) restent a montant libre, fixe par
+# le conseil des responsables.
+FIXED_AMOUNTS: dict[tuple["CotisationType", "PeriodType"], float] = {
+    (CotisationType.ORDINAIRE, PeriodType.MENSUEL): 500.0,
+    (CotisationType.ORDINAIRE, PeriodType.HEBDOMADAIRE): 100.0,
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════

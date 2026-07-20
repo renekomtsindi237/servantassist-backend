@@ -79,13 +79,19 @@ def _enriched_nomination(nom: Nomination) -> dict:
     }
 
 
-def _make_action(poste=POSTE, created_by=None, **kwargs) -> PosteAction:
+def _make_action(
+    poste=POSTE,
+    created_by=None,
+    category=ActionCategory.DECISION,
+    status=ActionStatus.BROUILLON,
+    **kwargs,
+) -> PosteAction:
     return PosteAction(
         id=uuid4(),
         poste=poste,
-        category=ActionCategory.DECISION,
+        category=category,
         title="Décision importante",
-        status=ActionStatus.BROUILLON,
+        status=status,
         created_by=created_by or uuid4(),
         created_at=NOW,
         updated_at=NOW,
@@ -109,10 +115,14 @@ def _enriched_action(action: PosteAction) -> dict:
         "created_by": action.created_by,
         "created_at": action.created_at,
         "updated_at": action.updated_at,
+        "approved_by": action.approved_by,
+        "approved_at": action.approved_at,
         "author_first_name": None,
         "author_last_name": None,
         "target_user_name": None,
         "target_event_title": None,
+        "approver_first_name": None,
+        "approver_last_name": None,
     }
 
 
@@ -129,6 +139,18 @@ def _make_meeting() -> CouncilMeeting:
 def _make_attendance_record(responsable_id=None, is_present=True):
     a = MagicMock()
     a.status = CouncilAttendanceStatus.PRESENT if is_present else CouncilAttendanceStatus.ABSENT
+    return a
+
+
+def _make_attendance(meeting_id=None, responsable_id=None, is_present=True):
+    a = MagicMock()
+    a.id = uuid4()
+    a.meeting_id = meeting_id or uuid4()
+    a.responsable_id = responsable_id or uuid4()
+    a.status = CouncilAttendanceStatus.PRESENT if is_present else CouncilAttendanceStatus.ABSENT
+    a.excuse = None
+    a.recorded_at = NOW
+    a.recorded_by = uuid4()
     return a
 
 
@@ -165,6 +187,8 @@ def _make_svc(nom_repo=None, action_repo=None, user_repo=None, council_repo=None
         council_repo.get_meeting = AsyncMock(return_value=None)
         council_repo.add_attendance = AsyncMock()
         council_repo.get_responsable_attendances = AsyncMock(return_value=[])
+        council_repo.list_meetings = AsyncMock(return_value=([], 0))
+        council_repo.list_attendances = AsyncMock(return_value=[])
     return ResponsableService(nom_repo, action_repo, user_repo, council_repo)
 
 
@@ -241,6 +265,23 @@ async def test_nominate_success():
     data = NominationCreate(user_id=servant.id, poste=POSTE)
     result = await svc.nominate(data, uuid4())
     assert result.id == nom.id
+
+
+@pytest.mark.asyncio
+async def test_nominate_accompagnateur_success():
+    """L'Aumonier peut nommer un servant au poste ACCOMPAGNATEUR (Art. 4-5)."""
+    servant = _make_user(role=UserRole.SERVANT)
+    nom = _make_nomination(poste=PosteResponsable.ACCOMPAGNATEUR, user_id=servant.id)
+    svc = _make_svc()
+    svc.user_repo.get.return_value = servant
+    svc.nomination_repo.get_active_by_poste.return_value = None
+    svc.nomination_repo.get_active_by_user.return_value = []
+    svc.nomination_repo.create.return_value = nom
+    svc.nomination_repo.enrich_nomination.return_value = _enriched_nomination(nom)
+    data = NominationCreate(user_id=servant.id, poste=PosteResponsable.ACCOMPAGNATEUR)
+    result = await svc.nominate(data, uuid4())
+    assert result.id == nom.id
+    assert result.poste == PosteResponsable.ACCOMPAGNATEUR
 
 
 # ── revoke ─────────────────────────────────────────────────────────────────
@@ -406,6 +447,87 @@ async def test_create_action_success():
     )
     result = await svc.create_action(POSTE, data, uuid4())
     assert result.id == action.id
+
+
+@pytest.mark.asyncio
+async def test_create_action_depense_forces_brouillon():
+    """Une DEPENSE reste BROUILLON meme si un autre statut est demande (Art. Econome)."""
+    action = _make_action(
+        poste=PosteResponsable.ECONOME, category=ActionCategory.DEPENSE, amount=5000.0
+    )
+    svc = _make_svc()
+    svc.action_repo.create.return_value = action
+    svc.action_repo.enrich_action.return_value = _enriched_action(action)
+
+    data = PosteActionCreate(
+        category=ActionCategory.DEPENSE,
+        title="Achat de materiel",
+        amount=5000.0,
+        status=ActionStatus.PUBLIE,
+    )
+    await svc.create_action(PosteResponsable.ECONOME, data, uuid4())
+    _, kwargs = svc.action_repo.create.call_args
+    assert kwargs["status"] == ActionStatus.BROUILLON
+
+
+# ── approve_action ─────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_approve_action_not_found():
+    svc = _make_svc()
+    svc.action_repo.get.return_value = None
+    with pytest.raises(Exception) as exc:
+        await svc.approve_action(uuid4(), uuid4())
+    assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_approve_action_not_depense():
+    action = _make_action(category=ActionCategory.DECISION)
+    svc = _make_svc()
+    svc.action_repo.get.return_value = action
+    with pytest.raises(Exception) as exc:
+        await svc.approve_action(action.id, uuid4())
+    assert exc.value.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_approve_action_already_approved():
+    action = _make_action(
+        poste=PosteResponsable.ECONOME,
+        category=ActionCategory.DEPENSE,
+        approved_by=uuid4(),
+        approved_at=NOW,
+    )
+    svc = _make_svc()
+    svc.action_repo.get.return_value = action
+    with pytest.raises(Exception) as exc:
+        await svc.approve_action(action.id, uuid4())
+    assert exc.value.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_approve_action_success():
+    action = _make_action(poste=PosteResponsable.ECONOME, category=ActionCategory.DEPENSE)
+    approved_action = _make_action(
+        poste=PosteResponsable.ECONOME,
+        category=ActionCategory.DEPENSE,
+        status=ActionStatus.PUBLIE,
+        approved_by=uuid4(),
+        approved_at=NOW,
+    )
+    svc = _make_svc()
+    svc.action_repo.get.return_value = action
+    svc.action_repo.update.return_value = approved_action
+    svc.action_repo.enrich_action.return_value = _enriched_action(approved_action)
+
+    aumonier_id = uuid4()
+    result = await svc.approve_action(action.id, aumonier_id)
+
+    update_call_args = svc.action_repo.update.call_args[0]
+    assert update_call_args[1]["status"] == ActionStatus.PUBLIE
+    assert result.status == ActionStatus.PUBLIE
 
 
 # ── list_actions ───────────────────────────────────────────────────────────
@@ -635,3 +757,94 @@ async def test_record_council_attendance_success():
     results = await svc.record_council_attendance(meeting.id, data)
     assert len(results) == 2
     assert svc.council_repo.add_attendance.call_count == 2
+
+
+# ── list_council_meetings ─────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_list_council_meetings_empty():
+    svc = _make_svc()
+    svc.council_repo.list_meetings.return_value = ([], 0)
+    result = await svc.list_council_meetings(page=1, page_size=20)
+    assert result.items == []
+    assert result.total == 0
+    assert result.total_pages == 1
+
+
+@pytest.mark.asyncio
+async def test_list_council_meetings_computes_present_absent_counts():
+    meeting = _make_meeting()
+    svc = _make_svc()
+    svc.council_repo.list_meetings.return_value = ([meeting], 1)
+    svc.council_repo.list_attendances.return_value = [
+        _make_attendance(meeting_id=meeting.id, is_present=True),
+        _make_attendance(meeting_id=meeting.id, is_present=True),
+        _make_attendance(meeting_id=meeting.id, is_present=False),
+    ]
+    result = await svc.list_council_meetings(page=1, page_size=20)
+    assert result.total == 1
+    assert result.items[0].id == meeting.id
+    assert result.items[0].present_count == 2
+    assert result.items[0].absent_count == 1
+
+
+@pytest.mark.asyncio
+async def test_list_council_meetings_pagination_metadata():
+    svc = _make_svc()
+    svc.council_repo.list_meetings.return_value = ([], 45)
+    result = await svc.list_council_meetings(page=2, page_size=20)
+    assert result.total == 45
+    assert result.total_pages == 3
+    assert result.page == 2
+
+
+# ── list_council_attendances ──────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_list_council_attendances_meeting_not_found():
+    svc = _make_svc()
+    svc.council_repo.get_meeting.return_value = None
+    with pytest.raises(Exception) as exc:
+        await svc.list_council_attendances(uuid4())
+    assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_list_council_attendances_enriches_with_name_and_poste():
+    meeting = _make_meeting()
+    responsable_id = uuid4()
+    svc = _make_svc()
+    svc.council_repo.get_meeting.return_value = meeting
+    svc.council_repo.list_attendances.return_value = [
+        _make_attendance(meeting_id=meeting.id, responsable_id=responsable_id, is_present=True),
+    ]
+    user = _make_user()
+    user.id = responsable_id
+    svc.user_repo.get.return_value = user
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(poste=PosteResponsable.CENSEUR)]
+
+    results = await svc.list_council_attendances(meeting.id)
+
+    assert len(results) == 1
+    assert results[0].responsable_id == responsable_id
+    assert results[0].responsable_first_name == user.first_name
+    assert results[0].responsable_poste == "CENSEUR"
+
+
+@pytest.mark.asyncio
+async def test_list_council_attendances_handles_unknown_user():
+    meeting = _make_meeting()
+    svc = _make_svc()
+    svc.council_repo.get_meeting.return_value = meeting
+    svc.council_repo.list_attendances.return_value = [
+        _make_attendance(meeting_id=meeting.id, is_present=False),
+    ]
+    svc.user_repo.get.return_value = None
+
+    results = await svc.list_council_attendances(meeting.id)
+
+    assert len(results) == 1
+    assert results[0].responsable_first_name is None
+    assert results[0].responsable_poste is None

@@ -18,13 +18,14 @@ from httpx import AsyncClient
 
 from src.core.entities.user import User
 from tests.conftest import VALID_PASSWORD, make_auth_header
+from tests.e2e.test_auth_endpoints import _verify_phone
 
 
 @pytest.mark.asyncio
 class TestParentInvitationFlow:
     """Parcours complet : admin crée invitation → parent s'inscrit → login."""
 
-    async def test_full_parent_invitation_flow(self, client: AsyncClient, admin_user: User):
+    async def test_full_parent_invitation_flow(self, client: AsyncClient, db_session, admin_user: User):
         admin_headers = make_auth_header(admin_user)
 
         # ── Étape 1 : Admin crée un code invitation ──────────────────
@@ -52,6 +53,7 @@ class TestParentInvitationFlow:
         assert code in codes
 
         # ── Étape 3 : Parent s'inscrit avec le code ──────────────────
+        phone_token = await _verify_phone(client, db_session, "+237680000001")
         parent_data = {
             "email": "nouveau.parent@test.com",
             "password": "ParentPass1",
@@ -60,6 +62,7 @@ class TestParentInvitationFlow:
             "phone_number": "+237680000001",
             "role": "PARENT",
             "invitation_code": code,
+            "phone_verification_token": phone_token,
         }
         reg_resp = await client.post("/api/v1/auth/register", json=parent_data)
         assert reg_resp.status_code == 201, f"Parent registration failed: {reg_resp.text}"
@@ -147,7 +150,9 @@ class TestEmailLockedInvitation:
         assert resp.status_code == 403
         assert "email" in resp.json()["detail"].lower()
 
-    async def test_email_locked_invitation_correct_email(self, client: AsyncClient, admin_user: User):
+    async def test_email_locked_invitation_correct_email(
+        self, client: AsyncClient, db_session, admin_user: User
+    ):
         admin_headers = make_auth_header(admin_user)
 
         inv_resp = await client.post(
@@ -162,6 +167,7 @@ class TestEmailLockedInvitation:
         code = inv_resp.json()["code"]
 
         # Parent s'inscrit avec le BON email → 201
+        phone_token = await _verify_phone(client, db_session, "+237680000004")
         data = {
             "email": "correct@test.com",
             "password": "CorrectPass1",
@@ -170,6 +176,7 @@ class TestEmailLockedInvitation:
             "phone_number": "+237680000004",
             "role": "PARENT",
             "invitation_code": code,
+            "phone_verification_token": phone_token,
         }
         resp = await client.post("/api/v1/auth/register", json=data)
         assert resp.status_code == 201

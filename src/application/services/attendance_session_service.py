@@ -16,11 +16,14 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
+from sqlmodel import select
+
 from src.core.entities.attendance_session import (
     AttendanceRecord,
     AttendanceSession,
     AttendanceStatus,
 )
+from src.core.entities.convocation import ConvocationMotif
 from src.core.entities.notification import (
     Notification,
     NotificationChannel,
@@ -149,8 +152,28 @@ class AttendanceSessionService:
 
         session_date_str = session.session_date.strftime("%d/%m/%Y") if session.session_date else "—"
 
+        # Idempotence : ces seuils ne doivent se declencher qu'une seule fois
+        # par servant, meme si le compteur saute la valeur exacte (import en
+        # masse, correction manuelle) — d'ou l'usage de >= plutot que ==.
+        already_warned = (
+            await self.notification_repo.session.exec(
+                select(Notification).where(
+                    Notification.recipient_id == servant.id,
+                    Notification.notification_type == NotificationType.AVERTISSEMENT_ABSENCE,
+                )
+            )
+        ).first() is not None
+        already_convened = (
+            await self.notification_repo.session.exec(
+                select(Notification).where(
+                    Notification.recipient_id == servant.id,
+                    Notification.notification_type == NotificationType.CONVOCATION_PARENT,
+                )
+            )
+        ).first() is not None
+
         # ── 3 absences : avertissement au servant ─────────────────────
-        if total_absences == 3:
+        if total_absences >= 3 and not already_warned:
             try:
                 await self.email_service.send_absence_warning_email(
                     to_email=servant.email,
@@ -180,7 +203,10 @@ class AttendanceSessionService:
             logger.info("Avertissement 3 absences créé pour servant=%s", servant.id)
 
         # ── 5 absences : convocation des parents ──────────────────────
-        elif total_absences == 5:
+        # Note : if volontairement independant du bloc precedent (pas elif) —
+        # si le compteur saute directement de <3 a >=5 (import en masse,
+        # correction manuelle), les deux seuils doivent se declencher.
+        if total_absences >= 5 and not already_convened:
             # Notification in-app au servant
             notif_servant = Notification(
                 id=uuid4(),
@@ -233,6 +259,27 @@ class AttendanceSessionService:
 
             await self.notification_repo.session.commit()
             logger.info("Convocation 5 absences créée pour servant=%s", servant.id)
+
+            # Enregistrement structure de la convocation (Art. 48-49) — trace
+            # le delai de reponse de 30 jours, en plus des notifications ci-dessus.
+            try:
+                from src.application.services.convocation_service import ConvocationService
+                from src.infrastructure.repositories.convocation_repository import (
+                    ConvocationRepository,
+                )
+
+                convocation_service = ConvocationService(
+                    convocation_repo=ConvocationRepository(self.notification_repo.session),
+                    user_repo=self.user_repo,
+                )
+                await convocation_service.create_if_not_pending(
+                    servant_id=servant.id,
+                    motif=ConvocationMotif.ABSENCES_REPETEES,
+                    details=f"5 absences cumulées, dernière constatée le {session_date_str}.",
+                    convened_by=session.conducted_by,
+                )
+            except Exception as exc:
+                logger.error("Création de la convocation structurée a échoué: %s", exc)
 
     async def mark_attendance(
         self, session_id: UUID, data: AttendanceRecordCreate, recorded_by: UUID

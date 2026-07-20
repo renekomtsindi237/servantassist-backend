@@ -2,9 +2,10 @@
 Repository pour le Conseil des Responsables.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from uuid import UUID
 
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
@@ -40,3 +41,25 @@ class CouncilMeetingRepository:
         )
         result = await self.session.exec(stmt)
         return result.all()
+
+    async def list_meetings(self, page: int = 1, page_size: int = 20) -> Tuple[List[CouncilMeeting], int]:
+        """Liste paginee des reunions du conseil, les plus recentes d'abord."""
+        total = (await self.session.exec(select(func.count()).select_from(CouncilMeeting))).one()
+        stmt = (
+            select(CouncilMeeting)
+            .order_by(CouncilMeeting.meeting_date.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        result = await self.session.exec(stmt)
+        return list(result.all()), total
+
+    async def list_attendances(self, meeting_id: UUID) -> List[CouncilAttendance]:
+        """Liste des presences enregistrees pour une reunion donnee."""
+        stmt = (
+            select(CouncilAttendance)
+            .where(CouncilAttendance.meeting_id == meeting_id)
+            .order_by(CouncilAttendance.recorded_at.asc())
+        )
+        result = await self.session.exec(stmt)
+        return list(result.all())

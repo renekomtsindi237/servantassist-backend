@@ -19,7 +19,27 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.entities.responsable import PosteResponsable
 from src.core.utils import utc_now
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Conseil de discipline — composition (reglement Art. 17)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Les 7 sieges du conseil de discipline. Le verdict est rendu des qu'une
+# majorite simple des sieges ACTUELLEMENT POURVUS parmi ceux-ci s'accorde sur
+# une meme sanction (un siege vacant ne bloque pas le quorum). L'Aumonier
+# supervise mais ne siege pas (il garde un droit d'override final via
+# render_verdict, cf. DisciplineService).
+COUNCIL_POSTES: list[PosteResponsable] = [
+    PosteResponsable.DELEGUE,
+    PosteResponsable.VICE_DELEGUE,
+    PosteResponsable.SECRETAIRE_GENERAL,
+    PosteResponsable.SECRETAIRE_GENERAL_ADJOINT,
+    PosteResponsable.CENSEUR,
+    PosteResponsable.CENSEUR_ADJOINT,
+    PosteResponsable.CEREMONIAIRE,
+]
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Enums
@@ -128,6 +148,33 @@ class DisciplineCase(SQLModel, table=True):
     # Metadata
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Table : Votes du conseil de discipline
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class DisciplineCaseVote(SQLModel, table=True):
+    """
+    Vote d'un siege du conseil de discipline sur un dossier.
+
+    Un siege (identifie par son poste, pas par la personne) ne peut voter
+    qu'une fois par dossier — un revote ecrase le choix precedent (upsert).
+    Le quorum et la majorite sont calcules par DisciplineService.cast_vote().
+    """
+
+    __tablename__ = "discipline_case_votes"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    case_id: UUID = Field(foreign_key="discipline_cases.id", index=True)
+    # Poste du votant au moment du vote (valeur PosteResponsable, stockee en
+    # VARCHAR — cf. convention deja utilisee pour ServantPosition/SubGroup).
+    poste: str = Field(max_length=64, index=True)
+    voter_user_id: UUID = Field(foreign_key="users.id")
+    sanction_type: SanctionType = Field()
+    notes: Optional[str] = Field(default=None, max_length=1000)
+    voted_at: datetime = Field(default_factory=utc_now)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -5,6 +5,7 @@ Vérifie le cycle complet : création → stockage chiffré → lecture déchiff
 via HMAC index, sans jamais exposer le texte clair à la base de données.
 """
 
+from typing import Optional
 from uuid import uuid4
 
 import pytest
@@ -16,7 +17,7 @@ from src.infrastructure.security.utils import SecurityUtils
 
 
 def _make_user(
-    email: str = "integration@test.com",
+    email: Optional[str] = "integration@test.com",
     phone: str = "+237600001111",
     role: UserRole = UserRole.SERVANT,
 ) -> User:
@@ -135,6 +136,42 @@ async def test_email_hmac_stored_in_index_column(db_session):
     enc = get_encryptor()
     expected_hmac = enc.hmac_index("hmacidx@test.com")
     assert row.email_hmac == expected_hmac
+
+
+@pytest.mark.integration
+async def test_create_user_without_email_stays_null(db_session):
+    """SERVANT/PARENT sans email : la colonne reste NULL, pas de valeur technique."""
+    repo = UserRepository(db_session)
+    user = _make_user(email=None, phone="+237600002222")
+
+    created = await repo.create(user)
+    fetched = await repo.get(created.id)
+
+    assert fetched is not None
+    assert fetched.email is None
+
+
+@pytest.mark.integration
+async def test_get_by_email_none_returns_none_not_arbitrary_user(db_session):
+    """Régression : get_by_email(None) ne doit JAMAIS renvoyer un utilisateur
+    arbitraire parmi les comptes sans email (bug IS NULL / hmac_index(None))."""
+    repo = UserRepository(db_session)
+    await repo.create(_make_user(email=None, phone="+237600003333"))
+    await repo.create(_make_user(email=None, phone="+237600004444"))
+
+    assert await repo.get_by_email(None) is None
+    assert await repo.get_by_email("") is None
+
+
+@pytest.mark.integration
+async def test_email_exists_none_returns_false(db_session):
+    """Même garde que get_by_email : email_exists(None) ne doit jamais dire
+    'oui' juste parce que d'autres comptes n'ont pas d'email."""
+    repo = UserRepository(db_session)
+    await repo.create(_make_user(email=None, phone="+237600005555"))
+
+    assert await repo.email_exists(None) is False
+    assert await repo.email_exists("") is False
 
 
 @pytest.mark.integration

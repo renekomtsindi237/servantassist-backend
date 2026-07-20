@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import Dict, List, Optional, Protocol, runtime_checkable
 from uuid import UUID
 
-from src.core.entities.cotisation import CotisationPeriod, MemberCotisation
+from src.core.entities.cotisation import CotisationPeriod, MemberCotisation, PeriodType
 
 
 @runtime_checkable
@@ -17,6 +18,8 @@ class ICotisationPeriodRepository(Protocol):
     async def update(self, period: CotisationPeriod) -> CotisationPeriod: ...
 
     async def delete(self, period_id: UUID) -> bool: ...
+
+    async def list_ordinaire_since(self, since: datetime) -> List[CotisationPeriod]: ...
 
 
 @runtime_checkable
@@ -38,3 +41,7 @@ class IMemberCotisationRepository(Protocol):
     async def update(self, cotisation: MemberCotisation) -> MemberCotisation: ...
 
     async def delete(self, cotisation_id: UUID) -> bool: ...
+
+    async def get_overlapping_ordinaire_payment(
+        self, user_id: UUID, period_type: PeriodType, start_date: datetime, end_date: datetime
+    ) -> Optional[MemberCotisation]: ...

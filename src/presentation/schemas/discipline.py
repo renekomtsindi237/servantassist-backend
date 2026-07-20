@@ -99,3 +99,40 @@ class DisciplineStatsResponse(BaseModel):
     avertissements_ecrits: int = 0
     suspensions: int = 0
     cases_en_cours: int = 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Conseil de discipline — vote collegial (Art. 16-17)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class DisciplineVoteCast(BaseModel):
+    """Vote d'un siege du conseil de discipline sur la sanction a appliquer."""
+
+    sanction_type: SanctionType
+    notes: Optional[str] = Field(None, max_length=1000)
+
+
+class DisciplineVoteResponse(BaseModel):
+    """Reponse pour un vote individuel."""
+
+    poste: str
+    voter_user_id: UUID
+    voter_name: Optional[str] = None
+    sanction_type: SanctionType
+    notes: Optional[str] = None
+    voted_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class DisciplineVoteStatusResponse(BaseModel):
+    """Etat d'avancement du vote collegial sur un dossier."""
+
+    case_id: UUID
+    seats_filled: int
+    majority_required: int
+    votes: List[DisciplineVoteResponse]
+    tally: dict[str, int]
+    is_decided: bool

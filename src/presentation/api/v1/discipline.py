@@ -7,13 +7,20 @@ Gestion des dossiers disciplinaires :
     GET    /{id}                 Detail d'un dossier
     POST   /{id}/convoke         Convoquer au conseil de discipline
     POST   /{id}/hearing         Ouvrir l'audience
-    POST   /{id}/verdict         Rendre le verdict
+    POST   /{id}/votes           Voter (membre du conseil de discipline, Art. 16-17)
+    GET    /{id}/votes           Etat d'avancement du vote collegial
+    POST   /{id}/verdict         Rendre directement un verdict (override Aumonier)
     POST   /{id}/execute         Executer la sanction
     POST   /{id}/dismiss         Classer sans suite
     GET    /user/{user_id}/stats Statistiques disciplinaires d'un servant
 
 Accessible a : Aumonier, Admin (toutes operations)
                Censeur/Censeur adjoint (ouverture de dossier, convocation)
+               Ceremoniaire (ouverture de dossier — Art. 41)
+               Delegue/Vice-Delegue (convocation — Art. 16)
+               Conseil de discipline (7 sieges, vote collegial)
+               Verdict direct : Aumonier (tout type), Censeur/Censeur Adjoint/
+               Secretaire General/Ceremoniaire (selon le type de sanction)
 """
 
 import asyncio
@@ -45,6 +52,10 @@ from src.presentation.dependencies.auth_deps import (
     get_current_active_user,
     get_current_admin_or_aumonier,
     require_censeur,
+    require_convoke_discipline,
+    require_discipline_council_member,
+    require_open_discipline_case,
+    require_verdict_authority,
 )
 from src.presentation.schemas.discipline import (
     DisciplineCaseCreate,
@@ -52,6 +63,8 @@ from src.presentation.schemas.discipline import (
     DisciplineConvocation,
     DisciplineStatsResponse,
     DisciplineVerdict,
+    DisciplineVoteCast,
+    DisciplineVoteStatusResponse,
 )
 from src.presentation.schemas.user import PaginatedResponse
 
@@ -67,6 +80,7 @@ def _get_service(session: AsyncSession) -> DisciplineService:
         case_repo=DisciplineCaseRepository(session),
         user_repo=UserRepository(session),
         attendance_repo=AttendanceRepository(session),
+        nomination_repo=NominationRepository(session),
     )
 
 
@@ -84,7 +98,7 @@ async def open_discipline_case(
     request: Request,
     data: DisciplineCaseCreate,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(require_censeur)],
+    current_user: Annotated[User, Depends(require_open_discipline_case)],
 ):
     """
     Ouvrir un dossier disciplinaire a l'encontre d'un servant.
@@ -92,6 +106,7 @@ async def open_discipline_case(
     **Rôles autorisés** :
     - CENSEUR (via nomination active)
     - CENSEUR_ADJOINT (via nomination active)
+    - CEREMONIAIRE (via nomination active) — trouble durant la célébration eucharistique (Art. 41)
     - ADMIN
     - AUMÔNIER
     """
@@ -139,7 +154,7 @@ async def convoke_to_council(
     case_id: UUID,
     data: DisciplineConvocation,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(require_censeur)],
+    current_user: Annotated[User, Depends(require_convoke_discipline)],
 ):
     """
     Convoquer le servant au conseil de discipline.
@@ -147,6 +162,8 @@ async def convoke_to_council(
     **Rôles autorisés** :
     - CENSEUR (via nomination active)
     - CENSEUR_ADJOINT (via nomination active)
+    - DELEGUE (via nomination active) — Art. 16 : "sous convocation du responsable Délégué"
+    - VICE_DELEGUE (via nomination active)
     - ADMIN
     - AUMÔNIER
     """
@@ -178,10 +195,60 @@ async def render_verdict(
     case_id: UUID,
     data: DisciplineVerdict,
     session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(require_verdict_authority)],
+):
+    """
+    Rendre directement un verdict, sans attendre le quorum du conseil
+    (`POST /{case_id}/votes`).
+
+    L'Aumonier garde le dernier mot sur tout type de sanction. Les autres
+    responsables sont limites a certains types de sanction selon le
+    règlement :
+    - CENSEUR : tout type (punitions courantes Art. 39-44 ET radiation Art. 51)
+    - CENSEUR_ADJOINT : punitions courantes uniquement (pas la radiation)
+    - SECRETAIRE_GENERAL : radiation (EXCLUSION_DEFINITIVE) uniquement (Art. 51)
+    - CEREMONIAIRE : punitions mineures uniquement (Art. 41 — trouble durant la messe)
+
+    **Rôles autorisés** :
+    - AUMÔNIER (tout type de sanction)
+    - CENSEUR, CENSEUR_ADJOINT, SECRETAIRE_GENERAL, CEREMONIAIRE (selon le type de sanction)
+    """
+    service = _get_service(session)
+    return await service.render_verdict(case_id, data, decider=current_user)
+
+
+@router.post("/{case_id}/votes", response_model=DisciplineCaseResponse)
+async def cast_council_vote(
+    case_id: UUID,
+    data: DisciplineVoteCast,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    current_user: Annotated[User, Depends(require_discipline_council_member)],
+):
+    """
+    Voter en tant que membre du conseil de discipline (Art. 16-17).
+
+    Le verdict est rendu automatiquement des qu'une majorite simple des
+    sieges actuellement pourvus (parmi les 7 du conseil : Delegue, Vice-
+    Delegue, Secretaire General, Secretaire General Adjoint, Censeur,
+    Censeur Adjoint, Ceremoniaire) se prononce pour la meme sanction. Un
+    siege vacant ne bloque pas le quorum. Un revote ecrase le choix
+    precedent du meme siege.
+
+    **Rôles autorisés** :
+    - Titulaire actif de l'un des 7 sieges du conseil de discipline
+    """
+    service = _get_service(session)
+    return await service.cast_vote(case_id, current_user, data)
+
+
+@router.get("/{case_id}/votes", response_model=DisciplineVoteStatusResponse)
+async def get_council_vote_status(
+    case_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
     current_user: Annotated[User, Depends(require_censeur)],
 ):
     """
-    Rendre le verdict du conseil de discipline.
+    Etat d'avancement du vote collegial sur un dossier.
 
     **Rôles autorisés** :
     - CENSEUR (via nomination active)
@@ -190,7 +257,7 @@ async def render_verdict(
     - AUMÔNIER
     """
     service = _get_service(session)
-    return await service.render_verdict(case_id, data, verdict_by=current_user.id)
+    return await service.get_vote_status(case_id)
 
 
 @router.post("/{case_id}/execute", response_model=DisciplineCaseResponse)

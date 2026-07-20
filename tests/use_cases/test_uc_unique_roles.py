@@ -16,6 +16,7 @@ from httpx import AsyncClient
 
 from src.core.entities.user import User
 from tests.conftest import make_auth_header
+from tests.e2e.test_auth_endpoints import _verify_phone
 
 
 @pytest.mark.asyncio
@@ -79,8 +80,10 @@ class TestAumonierUniqueness:
 class TestMultipleServantParent:
     """Plusieurs SERVANT et PARENT peuvent coexister."""
 
-    async def test_multiple_servants_allowed(self, client: AsyncClient):
+    async def test_multiple_servants_allowed(self, client: AsyncClient, db_session):
         for i in range(3):
+            phone = f"+23769{i:07d}"
+            token = await _verify_phone(client, db_session, phone)
             resp = await client.post(
                 "/api/v1/auth/register",
                 json={
@@ -88,13 +91,16 @@ class TestMultipleServantParent:
                     "password": "MultiServ1",
                     "first_name": f"Servant{i}",
                     "last_name": "Multi",
-                    "phone_number": f"+23769{i:07d}",
+                    "phone_number": phone,
                     "role": "SERVANT",
+                    "phone_verification_token": token,
                 },
             )
             assert resp.status_code == 201, f"Servant {i} failed: {resp.text}"
 
-    async def test_multiple_parents_with_separate_invitations(self, client: AsyncClient, admin_user: User):
+    async def test_multiple_parents_with_separate_invitations(
+        self, client: AsyncClient, db_session, admin_user: User
+    ):
         headers = make_auth_header(admin_user)
 
         for i in range(3):
@@ -108,6 +114,8 @@ class TestMultipleServantParent:
             code = inv_resp.json()["code"]
 
             # Inscrire le parent
+            phone = f"+23768{i:07d}"
+            token = await _verify_phone(client, db_session, phone)
             reg_resp = await client.post(
                 "/api/v1/auth/register",
                 json={
@@ -115,9 +123,10 @@ class TestMultipleServantParent:
                     "password": "MultiPar1",
                     "first_name": f"Parent{i}",
                     "last_name": "Multi",
-                    "phone_number": f"+23768{i:07d}",
+                    "phone_number": phone,
                     "role": "PARENT",
                     "invitation_code": code,
+                    "phone_verification_token": token,
                 },
             )
             assert reg_resp.status_code == 201, f"Parent {i} failed: {reg_resp.text}"

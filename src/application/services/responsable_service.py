@@ -45,6 +45,7 @@ from src.core.interfaces.repositories import (
 from src.core.utils import utc_now
 from src.presentation.schemas.responsable import (
     CouncilAttendanceRecordList,
+    CouncilAttendanceResponse,
     CouncilMeetingCreate,
     CouncilMeetingResponse,
     NominationCreate,
@@ -282,6 +283,14 @@ class ResponsableService:
                 ),
             )
 
+        # Les sorties de fonds (DEPENSE) restent en BROUILLON tant que
+        # l'Aumonier ne les a pas approuvees explicitement (reglement :
+        # l'Econome "opere des sorties sous le controle et l'accord de
+        # l'aumonier") — le statut demande est ignore pour cette categorie.
+        action_status = (
+            ActionStatus.BROUILLON if data.category == ActionCategory.DEPENSE else data.status
+        )
+
         # Appeler le repository avec les parametres individuels
         created = await self.action_repo.create(
             poste=poste,
@@ -292,11 +301,47 @@ class ResponsableService:
             target_event_id=data.target_event_id,
             amount=data.amount,
             action_date=data.action_date,
-            status=data.status,
+            status=action_status,
             extra_data=data.extra_data,
             created_by=created_by,
         )
         enriched = await self.action_repo.enrich_action(created)
+        return PosteActionResponse(**enriched)
+
+    async def approve_action(self, action_id: UUID, approved_by: UUID) -> PosteActionResponse:
+        """
+        Approuve une sortie de fonds (DEPENSE) — reserve a l'Aumonier/Admin.
+
+        Le reglement interieur exige que l'Econome n'opere des sorties de
+        fonds que "sous le controle et l'accord de l'aumonier". Une action
+        DEPENSE reste BROUILLON jusqu'a cette approbation explicite.
+        """
+        action = await self.action_repo.get(action_id)
+        if not action:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Action introuvable.",
+            )
+        if action.category != ActionCategory.DEPENSE:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Seules les actions de categorie DEPENSE necessitent une approbation.",
+            )
+        if action.approved_by is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cette sortie de fonds a deja ete approuvee.",
+            )
+
+        updated = await self.action_repo.update(
+            action_id,
+            {
+                "approved_by": approved_by,
+                "approved_at": utc_now(),
+                "status": ActionStatus.PUBLIE,
+            },
+        )
+        enriched = await self.action_repo.enrich_action(updated)
         return PosteActionResponse(**enriched)
 
     async def list_actions(
@@ -497,4 +542,60 @@ class ResponsableService:
             await self.council_repo.add_attendance(attendance)
             results.append({"responsable_id": str(att.responsable_id), "status": status.value})
 
+        return results
+
+    async def list_council_meetings(self, page: int = 1, page_size: int = 20) -> PaginatedResponse[CouncilMeetingResponse]:
+        """Liste paginee des reunions du conseil, les plus recentes d'abord, avec decompte des presences."""
+        meetings, total = await self.council_repo.list_meetings(page=page, page_size=page_size)
+
+        items = []
+        for meeting in meetings:
+            attendances = await self.council_repo.list_attendances(meeting.id)
+            present = sum(1 for a in attendances if a.status == CouncilAttendanceStatus.PRESENT)
+            absent = sum(1 for a in attendances if a.status == CouncilAttendanceStatus.ABSENT)
+            items.append(
+                CouncilMeetingResponse(
+                    id=meeting.id,
+                    meeting_date=meeting.meeting_date,
+                    location=meeting.location,
+                    agenda=meeting.agenda,
+                    created_at=meeting.created_at,
+                    created_by=meeting.created_by,
+                    present_count=present,
+                    absent_count=absent,
+                )
+            )
+
+        total_pages = math.ceil(total / page_size) if total > 0 else 1
+        return PaginatedResponse(items=items, total=total, page=page, page_size=page_size, total_pages=total_pages)
+
+    async def list_council_attendances(self, meeting_id: UUID) -> List[CouncilAttendanceResponse]:
+        """Liste enrichie des presences d'une reunion (nom + poste actuel du responsable)."""
+        meeting = await self.council_repo.get_meeting(meeting_id)
+        if not meeting:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Réunion introuvable")
+
+        attendances = await self.council_repo.list_attendances(meeting_id)
+        results = []
+        for att in attendances:
+            user = await self.user_repo.get(att.responsable_id)
+            poste_label = None
+            if user:
+                nominations = await self.nomination_repo.get_active_by_user(att.responsable_id)
+                if nominations:
+                    poste_label = nominations[0].poste.value
+            results.append(
+                CouncilAttendanceResponse(
+                    id=att.id,
+                    meeting_id=att.meeting_id,
+                    responsable_id=att.responsable_id,
+                    status=att.status,
+                    excuse=att.excuse,
+                    recorded_at=att.recorded_at,
+                    recorded_by=att.recorded_by,
+                    responsable_first_name=user.first_name if user else None,
+                    responsable_last_name=user.last_name if user else None,
+                    responsable_poste=poste_label,
+                )
+            )
         return results

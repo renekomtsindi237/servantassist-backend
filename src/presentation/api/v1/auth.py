@@ -1,6 +1,6 @@
 import asyncio
 import time
-from typing import Annotated
+from typing import Annotated, Literal
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -23,6 +23,10 @@ from src.infrastructure.services.geolocation_service import extract_client_ip, g
 from src.presentation.dependencies.auth_deps import get_current_active_user
 from src.presentation.schemas.auth import (
     ForgotPasswordRequest,
+    OAuthLoginRequest,
+    PhoneVerificationCheck,
+    PhoneVerificationRequest,
+    PhoneVerificationResponse,
     RefreshTokenRequest,
     RequestResetCodePhoneRequest,
     RequestResetCodeRequest,
@@ -155,6 +159,65 @@ async def login_with_phone(
     return await auth_service.create_tokens(user)
 
 
+@router.post("/oauth/{provider}", response_model=Token)
+async def login_with_oauth(
+    provider: Literal["google"],
+    request: Request,
+    body: OAuthLoginRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+):
+    """
+    Connexion via **Google** — vérifie le jeton d'identité directement contre
+    les clés publiques du fournisseur (pas de service tiers type Supabase).
+    **Connexion uniquement** : ne crée jamais de compte, retourne 404 si
+    aucun compte ServantAssist n'a l'e-mail vérifié associé (l'utilisateur
+    doit d'abord s'inscrire via le formulaire habituel).
+    """
+    user_repo = UserRepository(session)
+    auth_service = AuthService(user_repo)
+
+    user = await auth_service.authenticate_oauth(provider, body.id_token)
+
+    asyncio.create_task(_log_connection(user.id, extract_client_ip(request)))
+    return await auth_service.create_tokens(user)
+
+
+@router.post("/register/send-phone-code", status_code=status.HTTP_200_OK)
+async def send_phone_verification_code(
+    body: PhoneVerificationRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+):
+    """
+    Envoie un code OTP par WhatsApp pour vérifier qu'un numéro de téléphone
+    appartient bien à la personne qui s'inscrit — première étape de
+    l'inscription publique SERVANT/PARENT, avant la création du compte.
+    """
+    from src.infrastructure.repositories.phone_verification_code_repository import (
+        PhoneVerificationCodeRepository,
+    )
+
+    code_repo = PhoneVerificationCodeRepository(session)
+    auth_service = AuthService(UserRepository(session))
+    await auth_service.send_phone_verification_code(body.phone_number, code_repo)
+    return {"message": "Un code de vérification a été envoyé par WhatsApp."}
+
+
+@router.post("/register/verify-phone-code", response_model=PhoneVerificationResponse)
+async def verify_phone_verification_code(
+    body: PhoneVerificationCheck,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+):
+    """Vérifie le code OTP et retourne le jeton à fournir à POST /auth/register."""
+    from src.infrastructure.repositories.phone_verification_code_repository import (
+        PhoneVerificationCodeRepository,
+    )
+
+    code_repo = PhoneVerificationCodeRepository(session)
+    auth_service = AuthService(UserRepository(session))
+    token = await auth_service.verify_phone_code(body.phone_number, body.code, code_repo)
+    return PhoneVerificationResponse(verification_token=token)
+
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_data: UserCreateWithInvite,
@@ -166,10 +229,16 @@ async def register_user(
     **Rôles et exigences :**
     - **SERVANT** : Auto-inscription (rôle par défaut, pas de code requis)
     - **PARENT** : Nécessite un `invitation_code` valide fourni par l'admin
+    - Les deux nécessitent un `phone_verification_token` obtenu via
+      `POST /auth/register/send-phone-code` puis `verify-phone-code`.
 
     Les rôles ADMIN et AUMÔNIER ne peuvent **pas** s'inscrire ici.
     Ils sont créés exclusivement via les endpoints `/admin/*`.
     """
+    from src.infrastructure.repositories.phone_verification_code_repository import (
+        PhoneVerificationCodeRepository,
+    )
+
     # ── Filtrage en amont : seuls SERVANT et PARENT sont autorisés ──
     if user_data.role not in _SELF_REGISTER_ROLES:
         raise HTTPException(
@@ -185,6 +254,8 @@ async def register_user(
         user_data,
         invitation_code=user_data.invitation_code,
         admin_id=None,  # Self-registration, no admin
+        require_phone_verification=True,
+        phone_verification_repository=PhoneVerificationCodeRepository(session),
     )
 
 
@@ -311,7 +382,7 @@ async def request_reset_code_phone(
 ):
     """
     Demande de code OTP pour SERVANT/PARENT qui utilisent un numéro de téléphone.
-    Le code est journalisé côté serveur — un responsable le communique à l'utilisateur.
+    Le code est envoyé automatiquement par WhatsApp (Twilio).
     Retourne toujours 200 OK pour prévenir l'énumération.
     """
     from src.infrastructure.repositories.password_reset_code_repository import (

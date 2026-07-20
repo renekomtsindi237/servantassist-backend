@@ -10,11 +10,11 @@ from .api_key_repository import IApiKeyRepository
 from .assignment_repository import IAssignmentRepository
 from .attendance_repository import IAttendanceRepository
 from .attendance_session_repository import IAttendanceSessionRepository
-from .contribution_repository import IContributionRepository
 from .cotisation_repository import (
     ICotisationPeriodRepository,
     IMemberCotisationRepository,
 )
+from .convocation_repository import IConvocationRepository
 from .council_meeting_repository import ICouncilMeetingRepository
 from .discipline_repository import IDisciplineCaseRepository
 from .event_repository import IEventRepository
@@ -60,8 +60,8 @@ __all__ = [
     "IAttendanceRepository",
     "IAttendanceSessionRepository",
     "ICleaningTaskRepository",
-    "IContributionRepository",
     "ICotisationPeriodRepository",
+    "IConvocationRepository",
     "ICouncilMeetingRepository",
     "IDisciplineCaseRepository",
     "IEventParticipationRepository",

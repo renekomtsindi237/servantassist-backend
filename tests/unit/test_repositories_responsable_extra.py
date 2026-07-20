@@ -40,6 +40,8 @@ def _make_action(**kw):
     a.extra_data = kw.get("extra_data", None)
     a.created_at = kw.get("created_at", datetime.utcnow())
     a.updated_at = kw.get("updated_at", datetime.utcnow())
+    a.approved_by = kw.get("approved_by", None)
+    a.approved_at = kw.get("approved_at", None)
     return a
 
 

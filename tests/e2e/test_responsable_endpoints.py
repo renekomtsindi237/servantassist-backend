@@ -64,13 +64,33 @@ class TestNominations:
         assert body["poste_slug"] == "delegue"
         assert body["nominated_by"] == str(aumonier_user.id)
 
-    async def test_admin_nominates_servant(
+    async def test_aumonier_nominates_accompagnateur(
+        self,
+        client: AsyncClient,
+        aumonier_user: User,
+        servant_user: User,
+    ):
+        """L'aumonier peut nommer un servant comme accompagnateur (Art. 4-5)."""
+        resp = await client.post(
+            "/api/v1/responsables/nominations",
+            json={
+                "user_id": str(servant_user.id),
+                "poste": "ACCOMPAGNATEUR",
+            },
+            headers=make_auth_header(aumonier_user),
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["poste"] == "ACCOMPAGNATEUR"
+        assert body["poste_slug"] == "accompagnateur"
+
+    async def test_admin_cannot_nominate(
         self,
         client: AsyncClient,
         admin_user: User,
         servant_user: User,
     ):
-        """L'admin peut aussi nommer un servant."""
+        """L'admin ne peut pas nommer : reserve a l'Aumonier (Art. 2.1)."""
         resp = await client.post(
             "/api/v1/responsables/nominations",
             json={
@@ -79,8 +99,7 @@ class TestNominations:
             },
             headers=make_auth_header(admin_user),
         )
-        assert resp.status_code == 201
-        assert resp.json()["poste"] == "SECRETAIRE_GENERAL"
+        assert resp.status_code == 403
 
     async def test_servant_cannot_nominate(
         self,
@@ -311,6 +330,19 @@ class TestRevocation:
         )
         assert resp.status_code == 403
 
+    async def test_admin_cannot_revoke(
+        self,
+        client: AsyncClient,
+        admin_user: User,
+        nomination_delegue: Nomination,
+    ):
+        """L'admin ne peut pas revoquer : reserve a l'Aumonier (Art. 2.1)."""
+        resp = await client.delete(
+            f"/api/v1/responsables/nominations/{nomination_delegue.id}",
+            headers=make_auth_header(admin_user),
+        )
+        assert resp.status_code == 403
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  LISTING DES NOMINATIONS
@@ -390,9 +422,9 @@ class TestPostesReference:
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert body["total_postes"] == 20
-        assert body["postes_vacants"] == 20  # Aucune nomination
-        assert len(body["postes"]) == 20
+        assert body["total_postes"] == 21
+        assert body["postes_vacants"] == 21  # Aucune nomination
+        assert len(body["postes"]) == 21
 
     async def test_list_postes_with_titulaire(
         self,
@@ -501,6 +533,26 @@ class TestPosteActionCreate:
         body = resp.json()
         assert body["category"] == "SANCTION"
         assert body["target_user_id"] == str(servant_user.id)
+
+    async def test_accompagnateur_creates_formation_action(
+        self,
+        client: AsyncClient,
+        accompagnateur_user: User,
+    ):
+        """L'accompagnateur peut creer une action de formation des responsables."""
+        resp = await client.post(
+            "/api/v1/poste/accompagnateur/actions",
+            json={
+                "category": "FORMATION",
+                "title": "Formation des responsables - module gouvernance",
+                "content": "Session de formation a la bonne gouvernance du groupe.",
+            },
+            headers=make_auth_header(accompagnateur_user),
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["poste"] == "ACCOMPAGNATEUR"
+        assert body["category"] == "FORMATION"
 
     async def test_aumonier_creates_action_for_any_poste(
         self,
@@ -611,6 +663,7 @@ class TestPosteActionCreate:
         """Tous les slugs sont valides (dashboard accessible par aumonier)."""
         slugs = [
             "conseiller",
+            "accompagnateur",
             "delegue",
             "vice-delegue",
             "secretariat",
@@ -625,7 +678,9 @@ class TestPosteActionCreate:
             "classement-dimanche",
             "classement-semaine",
             "intendance",
+            "intendance-adjoint",
             "sport-culture",
+            "sport-culture-adjoint",
         ]
         for slug in slugs:
             resp = await client.get(
@@ -633,6 +688,138 @@ class TestPosteActionCreate:
                 headers=make_auth_header(aumonier_user),
             )
             assert resp.status_code == 200, f"Slug {slug} returned {resp.status_code}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  APPROBATION DES SORTIES DE FONDS (Econome -> Aumonier)
+# ═══════════════════════════════════════════════════════════════════════════
+@pytest.mark.e2e
+class TestPosteActionApproval:
+    """Validation des depenses de l'Econome par l'Aumonier."""
+
+    async def test_econome_depense_stays_brouillon(
+        self,
+        client: AsyncClient,
+        econome_user: User,
+    ):
+        """Une sortie de fonds creee par l'Econome reste BROUILLON."""
+        resp = await client.post(
+            "/api/v1/poste/economat/actions",
+            json={
+                "category": "DEPENSE",
+                "title": "Achat de cierges",
+                "amount": 15000.0,
+                "status": "PUBLIE",  # ignore : force a BROUILLON
+            },
+            headers=make_auth_header(econome_user),
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["status"] == "BROUILLON"
+        assert body["approved_by"] is None
+
+    async def test_aumonier_approves_depense(
+        self,
+        client: AsyncClient,
+        econome_user: User,
+        aumonier_user: User,
+    ):
+        """L'Aumonier approuve une sortie de fonds -> PUBLIE."""
+        create_resp = await client.post(
+            "/api/v1/poste/economat/actions",
+            json={
+                "category": "DEPENSE",
+                "title": "Achat de materiel liturgique",
+                "amount": 30000.0,
+            },
+            headers=make_auth_header(econome_user),
+        )
+        action_id = create_resp.json()["id"]
+
+        resp = await client.post(
+            f"/api/v1/poste/economat/actions/{action_id}/approve",
+            headers=make_auth_header(aumonier_user),
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "PUBLIE"
+        assert body["approved_by"] == str(aumonier_user.id)
+        assert body["approved_at"] is not None
+
+    async def test_econome_cannot_approve_own_depense(
+        self,
+        client: AsyncClient,
+        econome_user: User,
+    ):
+        """L'Econome ne peut pas approuver ses propres sorties de fonds."""
+        create_resp = await client.post(
+            "/api/v1/poste/economat/actions",
+            json={
+                "category": "DEPENSE",
+                "title": "Achat divers",
+                "amount": 5000.0,
+            },
+            headers=make_auth_header(econome_user),
+        )
+        action_id = create_resp.json()["id"]
+
+        resp = await client.post(
+            f"/api/v1/poste/economat/actions/{action_id}/approve",
+            headers=make_auth_header(econome_user),
+        )
+        assert resp.status_code == 403
+
+    async def test_cannot_approve_non_depense_action(
+        self,
+        client: AsyncClient,
+        servant_user: User,
+        nomination_delegue: Nomination,
+        aumonier_user: User,
+    ):
+        """Une action non-DEPENSE ne peut pas etre approuvee."""
+        create_resp = await client.post(
+            "/api/v1/poste/delegue/actions",
+            json={
+                "category": "DECISION",
+                "title": "Decision du conseil",
+            },
+            headers=make_auth_header(servant_user),
+        )
+        action_id = create_resp.json()["id"]
+
+        resp = await client.post(
+            f"/api/v1/poste/delegue/actions/{action_id}/approve",
+            headers=make_auth_header(aumonier_user),
+        )
+        assert resp.status_code == 400
+
+    async def test_cannot_approve_twice(
+        self,
+        client: AsyncClient,
+        econome_user: User,
+        aumonier_user: User,
+    ):
+        """Une sortie de fonds deja approuvee ne peut pas l'etre a nouveau."""
+        create_resp = await client.post(
+            "/api/v1/poste/economat/actions",
+            json={
+                "category": "DEPENSE",
+                "title": "Achat de materiel",
+                "amount": 8000.0,
+            },
+            headers=make_auth_header(econome_user),
+        )
+        action_id = create_resp.json()["id"]
+
+        await client.post(
+            f"/api/v1/poste/economat/actions/{action_id}/approve",
+            headers=make_auth_header(aumonier_user),
+        )
+        resp = await client.post(
+            f"/api/v1/poste/economat/actions/{action_id}/approve",
+            headers=make_auth_header(aumonier_user),
+        )
+        assert resp.status_code == 400
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -973,3 +1160,120 @@ class TestResponsableWorkflow:
         )
         assert resp.status_code == 201
         assert resp.json()["user_first_name"] == "Pierre"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  CONSEIL DES RESPONSABLES (Art. 12, 15) — historique
+# ═══════════════════════════════════════════════════════════════════════════
+@pytest.mark.e2e
+class TestCouncilMeetingsHistory:
+    """GET /council-meetings et GET /council-meetings/{id}/attendance."""
+
+    @pytest.mark.asyncio
+    async def test_delegue_creates_meeting_and_lists_it(
+        self,
+        client: AsyncClient,
+        delegue_user: User,
+    ):
+        create_resp = await client.post(
+            "/api/v1/responsables/council-meetings",
+            json={
+                "meeting_date": "2026-06-27T18:00:00",
+                "location": "Salle paroissiale",
+                "agenda": "Bilan du mois",
+            },
+            headers=make_auth_header(delegue_user),
+        )
+        assert create_resp.status_code == 201
+        meeting_id = create_resp.json()["id"]
+
+        list_resp = await client.get(
+            "/api/v1/responsables/council-meetings",
+            headers=make_auth_header(delegue_user),
+        )
+        assert list_resp.status_code == 200
+        body = list_resp.json()
+        assert body["total"] >= 1
+        assert any(m["id"] == meeting_id for m in body["items"])
+        found = next(m for m in body["items"] if m["id"] == meeting_id)
+        assert found["present_count"] == 0
+        assert found["absent_count"] == 0
+
+    @pytest.mark.asyncio
+    async def test_list_meetings_reflects_recorded_attendance(
+        self,
+        client: AsyncClient,
+        delegue_user: User,
+        vice_delegue_user: User,
+    ):
+        create_resp = await client.post(
+            "/api/v1/responsables/council-meetings",
+            json={"meeting_date": "2026-06-27T18:00:00", "location": "Presbytere"},
+            headers=make_auth_header(delegue_user),
+        )
+        meeting_id = create_resp.json()["id"]
+
+        await client.post(
+            f"/api/v1/responsables/council-meetings/{meeting_id}/attendance",
+            json={
+                "attendances": [
+                    {"responsable_id": str(delegue_user.id), "is_present": True},
+                    {
+                        "responsable_id": str(vice_delegue_user.id),
+                        "is_present": False,
+                        "excuse": "Voyage",
+                    },
+                ]
+            },
+            headers=make_auth_header(delegue_user),
+        )
+
+        list_resp = await client.get(
+            "/api/v1/responsables/council-meetings",
+            headers=make_auth_header(delegue_user),
+        )
+        found = next(m for m in list_resp.json()["items"] if m["id"] == meeting_id)
+        assert found["present_count"] == 1
+        assert found["absent_count"] == 1
+
+        attendance_resp = await client.get(
+            f"/api/v1/responsables/council-meetings/{meeting_id}/attendance",
+            headers=make_auth_header(delegue_user),
+        )
+        assert attendance_resp.status_code == 200
+        records = attendance_resp.json()
+        assert len(records) == 2
+        absent_record = next(r for r in records if r["responsable_id"] == str(vice_delegue_user.id))
+        assert absent_record["status"] == "ABSENT"
+        assert absent_record["excuse"] == "Voyage"
+        assert absent_record["responsable_first_name"] is not None
+
+    @pytest.mark.asyncio
+    async def test_servant_without_council_poste_forbidden(
+        self,
+        client: AsyncClient,
+        servant_user: User,
+    ):
+        resp = await client.get(
+            "/api/v1/responsables/council-meetings",
+            headers=make_auth_header(servant_user),
+        )
+        assert resp.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_admin_can_list_meetings(
+        self,
+        client: AsyncClient,
+        admin_user: User,
+        delegue_user: User,
+    ):
+        await client.post(
+            "/api/v1/responsables/council-meetings",
+            json={"meeting_date": "2026-06-27T18:00:00", "location": "Salle"},
+            headers=make_auth_header(delegue_user),
+        )
+        resp = await client.get(
+            "/api/v1/responsables/council-meetings",
+            headers=make_auth_header(admin_user),
+        )
+        assert resp.status_code == 200

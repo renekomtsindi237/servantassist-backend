@@ -69,7 +69,7 @@ class TestTokenRefreshFlow:
             settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
-        assert new_payload["sub"] == admin_user.email
+        assert new_payload["sub"] == str(admin_user.id)
         assert new_payload["role"] == "ADMIN"
 
     async def test_invalid_refresh_token_rejected(self, client: AsyncClient):
@@ -92,7 +92,7 @@ class TestTokenRefreshFlow:
     async def test_expired_refresh_token_rejected(self, client: AsyncClient, admin_user: User):
         """Un refresh token expiré → 401."""
         expired_refresh = SecurityUtils.create_refresh_token(
-            subject=admin_user.email,
+            subject=admin_user.id,
             role=admin_user.role.value,
             expires_delta=timedelta(seconds=-1),
         )

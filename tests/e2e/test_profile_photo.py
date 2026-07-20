@@ -15,6 +15,7 @@ import pytest
 from httpx import AsyncClient
 
 from src.core.entities.user import User
+from src.infrastructure.repositories.user_repository import default_profile_photo_url
 from tests.conftest import make_auth_header
 
 
@@ -139,15 +140,17 @@ class TestProfilePhotoDelete:
         )
         assert resp.status_code == 204
 
-        # Verifier que le profil n'a plus de photo
+        # Verifier que le profil est revenu a la photo par defaut (jamais
+        # "aucune photo" -- tout utilisateur en a toujours une, cf.
+        # default_profile_photo_url()).
         profile = await client.get(
             "/api/v1/users/me",
             headers=make_auth_header(servant_user),
         )
-        assert profile.json()["profile_photo_url"] is None
+        assert profile.json()["profile_photo_url"] == default_profile_photo_url()
 
     async def test_delete_no_photo_404(self, client: AsyncClient, servant_user: User):
-        """Suppression sans photo existante -> 404."""
+        """Suppression sans photo personnalisee (uniquement la photo par defaut) -> 404."""
         resp = await client.delete(
             "/api/v1/users/me/photo",
             headers=make_auth_header(servant_user),

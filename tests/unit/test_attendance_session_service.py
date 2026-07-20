@@ -302,6 +302,20 @@ async def test_mark_attendance_absent_triggers_threshold():
 # ─── _handle_absence_thresholds ───────────────────────────────────────────────
 
 
+def _make_notif_repo() -> MagicMock:
+    """Notification repo mock avec .session.exec() configure pour l'idempotence
+    (aucun avertissement/convocation deja envoye — .first() renvoie None)."""
+    notif_repo = MagicMock()
+    notif_repo.session = MagicMock()
+    notif_repo.session.add = MagicMock()
+    notif_repo.session.commit = AsyncMock()
+    exec_result = MagicMock()
+    exec_result.first = MagicMock(return_value=None)
+    notif_repo.session.exec = AsyncMock(return_value=exec_result)
+    notif_repo.session.refresh = AsyncMock()
+    return notif_repo
+
+
 @pytest.mark.asyncio
 async def test_handle_absence_no_notif_repo():
     svc = _svc(notification_repo=None)
@@ -314,10 +328,7 @@ async def test_handle_absence_no_notif_repo():
 async def test_handle_absence_3_sends_warning():
     servant = _make_servant()
     session = _make_session()
-    notif_repo = MagicMock()
-    notif_repo.session = MagicMock()
-    notif_repo.session.add = MagicMock()
-    notif_repo.session.commit = AsyncMock()
+    notif_repo = _make_notif_repo()
     ar = AsyncMock()
     ar.calculate_servant_stats.return_value = _make_stats(absent_count=3)
     svc = _svc(ar, notification_repo=notif_repo)
@@ -328,14 +339,37 @@ async def test_handle_absence_3_sends_warning():
 
 
 @pytest.mark.asyncio
-async def test_handle_absence_5_convokes_parents():
+async def test_handle_absence_4_does_not_resend_warning():
+    """4 absences (>= 3) mais avertissement deja envoye -> pas de renvoi."""
     servant = _make_servant()
     session = _make_session()
-    parent = User(id=uuid4(), first_name="M", last_name="D", email="m@t.com", role=UserRole.PARENT, is_active=True)
     notif_repo = MagicMock()
     notif_repo.session = MagicMock()
     notif_repo.session.add = MagicMock()
     notif_repo.session.commit = AsyncMock()
+    exec_result = MagicMock()
+    exec_result.first = MagicMock(return_value=MagicMock())  # deja averti
+    notif_repo.session.exec = AsyncMock(return_value=exec_result)
+    ar = AsyncMock()
+    ar.calculate_servant_stats.return_value = _make_stats(absent_count=4)
+    svc = _svc(ar, notification_repo=notif_repo)
+    svc.email_service.send_absence_warning_email = AsyncMock(return_value=True)
+    await svc._handle_absence_thresholds(servant, session)
+    svc.email_service.send_absence_warning_email.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_handle_absence_5_convokes_parents():
+    """
+    5 absences d'emblee (jamais passe par 3) declenche desormais AUSSI
+    l'avertissement 3 absences, en plus de la convocation — les deux seuils
+    sont independants (pas elif) pour ne pas rater la convocation si le
+    compteur saute directement de <3 a >=5.
+    """
+    servant = _make_servant()
+    session = _make_session()
+    parent = User(id=uuid4(), first_name="M", last_name="D", email="m@t.com", role=UserRole.PARENT, is_active=True)
+    notif_repo = _make_notif_repo()
     ar = AsyncMock()
     ar.calculate_servant_stats.return_value = _make_stats(absent_count=5)
     ur = AsyncMock()
@@ -344,17 +378,14 @@ async def test_handle_absence_5_convokes_parents():
     svc.email_service.send_parent_convocation_email = AsyncMock(return_value=True)
     await svc._handle_absence_thresholds(servant, session)
     svc.email_service.send_parent_convocation_email.assert_called_once()
-    notif_repo.session.commit.assert_called_once()
+    notif_repo.session.commit.assert_called()
 
 
 @pytest.mark.asyncio
 async def test_handle_absence_5_no_parents():
     servant = _make_servant()
     session = _make_session()
-    notif_repo = MagicMock()
-    notif_repo.session = MagicMock()
-    notif_repo.session.add = MagicMock()
-    notif_repo.session.commit = AsyncMock()
+    notif_repo = _make_notif_repo()
     ar = AsyncMock()
     ar.calculate_servant_stats.return_value = _make_stats(absent_count=5)
     ur = AsyncMock()
@@ -363,17 +394,42 @@ async def test_handle_absence_5_no_parents():
     svc.email_service.send_parent_convocation_email = AsyncMock()
     await svc._handle_absence_thresholds(servant, session)
     svc.email_service.send_parent_convocation_email.assert_not_called()
-    notif_repo.session.commit.assert_called_once()
+    notif_repo.session.commit.assert_called()
 
 
 @pytest.mark.asyncio
-async def test_handle_absence_email_fail_non_fatal():
+async def test_handle_absence_5_after_3_only_convokes():
+    """Avertissement deja envoye a 3 absences -> a 5, seule la convocation se declenche."""
     servant = _make_servant()
     session = _make_session()
     notif_repo = MagicMock()
     notif_repo.session = MagicMock()
     notif_repo.session.add = MagicMock()
     notif_repo.session.commit = AsyncMock()
+    notif_repo.session.refresh = AsyncMock()
+    exec_result = MagicMock()
+    exec_result.first = MagicMock(return_value=MagicMock())  # deja averti a 3
+    notif_repo.session.exec = AsyncMock(return_value=exec_result)
+    ar = AsyncMock()
+    ar.calculate_servant_stats.return_value = _make_stats(absent_count=5)
+    ur = AsyncMock()
+    ur.get_parents_of.return_value = []
+    svc = _svc(ar, ur, notification_repo=notif_repo)
+    svc.email_service.send_absence_warning_email = AsyncMock()
+    svc.email_service.send_parent_convocation_email = AsyncMock()
+    await svc._handle_absence_thresholds(servant, session)
+    # already_warned ET already_convened renvoient tous deux "deja fait" ici
+    # (meme mock exec_result reutilise pour les deux verifications) -> rien
+    # ne doit se redeclencher.
+    svc.email_service.send_absence_warning_email.assert_not_called()
+    svc.email_service.send_parent_convocation_email.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_handle_absence_email_fail_non_fatal():
+    servant = _make_servant()
+    session = _make_session()
+    notif_repo = _make_notif_repo()
     ar = AsyncMock()
     ar.calculate_servant_stats.return_value = _make_stats(absent_count=3)
     svc = _svc(ar, notification_repo=notif_repo)

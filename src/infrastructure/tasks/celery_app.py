@@ -69,5 +69,10 @@ celery_app.conf.update(
             "schedule": crontab(hour=7, minute=30),
             "options": {"queue": "default"},
         },
+        "check-convocation-deadlines": {
+            "task": "src.infrastructure.tasks.reminder_tasks.check_convocation_deadlines",
+            "schedule": crontab(hour=6, minute=0),
+            "options": {"queue": "default"},
+        },
     },
 )

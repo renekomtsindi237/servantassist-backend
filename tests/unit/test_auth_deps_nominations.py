@@ -817,10 +817,10 @@ async def test_validate_ws_token_user_not_found():
     import jwt
     from src.infrastructure.config.settings import get_settings; settings = get_settings()
 
-    token = jwt.encode({"sub": "user@example.com"}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    token = jwt.encode({"sub": str(uuid4())}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
     mock_repo = AsyncMock()
-    mock_repo.get_by_email = AsyncMock(return_value=None)
+    mock_repo.get = AsyncMock(return_value=None)
 
     with patch("src.presentation.dependencies.auth_deps.UserRepository", return_value=mock_repo):
         with pytest.raises(Exception, match="User not found or inactive"):
@@ -836,12 +836,12 @@ async def test_validate_ws_token_inactive_user():
     import jwt
     from src.infrastructure.config.settings import get_settings; settings = get_settings()
 
-    token = jwt.encode({"sub": "user@example.com"}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    token = jwt.encode({"sub": str(uuid4())}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
     inactive_user = MagicMock()
     inactive_user.is_active = False
     mock_repo = AsyncMock()
-    mock_repo.get_by_email = AsyncMock(return_value=inactive_user)
+    mock_repo.get = AsyncMock(return_value=inactive_user)
 
     with patch("src.presentation.dependencies.auth_deps.UserRepository", return_value=mock_repo):
         with pytest.raises(Exception, match="User not found or inactive"):
@@ -857,12 +857,12 @@ async def test_validate_ws_token_success():
     import jwt
     from src.infrastructure.config.settings import get_settings; settings = get_settings()
 
-    token = jwt.encode({"sub": "user@example.com"}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    token = jwt.encode({"sub": str(uuid4())}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
     active_user = MagicMock()
     active_user.is_active = True
     mock_repo = AsyncMock()
-    mock_repo.get_by_email = AsyncMock(return_value=active_user)
+    mock_repo.get = AsyncMock(return_value=active_user)
 
     with patch("src.presentation.dependencies.auth_deps.UserRepository", return_value=mock_repo):
         result = await validate_ws_token(token, session)

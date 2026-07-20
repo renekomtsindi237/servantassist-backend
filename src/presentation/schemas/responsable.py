@@ -11,12 +11,14 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from src.core.entities.council_meeting import CouncilAttendanceStatus
 from src.core.entities.responsable import (
     ActionCategory,
     ActionStatus,
     NominationStatus,
     PosteResponsable,
 )
+from src.presentation.schemas.common import PaginatedResponse  # noqa: F401
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Nominations
@@ -131,11 +133,15 @@ class PosteActionResponse(BaseModel):
     created_by: UUID
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    approved_by: Optional[UUID] = None
+    approved_at: Optional[datetime] = None
     # Enrichissement
     author_first_name: Optional[str] = None
     author_last_name: Optional[str] = None
     target_user_name: Optional[str] = None
     target_event_title: Optional[str] = None
+    approver_first_name: Optional[str] = None
+    approver_last_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -212,6 +218,28 @@ class CouncilMeetingResponse(BaseModel):
     agenda: Optional[str] = None
     created_at: datetime
     created_by: UUID
+    # Enrichissement (rempli uniquement par le listing, cf. GET /council-meetings)
+    present_count: Optional[int] = None
+    absent_count: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CouncilAttendanceResponse(BaseModel):
+    """Reponse pour une presence enregistree au conseil."""
+
+    id: UUID
+    meeting_id: UUID
+    responsable_id: UUID
+    status: CouncilAttendanceStatus
+    excuse: Optional[str] = None
+    recorded_at: datetime
+    recorded_by: UUID
+    # Enrichissement
+    responsable_first_name: Optional[str] = None
+    responsable_last_name: Optional[str] = None
+    responsable_poste: Optional[str] = None
 
     class Config:
         from_attributes = True

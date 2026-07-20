@@ -3,6 +3,7 @@ Tests de sécurité — JWT (tokens falsifiés, expirés, manipulés).
 """
 
 from datetime import timedelta
+from uuid import uuid4
 
 import jwt
 import pytest
@@ -11,6 +12,7 @@ from httpx import AsyncClient
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.security.utils import SecurityUtils
 from tests.conftest import make_access_token
+from tests.e2e.test_auth_endpoints import _verify_phone
 
 settings = get_settings()
 
@@ -70,7 +72,7 @@ class TestExpiredToken:
     async def test_expired_access_token_401(self, client: AsyncClient, admin_user):
         """Token expiré = rejeté."""
         expired_token = SecurityUtils.create_access_token(
-            subject=admin_user.email,
+            subject=admin_user.id,
             role=admin_user.role.value,
             expires_delta=timedelta(seconds=-10),
         )
@@ -109,7 +111,7 @@ class TestTokenRoleMismatch:
     async def test_servant_token_claiming_admin_role(self, client: AsyncClient, servant_user):
         """Token prétend être ADMIN mais l'utilisateur en BDD est SERVANT → 401."""
         fake_token = SecurityUtils.create_access_token(
-            subject=servant_user.email,
+            subject=servant_user.id,
             role="ADMIN",  # Rôle falsifié
             expires_delta=timedelta(minutes=30),
         )
@@ -123,7 +125,7 @@ class TestTokenRoleMismatch:
     async def test_parent_token_claiming_admin_role(self, client: AsyncClient, parent_user):
         """Token prétend être ADMIN mais l'utilisateur est PARENT → 401."""
         fake_token = SecurityUtils.create_access_token(
-            subject=parent_user.email,
+            subject=parent_user.id,
             role="ADMIN",
             expires_delta=timedelta(minutes=30),
         )
@@ -142,7 +144,7 @@ class TestTokenNonexistentUser:
     async def test_token_for_deleted_user_401(self, client: AsyncClient):
         """Token valide pour un email qui n'existe pas en BDD → 401."""
         ghost_token = SecurityUtils.create_access_token(
-            subject="deleted@test.com",
+            subject=uuid4(),
             role="ADMIN",
             expires_delta=timedelta(minutes=30),
         )
@@ -195,9 +197,12 @@ class TestInjectionAttempts:
     ]
 
     @pytest.mark.parametrize("payload", XSS_PAYLOADS)
-    async def test_xss_in_registration(self, client: AsyncClient, payload):
+    async def test_xss_in_registration(self, client: AsyncClient, db_session, payload):
         import re
         import uuid as _uuid
+
+        phone = f"+23760009{_uuid.uuid4().int % 9999:04d}"
+        token = await _verify_phone(client, db_session, phone)
 
         resp = await client.post(
             "/api/v1/auth/register",
@@ -206,8 +211,9 @@ class TestInjectionAttempts:
                 "password": "TestPass1",
                 "first_name": payload,
                 "last_name": payload,
-                "phone_number": f"+23760009{_uuid.uuid4().int % 9999:04d}",
+                "phone_number": phone,
                 "role": "SERVANT",
+                "phone_verification_token": token,
             },
         )
         # HTML tags are stripped by the sanitization layer before storage.
@@ -230,7 +236,7 @@ class TestRefreshTokenMisuse:
     async def test_refresh_token_cannot_be_used_as_access(self, client: AsyncClient, admin_user):
         """Un refresh token ne doit pas fonctionner comme access token."""
         refresh = SecurityUtils.create_refresh_token(
-            subject=admin_user.email,
+            subject=admin_user.id,
             role=admin_user.role.value,
         )
         resp = await client.get(
@@ -241,7 +247,7 @@ class TestRefreshTokenMisuse:
 
     async def test_reset_token_cannot_be_used_as_access(self, client: AsyncClient, admin_user):
         """Un reset token ne doit pas fonctionner comme access token."""
-        reset = SecurityUtils.create_reset_token(subject=admin_user.email)
+        reset = SecurityUtils.create_reset_token(subject=admin_user.id)
         resp = await client.get(
             "/api/v1/admin/invitations",
             headers={"Authorization": f"Bearer {reset}"},

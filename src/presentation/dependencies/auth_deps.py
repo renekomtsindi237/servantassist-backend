@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -22,7 +23,7 @@ async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> User:
-    """Decode JWT, extract email + role, and fetch user from DB."""
+    """Decode JWT, extract user_id + role, and fetch user from DB."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -33,12 +34,12 @@ async def get_current_user(
         token_type: str | None = payload.get("type")
         if token_type is not None:
             raise credentials_exception
-        email: str = payload.get("sub")
+        sub: str = payload.get("sub")
         role: str = payload.get("role")
         jti: str | None = payload.get("jti")
-        if email is None or role is None:
+        if sub is None or role is None:
             raise credentials_exception
-        token_data = TokenData(email=email, role=role)
+        token_data = TokenData(user_id=sub, role=role)
     except (jwt.PyJWTError, ValidationError):
         raise credentials_exception
 
@@ -47,7 +48,7 @@ async def get_current_user(
         raise credentials_exception
 
     user_repo = UserRepository(session)
-    user = await user_repo.get_by_email(email=token_data.email)
+    user = await user_repo.get(token_data.user_id)
     if user is None:
         raise credentials_exception
 
@@ -556,6 +557,44 @@ def get_require_censeur_strict():
 require_censeur_strict = get_require_censeur_strict()
 
 
+# CONSEIL DE DISCIPLINE — vote collegial (Art. 16-17, strict, sans bypass
+# Admin/Aumônier : ils supervisent le conseil mais n'y siegent pas).
+def get_require_discipline_council_member():
+    """Accepte uniquement les 7 sieges du conseil de discipline (via nomination active)."""
+
+    async def require(
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+    ) -> User:
+        if current_user.role != UserRole.SERVANT:
+            raise HTTPException(
+                status_code=403,
+                detail="Seul un membre du conseil de discipline peut voter.",
+            )
+
+        from src.core.entities.discipline import COUNCIL_POSTES
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
+
+        nom_repo = NominationRepository(session)
+        nominations = await nom_repo.get_active_by_user(current_user.id)
+
+        allowed = {p.value for p in COUNCIL_POSTES}
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
+            raise HTTPException(
+                status_code=403,
+                detail="Vous n'occupez pas un siège du conseil de discipline.",
+            )
+
+        return current_user
+
+    return require
+
+
+require_discipline_council_member = get_require_discipline_council_member()
+
+
 # ECONOME - Financial Management
 def get_require_econome():
     """Accepte ECONOME via nomination active."""
@@ -631,6 +670,211 @@ def get_require_secretaire():
 
 require_secretaire = get_require_secretaire()
 
+
+# CONVOCATION DES PARENTS — Censeur, Secretariat, ou Admin/Aumonier (Art. 48-49)
+def get_require_convocation_manager():
+    """Accepte CENSEUR(_ADJOINT), SECRETAIRE(_GENERAL)(_ADJOINT) via nomination active, ou ADMIN/AUMÔNIER."""
+
+    async def require(
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+    ) -> User:
+        if current_user.role in (UserRole.ADMIN, UserRole.AUMÔNIER):
+            return current_user
+
+        if current_user.role != UserRole.SERVANT:
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
+
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
+
+        nom_repo = NominationRepository(session)
+        nominations = await nom_repo.get_active_by_user(current_user.id)
+
+        allowed = (
+            "CENSEUR",
+            "CENSEUR_ADJOINT",
+            "SECRETAIRE_GENERAL",
+            "SECRETAIRE_GENERAL_ADJOINT",
+            "SECRETAIRE",
+            "SECRETAIRE_ADJOINT",
+        )
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
+            raise HTTPException(
+                status_code=403,
+                detail="Accès réservé au Censeur, au Secrétariat, ou à l'Aumônier/Admin.",
+            )
+
+        return current_user
+
+    return require
+
+
+require_convocation_manager = get_require_convocation_manager()
+
+
+# OUVERTURE DE DOSSIER DISCIPLINAIRE — Censeur, Ceremoniaire (Art. 41 : trouble
+# durant la celebration eucharistique), ou Admin/Aumonier.
+def get_require_open_discipline_case():
+    """Accepte CENSEUR(_ADJOINT) ou CEREMONIAIRE via nomination active, ou ADMIN/AUMÔNIER."""
+
+    async def require(
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+    ) -> User:
+        if current_user.role in (UserRole.ADMIN, UserRole.AUMÔNIER):
+            return current_user
+
+        if current_user.role != UserRole.SERVANT:
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
+
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
+
+        nom_repo = NominationRepository(session)
+        nominations = await nom_repo.get_active_by_user(current_user.id)
+
+        allowed = ("CENSEUR", "CENSEUR_ADJOINT", "CEREMONIAIRE")
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
+            raise HTTPException(
+                status_code=403,
+                detail="Accès réservé au Censeur, au Cérémoniaire, ou à l'Aumônier/Admin.",
+            )
+
+        return current_user
+
+    return require
+
+
+require_open_discipline_case = get_require_open_discipline_case()
+
+
+# CONVOCATION AU CONSEIL DE DISCIPLINE — Censeur, ou Delegue/Vice-Delegue
+# (Art. 16 : "il se reunit sous convocation du responsable Delegue"), ou Admin/Aumonier.
+def get_require_convoke_discipline():
+    """Accepte CENSEUR(_ADJOINT) ou DELEGUE(_VICE) via nomination active, ou ADMIN/AUMÔNIER."""
+
+    async def require(
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+    ) -> User:
+        if current_user.role in (UserRole.ADMIN, UserRole.AUMÔNIER):
+            return current_user
+
+        if current_user.role != UserRole.SERVANT:
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
+
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
+
+        nom_repo = NominationRepository(session)
+        nominations = await nom_repo.get_active_by_user(current_user.id)
+
+        allowed = ("CENSEUR", "CENSEUR_ADJOINT", "DELEGUE", "VICE_DELEGUE")
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
+            raise HTTPException(
+                status_code=403,
+                detail="Accès réservé au Censeur, au Délégué, ou à l'Aumônier/Admin.",
+            )
+
+        return current_user
+
+    return require
+
+
+require_convoke_discipline = get_require_convoke_discipline()
+
+
+# COMMUNICATION — Secretariat (Art. 8d : transmission des informations aux
+# servants), ou Admin/Aumonier. Contrairement a require_secretaire (reserve
+# aux rapports, Admin/Aumonier explicitement exclus), ici Admin/Aumonier
+# gardent l'acces existant en plus du Secretariat.
+def get_require_secretariat_or_admin():
+    """Accepte SECRETAIRE(_GENERAL)(_ADJOINT) via nomination active, ou ADMIN/AUMÔNIER."""
+
+    async def require(
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+    ) -> User:
+        if current_user.role in (UserRole.ADMIN, UserRole.AUMÔNIER):
+            return current_user
+
+        if current_user.role != UserRole.SERVANT:
+            raise HTTPException(status_code=403, detail="You must be a SERVANT")
+
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
+
+        nom_repo = NominationRepository(session)
+        nominations = await nom_repo.get_active_by_user(current_user.id)
+
+        allowed = (
+            "SECRETAIRE_GENERAL",
+            "SECRETAIRE_GENERAL_ADJOINT",
+            "SECRETAIRE",
+            "SECRETAIRE_ADJOINT",
+        )
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
+            raise HTTPException(
+                status_code=403,
+                detail="Accès réservé au Secrétariat, ou à l'Aumônier/Admin.",
+            )
+
+        return current_user
+
+    return require
+
+
+require_secretariat_or_admin = get_require_secretariat_or_admin()
+
+
+# RENDU DE VERDICT DISCIPLINAIRE — Aumonier (tout type de sanction) ou un
+# poste habilite selon le type de sanction demande (voir
+# DisciplineService.RENDER_VERDICT_SANCTION_SCOPE pour le detail par poste,
+# Art. 39-44 punitions et Art. 51 radiation). Cette dependance ne fait que
+# verifier qu'un poste pertinent existe ; le controle fin par type de
+# sanction est fait cote service.
+def get_require_verdict_authority():
+    """Accepte AUMÔNIER, ou CENSEUR(_ADJOINT)/SECRETAIRE_GENERAL/CEREMONIAIRE via nomination active."""
+
+    async def require(
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+    ) -> User:
+        if current_user.role == UserRole.AUMÔNIER:
+            return current_user
+
+        if current_user.role != UserRole.SERVANT:
+            raise HTTPException(
+                status_code=403,
+                detail="Seul l'Aumônier ou un responsable habilité peut rendre un verdict.",
+            )
+
+        from src.infrastructure.repositories.responsable_repository import (
+            NominationRepository,
+        )
+
+        nom_repo = NominationRepository(session)
+        nominations = await nom_repo.get_active_by_user(current_user.id)
+
+        allowed = ("CENSEUR", "CENSEUR_ADJOINT", "SECRETAIRE_GENERAL", "CEREMONIAIRE")
+        if not nominations or not any(n.poste.value in allowed for n in nominations):
+            raise HTTPException(
+                status_code=403,
+                detail="Seul l'Aumônier ou un responsable habilité peut rendre un verdict.",
+            )
+
+        return current_user
+
+    return require
+
+
+require_verdict_authority = get_require_verdict_authority()
+
 # Aliases for compatibility
 require_econome_or_admin = require_econome
 require_censeur_or_admin = require_censeur
@@ -648,14 +892,15 @@ async def validate_ws_token(token: str, session: AsyncSession) -> User:
         token_type: str | None = payload.get("type")
         if token_type is not None:
             raise ValueError("Invalid token type")
-        email: str = payload.get("sub")
-        if email is None:
+        sub: str = payload.get("sub")
+        if sub is None:
             raise ValueError("Missing sub claim")
+        user_id = UUID(sub)
     except (jwt.PyJWTError, ValidationError, ValueError) as exc:
         raise Exception("Invalid token") from exc
 
     user_repo = UserRepository(session)
-    user = await user_repo.get_by_email(email=email)
+    user = await user_repo.get(user_id)
     if user is None or not user.is_active:
         raise Exception("User not found or inactive")
     return user

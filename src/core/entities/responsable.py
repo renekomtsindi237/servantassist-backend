@@ -13,7 +13,7 @@ Actions de poste :
     sanctions, collectes, etc.) liees a son poste.
 
 Postes definis :
-    CONSEILLER, DELEGUE, VICE_DELEGUE, SECRETAIRE_GENERAL,
+    CONSEILLER, ACCOMPAGNATEUR, DELEGUE, VICE_DELEGUE, SECRETAIRE_GENERAL,
     SECRETAIRE_GENERAL_ADJOINT, CENSEUR, CENSEUR_ADJOINT, ECONOME,
     COMMISSAIRE_AUX_COMPTES, CHARGE_LITURGIE, CHARGE_LITURGIE_ADJOINT,
     CEREMONIAIRE, CHARGE_CLASSEMENT_DIMANCHE, CHARGE_CLASSEMENT_SEMAINE,
@@ -35,9 +35,10 @@ from src.core.utils import utc_now
 
 
 class PosteResponsable(str, Enum):
-    """Les 19 postes de responsable au sein du groupe de servants."""
+    """Les 20 postes de responsable au sein du groupe de servants."""
 
     CONSEILLER = "CONSEILLER"
+    ACCOMPAGNATEUR = "ACCOMPAGNATEUR"
     DELEGUE = "DELEGUE"
     VICE_DELEGUE = "VICE_DELEGUE"
     SECRETAIRE_GENERAL = "SECRETAIRE_GENERAL"
@@ -165,6 +166,9 @@ class PosteAction(SQLModel, table=True):
     created_by: UUID = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
+    # Approbation Aumonier (obligatoire pour les sorties de fonds DEPENSE)
+    approved_by: Optional[UUID] = Field(default=None, foreign_key="users.id")
+    approved_at: Optional[datetime] = Field(default=None)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -175,6 +179,10 @@ POSTE_ALLOWED_CATEGORIES: dict[PosteResponsable, list[ActionCategory]] = {
     PosteResponsable.CONSEILLER: [
         ActionCategory.DECISION,
         ActionCategory.RAPPORT,
+        ActionCategory.AUTRE,
+    ],
+    PosteResponsable.ACCOMPAGNATEUR: [
+        ActionCategory.FORMATION,
         ActionCategory.AUTRE,
     ],
     PosteResponsable.DELEGUE: [
@@ -282,6 +290,7 @@ POSTE_ALLOWED_CATEGORIES: dict[PosteResponsable, list[ActionCategory]] = {
 
 SLUG_TO_POSTE: dict[str, PosteResponsable] = {
     "conseiller": PosteResponsable.CONSEILLER,
+    "accompagnateur": PosteResponsable.ACCOMPAGNATEUR,
     "delegue": PosteResponsable.DELEGUE,
     "vice-delegue": PosteResponsable.VICE_DELEGUE,
     "secretariat": PosteResponsable.SECRETAIRE_GENERAL,
@@ -296,7 +305,9 @@ SLUG_TO_POSTE: dict[str, PosteResponsable] = {
     "classement-dimanche": PosteResponsable.CHARGE_CLASSEMENT_DIMANCHE,
     "classement-semaine": PosteResponsable.CHARGE_CLASSEMENT_SEMAINE,
     "intendance": PosteResponsable.INTENDANT,
+    "intendance-adjoint": PosteResponsable.INTENDANT_ADJOINT,
     "sport-culture": PosteResponsable.CHARGE_SPORT_CULTURE,
+    "sport-culture-adjoint": PosteResponsable.CHARGE_SPORT_CULTURE_ADJOINT,
 }
 
 POSTE_TO_SLUG: dict[PosteResponsable, str] = {v: k for k, v in SLUG_TO_POSTE.items()}
@@ -313,6 +324,20 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
         "missions": [
             "Accompagne et conseille le groupe",
             "Participe aux decisions du conseil des responsables",
+        ],
+    },
+    PosteResponsable.ACCOMPAGNATEUR: {
+        "titre": "Accompagnateur",
+        "description": (
+            "Assure la formation des responsables pour une bonne gouvernance du groupe. "
+            "Peut etre un grand seminariste mandate par l'Aumonier ou l'equipe pastorale, "
+            "ou un aine du groupe deja responsable investi par la precedente equipe du "
+            "conseil des responsables apres aval de l'Aumonier."
+        ),
+        "missions": [
+            "Assure la formation des responsables",
+            "Encadre et conseille l'equipe de responsables",
+            "Peut etre sollicite pour les formations theoriques et pratiques",
         ],
     },
     PosteResponsable.DELEGUE: {
@@ -355,6 +380,25 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
             "Assure la transmission des informations a la portee des servants de messe",
             "Assure la promotion du bilinguisme",
             "Redige les rapports des conseils and des reunions en langue anglaise",
+            "Assure l'interim en cas d'absence du Secretaire",
+        ],
+    },
+    PosteResponsable.SECRETAIRE: {
+        "titre": "Secretaire",
+        "description": "Alias de Secretaire General — organise les conseils et redige les rapports officiels.",
+        "missions": [
+            "Organise les conseils et les reunions en collaboration avec le Delegue et son adjoint",
+            "Assiste aux reunions organisees en paroisse",
+            "Redige les rapports des conseils des responsables et des reunions",
+        ],
+    },
+    PosteResponsable.SECRETAIRE_ADJOINT: {
+        "titre": "Secretaire Adjoint",
+        "description": "Alias de Secretaire General Adjoint — assiste le Secretaire et assure la promotion du bilinguisme.",
+        "missions": [
+            "Travaille en collaboration avec le Secretaire",
+            "Assure la transmission des informations a la portee des servants de messe",
+            "Assure la promotion du bilinguisme",
             "Assure l'interim en cas d'absence du Secretaire",
         ],
     },
@@ -443,12 +487,28 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
             "Organise et veille au lavage des aubes et du repassage",
         ],
     },
+    PosteResponsable.INTENDANT_ADJOINT: {
+        "titre": "Intendant Adjoint",
+        "description": "Seconde l'intendant dans l'entretien des aubes et objets liturgiques.",
+        "missions": [
+            "Assure l'interim en cas d'absence de l'Intendant",
+            "Participe a l'entretien des aubes et objets liturgiques",
+        ],
+    },
     PosteResponsable.CHARGE_SPORT_CULTURE: {
         "titre": "Responsable chargé des sports et de divertissement",
         "description": "Organise les activites sportives et culturelles du groupe.",
         "missions": [
             "Organise les activites sportives et culturelles",
             "Assure la responsabilite de la chorale des enfants de choeur",
+        ],
+    },
+    PosteResponsable.CHARGE_SPORT_CULTURE_ADJOINT: {
+        "titre": "Responsable adjoint chargé des sports et de divertissement",
+        "description": "Seconde le charge des sports et de la culture.",
+        "missions": [
+            "Assure l'interim en cas d'absence du Charge des Sports et de la Culture",
+            "Participe a l'organisation des activites sportives et culturelles",
         ],
     },
 }

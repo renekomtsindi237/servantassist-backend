@@ -2,6 +2,7 @@
 Repository pour les cotisations et paiements.
 """
 
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -14,6 +15,7 @@ from src.core.entities.cotisation import (
     CotisationStatus,
     CotisationType,
     MemberCotisation,
+    PeriodType,
 )
 from src.core.entities.user import User
 from src.infrastructure.security.field_encryption import decrypt_str_fields
@@ -83,6 +85,19 @@ class CotisationPeriodRepository:
             return True
         return False
 
+    async def list_ordinaire_since(self, since: datetime) -> List[CotisationPeriod]:
+        """Periodes ORDINAIRE (mensuel/hebdo) demarrees depuis une date donnee."""
+        stmt = (
+            select(CotisationPeriod)
+            .where(
+                CotisationPeriod.cotisation_type == CotisationType.ORDINAIRE,
+                CotisationPeriod.start_date >= since,
+            )
+            .order_by(CotisationPeriod.start_date.desc())
+        )
+        result = await self.session.exec(stmt)
+        return result.all()
+
 
 class MemberCotisationRepository:
     """Operations sur les paiements individuels."""
@@ -99,6 +114,38 @@ class MemberCotisationRepository:
         stmt = select(MemberCotisation).where(
             MemberCotisation.period_id == period_id,
             MemberCotisation.user_id == user_id,
+        )
+        result = await self.session.exec(stmt)
+        return result.first()
+
+    async def get_overlapping_ordinaire_payment(
+        self,
+        user_id: UUID,
+        period_type: PeriodType,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> Optional[MemberCotisation]:
+        """
+        Paiement ORDINAIRE reellement effectue (PAYE/PAYE_PARTIELLEMENT) d'un
+        autre mode de periode (mensuel vs hebdomadaire) chevauchant la plage
+        donnee — utilise pour empecher un servant de cumuler les deux modes
+        (Art. 22). Une simple obligation EN_ATTENTE (auto-creee pour chaque
+        servant a la creation de la periode) ne compte PAS comme un
+        engagement — seul un paiement effectif bloque l'autre mode.
+        """
+        stmt = (
+            select(MemberCotisation)
+            .join(CotisationPeriod, MemberCotisation.period_id == CotisationPeriod.id)
+            .where(
+                MemberCotisation.user_id == user_id,
+                MemberCotisation.status.in_(
+                    [CotisationStatus.PAYE, CotisationStatus.PAYE_PARTIELLEMENT]
+                ),
+                CotisationPeriod.cotisation_type == CotisationType.ORDINAIRE,
+                CotisationPeriod.period_type == period_type,
+                CotisationPeriod.start_date <= end_date,
+                CotisationPeriod.end_date >= start_date,
+            )
         )
         result = await self.session.exec(stmt)
         return result.first()

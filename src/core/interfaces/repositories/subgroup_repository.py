@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Protocol, runtime_checkable
 from uuid import UUID
 
-from src.core.entities.subgroup import SubGroup, SubGroupMember
+from src.core.entities.subgroup import SubGroup, SubGroupCategory, SubGroupMember
 
 
 @runtime_checkable
@@ -9,6 +9,8 @@ class ISubGroupRepository(Protocol):
     async def get(self, group_id: UUID) -> Optional[SubGroup]: ...
 
     async def get_by_name(self, name: str) -> Optional[SubGroup]: ...
+
+    async def get_by_category(self, category: SubGroupCategory) -> Optional[SubGroup]: ...
 
     async def list_all(self, active_only: bool = True) -> List[SubGroup]: ...
 

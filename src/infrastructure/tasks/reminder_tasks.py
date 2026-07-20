@@ -52,54 +52,50 @@ def send_cotisation_reminders(self) -> dict:
 
 
 async def _send_cotisation_reminders_async() -> dict:
-    from sqlmodel import col, select
+    from sqlmodel import select
 
-    from src.core.entities.contribution import MemberCotisation
+    from src.core.entities.cotisation import CotisationPeriod, CotisationStatus, MemberCotisation
     from src.core.entities.user import User
     from src.infrastructure.database.session import sessionmanager
     from src.infrastructure.services.email_service import EmailService
 
     now = datetime.now(timezone.utc)
-    current_month = now.month
-    current_year = now.year
 
     sent = 0
     errors = 0
 
     async with sessionmanager.session() as session:
-        stmt = select(MemberCotisation).where(
-            col(MemberCotisation.year) <= current_year,
+        stmt = (
+            select(MemberCotisation, CotisationPeriod)
+            .join(CotisationPeriod, MemberCotisation.period_id == CotisationPeriod.id)
+            .where(
+                MemberCotisation.status.in_(
+                    [CotisationStatus.EN_ATTENTE, CotisationStatus.EN_RETARD, CotisationStatus.PAYE_PARTIELLEMENT]
+                ),
+                CotisationPeriod.end_date < now,
+            )
         )
         result = await session.exec(stmt)
-        cotisations = result.all()
-
-        overdue = [
-            c for c in cotisations
-            if str(getattr(c.status, "value", c.status)) in ("PENDING", "EN_RETARD")
-            and (
-                c.year < current_year
-                or (c.year == current_year and (int(c.month) if c.month else 0) < current_month)
-            )
-        ]
+        overdue = result.all()
 
         if not overdue:
             logger.info("send_cotisation_reminders: no overdue cotisations found")
             return {"nb_reminders_sent": 0, "nb_errors": 0}
 
         email_svc = EmailService()
-        for cotisation in overdue:
+        for cotisation, period in overdue:
             user = await session.get(User, cotisation.user_id)
             if not user or not user.is_active or not user.email:
                 continue
             try:
-                period_str = f"{cotisation.month}/{cotisation.year}" if cotisation.month else str(cotisation.year)
+                amount_due = max(0.0, period.amount_expected - cotisation.amount_paid)
                 await email_svc.send_general_notification(
                     to_email=user.email,
                     user_first_name=user.first_name,
                     title="Rappel — Cotisation en retard",
                     body=(
-                        f"Votre cotisation pour la période {period_str} est en attente de règlement.\n\n"
-                        f"Montant dû : {cotisation.amount:,.0f} XAF\n\n"
+                        f"Votre cotisation pour la période « {period.title} » est en attente de règlement.\n\n"
+                        f"Montant dû : {amount_due:,.0f} XAF\n\n"
                         "Merci de régulariser votre situation au plus tôt.\n"
                         "Connectez-vous à ServantAssist pour effectuer votre paiement."
                     ),
@@ -209,4 +205,46 @@ async def _send_event_day_reminders_async() -> dict:
                     errors += 1
 
     logger.info("send_event_day_reminders: sent=%d errors=%d", sent, errors)
+    return {"nb_reminders_sent": sent, "nb_errors": errors}
+
+
+# ── Convocations des parents (Art. 48-49) ─────────────────────────────────────
+
+
+@celery_app.task(
+    name="src.infrastructure.tasks.reminder_tasks.check_convocation_deadlines",
+    bind=True,
+    max_retries=2,
+)
+def check_convocation_deadlines(self) -> dict:
+    """
+    Chaque jour à 6h : traite les convocations EN_ATTENTE dont le delai de
+    reponse de 30 jours (Art. 49) est depasse — passage a SANS_REPONSE et
+    suspension automatique du servant jusqu'a presentation d'un parent.
+    """
+    try:
+        return _run_async(_check_convocation_deadlines_async())
+    except Exception as exc:
+        logger.error("check_convocation_deadlines: failed error=%s", exc, exc_info=True)
+        raise self.retry(exc=exc, countdown=600)
+
+
+async def _check_convocation_deadlines_async() -> dict:
+    from src.application.services.convocation_service import ConvocationService
+    from src.infrastructure.database.session import sessionmanager
+    from src.infrastructure.repositories.convocation_repository import ConvocationRepository
+    from src.infrastructure.repositories.user_repository import UserRepository
+
+    async with sessionmanager.session() as session:
+        service = ConvocationService(
+            convocation_repo=ConvocationRepository(session),
+            user_repo=UserRepository(session),
+        )
+        result = await service.process_expired_convocations()
+
+    logger.info(
+        "check_convocation_deadlines: expired_convocations_processed=%d",
+        result["expired_convocations_processed"],
+    )
+    return result
     return {"nb_reminders_sent": sent, "nb_errors": errors}

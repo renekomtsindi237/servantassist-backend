@@ -9,6 +9,7 @@ import pytest
 from src.application.services.discipline_service import DisciplineService
 from src.core.entities.attendance import AttendanceStatus, AttendanceType
 from src.core.entities.discipline import (
+    COUNCIL_POSTES,
     OFFENSE_DEFAULT_SEVERITY,
     DisciplineCase,
     DisciplineCaseStatus,
@@ -16,11 +17,13 @@ from src.core.entities.discipline import (
     SanctionSeverity,
     SanctionType,
 )
+from src.core.entities.responsable import PosteResponsable
 from src.core.entities.user import User, UserRole
 from src.presentation.schemas.discipline import (
     DisciplineCaseCreate,
     DisciplineConvocation,
     DisciplineVerdict,
+    DisciplineVoteCast,
 )
 
 NOW = datetime(2026, 6, 1, 10, 0, 0)
@@ -93,7 +96,25 @@ def _make_attendance(status=AttendanceStatus.ABSENT):
     return a
 
 
-def _make_svc(case_repo=None, user_repo=None, attendance_repo=None) -> DisciplineService:
+def _make_vote(poste=PosteResponsable.DELEGUE, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE, **kwargs):
+    v = MagicMock()
+    v.poste = kwargs.pop("poste_value", poste.value)
+    v.voter_user_id = kwargs.pop("voter_user_id", uuid4())
+    v.sanction_type = sanction_type
+    v.notes = kwargs.pop("notes", None)
+    v.voted_at = kwargs.pop("voted_at", NOW)
+    return v
+
+
+def _make_nomination(poste):
+    n = MagicMock()
+    n.poste = poste
+    return n
+
+
+def _make_svc(
+    case_repo=None, user_repo=None, attendance_repo=None, nomination_repo=None
+) -> DisciplineService:
     if case_repo is None:
         case_repo = MagicMock()
         case_repo.create = AsyncMock()
@@ -104,6 +125,8 @@ def _make_svc(case_repo=None, user_repo=None, attendance_repo=None) -> Disciplin
         case_repo.enrich_cases = AsyncMock(return_value=[])
         case_repo.count_sanctions_by_user = AsyncMock(return_value={})
         case_repo.count_active_cases = AsyncMock(return_value=0)
+        case_repo.upsert_vote = AsyncMock()
+        case_repo.list_votes = AsyncMock(return_value=[])
     if user_repo is None:
         user_repo = MagicMock()
         user_repo.get = AsyncMock(return_value=None)
@@ -111,7 +134,11 @@ def _make_svc(case_repo=None, user_repo=None, attendance_repo=None) -> Disciplin
     if attendance_repo is None:
         attendance_repo = MagicMock()
         attendance_repo.list_paginated = AsyncMock(return_value=([], 0))
-    return DisciplineService(case_repo, user_repo, attendance_repo)
+    if nomination_repo is None:
+        nomination_repo = MagicMock()
+        nomination_repo.get_active_by_poste = AsyncMock(return_value=None)
+        nomination_repo.get_active_by_user = AsyncMock(return_value=[])
+    return DisciplineService(case_repo, user_repo, attendance_repo, nomination_repo)
 
 
 # ── open_case ──────────────────────────────────────────────────────────────
@@ -260,7 +287,7 @@ async def test_render_verdict_not_found():
     svc = _make_svc()
     svc.case_repo.get.return_value = None
     with pytest.raises(Exception) as exc:
-        await svc.render_verdict(uuid4(), DisciplineVerdict(sanction_type=SanctionType.AUCUNE), uuid4())
+        await svc.render_verdict(uuid4(), DisciplineVerdict(sanction_type=SanctionType.AUCUNE), _make_user(role=UserRole.AUMÔNIER))
     assert exc.value.status_code == 404
 
 
@@ -270,7 +297,7 @@ async def test_render_verdict_wrong_status():
     svc = _make_svc()
     svc.case_repo.get.return_value = case
     with pytest.raises(Exception) as exc:
-        await svc.render_verdict(case.id, DisciplineVerdict(sanction_type=SanctionType.AUCUNE), uuid4())
+        await svc.render_verdict(case.id, DisciplineVerdict(sanction_type=SanctionType.AUCUNE), _make_user(role=UserRole.AUMÔNIER))
     assert exc.value.status_code == 400
 
 
@@ -284,7 +311,7 @@ async def test_render_verdict_avertissement():
     result = await svc.render_verdict(
         case.id,
         DisciplineVerdict(sanction_type=SanctionType.AVERTISSEMENT_VERBAL, verdict_notes="1ère faute"),
-        uuid4(),
+        _make_user(role=UserRole.AUMÔNIER),
     )
     assert result.id == case.id
 
@@ -299,7 +326,7 @@ async def test_render_verdict_suspension_sets_dates():
     await svc.render_verdict(
         case.id,
         DisciplineVerdict(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE, suspension_days=14),
-        uuid4(),
+        _make_user(role=UserRole.AUMÔNIER),
     )
     svc.case_repo.update.assert_called_once()
 
@@ -314,9 +341,140 @@ async def test_render_verdict_from_convoque_status():
     result = await svc.render_verdict(
         case.id,
         DisciplineVerdict(sanction_type=SanctionType.AVERTISSEMENT_ECRIT),
-        uuid4(),
+        _make_user(role=UserRole.AUMÔNIER),
     )
     assert result.id == case.id
+
+
+# ── render_verdict : autorisation par poste (Art. 39-44, 51) ───────────────
+
+
+@pytest.mark.asyncio
+async def test_render_verdict_censeur_can_set_any_sanction():
+    """Le Censeur peut prononcer n'importe quelle sanction, y compris la radiation (Art. 51)."""
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.case_repo.update.return_value = case
+    svc.case_repo.enrich_case.side_effect = lambda c: _enriched_case(c)
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.CENSEUR)]
+    result = await svc.render_verdict(
+        case.id,
+        DisciplineVerdict(sanction_type=SanctionType.EXCLUSION_DEFINITIVE),
+        _make_user(),
+    )
+    assert result.sanction_type == SanctionType.EXCLUSION_DEFINITIVE
+
+
+@pytest.mark.asyncio
+async def test_render_verdict_censeur_adjoint_cannot_radiate():
+    """Le Censeur Adjoint peut decider les punitions courantes mais pas la radiation."""
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.CENSEUR_ADJOINT)]
+    with pytest.raises(Exception) as exc:
+        await svc.render_verdict(
+            case.id,
+            DisciplineVerdict(sanction_type=SanctionType.EXCLUSION_DEFINITIVE),
+            _make_user(),
+        )
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_render_verdict_censeur_adjoint_can_set_minor_sanction():
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.case_repo.update.return_value = case
+    svc.case_repo.enrich_case.side_effect = lambda c: _enriched_case(c)
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.CENSEUR_ADJOINT)]
+    result = await svc.render_verdict(
+        case.id,
+        DisciplineVerdict(sanction_type=SanctionType.AVERTISSEMENT_VERBAL),
+        _make_user(),
+    )
+    assert result.sanction_type == SanctionType.AVERTISSEMENT_VERBAL
+
+
+@pytest.mark.asyncio
+async def test_render_verdict_secretaire_general_only_radiation():
+    """Le Secretaire General ne peut prononcer qu'une radiation (Art. 51), rien d'autre."""
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.SECRETAIRE_GENERAL)]
+    with pytest.raises(Exception) as exc:
+        await svc.render_verdict(
+            case.id,
+            DisciplineVerdict(sanction_type=SanctionType.AVERTISSEMENT_VERBAL),
+            _make_user(),
+        )
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_render_verdict_secretaire_general_can_radiate():
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.case_repo.update.return_value = case
+    svc.case_repo.enrich_case.side_effect = lambda c: _enriched_case(c)
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.SECRETAIRE_GENERAL)]
+    result = await svc.render_verdict(
+        case.id,
+        DisciplineVerdict(sanction_type=SanctionType.EXCLUSION_DEFINITIVE),
+        _make_user(),
+    )
+    assert result.sanction_type == SanctionType.EXCLUSION_DEFINITIVE
+
+
+@pytest.mark.asyncio
+async def test_render_verdict_ceremoniaire_minor_only():
+    """Le Ceremoniaire peut sanctionner un trouble en messe (Art. 41), pas une radiation."""
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.CEREMONIAIRE)]
+    with pytest.raises(Exception) as exc:
+        await svc.render_verdict(
+            case.id,
+            DisciplineVerdict(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE),
+            _make_user(),
+        )
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_render_verdict_ceremoniaire_can_set_avertissement():
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.case_repo.update.return_value = case
+    svc.case_repo.enrich_case.side_effect = lambda c: _enriched_case(c)
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.CEREMONIAIRE)]
+    result = await svc.render_verdict(
+        case.id,
+        DisciplineVerdict(sanction_type=SanctionType.AVERTISSEMENT_ECRIT),
+        _make_user(),
+    )
+    assert result.sanction_type == SanctionType.AVERTISSEMENT_ECRIT
+
+
+@pytest.mark.asyncio
+async def test_render_verdict_no_relevant_poste_rejected():
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.ECONOME)]
+    with pytest.raises(Exception) as exc:
+        await svc.render_verdict(
+            case.id,
+            DisciplineVerdict(sanction_type=SanctionType.AVERTISSEMENT_VERBAL),
+            _make_user(),
+        )
+    assert exc.value.status_code == 403
 
 
 # ── execute_sanction ───────────────────────────────────────────────────────
@@ -545,3 +703,155 @@ async def test_check_attendance_compliance_all_present():
     result = await svc.check_attendance_compliance(user_id)
     assert result["two_consecutive_absences"] is False
     assert result["suggested_sanction"] == SanctionType.AUCUNE
+
+
+# ── cast_vote / conseil de discipline (Art. 16-17) ─────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_cast_vote_case_not_found():
+    svc = _make_svc()
+    svc.case_repo.get.return_value = None
+    with pytest.raises(Exception) as exc:
+        await svc.cast_vote(uuid4(), _make_user(), DisciplineVoteCast(sanction_type=SanctionType.AVERTISSEMENT_VERBAL))
+    assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_cast_vote_case_already_decided():
+    case = _make_case(status=DisciplineCaseStatus.VERDICT_RENDU)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    with pytest.raises(Exception) as exc:
+        await svc.cast_vote(case.id, _make_user(), DisciplineVoteCast(sanction_type=SanctionType.AVERTISSEMENT_VERBAL))
+    assert exc.value.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_cast_vote_non_council_member_rejected():
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.ECONOME)]
+    with pytest.raises(Exception) as exc:
+        await svc.cast_vote(case.id, _make_user(), DisciplineVoteCast(sanction_type=SanctionType.AVERTISSEMENT_VERBAL))
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_cast_vote_single_vote_does_not_decide():
+    """Un seul vote sur 7 sieges pourvus (majorite=4) ne rend pas de verdict."""
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    voter = _make_user()
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.DELEGUE)]
+    # Les 7 sieges sont pourvus
+    svc.nomination_repo.get_active_by_poste.side_effect = lambda poste: _make_nomination(poste)
+    svc.case_repo.list_votes.return_value = [
+        _make_vote(poste=PosteResponsable.DELEGUE, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE)
+    ]
+    svc.case_repo.enrich_case.return_value = _enriched_case(case)
+
+    result = await svc.cast_vote(
+        case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE)
+    )
+    assert result.status == DisciplineCaseStatus.SIGNALE
+    svc.case_repo.upsert_vote.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_cast_vote_majority_renders_verdict():
+    """4 votes identiques sur 6 sieges pourvus (1 vacant) rendent le verdict."""
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    voter = _make_user()
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.CENSEUR)]
+
+    # CENSEUR_ADJOINT vacant, les 6 autres sieges pourvus
+    filled = set(COUNCIL_POSTES) - {PosteResponsable.CENSEUR_ADJOINT}
+
+    async def _get_active_by_poste(poste):
+        return _make_nomination(poste) if poste in filled else None
+
+    svc.nomination_repo.get_active_by_poste.side_effect = _get_active_by_poste
+    svc.case_repo.list_votes.return_value = [
+        _make_vote(poste=PosteResponsable.DELEGUE, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE),
+        _make_vote(poste=PosteResponsable.VICE_DELEGUE, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE),
+        _make_vote(poste=PosteResponsable.SECRETAIRE_GENERAL, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE),
+        _make_vote(poste=PosteResponsable.CENSEUR, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE),
+    ]
+    decided_case = _make_case(
+        status=DisciplineCaseStatus.VERDICT_RENDU, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE
+    )
+    svc.case_repo.update.return_value = decided_case
+    svc.case_repo.enrich_case.return_value = _enriched_case(decided_case)
+
+    result = await svc.cast_vote(
+        case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE)
+    )
+    assert result.status == DisciplineCaseStatus.VERDICT_RENDU
+    assert result.sanction_type == SanctionType.SUSPENSION_TEMPORAIRE
+
+
+@pytest.mark.asyncio
+async def test_cast_vote_revoked_seat_vote_not_counted():
+    """Un vote depose par un siege depuis revoque ne compte plus dans le quorum."""
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    voter = _make_user()
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_user.return_value = [_make_nomination(PosteResponsable.DELEGUE)]
+
+    # Seul DELEGUE est pourvu desormais (majorite = 1)
+    async def _get_active_by_poste(poste):
+        return _make_nomination(poste) if poste == PosteResponsable.DELEGUE else None
+
+    svc.nomination_repo.get_active_by_poste.side_effect = _get_active_by_poste
+    # Vote historique d'un siege CENSEUR desormais vacant + le nouveau vote DELEGUE
+    svc.case_repo.list_votes.return_value = [
+        _make_vote(poste=PosteResponsable.CENSEUR, sanction_type=SanctionType.AVERTISSEMENT_VERBAL),
+        _make_vote(poste=PosteResponsable.DELEGUE, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE),
+    ]
+    decided_case = _make_case(
+        status=DisciplineCaseStatus.VERDICT_RENDU, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE
+    )
+    svc.case_repo.update.return_value = decided_case
+    svc.case_repo.enrich_case.return_value = _enriched_case(decided_case)
+
+    result = await svc.cast_vote(
+        case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE)
+    )
+    # Majorite = 1 (un seul siege pourvu) et le seul vote valide (DELEGUE) suffit
+    assert result.status == DisciplineCaseStatus.VERDICT_RENDU
+
+
+# ── get_vote_status ─────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_get_vote_status_not_found():
+    svc = _make_svc()
+    svc.case_repo.get.return_value = None
+    with pytest.raises(Exception) as exc:
+        await svc.get_vote_status(uuid4())
+    assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_vote_status_reports_quorum():
+    case = _make_case(status=DisciplineCaseStatus.SIGNALE)
+    svc = _make_svc()
+    svc.case_repo.get.return_value = case
+    svc.nomination_repo.get_active_by_poste.side_effect = lambda poste: _make_nomination(poste)
+    svc.case_repo.list_votes.return_value = [
+        _make_vote(poste=PosteResponsable.DELEGUE, sanction_type=SanctionType.SUSPENSION_TEMPORAIRE),
+    ]
+    svc.user_repo.get.return_value = _make_user()
+
+    result = await svc.get_vote_status(case.id)
+    assert result.seats_filled == len(COUNCIL_POSTES)
+    assert result.majority_required == len(COUNCIL_POSTES) // 2 + 1
+    assert result.is_decided is False
+    assert len(result.votes) == 1
