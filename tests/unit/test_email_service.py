@@ -246,3 +246,23 @@ async def test_send_welcome_email_defaults():
     svc = _make_service()
     result = await svc.send_welcome_email("user@example.com")
     assert result is True
+
+
+def test_logo_url_points_to_an_existing_static_file():
+    """Régression : `_logo_url()` a longtemps pointé vers
+    `logo_servant_mail.png`, un fichier qui n'a jamais existé sur disque —
+    chaque email envoyé affichait une icône d'image cassée. Verrouille que
+    le fichier référencé existe réellement sous `static/`."""
+    from pathlib import Path
+
+    from src.infrastructure.services.email_templates import _logo_url
+
+    with patch("src.infrastructure.services.email_templates.get_settings") as mock_gs:
+        settings = MagicMock()
+        settings.APP_URL = "http://localhost:8000"
+        mock_gs.return_value = settings
+        url = _logo_url()
+
+    relative_path = url.split("/static/", 1)[1]
+    static_file = Path(__file__).resolve().parents[2] / "static" / relative_path
+    assert static_file.is_file(), f"Logo référencé dans les emails introuvable sur disque : {static_file}"

@@ -23,9 +23,14 @@ _SUCCESS_LIGHT = "#ECFDF5"  # Fond vert clair
 
 
 def _logo_url() -> str:
-    """URL absolue vers le logo ServantAssist (utilisé dans les emails)."""
+    """URL absolue vers le logo ServantAssist (utilisé dans les emails).
+
+    Réutilise `static/images/logo_servant.jpeg` (même fichier que le
+    filigrane PDF et l'icône mobile) — `logo_servant_mail.png` n'a jamais
+    existé sur disque, d'où les icônes d'image cassée dans les emails.
+    """
     settings = get_settings()
-    return f"{settings.APP_URL}/static/images/logo_servant_mail.png"
+    return f"{settings.APP_URL}/static/images/logo_servant.jpeg"
 
 
 def _base_layout(content: str, preview_text: str = "") -> str:
