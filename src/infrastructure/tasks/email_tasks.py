@@ -60,18 +60,12 @@ def send_email_async(self, to: str, subject: str, html_body: str) -> bool:
     max_retries=2,
     default_retry_delay=30,
 )
-def send_welcome_email_async(
-    self, to: str, user_first_name: str, role: str = "SERVANT"
-) -> bool:
+def send_welcome_email_async(self, to: str, user_first_name: str, role: str = "SERVANT") -> bool:
     """Envoie l'email de bienvenue après inscription. Délègue l'event handler UserRegistered."""
     try:
         from src.infrastructure.services.email_service import EmailService
 
-        result = _run_async(
-            EmailService().send_welcome_email(
-                to_email=to, user_first_name=user_first_name, role=role
-            )
-        )
+        result = _run_async(EmailService().send_welcome_email(to_email=to, user_first_name=user_first_name, role=role))
         logger.info("send_welcome_email_async: to=%s role=%s result=%s", to, role, result)
         return result
     except Exception as exc:
@@ -108,9 +102,7 @@ def send_assignment_email_async(
                 event_location=event_location,
             )
         )
-        logger.info(
-            "send_assignment_email_async: to=%s event=%s result=%s", to, event_title, result
-        )
+        logger.info("send_assignment_email_async: to=%s event=%s result=%s", to, event_title, result)
         return result
     except Exception as exc:
         logger.error("send_assignment_email_async: failed to=%s error=%s", to, exc)
@@ -123,17 +115,13 @@ def send_assignment_email_async(
     max_retries=2,
     default_retry_delay=30,
 )
-def send_reset_code_email_async(
-    self, to: str, code: str, user_first_name: str = "Utilisateur"
-) -> bool:
+def send_reset_code_email_async(self, to: str, code: str, user_first_name: str = "Utilisateur") -> bool:
     """Envoie le code OTP 6 chiffres pour réinitialisation de mot de passe mobile."""
     try:
         from src.infrastructure.services.email_service import EmailService
 
         result = _run_async(
-            EmailService().send_reset_code_email(
-                to_email=to, code=code, user_first_name=user_first_name
-            )
+            EmailService().send_reset_code_email(to_email=to, code=code, user_first_name=user_first_name)
         )
         logger.info("send_reset_code_email_async: to=%s result=%s", to, result)
         return result

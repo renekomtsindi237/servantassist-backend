@@ -10,11 +10,11 @@ from .api_key_repository import IApiKeyRepository
 from .assignment_repository import IAssignmentRepository
 from .attendance_repository import IAttendanceRepository
 from .attendance_session_repository import IAttendanceSessionRepository
+from .convocation_repository import IConvocationRepository
 from .cotisation_repository import (
     ICotisationPeriodRepository,
     IMemberCotisationRepository,
 )
-from .convocation_repository import IConvocationRepository
 from .council_meeting_repository import ICouncilMeetingRepository
 from .discipline_repository import IDisciplineCaseRepository
 from .event_repository import IEventRepository

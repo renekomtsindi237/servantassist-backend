@@ -2,16 +2,16 @@
 Tests pour les validateurs métier (src/application/validators/business_validators.py).
 """
 
-import pytest
 from datetime import date, timedelta
 
-from src.application.validators.business_validators import (
-    validate_cameroon_phone,
-    validate_birthdate,
-    validate_cotisation_amount,
-    validate_contribution_period,
-)
+import pytest
 
+from src.application.validators.business_validators import (
+    validate_birthdate,
+    validate_cameroon_phone,
+    validate_contribution_period,
+    validate_cotisation_amount,
+)
 
 # ── validate_cameroon_phone ────────────────────────────────────────────────────
 

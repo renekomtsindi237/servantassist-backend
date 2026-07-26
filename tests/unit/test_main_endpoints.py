@@ -10,7 +10,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 #  root()
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -81,6 +80,7 @@ async def test_health_check_healthy():
             response = await health_check()
 
     import json
+
     body = json.loads(response.body)
     assert body["status"] in ("healthy", "degraded")
     assert "database" in body["checks"]
@@ -106,6 +106,7 @@ async def test_health_check_unhealthy_db():
             response = await health_check()
 
     import json
+
     body = json.loads(response.body)
     assert body["status"] == "unhealthy"
     assert response.status_code == 503
@@ -132,6 +133,7 @@ async def test_health_check_degraded_redis_down():
             response = await health_check()
 
     import json
+
     body = json.loads(response.body)
     # DB OK, Redis KO → degraded
     assert body["status"] == "degraded"
@@ -166,6 +168,7 @@ async def test_health_check_with_ws_manager():
             response = await health_check()
 
     import json
+
     body = json.loads(response.body)
     assert "websocket" in body["checks"]
     assert body["checks"]["websocket"]["active_connections"] == 5
@@ -212,6 +215,7 @@ async def test_readiness_probe_not_ready():
         response = await readiness_probe()
 
     import json
+
     body = json.loads(response.body)
     assert body["status"] == "not_ready"
     assert response.status_code == 503
@@ -224,6 +228,7 @@ async def test_readiness_probe_not_ready():
 
 def test_app_is_fastapi_instance():
     from fastapi import FastAPI
+
     from src.main import app
 
     assert isinstance(app, FastAPI)
@@ -239,7 +244,7 @@ def test_app_has_routes():
 
 
 def test_app_metrics_counter_defined():
-    from src.main import http_requests_total, http_request_duration_seconds, active_ws_connections
+    from src.main import active_ws_connections, http_request_duration_seconds, http_requests_total
 
     assert http_requests_total is not None
     assert http_request_duration_seconds is not None

@@ -43,43 +43,52 @@ def _mock_session():
 #  Helper: get the inner "require" function from a dependency factory
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _get_require_delegue():
     from src.presentation.dependencies.auth_deps import get_require_delegue
+
     return get_require_delegue()
 
 
 def _get_require_commissaire():
     from src.presentation.dependencies.auth_deps import get_require_commissaire
+
     return get_require_commissaire()
 
 
 def _get_require_commissaire_strict():
     from src.presentation.dependencies.auth_deps import get_require_commissaire_strict
+
     return get_require_commissaire_strict()
 
 
 def _get_require_delegue_or_sg():
     from src.presentation.dependencies.auth_deps import get_require_delegue_or_sg
+
     return get_require_delegue_or_sg()
 
 
 def _get_require_censeur():
     from src.presentation.dependencies.auth_deps import get_require_censeur
+
     return get_require_censeur()
 
 
 def _get_require_censeur_strict():
     from src.presentation.dependencies.auth_deps import get_require_censeur_strict
+
     return get_require_censeur_strict()
 
 
 def _get_require_econome():
     from src.presentation.dependencies.auth_deps import get_require_econome
+
     return get_require_econome()
 
 
 def _get_require_secretaire():
     from src.presentation.dependencies.auth_deps import get_require_secretaire
+
     return get_require_secretaire()
 
 
@@ -595,23 +604,18 @@ async def test_require_secretaire_wrong_role():
 
 @pytest.mark.asyncio
 async def test_charge_classement_dimanche_admin_bypass():
-    from src.presentation.dependencies.auth_deps import get_current_charge_classement_dimanche
-
-    # The function has been reassigned by calling the factory — need the factory
-    from src.presentation.dependencies.auth_deps import (
-        get_current_charge_classement_dimanche as factory,
-    )
-
     # call the factory again to get a fresh require
     from importlib import import_module
+
+    # The function has been reassigned by calling the factory — need the factory
+    from src.presentation.dependencies.auth_deps import get_current_charge_classement_dimanche
+    from src.presentation.dependencies.auth_deps import get_current_charge_classement_dimanche as factory
 
     auth_deps = import_module("src.presentation.dependencies.auth_deps")
 
     # We already have the dependency installed
     user = _make_user("ADMIN")
-    result = await auth_deps.get_current_charge_classement_dimanche(
-        current_user=user, session=_mock_session()
-    )
+    result = await auth_deps.get_current_charge_classement_dimanche(current_user=user, session=_mock_session())
     assert result is user
 
 
@@ -629,17 +633,16 @@ async def test_charge_classement_dimanche_servant_success():
     mock_repo.get_active_by_user = AsyncMock(return_value=[nom])
 
     with patch("src.infrastructure.repositories.responsable_repository.NominationRepository", return_value=mock_repo):
-        result = await auth_deps.get_current_charge_classement_dimanche(
-            current_user=user, session=session
-        )
+        result = await auth_deps.get_current_charge_classement_dimanche(current_user=user, session=session)
 
     assert result is user
 
 
 @pytest.mark.asyncio
 async def test_charge_classement_dimanche_no_nom():
-    from fastapi import HTTPException
     import importlib
+
+    from fastapi import HTTPException
 
     auth_deps = importlib.import_module("src.presentation.dependencies.auth_deps")
 
@@ -651,9 +654,7 @@ async def test_charge_classement_dimanche_no_nom():
 
     with patch("src.infrastructure.repositories.responsable_repository.NominationRepository", return_value=mock_repo):
         with pytest.raises(HTTPException) as exc:
-            await auth_deps.get_current_charge_classement_dimanche(
-                current_user=user, session=session
-            )
+            await auth_deps.get_current_charge_classement_dimanche(current_user=user, session=session)
     assert exc.value.status_code == 403
 
 
@@ -664,9 +665,7 @@ async def test_charge_classement_semaine_admin_bypass():
     auth_deps = importlib.import_module("src.presentation.dependencies.auth_deps")
 
     user = _make_user("ADMIN")
-    result = await auth_deps.get_current_charge_classement_semaine(
-        current_user=user, session=_mock_session()
-    )
+    result = await auth_deps.get_current_charge_classement_semaine(current_user=user, session=_mock_session())
     assert result is user
 
 
@@ -684,17 +683,16 @@ async def test_charge_classement_semaine_servant_success():
     mock_repo.get_active_by_user = AsyncMock(return_value=[nom])
 
     with patch("src.infrastructure.repositories.responsable_repository.NominationRepository", return_value=mock_repo):
-        result = await auth_deps.get_current_charge_classement_semaine(
-            current_user=user, session=session
-        )
+        result = await auth_deps.get_current_charge_classement_semaine(current_user=user, session=session)
 
     assert result is user
 
 
 @pytest.mark.asyncio
 async def test_charge_classement_semaine_no_nom():
-    from fastapi import HTTPException
     import importlib
+
+    from fastapi import HTTPException
 
     auth_deps = importlib.import_module("src.presentation.dependencies.auth_deps")
 
@@ -706,9 +704,7 @@ async def test_charge_classement_semaine_no_nom():
 
     with patch("src.infrastructure.repositories.responsable_repository.NominationRepository", return_value=mock_repo):
         with pytest.raises(HTTPException) as exc:
-            await auth_deps.get_current_charge_classement_semaine(
-                current_user=user, session=session
-            )
+            await auth_deps.get_current_charge_classement_semaine(current_user=user, session=session)
     assert exc.value.status_code == 403
 
 
@@ -724,9 +720,7 @@ async def test_sunday_history_admin_bypass():
     auth_deps = importlib.import_module("src.presentation.dependencies.auth_deps")
 
     user = _make_user("ADMIN")
-    result = await auth_deps.get_sunday_schedule_history_access(
-        current_user=user, session=_mock_session()
-    )
+    result = await auth_deps.get_sunday_schedule_history_access(current_user=user, session=_mock_session())
     assert result is user
 
 
@@ -744,17 +738,16 @@ async def test_sunday_history_servant_censeur_success():
     mock_repo.get_active_by_user = AsyncMock(return_value=[nom])
 
     with patch("src.infrastructure.repositories.responsable_repository.NominationRepository", return_value=mock_repo):
-        result = await auth_deps.get_sunday_schedule_history_access(
-            current_user=user, session=session
-        )
+        result = await auth_deps.get_sunday_schedule_history_access(current_user=user, session=session)
 
     assert result is user
 
 
 @pytest.mark.asyncio
 async def test_sunday_history_no_nom():
-    from fastapi import HTTPException
     import importlib
+
+    from fastapi import HTTPException
 
     auth_deps = importlib.import_module("src.presentation.dependencies.auth_deps")
 
@@ -766,16 +759,15 @@ async def test_sunday_history_no_nom():
 
     with patch("src.infrastructure.repositories.responsable_repository.NominationRepository", return_value=mock_repo):
         with pytest.raises(HTTPException) as exc:
-            await auth_deps.get_sunday_schedule_history_access(
-                current_user=user, session=session
-            )
+            await auth_deps.get_sunday_schedule_history_access(current_user=user, session=session)
     assert exc.value.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_sunday_history_wrong_nom():
-    from fastapi import HTTPException
     import importlib
+
+    from fastapi import HTTPException
 
     auth_deps = importlib.import_module("src.presentation.dependencies.auth_deps")
 
@@ -788,9 +780,7 @@ async def test_sunday_history_wrong_nom():
 
     with patch("src.infrastructure.repositories.responsable_repository.NominationRepository", return_value=mock_repo):
         with pytest.raises(HTTPException) as exc:
-            await auth_deps.get_sunday_schedule_history_access(
-                current_user=user, session=session
-            )
+            await auth_deps.get_sunday_schedule_history_access(current_user=user, session=session)
     assert exc.value.status_code == 403
 
 
@@ -815,7 +805,10 @@ async def test_validate_ws_token_user_not_found():
     session = _mock_session()
 
     import jwt
-    from src.infrastructure.config.settings import get_settings; settings = get_settings()
+
+    from src.infrastructure.config.settings import get_settings
+
+    settings = get_settings()
 
     token = jwt.encode({"sub": str(uuid4())}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -834,7 +827,10 @@ async def test_validate_ws_token_inactive_user():
     session = _mock_session()
 
     import jwt
-    from src.infrastructure.config.settings import get_settings; settings = get_settings()
+
+    from src.infrastructure.config.settings import get_settings
+
+    settings = get_settings()
 
     token = jwt.encode({"sub": str(uuid4())}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -855,7 +851,10 @@ async def test_validate_ws_token_success():
     session = _mock_session()
 
     import jwt
-    from src.infrastructure.config.settings import get_settings; settings = get_settings()
+
+    from src.infrastructure.config.settings import get_settings
+
+    settings = get_settings()
 
     token = jwt.encode({"sub": str(uuid4())}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 

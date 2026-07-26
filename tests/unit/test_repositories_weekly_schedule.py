@@ -126,11 +126,13 @@ async def test_weekly_delete_template_found():
     slot = _make_slot(template_id=template.id)
     assignment = _make_assignment(slot_id=slot.id)
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=template),         # get_template
-        _sa_exec_result(scalars_list=[slot]),          # get slots
-        _sa_exec_result(scalars_list=[assignment]),    # get assignments for slot
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=template),  # get_template
+            _sa_exec_result(scalars_list=[slot]),  # get slots
+            _sa_exec_result(scalars_list=[assignment]),  # get assignments for slot
+        ]
+    )
     session.delete = AsyncMock()
     session.commit = AsyncMock()
 
@@ -157,10 +159,12 @@ async def test_weekly_list_templates():
     session = _mock_session()
     repo = WeeklyScheduleRepository(session)
     templates = [_make_template(), _make_template()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=2),                   # count
-        _sa_exec_result(scalars_list=templates),          # results
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=2),  # count
+            _sa_exec_result(scalars_list=templates),  # results
+        ]
+    )
 
     result, total = await repo.list_templates()
     assert total == 2
@@ -175,10 +179,12 @@ async def test_weekly_list_templates_with_filters():
     session = _mock_session()
     repo = WeeklyScheduleRepository(session)
     now = datetime.utcnow()
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=0),
-        _sa_exec_result(scalars_list=[]),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=0),
+            _sa_exec_result(scalars_list=[]),
+        ]
+    )
 
     result, total = await repo.list_templates(
         status=ScheduleStatus.PUBLISHED,
@@ -273,10 +279,12 @@ async def test_weekly_delete_slot_found():
     slot = _make_slot()
     assignment = _make_assignment(slot_id=slot.id)
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=slot),              # get_slot
-        _sa_exec_result(scalars_list=[assignment]),     # get assignments
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=slot),  # get_slot
+            _sa_exec_result(scalars_list=[assignment]),  # get assignments
+        ]
+    )
     session.delete = AsyncMock()
     session.commit = AsyncMock()
 
@@ -489,10 +497,12 @@ async def test_weekly_enrich_slot():
     servant = MagicMock()
     servant.first_name = "Paul"
     servant.last_name = "Nkolo"
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalars_list=[assignment]),   # get_slot_assignments
-        _sa_exec_result(scalar_one=servant),           # enrich_assignment servant
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalars_list=[assignment]),  # get_slot_assignments
+            _sa_exec_result(scalar_one=servant),  # enrich_assignment servant
+        ]
+    )
 
     with patch("src.infrastructure.repositories.weekly_schedule_repository.get_encryptor") as mock_enc:
         enc = MagicMock()
@@ -516,10 +526,12 @@ async def test_weekly_enrich_template():
     creator.last_name = "Chef"
 
     # creator execute, then get_template_slots (empty for simplicity)
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=creator),  # creator
-        _sa_exec_result(scalars_list=[]),      # slots
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=creator),  # creator
+            _sa_exec_result(scalars_list=[]),  # slots
+        ]
+    )
 
     with patch("src.infrastructure.repositories.weekly_schedule_repository.decrypt_str_fields"):
         result = await repo.enrich_template(template)
@@ -536,10 +548,12 @@ async def test_weekly_enrich_template_no_creator():
     session = _mock_session()
     repo = WeeklyScheduleRepository(session)
     template = _make_template()
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=None),     # no creator
-        _sa_exec_result(scalars_list=[]),      # slots
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=None),  # no creator
+            _sa_exec_result(scalars_list=[]),  # slots
+        ]
+    )
 
     result = await repo.enrich_template(template)
     assert result["creator_first_name"] is None
@@ -558,11 +572,13 @@ async def test_weekly_get_template_summary():
     creator.first_name = "Admin"
     creator.last_name = "Res"
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=creator),           # creator
-        _sa_exec_result(scalars_list=[slot]),           # get_template_slots
-        _sa_exec_result(scalars_list=[assignment]),     # get_slot_assignments for that slot
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=creator),  # creator
+            _sa_exec_result(scalars_list=[slot]),  # get_template_slots
+            _sa_exec_result(scalars_list=[assignment]),  # get_slot_assignments for that slot
+        ]
+    )
 
     with patch("src.infrastructure.repositories.weekly_schedule_repository.get_encryptor") as mock_enc:
         enc = MagicMock()

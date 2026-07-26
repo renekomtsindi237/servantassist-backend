@@ -112,9 +112,7 @@ def _make_nomination(poste):
     return n
 
 
-def _make_svc(
-    case_repo=None, user_repo=None, attendance_repo=None, nomination_repo=None
-) -> DisciplineService:
+def _make_svc(case_repo=None, user_repo=None, attendance_repo=None, nomination_repo=None) -> DisciplineService:
     if case_repo is None:
         case_repo = MagicMock()
         case_repo.create = AsyncMock()
@@ -287,7 +285,9 @@ async def test_render_verdict_not_found():
     svc = _make_svc()
     svc.case_repo.get.return_value = None
     with pytest.raises(Exception) as exc:
-        await svc.render_verdict(uuid4(), DisciplineVerdict(sanction_type=SanctionType.AUCUNE), _make_user(role=UserRole.AUMÔNIER))
+        await svc.render_verdict(
+            uuid4(), DisciplineVerdict(sanction_type=SanctionType.AUCUNE), _make_user(role=UserRole.AUMÔNIER)
+        )
     assert exc.value.status_code == 404
 
 
@@ -297,7 +297,9 @@ async def test_render_verdict_wrong_status():
     svc = _make_svc()
     svc.case_repo.get.return_value = case
     with pytest.raises(Exception) as exc:
-        await svc.render_verdict(case.id, DisciplineVerdict(sanction_type=SanctionType.AUCUNE), _make_user(role=UserRole.AUMÔNIER))
+        await svc.render_verdict(
+            case.id, DisciplineVerdict(sanction_type=SanctionType.AUCUNE), _make_user(role=UserRole.AUMÔNIER)
+        )
     assert exc.value.status_code == 400
 
 
@@ -753,9 +755,7 @@ async def test_cast_vote_single_vote_does_not_decide():
     ]
     svc.case_repo.enrich_case.return_value = _enriched_case(case)
 
-    result = await svc.cast_vote(
-        case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE)
-    )
+    result = await svc.cast_vote(case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE))
     assert result.status == DisciplineCaseStatus.SIGNALE
     svc.case_repo.upsert_vote.assert_awaited_once()
 
@@ -788,9 +788,7 @@ async def test_cast_vote_majority_renders_verdict():
     svc.case_repo.update.return_value = decided_case
     svc.case_repo.enrich_case.return_value = _enriched_case(decided_case)
 
-    result = await svc.cast_vote(
-        case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE)
-    )
+    result = await svc.cast_vote(case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE))
     assert result.status == DisciplineCaseStatus.VERDICT_RENDU
     assert result.sanction_type == SanctionType.SUSPENSION_TEMPORAIRE
 
@@ -820,9 +818,7 @@ async def test_cast_vote_revoked_seat_vote_not_counted():
     svc.case_repo.update.return_value = decided_case
     svc.case_repo.enrich_case.return_value = _enriched_case(decided_case)
 
-    result = await svc.cast_vote(
-        case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE)
-    )
+    result = await svc.cast_vote(case.id, voter, DisciplineVoteCast(sanction_type=SanctionType.SUSPENSION_TEMPORAIRE))
     # Majorite = 1 (un seul siege pourvu) et le seul vote valide (DELEGUE) suffit
     assert result.status == DisciplineCaseStatus.VERDICT_RENDU
 

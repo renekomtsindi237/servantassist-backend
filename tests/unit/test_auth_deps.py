@@ -17,7 +17,6 @@ from fastapi import HTTPException
 
 from src.core.entities.user import User, UserRole
 
-
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
 
@@ -613,8 +612,8 @@ def _patch_get_current_user_deps(user_obj, blacklisted=False):
       from src.infrastructure.repositories.user_repository import UserRepository
     So we must patch it in the auth_deps namespace.
     """
-    import src.presentation.dependencies.auth_deps as auth_deps_module
     import src.infrastructure.security.token_blacklist as bl_module
+    import src.presentation.dependencies.auth_deps as auth_deps_module
 
     mock_user_repo = MagicMock()
     mock_user_repo.get = AsyncMock(return_value=user_obj)
@@ -624,9 +623,7 @@ def _patch_get_current_user_deps(user_obj, blacklisted=False):
 
     class _Ctx:
         def __enter__(self):
-            self._p1 = patch.object(
-                auth_deps_module, "UserRepository", return_value=mock_user_repo
-            )
+            self._p1 = patch.object(auth_deps_module, "UserRepository", return_value=mock_user_repo)
             # token_blacklist is imported at module level in auth_deps:
             # from src.infrastructure.security.token_blacklist import token_blacklist
             # So we patch in the auth_deps namespace, not the token_blacklist module.
@@ -659,6 +656,7 @@ async def test_get_current_user_valid_token():
 @pytest.mark.asyncio
 async def test_get_current_user_invalid_token():
     import jwt as pyjwt
+
     from src.presentation.dependencies.auth_deps import get_current_user
 
     with patch("jwt.decode", side_effect=pyjwt.PyJWTError("bad token")):

@@ -113,10 +113,12 @@ async def test_event_list_paginated():
     session = _mock_session()
     repo = EventRepository(session)
     events = [_make_event()]
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=1),        # count
-        _exec_result(all_=events),  # results
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=1),  # count
+            _exec_result(all_=events),  # results
+        ]
+    )
 
     result, total = await repo.list_paginated()
     assert total == 1
@@ -130,10 +132,12 @@ async def test_event_list_paginated_with_filters():
 
     session = _mock_session()
     repo = EventRepository(session)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=0),
-        _exec_result(all_=[]),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=0),
+            _exec_result(all_=[]),
+        ]
+    )
     now = datetime.utcnow()
 
     result, total = await repo.list_paginated(
@@ -186,10 +190,12 @@ async def test_event_delete_found():
     event = _make_event()
 
     # First exec: participants (empty), Second exec: event itself
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(all_=[]),      # participants
-        _exec_result(first=event),  # event
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(all_=[]),  # participants
+            _exec_result(first=event),  # event
+        ]
+    )
     session.delete = AsyncMock()
     session.commit = AsyncMock()
 
@@ -205,10 +211,12 @@ async def test_event_delete_not_found():
     session = _mock_session()
     repo = EventRepository(session)
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(all_=[]),   # participants
-        _exec_result(first=None),  # event not found
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(all_=[]),  # participants
+            _exec_result(first=None),  # event not found
+        ]
+    )
 
     result = await repo.delete(uuid4())
     assert result is False
@@ -223,10 +231,12 @@ async def test_event_delete_with_participants():
     event = _make_event()
     p = _make_participant(event_id=event.id)
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(all_=[p]),     # participants
-        _exec_result(first=event),  # event
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(all_=[p]),  # participants
+            _exec_result(first=event),  # event
+        ]
+    )
     session.delete = AsyncMock()
     session.commit = AsyncMock()
 
@@ -261,10 +271,12 @@ async def test_event_get_participants():
     user.email = "jean@example.com"
     user.phone_number = "+237"
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(all_=[p]),      # participants
-        _exec_result(first=user),    # user for participant
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(all_=[p]),  # participants
+            _exec_result(first=user),  # user for participant
+        ]
+    )
 
     with patch("src.infrastructure.repositories.event_repository.decrypt_str_fields"):
         result = await repo.get_participants(uuid4())
@@ -281,10 +293,12 @@ async def test_event_get_participants_no_user():
     repo = EventRepository(session)
     p = _make_participant()
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(all_=[p]),
-        _exec_result(first=None),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(all_=[p]),
+            _exec_result(first=None),
+        ]
+    )
 
     result = await repo.get_participants(uuid4())
     assert result[0]["user_first_name"] is None
@@ -421,10 +435,12 @@ async def test_discipline_list_paginated():
     session = _mock_session()
     repo = _make_enc_disc_repo(session)
     cases = [_make_discipline_case()]
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=1),        # count
-        _exec_result(all_=cases),   # items
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=1),  # count
+            _exec_result(all_=cases),  # items
+        ]
+    )
 
     result, total = await repo.list_paginated()
     assert total == 1
@@ -438,10 +454,12 @@ async def test_discipline_list_paginated_with_filters():
 
     session = _mock_session()
     repo = _make_enc_disc_repo(session)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=0),
-        _exec_result(all_=[]),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=0),
+            _exec_result(all_=[]),
+        ]
+    )
 
     result, total = await repo.list_paginated(
         accused_user_id=uuid4(),

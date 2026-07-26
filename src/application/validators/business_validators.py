@@ -31,8 +31,7 @@ def validate_cameroon_phone(phone: str) -> str:
     cleaned = re.sub(r"[\s\-\.]", "", phone.strip())
     if not _PHONE_PATTERN.match(cleaned):
         raise ValueError(
-            f"Numéro de téléphone invalide : '{phone}'. "
-            "Format attendu : +237XXXXXXXXX (9 chiffres après +237)."
+            f"Numéro de téléphone invalide : '{phone}'. " "Format attendu : +237XXXXXXXXX (9 chiffres après +237)."
         )
     return cleaned
 
@@ -68,9 +67,7 @@ def validate_birthdate(date_value: Optional[str | date]) -> Optional[date]:
         try:
             parsed = date.fromisoformat(date_value.split("T")[0])
         except ValueError:
-            raise ValueError(
-                f"Format de date invalide : '{date_value}'. Attendu : YYYY-MM-DD."
-            )
+            raise ValueError(f"Format de date invalide : '{date_value}'. Attendu : YYYY-MM-DD.")
     elif isinstance(date_value, datetime):
         parsed = date_value.date()
     else:
@@ -80,19 +77,14 @@ def validate_birthdate(date_value: Optional[str | date]) -> Optional[date]:
     if parsed > today:
         raise ValueError("La date de naissance ne peut pas être dans le futur.")
     if parsed.year < _MIN_BIRTH_YEAR:
-        raise ValueError(
-            f"La date de naissance ne peut pas être avant {_MIN_BIRTH_YEAR}."
-        )
+        raise ValueError(f"La date de naissance ne peut pas être avant {_MIN_BIRTH_YEAR}.")
     age = (today - parsed).days // 365
     if age < _MIN_AGE_YEARS:
-        raise ValueError(
-            f"L'âge minimum requis est {_MIN_AGE_YEARS} ans."
-        )
+        raise ValueError(f"L'âge minimum requis est {_MIN_AGE_YEARS} ans.")
     return parsed
 
 
 # ── Position / Poste ──────────────────────────────────────────────────────────
-
 
 
 # ── Montant de cotisation ─────────────────────────────────────────────────────
@@ -111,13 +103,10 @@ def validate_cotisation_amount(amount: float) -> float:
         ValueError: si le montant est hors plage.
     """
     if amount < _MIN_COTISATION:
-        raise ValueError(
-            f"Le montant de cotisation doit être supérieur à 0 XAF (reçu : {amount})."
-        )
+        raise ValueError(f"Le montant de cotisation doit être supérieur à 0 XAF (reçu : {amount}).")
     if amount > _MAX_COTISATION:
         raise ValueError(
-            f"Le montant de cotisation ne peut pas dépasser {_MAX_COTISATION:,.0f} XAF "
-            f"(reçu : {amount:,.0f})."
+            f"Le montant de cotisation ne peut pas dépasser {_MAX_COTISATION:,.0f} XAF " f"(reçu : {amount:,.0f})."
         )
     return float(amount)
 
@@ -141,12 +130,8 @@ def validate_contribution_period(period: str) -> str:
     """
     cleaned = period.strip()
     if not _PERIOD_PATTERN.match(cleaned):
-        raise ValueError(
-            f"Format de période invalide : '{period}'. Attendu : YYYY-MM (ex. 2024-06)."
-        )
+        raise ValueError(f"Format de période invalide : '{period}'. Attendu : YYYY-MM (ex. 2024-06).")
     year = int(cleaned[:4])
     if not (2000 <= year <= 2100):
-        raise ValueError(
-            f"Année de période invalide : {year}. Plage acceptée : 2000–2100."
-        )
+        raise ValueError(f"Année de période invalide : {year}. Plage acceptée : 2000–2100.")
     return cleaned

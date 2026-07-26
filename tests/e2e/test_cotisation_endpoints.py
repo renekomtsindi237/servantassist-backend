@@ -158,9 +158,7 @@ class TestCotisationPeriods:
         assert resp.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_create_period_ordinaire_hebdomadaire_correct_amount(
-        self, client: AsyncClient, aumonier_user: User
-    ):
+    async def test_create_period_ordinaire_hebdomadaire_correct_amount(self, client: AsyncClient, aumonier_user: User):
         """ORDINAIRE/HEBDOMADAIRE doit valoir exactement 100 FCFA (Art. 22)."""
         resp = await client.post(
             "/api/v1/cotisations/periods",

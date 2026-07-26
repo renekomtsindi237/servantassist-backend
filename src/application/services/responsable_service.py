@@ -287,9 +287,7 @@ class ResponsableService:
         # l'Aumonier ne les a pas approuvees explicitement (reglement :
         # l'Econome "opere des sorties sous le controle et l'accord de
         # l'aumonier") — le statut demande est ignore pour cette categorie.
-        action_status = (
-            ActionStatus.BROUILLON if data.category == ActionCategory.DEPENSE else data.status
-        )
+        action_status = ActionStatus.BROUILLON if data.category == ActionCategory.DEPENSE else data.status
 
         # Appeler le repository avec les parametres individuels
         created = await self.action_repo.create(
@@ -544,7 +542,9 @@ class ResponsableService:
 
         return results
 
-    async def list_council_meetings(self, page: int = 1, page_size: int = 20) -> PaginatedResponse[CouncilMeetingResponse]:
+    async def list_council_meetings(
+        self, page: int = 1, page_size: int = 20
+    ) -> PaginatedResponse[CouncilMeetingResponse]:
         """Liste paginee des reunions du conseil, les plus recentes d'abord, avec decompte des presences."""
         meetings, total = await self.council_repo.list_meetings(page=page, page_size=page_size)
 

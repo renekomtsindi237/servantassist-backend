@@ -260,10 +260,12 @@ async def test_poste_action_list_by_poste():
     session = _mock_session()
     repo = PosteActionRepository(session)
     actions = [_make_poste_action()]
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=1),
-        _exec_result(all_=actions),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=1),
+            _exec_result(all_=actions),
+        ]
+    )
 
     result, total = await repo.list_by_poste(PosteResponsable.CONSEILLER)
     assert total == 1
@@ -277,10 +279,12 @@ async def test_poste_action_list_by_poste_with_filters():
 
     session = _mock_session()
     repo = PosteActionRepository(session)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=0),
-        _exec_result(all_=[]),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=0),
+            _exec_result(all_=[]),
+        ]
+    )
 
     result, total = await repo.list_by_poste(
         PosteResponsable.CONSEILLER,
@@ -357,10 +361,12 @@ async def test_report_list_reports():
     session = _mock_session()
     repo = ReportRepository(session)
     reports = [_make_report()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalars_list=reports),
-        _sa_exec_result(scalar_one=1),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalars_list=reports),
+            _sa_exec_result(scalar_one=1),
+        ]
+    )
 
     result, total = await repo.list_reports()
     assert total == 1
@@ -374,10 +380,12 @@ async def test_report_list_with_filters():
 
     session = _mock_session()
     repo = ReportRepository(session)
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalars_list=[]),
-        _sa_exec_result(scalar_one=0),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalars_list=[]),
+            _sa_exec_result(scalar_one=0),
+        ]
+    )
 
     result, total = await repo.list_reports(
         report_type=ReportType.MEETING,
@@ -483,10 +491,12 @@ async def test_report_get_by_created_by():
     session = _mock_session()
     repo = ReportRepository(session)
     reports = [_make_report()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalars_list=reports),
-        _sa_exec_result(scalar_one=1),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalars_list=reports),
+            _sa_exec_result(scalar_one=1),
+        ]
+    )
 
     result, total = await repo.get_by_created_by(uuid4())
     assert len(result) == 1

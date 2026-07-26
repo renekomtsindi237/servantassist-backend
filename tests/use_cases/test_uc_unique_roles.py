@@ -98,9 +98,7 @@ class TestMultipleServantParent:
             )
             assert resp.status_code == 201, f"Servant {i} failed: {resp.text}"
 
-    async def test_multiple_parents_with_separate_invitations(
-        self, client: AsyncClient, db_session, admin_user: User
-    ):
+    async def test_multiple_parents_with_separate_invitations(self, client: AsyncClient, db_session, admin_user: User):
         headers = make_auth_header(admin_user)
 
         for i in range(3):

@@ -6,9 +6,8 @@ Create Date: 2026-05-30
 """
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID
-
 from alembic import op
+from sqlalchemy.dialects.postgresql import UUID
 
 revision = "034"
 down_revision = "033"

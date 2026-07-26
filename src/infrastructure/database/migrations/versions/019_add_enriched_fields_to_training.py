@@ -10,7 +10,6 @@ but must exist as DB columns because SQLModel maps every field to a column.
 from typing import Sequence, Union
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "024"

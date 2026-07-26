@@ -6,43 +6,50 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 #  _is_private
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_is_private_localhost():
     from src.infrastructure.services.geolocation_service import _is_private
+
     assert _is_private("127.0.0.1") is True
 
 
 def test_is_private_10_range():
     from src.infrastructure.services.geolocation_service import _is_private
+
     assert _is_private("10.0.0.5") is True
 
 
 def test_is_private_172_range():
     from src.infrastructure.services.geolocation_service import _is_private
+
     assert _is_private("172.20.0.1") is True
 
 
 def test_is_private_192_range():
     from src.infrastructure.services.geolocation_service import _is_private
+
     assert _is_private("192.168.1.100") is True
 
 
 def test_is_private_ipv6_loopback():
     from src.infrastructure.services.geolocation_service import _is_private
+
     assert _is_private("::1") is True
 
 
 def test_is_private_public_ip():
     from src.infrastructure.services.geolocation_service import _is_private
+
     assert _is_private("8.8.8.8") is False
 
 
 def test_is_private_invalid():
     from src.infrastructure.services.geolocation_service import _is_private
+
     assert _is_private("not-an-ip") is True
 
 
@@ -50,9 +57,11 @@ def test_is_private_invalid():
 #  geolocate_ip
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_geolocate_private_ip_returns_none():
     from src.infrastructure.services.geolocation_service import geolocate_ip
+
     result = await geolocate_ip("192.168.1.1")
     assert result is None
 
@@ -120,6 +129,7 @@ async def test_geolocate_ip_exception_returns_none():
 # ─────────────────────────────────────────────────────────────────────────────
 #  extract_client_ip
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_extract_ip_cloudflare_header():
     from src.infrastructure.services.geolocation_service import extract_client_ip

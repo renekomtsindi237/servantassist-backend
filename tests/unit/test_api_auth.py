@@ -29,11 +29,12 @@ def _make_user(role="ADMIN"):
 
 
 def _build_client():
-    from fastapi.testclient import TestClient
     from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from src.infrastructure.database.session import get_db_session
     from src.presentation.api.v1.auth import router
     from src.presentation.dependencies.auth_deps import get_current_active_user
-    from src.infrastructure.database.session import get_db_session
 
     app = FastAPI()
     app.include_router(router, prefix="/auth")
@@ -50,6 +51,7 @@ def _build_client():
 # ─────────────────────────────────────────────────────────────────────────────
 #  POST /login (OAuth2 form)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_login_success():
     client, session, _ = _build_client()
@@ -111,6 +113,7 @@ def test_login_auth_failure():
 #  POST /login/phone
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_login_phone_success():
     client, session, _ = _build_client()
     tokens = _make_token_response()
@@ -152,6 +155,7 @@ def test_login_phone_brute_force_locked():
 #  POST /register
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_register_admin_forbidden():
     client, session, _ = _build_client()
 
@@ -171,8 +175,8 @@ def test_register_admin_forbidden():
 
 
 def test_register_servant_success():
-    from src.presentation.schemas.auth import UserResponse
     from src.core.entities.user import UserRole
+    from src.presentation.schemas.auth import UserResponse
 
     client, session, _ = _build_client()
     mock_user = MagicMock()
@@ -210,6 +214,7 @@ def test_register_servant_success():
 #  POST /refresh
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_refresh_token_success():
     client, session, _ = _build_client()
     tokens = _make_token_response()
@@ -231,6 +236,7 @@ def test_refresh_token_success():
 # ─────────────────────────────────────────────────────────────────────────────
 #  POST /logout
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_logout_no_bearer():
     client, session, _ = _build_client()
@@ -283,6 +289,7 @@ def test_logout_invalid_token_still_ok():
 #  POST /forgot-password
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_forgot_password():
     client, session, _ = _build_client()
 
@@ -305,6 +312,7 @@ def test_forgot_password():
 #  POST /request-reset-code
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_request_reset_code():
     client, session, _ = _build_client()
 
@@ -314,7 +322,10 @@ def test_request_reset_code():
     with patch("src.presentation.api.v1.auth.AuthService", return_value=mock_auth):
         with patch("src.presentation.api.v1.auth.UserRepository"):
             with patch("src.infrastructure.services.email_service.EmailService"):
-                with patch("src.infrastructure.repositories.password_reset_code_repository.PasswordResetCodeRepository", create=True):
+                with patch(
+                    "src.infrastructure.repositories.password_reset_code_repository.PasswordResetCodeRepository",
+                    create=True,
+                ):
                     response = client.post(
                         "/auth/request-reset-code",
                         json={"email": "user@example.com"},
@@ -327,6 +338,7 @@ def test_request_reset_code():
 #  POST /verify-reset-code
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_verify_reset_code():
     client, session, _ = _build_client()
 
@@ -335,7 +347,10 @@ def test_verify_reset_code():
 
     with patch("src.presentation.api.v1.auth.AuthService", return_value=mock_auth):
         with patch("src.presentation.api.v1.auth.UserRepository"):
-            with patch("src.infrastructure.repositories.password_reset_code_repository.PasswordResetCodeRepository", create=True):
+            with patch(
+                "src.infrastructure.repositories.password_reset_code_repository.PasswordResetCodeRepository",
+                create=True,
+            ):
                 response = client.post(
                     "/auth/verify-reset-code",
                     json={"email": "user@example.com", "code": "123456"},
@@ -349,6 +364,7 @@ def test_verify_reset_code():
 # ─────────────────────────────────────────────────────────────────────────────
 #  POST /reset-password
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_reset_password():
     client, session, _ = _build_client()
@@ -372,6 +388,7 @@ def test_reset_password():
 #  POST /request-reset-code/phone
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_request_reset_code_phone():
     client, session, _ = _build_client()
 
@@ -393,6 +410,7 @@ def test_request_reset_code_phone():
 #  POST /verify-reset-code/phone
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_verify_reset_code_phone():
     client, session, _ = _build_client()
 
@@ -413,6 +431,7 @@ def test_verify_reset_code_phone():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /server-pubkey
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_server_pubkey():
     client, session, _ = _build_client()

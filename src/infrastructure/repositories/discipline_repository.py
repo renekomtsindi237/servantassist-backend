@@ -109,9 +109,7 @@ class DisciplineCaseRepository(EncryptedModelMixin):
             counts[st.value] = result.one()
         return counts
 
-    async def count_by_offense_category_since(
-        self, user_id: UUID, category: OffenseCategory, since: datetime
-    ) -> int:
+    async def count_by_offense_category_since(self, user_id: UUID, category: OffenseCategory, since: datetime) -> int:
         """Nombre de dossiers pour un motif donne depuis une date (ex. Art. 48 : tenue incorrecte 3x)."""
         stmt = select(func.count()).where(
             DisciplineCase.accused_user_id == user_id,

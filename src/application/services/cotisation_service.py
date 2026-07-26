@@ -127,9 +127,7 @@ class CotisationService:
         if self.nomination_repo is None:
             return
 
-        servants, _ = await self.user_repo.list_paginated(
-            role=UserRole.SERVANT, is_active=True, page_size=10000
-        )
+        servants, _ = await self.user_repo.list_paginated(role=UserRole.SERVANT, is_active=True, page_size=10000)
         active_nominations = await self.nomination_repo.list_all_active()
         postes_by_user = {n.user_id for n in active_nominations}
 
@@ -405,8 +403,8 @@ class CotisationService:
             # Enregistrement structure de la convocation (Art. 48-49),
             # idempotent — ne cree pas de doublon si deja EN_ATTENTE.
             try:
-                from src.core.entities.convocation import ConvocationMotif
                 from src.application.services.convocation_service import ConvocationService
+                from src.core.entities.convocation import ConvocationMotif
                 from src.infrastructure.repositories.convocation_repository import (
                     ConvocationRepository,
                 )
@@ -421,8 +419,7 @@ class CotisationService:
                         servant_id=user_id,
                         motif=ConvocationMotif.NON_COTISATION,
                         details=(
-                            f"{max_consecutive_missing} periodes de cotisation ordinaire "
-                            "consecutives non reglees."
+                            f"{max_consecutive_missing} periodes de cotisation ordinaire " "consecutives non reglees."
                         ),
                         # Declenchement automatique (pas d'utilisateur "current" dans ce contexte).
                         convened_by=UUID("00000000-0000-0000-0000-000000000000"),

@@ -12,7 +12,6 @@ from uuid import UUID, uuid4
 
 import pytest
 
-
 # ─── Mock session builder ─────────────────────────────────────────────────────
 
 
@@ -244,10 +243,10 @@ async def test_financial_entry_get_statistics():
 
     session.execute = AsyncMock(
         side_effect=[
-            _count_sum_result(10, 50000),   # total
-            _count_sum_result(8, 40000),    # verified
-            _count_sum_result(2, 10000),    # pending
-            _count_sum_result(0, None),     # rejected
+            _count_sum_result(10, 50000),  # total
+            _count_sum_result(8, 40000),  # verified
+            _count_sum_result(2, 10000),  # pending
+            _count_sum_result(0, None),  # rejected
         ]
     )
 
@@ -760,9 +759,9 @@ async def test_attendance_calculate_stats():
 
     session.execute = AsyncMock(
         side_effect=[
-            servant_result,           # get servant
-            scalars_records_result,   # get_servant_records
-            total_result,             # count total sessions
+            servant_result,  # get servant
+            scalars_records_result,  # get_servant_records
+            total_result,  # count total sessions
         ]
     )
 
@@ -789,12 +788,10 @@ async def test_attendance_enrich_record():
     record = _make_attendance_record(servant_id=servant_id, recorded_by=recorder_id)
 
     servant = User(
-        id=servant_id, first_name="Alice", last_name="Martin",
-        email="a@t.com", role=UserRole.SERVANT, is_active=True
+        id=servant_id, first_name="Alice", last_name="Martin", email="a@t.com", role=UserRole.SERVANT, is_active=True
     )
     recorder = User(
-        id=recorder_id, first_name="Bob", last_name="Admin",
-        email="b@t.com", role=UserRole.ADMIN, is_active=True
+        id=recorder_id, first_name="Bob", last_name="Admin", email="b@t.com", role=UserRole.ADMIN, is_active=True
     )
 
     def make_r(val):

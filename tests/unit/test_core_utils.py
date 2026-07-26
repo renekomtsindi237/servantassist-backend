@@ -10,7 +10,6 @@ import pytest
 
 from src.core.utils import maybe_to_naive_utc, to_naive_utc, utc_now
 
-
 # ─── utc_now ─────────────────────────────────────────────────────────────────
 
 
@@ -159,7 +158,11 @@ def _load_standalone_utils():
 
     utils_path = os.path.join(
         os.path.dirname(__file__),
-        "..", "..", "src", "core", "utils.py",
+        "..",
+        "..",
+        "src",
+        "core",
+        "utils.py",
     )
     utils_path = os.path.abspath(utils_path)
     spec = importlib.util.spec_from_file_location("_sa_core_utils_standalone", utils_path)

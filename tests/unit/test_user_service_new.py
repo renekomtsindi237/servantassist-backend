@@ -57,9 +57,10 @@ async def test_update_profile_no_changes():
 
     user = _make_user()
     from src.presentation.schemas.user import UserProfileUpdate
+
     data = UserProfileUpdate()
 
-    result = await service.update_profile(user, data)
+    await service.update_profile(user, data)
     repo.update.assert_called_once()
 
 
@@ -71,6 +72,7 @@ async def test_update_profile_email_conflict():
 
     user = _make_user(email="old@example.com")
     from src.presentation.schemas.user import UserProfileUpdate
+
     data = UserProfileUpdate(email="new@example.com")
 
     with pytest.raises(HTTPException) as exc:
@@ -87,6 +89,7 @@ async def test_update_profile_phone_conflict():
 
     user = _make_user(phone_number="+237600000001")
     from src.presentation.schemas.user import UserProfileUpdate
+
     data = UserProfileUpdate(phone_number="+237600000002")
 
     with pytest.raises(HTTPException) as exc:
@@ -105,6 +108,7 @@ async def test_update_profile_update_all_fields():
 
     user = _make_user()
     from src.presentation.schemas.user import UserProfileUpdate
+
     data = UserProfileUpdate(
         first_name="Pierre",
         last_name="Durand",
@@ -125,6 +129,7 @@ async def test_update_profile_clear_phone():
 
     user = _make_user(phone_number="+237600000001")
     from src.presentation.schemas.user import UserProfileUpdate
+
     data = UserProfileUpdate(phone_number="")
 
     await service.update_profile(user, data)
@@ -344,7 +349,7 @@ async def test_link_parent_success():
     repo.add_parent_link = AsyncMock()
     service = _make_service(repo)
 
-    result = await service.link_parent(servant.id, parent.id)
+    await service.link_parent(servant.id, parent.id)
     repo.add_parent_link.assert_called_once_with(servant.id, parent.id)
 
 
@@ -372,7 +377,7 @@ async def test_unlink_parent_success():
     repo.remove_parent_link = AsyncMock()
     service = _make_service(repo)
 
-    result = await service.link_parent(servant.id, uuid4(), unlink=True)
+    await service.link_parent(servant.id, uuid4(), unlink=True)
     repo.remove_parent_link.assert_called_once()
 
 
@@ -414,7 +419,7 @@ async def test_deactivate_user_success():
     service = _make_service(repo)
 
     with patch("src.application.services.user_service.event_bus.publish", new_callable=AsyncMock):
-        result = await service.deactivate_user(user.id, admin)
+        await service.deactivate_user(user.id, admin)
 
     assert user.is_active is False
 
@@ -443,7 +448,7 @@ async def test_activate_user_success():
     service = _make_service(repo)
 
     with patch("src.application.services.user_service.event_bus.publish", new_callable=AsyncMock):
-        result = await service.activate_user(user.id)
+        await service.activate_user(user.id)
 
     assert user.is_active is True
 

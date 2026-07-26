@@ -394,7 +394,9 @@ POSTE_MISSIONS: dict[PosteResponsable, dict] = {
     },
     PosteResponsable.SECRETAIRE_ADJOINT: {
         "titre": "Secretaire Adjoint",
-        "description": "Alias de Secretaire General Adjoint — assiste le Secretaire et assure la promotion du bilinguisme.",
+        "description": (
+            "Alias de Secretaire General Adjoint — assiste le Secretaire et assure la promotion du bilinguisme."
+        ),
         "missions": [
             "Travaille en collaboration avec le Secretaire",
             "Assure la transmission des informations a la portee des servants de messe",

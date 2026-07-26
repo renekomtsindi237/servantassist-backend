@@ -91,10 +91,12 @@ async def test_material_item_list_items():
     session = _mock_session()
     repo = MaterialItemRepository(session)
     items = [_make_item(), _make_item()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=2),           # count
-        _sa_exec_result(scalars_list=items), # items
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=2),  # count
+            _sa_exec_result(scalars_list=items),  # items
+        ]
+    )
 
     result, total = await repo.list_items()
     assert total == 2
@@ -108,10 +110,12 @@ async def test_material_item_list_items_with_filters():
 
     session = _mock_session()
     repo = MaterialItemRepository(session)
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=0),
-        _sa_exec_result(scalars_list=[]),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=0),
+            _sa_exec_result(scalars_list=[]),
+        ]
+    )
 
     result, total = await repo.list_items(
         category=MaterialCategory.AUBE,
@@ -228,10 +232,12 @@ async def test_cleaning_task_list_tasks():
     session = _mock_session()
     repo = CleaningTaskRepository(session)
     tasks = [_make_task()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=1),
-        _sa_exec_result(scalars_list=tasks),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=1),
+            _sa_exec_result(scalars_list=tasks),
+        ]
+    )
 
     result, total = await repo.list_tasks()
     assert total == 1
@@ -246,10 +252,12 @@ async def test_cleaning_task_list_tasks_with_filters():
     session = _mock_session()
     repo = CleaningTaskRepository(session)
     now = datetime.utcnow()
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=0),
-        _sa_exec_result(scalars_list=[]),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=0),
+            _sa_exec_result(scalars_list=[]),
+        ]
+    )
 
     result, total = await repo.list_tasks(
         task_type=TaskType.NETTOYAGE,
@@ -417,7 +425,7 @@ async def test_task_assignment_enrich():
     session.execute = AsyncMock(return_value=_sa_exec_result(scalar_one=servant))
 
     with patch("src.infrastructure.repositories.material_repository.decrypt_str_fields"):
-        result = await repo.enrich_assignment(a)
+        await repo.enrich_assignment(a)
 
     assert a.servant_name == "Jean Nkemelu"
 

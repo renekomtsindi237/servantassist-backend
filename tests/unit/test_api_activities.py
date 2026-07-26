@@ -71,15 +71,16 @@ def _make_participant_response():
 
 
 def _build_client(role="SERVANT"):
-    from fastapi.testclient import TestClient
     from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from src.infrastructure.database.session import get_db_session
     from src.presentation.api.v1.activities import router
     from src.presentation.dependencies.auth_deps import (
         get_current_active_user,
         get_current_admin_or_aumonier,
         get_current_admin_user,
     )
-    from src.infrastructure.database.session import get_db_session
 
     app = FastAPI()
     app.include_router(router, prefix="/events")
@@ -99,19 +100,22 @@ def _build_client(role="SERVANT"):
 #  GET /
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_list_events():
     client, session, user = _build_client(role="SERVANT")
     event = _make_event_response()
 
     mock_service = MagicMock()
-    mock_service.list_events = AsyncMock(return_value={
-        "items": [event],
-        "total": 1,
-        "page": 1,
-        "page_size": 20,
-        "total_pages": 1,
-        "links": None,
-    })
+    mock_service.list_events = AsyncMock(
+        return_value={
+            "items": [event],
+            "total": 1,
+            "page": 1,
+            "page_size": 20,
+            "total_pages": 1,
+            "links": None,
+        }
+    )
 
     with patch("src.presentation.api.v1.activities.EventService", return_value=mock_service):
         with patch("src.presentation.api.v1.activities.EventRepository"):
@@ -124,6 +128,7 @@ def test_list_events():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /me
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_my_events():
     client, session, user = _build_client(role="SERVANT")
@@ -143,6 +148,7 @@ def test_get_my_events():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /{event_id}
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_event():
     client, session, user = _build_client(role="SERVANT")
@@ -164,6 +170,7 @@ def test_get_event():
 #  POST /
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_create_event():
     client, session, user = _build_client(role="ADMIN")
     event = _make_event_detail()
@@ -174,15 +181,18 @@ def test_create_event():
     with patch("src.presentation.api.v1.activities.EventService", return_value=mock_service):
         with patch("src.presentation.api.v1.activities.EventRepository"):
             with patch("src.presentation.api.v1.activities.UserRepository"):
-                response = client.post("/events/", json={
-                    "title": "Messe du dimanche",
-                    "description": "Messe dominicale",
-                    "start_time": "2026-06-21T09:00:00",
-                    "end_time": "2026-06-21T11:00:00",
-                    "location": "Cathédrale",
-                    "event_type": "MESSE_DOMINICALE",
-                    "status": "PUBLIE",
-                })
+                response = client.post(
+                    "/events/",
+                    json={
+                        "title": "Messe du dimanche",
+                        "description": "Messe dominicale",
+                        "start_time": "2026-06-21T09:00:00",
+                        "end_time": "2026-06-21T11:00:00",
+                        "location": "Cathédrale",
+                        "event_type": "MESSE_DOMINICALE",
+                        "status": "PUBLIE",
+                    },
+                )
 
     assert response.status_code == 201
 
@@ -190,6 +200,7 @@ def test_create_event():
 # ─────────────────────────────────────────────────────────────────────────────
 #  PATCH /{event_id}
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_update_event():
     client, session, user = _build_client(role="ADMIN")
@@ -211,6 +222,7 @@ def test_update_event():
 #  DELETE /{event_id}
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_delete_event():
     client, session, user = _build_client(role="ADMIN")
     event_id = uuid4()
@@ -229,6 +241,7 @@ def test_delete_event():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /{event_id}/participants
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_list_participants():
     client, session, user = _build_client(role="SERVANT")
@@ -250,6 +263,7 @@ def test_list_participants():
 #  POST /{event_id}/participants
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_add_participant():
     client, session, user = _build_client(role="ADMIN")
     event_id = uuid4()
@@ -261,10 +275,13 @@ def test_add_participant():
     with patch("src.presentation.api.v1.activities.EventService", return_value=mock_service):
         with patch("src.presentation.api.v1.activities.EventRepository"):
             with patch("src.presentation.api.v1.activities.UserRepository"):
-                response = client.post(f"/events/{event_id}/participants", json={
-                    "user_id": str(uuid4()),
-                    "participant_role": "SERVANT",
-                })
+                response = client.post(
+                    f"/events/{event_id}/participants",
+                    json={
+                        "user_id": str(uuid4()),
+                        "participant_role": "SERVANT",
+                    },
+                )
 
     assert response.status_code == 201
 
@@ -272,6 +289,7 @@ def test_add_participant():
 # ─────────────────────────────────────────────────────────────────────────────
 #  PATCH /{event_id}/participants/{user_id}
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_update_participant():
     client, session, user = _build_client(role="ADMIN")
@@ -285,9 +303,12 @@ def test_update_participant():
     with patch("src.presentation.api.v1.activities.EventService", return_value=mock_service):
         with patch("src.presentation.api.v1.activities.EventRepository"):
             with patch("src.presentation.api.v1.activities.UserRepository"):
-                response = client.patch(f"/events/{event_id}/participants/{user_id}", json={
-                    "status": "PRESENT",
-                })
+                response = client.patch(
+                    f"/events/{event_id}/participants/{user_id}",
+                    json={
+                        "status": "PRESENT",
+                    },
+                )
 
     assert response.status_code == 200
 
@@ -295,6 +316,7 @@ def test_update_participant():
 # ─────────────────────────────────────────────────────────────────────────────
 #  DELETE /{event_id}/participants/{user_id}
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_remove_participant():
     client, session, user = _build_client(role="ADMIN")
@@ -316,6 +338,7 @@ def test_remove_participant():
 #  PATCH /{event_id}/my-participation
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_update_my_participation():
     client, session, user = _build_client(role="SERVANT")
     event_id = uuid4()
@@ -335,6 +358,7 @@ def test_update_my_participation():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /{event_id}/export-ical
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_export_single_event_ical():
     try:
@@ -361,6 +385,7 @@ def test_export_single_event_ical():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /{event_id}/qr-code (skip if qrcode not installed)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_event_qr_code():
     try:
@@ -392,6 +417,7 @@ def test_get_event_qr_code():
 #  POST /{event_id}/check-in — missing token
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_check_in_event_missing_token():
     client, session, user = _build_client(role="SERVANT")
     event_id = uuid4()
@@ -417,6 +443,7 @@ def test_check_in_event_invalid_token():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /calendar.ics (all events)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_export_all_events_ical():
     try:

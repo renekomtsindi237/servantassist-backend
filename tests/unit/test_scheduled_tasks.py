@@ -12,7 +12,6 @@ from uuid import uuid4
 
 import pytest
 
-
 # ─── _run_async ───────────────────────────────────────────────────────────────
 
 
@@ -105,8 +104,8 @@ async def test_send_event_reminders_no_events():
     mock_sm.session.return_value = mock_session
 
     with patch("src.infrastructure.tasks.scheduled.sessionmanager", mock_sm, create=True):
-        import src.infrastructure.tasks.scheduled as sched_mod
-        orig_sm = getattr(sched_mod, "sessionmanager", None)
+        import src.infrastructure.tasks.scheduled as sched_mod  # noqa: F401
+
         # Patch through the local import
         with patch("src.infrastructure.database.session.sessionmanager", mock_sm):
             # The function imports sessionmanager inside; patch it there
@@ -133,10 +132,12 @@ async def test_send_event_reminders_sends_emails():
     mock_session = AsyncMock()
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=None)
-    mock_session.exec = AsyncMock(side_effect=[
-        _exec_result([event]),        # events query
-        _exec_result([assignment]),   # assignments query for event
-    ])
+    mock_session.exec = AsyncMock(
+        side_effect=[
+            _exec_result([event]),  # events query
+            _exec_result([assignment]),  # assignments query for event
+        ]
+    )
     mock_session.get = AsyncMock(return_value=user)
 
     mock_sm = MagicMock()
@@ -167,10 +168,12 @@ async def test_send_event_reminders_skips_inactive_user():
     mock_session = AsyncMock()
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=None)
-    mock_session.exec = AsyncMock(side_effect=[
-        _exec_result([event]),
-        _exec_result([assignment]),
-    ])
+    mock_session.exec = AsyncMock(
+        side_effect=[
+            _exec_result([event]),
+            _exec_result([assignment]),
+        ]
+    )
     mock_session.get = AsyncMock(return_value=user)
 
     mock_sm = MagicMock()
@@ -201,10 +204,12 @@ async def test_send_event_reminders_skips_no_email():
     mock_session = AsyncMock()
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=None)
-    mock_session.exec = AsyncMock(side_effect=[
-        _exec_result([event]),
-        _exec_result([assignment]),
-    ])
+    mock_session.exec = AsyncMock(
+        side_effect=[
+            _exec_result([event]),
+            _exec_result([assignment]),
+        ]
+    )
     mock_session.get = AsyncMock(return_value=user)
 
     mock_sm = MagicMock()
@@ -259,11 +264,13 @@ async def test_send_weekly_report_sends_to_admins():
     mock_session = AsyncMock()
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=None)
-    mock_session.exec = AsyncMock(side_effect=[
-        _exec_result([admin1, admin2]),     # admins
-        _exec_result([MagicMock()]),         # events
-        _exec_result([]),                    # attendance (empty avoids RETARD bug)
-    ])
+    mock_session.exec = AsyncMock(
+        side_effect=[
+            _exec_result([admin1, admin2]),  # admins
+            _exec_result([MagicMock()]),  # events
+            _exec_result([]),  # attendance (empty avoids RETARD bug)
+        ]
+    )
 
     mock_sm = MagicMock()
     mock_sm.session.return_value = mock_session
@@ -291,11 +298,13 @@ async def test_send_weekly_report_no_attendance():
     mock_session = AsyncMock()
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=None)
-    mock_session.exec = AsyncMock(side_effect=[
-        _exec_result([admin]),   # admins
-        _exec_result([]),        # events (empty)
-        _exec_result([]),        # attendance (empty)
-    ])
+    mock_session.exec = AsyncMock(
+        side_effect=[
+            _exec_result([admin]),  # admins
+            _exec_result([]),  # events (empty)
+            _exec_result([]),  # attendance (empty)
+        ]
+    )
 
     mock_sm = MagicMock()
     mock_sm.session.return_value = mock_session

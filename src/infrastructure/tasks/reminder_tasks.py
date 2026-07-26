@@ -247,4 +247,3 @@ async def _check_convocation_deadlines_async() -> dict:
         result["expired_convocations_processed"],
     )
     return result
-    return {"nb_reminders_sent": sent, "nb_errors": errors}

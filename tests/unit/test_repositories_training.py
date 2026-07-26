@@ -136,10 +136,12 @@ async def test_training_session_list():
     session = _mock_session()
     repo = TrainingSessionRepository(session)
     sessions = [_make_training_session(), _make_training_session()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=2),
-        _sa_exec_result(scalars_list=sessions),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=2),
+            _sa_exec_result(scalars_list=sessions),
+        ]
+    )
 
     result, total = await repo.list_sessions()
     assert total == 2
@@ -154,10 +156,12 @@ async def test_training_session_list_with_filters():
     session = _mock_session()
     repo = TrainingSessionRepository(session)
     now = datetime.utcnow()
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=0),
-        _sa_exec_result(scalars_list=[]),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=0),
+            _sa_exec_result(scalars_list=[]),
+        ]
+    )
 
     result, total = await repo.list_sessions(
         level=TrainingLevel.DEBUTANT,
@@ -217,10 +221,12 @@ async def test_training_session_get_by_created_by():
     session = _mock_session()
     repo = TrainingSessionRepository(session)
     sessions = [_make_training_session()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=1),
-        _sa_exec_result(scalars_list=sessions),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=1),
+            _sa_exec_result(scalars_list=sessions),
+        ]
+    )
 
     result, total = await repo.get_by_created_by(uuid4())
     assert total == 1
@@ -237,13 +243,15 @@ async def test_training_session_enrich_with_trainer():
     trainer = MagicMock()
     trainer.first_name = "Joseph"
     trainer.last_name = "Kanga"
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=trainer),   # trainer
-        _sa_exec_result(scalar=5),             # participant count
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=trainer),  # trainer
+            _sa_exec_result(scalar=5),  # participant count
+        ]
+    )
 
     with patch("src.infrastructure.repositories.training_repository.decrypt_str_fields"):
-        result = await repo.enrich_session(ts)
+        await repo.enrich_session(ts)
 
     assert ts.trainer_name == "Joseph Kanga"
     assert ts.current_participants == 5
@@ -256,10 +264,12 @@ async def test_training_session_enrich_no_trainer():
     session = _mock_session()
     repo = TrainingSessionRepository(session)
     ts = _make_training_session()
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=None),  # no trainer
-        _sa_exec_result(scalar=0),          # count
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=None),  # no trainer
+            _sa_exec_result(scalar=0),  # count
+        ]
+    )
 
     result = await repo.enrich_session(ts)
     assert result is ts
@@ -421,10 +431,12 @@ async def test_training_participation_get_servant_stats_no_participations():
     servant.last_name = "Nkolo"
 
     # First call: get servant; second: list_by_servant
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=servant),   # servant
-        _sa_exec_result(scalars_list=[]),       # participations
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=servant),  # servant
+            _sa_exec_result(scalars_list=[]),  # participations
+        ]
+    )
 
     with patch("src.infrastructure.repositories.training_repository.decrypt_str_fields"):
         result = await repo.get_servant_stats(uuid4())
@@ -453,11 +465,13 @@ async def test_training_participation_get_servant_stats_with_data():
     last_session = MagicMock()
     last_session.date = datetime.utcnow()
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=servant),        # servant
-        _sa_exec_result(scalars_list=[p1, p2]),     # participations
-        _sa_exec_result(scalar_one=last_session),   # last session date lookup
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=servant),  # servant
+            _sa_exec_result(scalars_list=[p1, p2]),  # participations
+            _sa_exec_result(scalar_one=last_session),  # last session date lookup
+        ]
+    )
 
     with patch("src.infrastructure.repositories.training_repository.decrypt_str_fields"):
         result = await repo.get_servant_stats(uuid4())
@@ -482,7 +496,7 @@ async def test_training_participation_enrich_found():
     session.execute = AsyncMock(return_value=_sa_exec_result(scalar_one=servant))
 
     with patch("src.infrastructure.repositories.training_repository.decrypt_str_fields"):
-        result = await repo.enrich_participation(p)
+        await repo.enrich_participation(p)
 
     assert p.servant_name == "Anne Bello"
 
@@ -540,10 +554,12 @@ async def test_training_material_list():
     session = _mock_session()
     repo = TrainingMaterialRepository(session)
     materials = [_make_material()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=1),
-        _sa_exec_result(scalars_list=materials),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=1),
+            _sa_exec_result(scalars_list=materials),
+        ]
+    )
 
     result, total = await repo.list_materials()
     assert total == 1
@@ -557,10 +573,12 @@ async def test_training_material_list_with_filters():
 
     session = _mock_session()
     repo = TrainingMaterialRepository(session)
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=0),
-        _sa_exec_result(scalars_list=[]),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=0),
+            _sa_exec_result(scalars_list=[]),
+        ]
+    )
 
     result, total = await repo.list_materials(
         type=MaterialType.DOCUMENT,
@@ -653,7 +671,7 @@ async def test_training_material_enrich_found():
     session.execute = AsyncMock(return_value=_sa_exec_result(scalar_one=uploader))
 
     with patch("src.infrastructure.repositories.training_repository.decrypt_str_fields"):
-        result = await repo.enrich_material(m)
+        await repo.enrich_material(m)
 
     assert m.uploaded_by_name == "Chef Liturgie"
 

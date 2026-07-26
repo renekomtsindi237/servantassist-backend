@@ -363,9 +363,7 @@ async def test_create_period_speciale_creates_obligations():
 @pytest.mark.asyncio
 async def test_create_period_aube_creates_obligations():
     """Art. 21 : la cotisation aube est obligatoire pour les nouveaux et les anciens."""
-    period = _make_period(
-        cotisation_type=CotisationType.AUBE, period_type=PeriodType.ANNUEL, amount_expected=3000
-    )
+    period = _make_period(cotisation_type=CotisationType.AUBE, period_type=PeriodType.ANNUEL, amount_expected=3000)
     servant = _make_user()
 
     user_repo = MagicMock()
@@ -394,9 +392,7 @@ async def test_create_period_aube_creates_obligations():
 @pytest.mark.asyncio
 async def test_create_period_amende_does_not_create_obligations():
     """Une AMENDE est individuelle (penalite ciblee) : pas d'obligation pour tous."""
-    period = _make_period(
-        cotisation_type=CotisationType.AMENDE, period_type=PeriodType.PONCTUEL, amount_expected=1000
-    )
+    period = _make_period(cotisation_type=CotisationType.AMENDE, period_type=PeriodType.PONCTUEL, amount_expected=1000)
     servant = _make_user()
 
     user_repo = MagicMock()
@@ -766,9 +762,7 @@ async def test_get_bilan_zero_members():
 @pytest.mark.asyncio
 async def test_record_payment_rejects_cumul_mensuel_hebdo():
     """Un servant deja inscrit en hebdomadaire ne peut pas payer une periode mensuelle qui chevauche."""
-    period = _make_period(
-        cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.MENSUEL, amount_expected=500
-    )
+    period = _make_period(cotisation_type=CotisationType.ORDINAIRE, period_type=PeriodType.MENSUEL, amount_expected=500)
     user = _make_user()
     overlapping = _make_payment(user_id=user.id)
     svc = _make_svc()

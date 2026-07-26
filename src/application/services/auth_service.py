@@ -342,9 +342,7 @@ class AuthService:
         access_token_expires = timedelta(minutes=30)
         position: Optional[str] = None
         if user.role == UserRole.SERVANT:
-            nominations = await NominationRepository(self.user_repository.session).get_active_by_user(
-                user.id
-            )
+            nominations = await NominationRepository(self.user_repository.session).get_active_by_user(user.id)
             if nominations:
                 position = nominations[0].poste.value
         access_token = SecurityUtils.create_access_token(

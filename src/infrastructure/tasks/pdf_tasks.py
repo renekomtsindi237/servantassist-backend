@@ -77,9 +77,9 @@ def export_user_data_pdf(self, user_id: str) -> Optional[bytes]:
 async def _export_user_data_pdf_async(user_id: UUID) -> Optional[bytes]:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.lib.units import cm
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-    from reportlab.lib.styles import getSampleStyleSheet
     from sqlmodel import col, select
 
     from src.core.entities.attendance import Attendance
@@ -127,13 +127,17 @@ async def _export_user_data_pdf_async(user_id: UUID) -> Optional[bytes]:
         ["Consentement données", str(user.data_consent_at)[:10] if user.data_consent_at else "Non renseigné"],
     ]
     profile_table = Table(profile_data, colWidths=[6 * cm, 11 * cm])
-    profile_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F4F6FB")]),
-    ]))
+    profile_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F4F6FB")]),
+            ]
+        )
+    )
     story.append(profile_table)
     story.append(Spacer(1, 0.5 * cm))
 
@@ -141,19 +145,25 @@ async def _export_user_data_pdf_async(user_id: UUID) -> Optional[bytes]:
         story.append(Paragraph(f"Présences ({len(attendances)} enregistrements)", styles["Heading2"]))
         att_data = [["Session", "Date", "Statut"]]
         for a in attendances[:50]:
-            att_data.append([
-                str(a.session_id)[:8] + "...",
-                str(a.created_at)[:10] if a.created_at else "",
-                a.status.value if hasattr(a.status, "value") else str(a.status),
-            ])
+            att_data.append(
+                [
+                    str(a.session_id)[:8] + "...",
+                    str(a.created_at)[:10] if a.created_at else "",
+                    a.status.value if hasattr(a.status, "value") else str(a.status),
+                ]
+            )
         att_table = Table(att_data, colWidths=[6 * cm, 4 * cm, 7 * cm])
-        att_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ]))
+        att_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ]
+            )
+        )
         story.append(att_table)
         story.append(Spacer(1, 0.5 * cm))
 
@@ -161,27 +171,35 @@ async def _export_user_data_pdf_async(user_id: UUID) -> Optional[bytes]:
         story.append(Paragraph(f"Cotisations ({len(cotisations)} enregistrements)", styles["Heading2"]))
         cot_data = [["Période", "Montant payé (XAF)", "Statut"]]
         for c, period in cotisations[:50]:
-            cot_data.append([
-                period.title if period else "",
-                f"{c.amount_paid:,.0f}" if c.amount_paid else "0",
-                c.status.value if hasattr(c.status, "value") else str(c.status),
-            ])
+            cot_data.append(
+                [
+                    period.title if period else "",
+                    f"{c.amount_paid:,.0f}" if c.amount_paid else "0",
+                    c.status.value if hasattr(c.status, "value") else str(c.status),
+                ]
+            )
         cot_table = Table(cot_data, colWidths=[7 * cm, 5 * cm, 5 * cm])
-        cot_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ]))
+        cot_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ]
+            )
+        )
         story.append(cot_table)
 
     story.append(Spacer(1, 1 * cm))
-    story.append(Paragraph(
-        "Ce document a été généré conformément à l'Art. 20 de la Loi 2024/017 "
-        "relative à la protection des données personnelles au Cameroun.",
-        styles["Italic"],
-    ))
+    story.append(
+        Paragraph(
+            "Ce document a été généré conformément à l'Art. 20 de la Loi 2024/017 "
+            "relative à la protection des données personnelles au Cameroun.",
+            styles["Italic"],
+        )
+    )
 
     doc.build(story)
     return buf.getvalue()
@@ -208,9 +226,9 @@ def generate_attendance_report_pdf(self, session_id: str) -> Optional[bytes]:
 async def _generate_attendance_report_async(session_id: UUID) -> Optional[bytes]:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.lib.units import cm
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-    from reportlab.lib.styles import getSampleStyleSheet
     from sqlmodel import select
 
     from src.core.entities.attendance import Attendance, AttendanceSession
@@ -243,33 +261,43 @@ async def _generate_attendance_report_async(session_id: UUID) -> Optional[bytes]
         [str(len(attendances)), str(present), str(absent), rate],
     ]
     summary_table = Table(summary_data, colWidths=[4 * cm, 4 * cm, 4 * cm, 4 * cm])
-    summary_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
-    ]))
+    summary_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+            ]
+        )
+    )
     story.append(summary_table)
     story.append(Spacer(1, 0.5 * cm))
 
     if attendances:
         rows = [["Servant", "Statut", "Note"]]
         for a in attendances:
-            rows.append([
-                str(a.user_id)[:8] + "...",
-                str(getattr(a.status, "value", a.status)),
-                getattr(a, "note", "") or "",
-            ])
+            rows.append(
+                [
+                    str(a.user_id)[:8] + "...",
+                    str(getattr(a.status, "value", a.status)),
+                    getattr(a, "note", "") or "",
+                ]
+            )
         detail_table = Table(rows, colWidths=[7 * cm, 4 * cm, 6 * cm])
-        detail_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F4F6FB")]),
-        ]))
+        detail_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F4F6FB")]),
+                ]
+            )
+        )
         story.append(detail_table)
 
     doc.build(story)
@@ -296,9 +324,9 @@ def generate_financial_report_pdf(self, period: str, year: int) -> Optional[byte
 async def _generate_financial_report_async(period: str, year: int) -> bytes:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.lib.units import cm
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-    from reportlab.lib.styles import getSampleStyleSheet
     from sqlalchemy import func
     from sqlmodel import select
 
@@ -325,26 +353,41 @@ async def _generate_financial_report_async(period: str, year: int) -> bytes:
 
     total = sum(p.amount_expected or 0 for _, p in cotisations)
     paid = sum(c.amount_paid or 0 for c, _ in cotisations)
-    story.append(Paragraph(f"Total attendu : {total:,.0f} XAF | Collecté : {paid:,.0f} XAF | Taux : {paid/total*100:.1f}%" if total else "Aucune donnée", styles["Normal"]))
+    story.append(
+        Paragraph(
+            (
+                f"Total attendu : {total:,.0f} XAF | Collecté : {paid:,.0f} XAF | Taux : {paid/total*100:.1f}%"
+                if total
+                else "Aucune donnée"
+            ),
+            styles["Normal"],
+        )
+    )
     story.append(Spacer(1, 0.5 * cm))
 
     if cotisations:
         rows = [["Servant", "Période", "Montant payé (XAF)", "Statut"]]
         for c, p in cotisations[:100]:
-            rows.append([
-                str(c.user_id)[:8] + "...",
-                p.title if p else "",
-                f"{c.amount_paid:,.0f}" if c.amount_paid else "0",
-                str(getattr(c.status, "value", c.status)),
-            ])
+            rows.append(
+                [
+                    str(c.user_id)[:8] + "...",
+                    p.title if p else "",
+                    f"{c.amount_paid:,.0f}" if c.amount_paid else "0",
+                    str(getattr(c.status, "value", c.status)),
+                ]
+            )
         table = Table(rows, colWidths=[5 * cm, 3 * cm, 5 * cm, 4 * cm])
-        table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ]))
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2A72B4")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ]
+            )
+        )
         story.append(table)
 
     doc.build(story)

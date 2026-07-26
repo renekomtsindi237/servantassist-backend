@@ -63,10 +63,12 @@ async def test_user_get_servant_found():
     repo = _make_repo(session)
     user = _make_user(role=UserRole.SERVANT)
     # get() -> exec, _load_parent_ids -> exec
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=user),   # get query
-        _exec_result(all_=[]),       # parent_ids query
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=user),  # get query
+            _exec_result(all_=[]),  # parent_ids query
+        ]
+    )
 
     result = await repo.get(user.id)
     assert result is user

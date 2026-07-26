@@ -150,9 +150,7 @@ class TestEmailLockedInvitation:
         assert resp.status_code == 403
         assert "email" in resp.json()["detail"].lower()
 
-    async def test_email_locked_invitation_correct_email(
-        self, client: AsyncClient, db_session, admin_user: User
-    ):
+    async def test_email_locked_invitation_correct_email(self, client: AsyncClient, db_session, admin_user: User):
         admin_headers = make_auth_header(admin_user)
 
         inv_resp = await client.post(

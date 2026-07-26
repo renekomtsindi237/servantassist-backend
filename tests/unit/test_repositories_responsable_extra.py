@@ -57,10 +57,12 @@ async def test_poste_action_list_all():
     session = _mock_session()
     repo = PosteActionRepository(session)
     actions = [_make_action(), _make_action()]
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=2),
-        _exec_result(all_=actions),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=2),
+            _exec_result(all_=actions),
+        ]
+    )
 
     result = await repo.list_with_filters()
     assert result["total"] == 2
@@ -74,10 +76,12 @@ async def test_poste_action_list_all_with_filters():
 
     session = _mock_session()
     repo = PosteActionRepository(session)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=0),
-        _exec_result(all_=[]),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=0),
+            _exec_result(all_=[]),
+        ]
+    )
 
     result = await repo.list_with_filters(
         poste=PosteResponsable.DELEGUE,
@@ -99,10 +103,12 @@ async def test_poste_action_list_by_visibility():
     session = _mock_session()
     repo = PosteActionRepository(session)
     actions = [_make_action()]
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=1),
-        _exec_result(all_=actions),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=1),
+            _exec_result(all_=actions),
+        ]
+    )
 
     result = await repo.list_by_visibility(uuid4())
     assert result["total"] == 1
@@ -116,10 +122,12 @@ async def test_poste_action_list_by_visibility_with_filters():
 
     session = _mock_session()
     repo = PosteActionRepository(session)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=0),
-        _exec_result(all_=[]),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=0),
+            _exec_result(all_=[]),
+        ]
+    )
 
     result = await repo.list_by_visibility(
         uuid4(),
@@ -222,15 +230,22 @@ async def test_poste_action_enrich_with_target_user_and_event():
     repo = PosteActionRepository(session)
     action = _make_action(target_user_id=uuid4(), target_event_id=uuid4())
 
-    author = MagicMock(); author.first_name = "Jean"; author.last_name = "D."
-    target_user = MagicMock(); target_user.first_name = "Marc"; target_user.last_name = "T."
-    target_event = MagicMock(); target_event.title = "Messe du dimanche"
+    author = MagicMock()
+    author.first_name = "Jean"
+    author.last_name = "D."
+    target_user = MagicMock()
+    target_user.first_name = "Marc"
+    target_user.last_name = "T."
+    target_event = MagicMock()
+    target_event.title = "Messe du dimanche"
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=author),       # author
-        _exec_result(first=target_user),  # target_user
-        _exec_result(first=target_event), # target_event
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=author),  # author
+            _exec_result(first=target_user),  # target_user
+            _exec_result(first=target_event),  # target_event
+        ]
+    )
 
     with patch("src.infrastructure.repositories.responsable_repository.decrypt_str_fields"):
         result = await repo.enrich_action(action)
@@ -268,7 +283,7 @@ async def test_poste_action_create():
     session.commit = AsyncMock()
     session.refresh = AsyncMock()
 
-    result = await repo.create(
+    await repo.create(
         poste=PosteResponsable.DELEGUE,
         category=ActionCategory.DECISION,
         title="Test action",
@@ -286,10 +301,12 @@ async def test_poste_action_update_found():
     session = _mock_session()
     repo = PosteActionRepository(session)
     action = _make_action()
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=action),   # get
-        _exec_result(first=action),   # refresh after commit (not called via exec)
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=action),  # get
+            _exec_result(first=action),  # refresh after commit (not called via exec)
+        ]
+    )
     session.add = MagicMock()
     session.commit = AsyncMock()
     session.refresh = AsyncMock()

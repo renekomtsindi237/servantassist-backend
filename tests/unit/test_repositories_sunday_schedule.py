@@ -128,11 +128,13 @@ async def test_sunday_delete_template_found():
     mass = _make_mass(template_id=template.id)
     assignment = _make_assignment(mass_slot_id=mass.id)
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=template),         # get_template
-        _sa_exec_result(scalars_list=[mass]),          # get masses
-        _sa_exec_result(scalars_list=[assignment]),    # assignments for mass
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=template),  # get_template
+            _sa_exec_result(scalars_list=[mass]),  # get masses
+            _sa_exec_result(scalars_list=[assignment]),  # assignments for mass
+        ]
+    )
     session.delete = AsyncMock()
     session.commit = AsyncMock()
 
@@ -159,10 +161,12 @@ async def test_sunday_list_templates():
     session = _mock_session()
     repo = SundayScheduleRepository(session)
     templates = [_make_template(), _make_template()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=2),
-        _sa_exec_result(scalars_list=templates),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=2),
+            _sa_exec_result(scalars_list=templates),
+        ]
+    )
 
     result, total = await repo.list_templates()
     assert total == 2
@@ -177,10 +181,12 @@ async def test_sunday_list_templates_with_filters():
     session = _mock_session()
     repo = SundayScheduleRepository(session)
     now = datetime.utcnow()
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=0),
-        _sa_exec_result(scalars_list=[]),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=0),
+            _sa_exec_result(scalars_list=[]),
+        ]
+    )
 
     result, total = await repo.list_templates(
         status=SundayScheduleStatus.PUBLISHED,
@@ -274,10 +280,12 @@ async def test_sunday_delete_mass_found():
     mass = _make_mass()
     assignment = _make_assignment(mass_slot_id=mass.id)
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=mass),              # get_mass
-        _sa_exec_result(scalars_list=[assignment]),     # get assignments
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=mass),  # get_mass
+            _sa_exec_result(scalars_list=[assignment]),  # get assignments
+        ]
+    )
     session.delete = AsyncMock()
     session.commit = AsyncMock()
 
@@ -473,17 +481,27 @@ async def test_sunday_enrich_assignment_full():
     presence_id = uuid4()
     assignment = _make_assignment(last_modified_by=modifier_id, presence_marked_by=presence_id)
 
-    servant = MagicMock(); servant.first_name = "Jean"; servant.last_name = "D."
-    assignee = MagicMock(); assignee.first_name = "Admin"; assignee.last_name = "Res"
-    modifier = MagicMock(); modifier.first_name = "Chef"; modifier.last_name = "R"
-    presence = MagicMock(); presence.first_name = "Pres"; presence.last_name = "B"
+    servant = MagicMock()
+    servant.first_name = "Jean"
+    servant.last_name = "D."
+    assignee = MagicMock()
+    assignee.first_name = "Admin"
+    assignee.last_name = "Res"
+    modifier = MagicMock()
+    modifier.first_name = "Chef"
+    modifier.last_name = "R"
+    presence = MagicMock()
+    presence.first_name = "Pres"
+    presence.last_name = "B"
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=servant),    # servant
-        _sa_exec_result(scalar_one=assignee),   # assigned_by
-        _sa_exec_result(scalar_one=modifier),   # last_modified_by
-        _sa_exec_result(scalar_one=presence),   # presence_marked_by
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=servant),  # servant
+            _sa_exec_result(scalar_one=assignee),  # assigned_by
+            _sa_exec_result(scalar_one=modifier),  # last_modified_by
+            _sa_exec_result(scalar_one=presence),  # presence_marked_by
+        ]
+    )
 
     with patch("src.infrastructure.repositories.sunday_schedule_repository.decrypt_str_fields"):
         result = await repo.enrich_assignment(assignment)
@@ -502,7 +520,9 @@ async def test_sunday_enrich_assignment_minimal():
     repo = SundayScheduleRepository(session)
     assignment = _make_assignment(servant_id=None, last_modified_by=None, presence_marked_by=None)
 
-    assignee = MagicMock(); assignee.first_name = "Admin"; assignee.last_name = "R"
+    assignee = MagicMock()
+    assignee.first_name = "Admin"
+    assignee.last_name = "R"
     session.execute = AsyncMock(return_value=_sa_exec_result(scalar_one=assignee))
 
     with patch("src.infrastructure.repositories.sunday_schedule_repository.decrypt_str_fields"):
@@ -519,12 +539,16 @@ async def test_sunday_enrich_template():
     session = _mock_session()
     repo = SundayScheduleRepository(session)
     template = _make_template()
-    creator = MagicMock(); creator.first_name = "Admin"; creator.last_name = "Resp"
+    creator = MagicMock()
+    creator.first_name = "Admin"
+    creator.last_name = "Resp"
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=creator),  # creator
-        _sa_exec_result(scalars_list=[]),      # get_template_masses -> empty
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=creator),  # creator
+            _sa_exec_result(scalars_list=[]),  # get_template_masses -> empty
+        ]
+    )
 
     with patch("src.infrastructure.repositories.sunday_schedule_repository.decrypt_str_fields"):
         result = await repo.enrich_template(template)
@@ -540,10 +564,12 @@ async def test_sunday_enrich_template_no_creator():
     session = _mock_session()
     repo = SundayScheduleRepository(session)
     template = _make_template()
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=None),  # no creator
-        _sa_exec_result(scalars_list=[]),   # no masses
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=None),  # no creator
+            _sa_exec_result(scalars_list=[]),  # no masses
+        ]
+    )
 
     result = await repo.enrich_template(template)
     assert result["creator_first_name"] is None
@@ -558,13 +584,17 @@ async def test_sunday_get_template_summary():
     template = _make_template()
     mass = _make_mass(template_id=template.id)
     assignment = _make_assignment(mass_slot_id=mass.id)
-    creator = MagicMock(); creator.first_name = "Chef"; creator.last_name = "X"
+    creator = MagicMock()
+    creator.first_name = "Chef"
+    creator.last_name = "X"
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=creator),           # creator
-        _sa_exec_result(scalars_list=[mass]),           # masses
-        _sa_exec_result(scalars_list=[assignment]),     # assignments for mass
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=creator),  # creator
+            _sa_exec_result(scalars_list=[mass]),  # masses
+            _sa_exec_result(scalars_list=[assignment]),  # assignments for mass
+        ]
+    )
 
     with patch("src.infrastructure.repositories.sunday_schedule_repository.get_encryptor") as mock_enc:
         enc = MagicMock()

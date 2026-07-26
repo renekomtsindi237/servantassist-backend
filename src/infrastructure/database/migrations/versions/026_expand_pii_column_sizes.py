@@ -10,7 +10,6 @@ Also expand first_name and last_name to be safe.
 from typing import Union
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "026"

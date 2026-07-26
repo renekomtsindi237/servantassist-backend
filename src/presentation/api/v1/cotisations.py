@@ -274,9 +274,7 @@ async def get_my_cotisations(
     return await service.get_user_payments(current_user.id)
 
 
-async def _verify_servant_cotisations_access(
-    session: AsyncSession, user: User, servant_id: UUID
-) -> None:
+async def _verify_servant_cotisations_access(session: AsyncSession, user: User, servant_id: UUID) -> None:
     """
     Verifie que l'utilisateur peut consulter l'historique de cotisations
     d'un servant donne : le servant lui-meme, l'un de ses parents lies,

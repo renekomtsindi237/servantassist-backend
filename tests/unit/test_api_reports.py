@@ -59,15 +59,16 @@ def _make_attachment_response(report_id=None):
 
 
 def _build_client(role_str="ADMIN", mock_service=None):
-    from fastapi.testclient import TestClient
     from fastapi import FastAPI
-    from src.presentation.api.v1.reports import router, get_report_service
+    from fastapi.testclient import TestClient
+
+    from src.infrastructure.database.session import get_db_session
+    from src.presentation.api.v1.reports import get_report_service, router
     from src.presentation.dependencies.auth_deps import (
         get_current_active_user,
         get_current_responsable,
         require_secretaire,
     )
-    from src.infrastructure.database.session import get_db_session
 
     app = FastAPI()
     app.include_router(router, prefix="/reports")
@@ -91,20 +92,24 @@ def _build_client(role_str="ADMIN", mock_service=None):
 #  POST /
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_create_report():
     report = _make_report_response()
     mock_service = MagicMock()
     mock_service.create_report = AsyncMock(return_value=report)
     client, session, user, _ = _build_client(role_str="ADMIN", mock_service=mock_service)
 
-    response = client.post("/reports/", json={
-        "type": "MEETING",
-        "title": "Réunion de bureau",
-        "content": "Contenu du rapport.",
-        "report_date": "2026-06-20T10:00:00",
-        "location": "Salle principale",
-        "participants": [],
-    })
+    response = client.post(
+        "/reports/",
+        json={
+            "type": "MEETING",
+            "title": "Réunion de bureau",
+            "content": "Contenu du rapport.",
+            "report_date": "2026-06-20T10:00:00",
+            "location": "Salle principale",
+            "participants": [],
+        },
+    )
 
     assert response.status_code == 201
 
@@ -113,15 +118,18 @@ def test_create_report():
 #  GET /
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_list_reports():
     report = _make_report_response()
     mock_service = MagicMock()
-    mock_service.list_reports = AsyncMock(return_value={
-        "items": [report],
-        "total": 1,
-        "skip": 0,
-        "limit": 20,
-    })
+    mock_service.list_reports = AsyncMock(
+        return_value={
+            "items": [report],
+            "total": 1,
+            "skip": 0,
+            "limit": 20,
+        }
+    )
     client, session, user, _ = _build_client(role_str="ADMIN", mock_service=mock_service)
 
     # Non-SERVANT user: _is_secretaire returns early with False (no DB call)
@@ -133,6 +141,7 @@ def test_list_reports():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /my-reports
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_my_reports():
     report = _make_report_response()
@@ -148,6 +157,7 @@ def test_get_my_reports():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /{report_id}
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_report():
     report = _make_report_response()
@@ -165,6 +175,7 @@ def test_get_report():
 #  PATCH /{report_id}
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_update_report():
     report = _make_report_response()
     mock_service = MagicMock()
@@ -180,6 +191,7 @@ def test_update_report():
 #  DELETE /{report_id}
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_delete_report():
     mock_service = MagicMock()
     mock_service.delete_report = AsyncMock(return_value=None)
@@ -193,6 +205,7 @@ def test_delete_report():
 # ─────────────────────────────────────────────────────────────────────────────
 #  POST /{report_id}/publish
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_publish_report():
     report = _make_report_response()
@@ -209,6 +222,7 @@ def test_publish_report():
 #  POST /{report_id}/archive
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_archive_report():
     report = _make_report_response()
     mock_service = MagicMock()
@@ -223,6 +237,7 @@ def test_archive_report():
 # ─────────────────────────────────────────────────────────────────────────────
 #  POST /{report_id}/attachments (add link)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_add_attachment():
     report_id = uuid4()
@@ -247,6 +262,7 @@ def test_add_attachment():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /{report_id}/attachments
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_attachments():
     report_id = uuid4()

@@ -25,6 +25,7 @@ def _make_service(app_env="testing", smtp_user="", smtp_password="", debug=False
         settings.APP_DEBUG = debug
         mock_gs.return_value = settings
         from src.infrastructure.services.email_service import EmailService
+
         svc = EmailService()
         svc._settings = settings
     return svc
@@ -33,6 +34,7 @@ def _make_service(app_env="testing", smtp_user="", smtp_password="", debug=False
 # ─────────────────────────────────────────────────────────────────────────────
 #  Properties
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_is_smtp_configured_true():
     svc = _make_service(smtp_user="user@example.com", smtp_password="pass")
@@ -58,6 +60,7 @@ def test_is_testing_false():
 #  send_email — testing mode
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_send_email_testing_mode_logs_and_returns_true():
     svc = _make_service(app_env="testing")
@@ -76,6 +79,7 @@ async def test_send_email_testing_mode_with_debug():
 #  send_email — SMTP not configured
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_send_email_no_smtp_returns_false():
     svc = _make_service(app_env="production", smtp_user="", smtp_password="")
@@ -86,6 +90,7 @@ async def test_send_email_no_smtp_returns_false():
 # ─────────────────────────────────────────────────────────────────────────────
 #  send_email — SMTP configured, success
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_send_email_smtp_success():
@@ -107,6 +112,7 @@ async def test_send_email_smtp_exception_returns_false():
 # ─────────────────────────────────────────────────────────────────────────────
 #  _send_smtp
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_send_smtp_success():
@@ -130,9 +136,13 @@ async def test_send_smtp_ssl_port():
 @pytest.mark.asyncio
 async def test_send_smtp_auth_error():
     import aiosmtplib
+
     svc = _make_service(app_env="production", smtp_user="user", smtp_password="pass")
 
-    with patch("src.infrastructure.services.email_service.aiosmtplib.send", side_effect=aiosmtplib.SMTPAuthenticationError(535, "Auth failed")):
+    with patch(
+        "src.infrastructure.services.email_service.aiosmtplib.send",
+        side_effect=aiosmtplib.SMTPAuthenticationError(535, "Auth failed"),
+    ):
         with pytest.raises(aiosmtplib.SMTPAuthenticationError):
             await svc._send_smtp("to@example.com", "Subject", "<p>test</p>")
 
@@ -149,6 +159,7 @@ async def test_send_smtp_os_error():
 # ─────────────────────────────────────────────────────────────────────────────
 #  Business email methods (all in testing mode)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_send_reset_password_email():
@@ -201,36 +212,28 @@ async def test_send_absence_parent_notification():
 @pytest.mark.asyncio
 async def test_send_general_notification():
     svc = _make_service()
-    result = await svc.send_general_notification(
-        "user@example.com", "Jean", "Titre de la notif", "Corps du message"
-    )
+    result = await svc.send_general_notification("user@example.com", "Jean", "Titre de la notif", "Corps du message")
     assert result is True
 
 
 @pytest.mark.asyncio
 async def test_send_invitation_code_email():
     svc = _make_service()
-    result = await svc.send_invitation_code_email(
-        "parent@example.com", "Marie Dupont", "ABC123", "PARENT"
-    )
+    result = await svc.send_invitation_code_email("parent@example.com", "Marie Dupont", "ABC123", "PARENT")
     assert result is True
 
 
 @pytest.mark.asyncio
 async def test_send_absence_warning_email():
     svc = _make_service()
-    result = await svc.send_absence_warning_email(
-        "servant@example.com", "Jean", "Dupont", 3, "2026-06-21"
-    )
+    result = await svc.send_absence_warning_email("servant@example.com", "Jean", "Dupont", 3, "2026-06-21")
     assert result is True
 
 
 @pytest.mark.asyncio
 async def test_send_parent_convocation_email():
     svc = _make_service()
-    result = await svc.send_parent_convocation_email(
-        "parent@example.com", "Marie", "Jean", "Dupont", 5
-    )
+    result = await svc.send_parent_convocation_email("parent@example.com", "Marie", "Jean", "Dupont", 5)
     assert result is True
 
 

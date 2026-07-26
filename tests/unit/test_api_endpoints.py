@@ -20,7 +20,6 @@ from fastapi.testclient import TestClient
 
 from src.core.entities.user import User, UserRole
 
-
 # ─── Shared helpers ───────────────────────────────────────────────────────────
 
 
@@ -125,12 +124,12 @@ def test_analytics_summary_with_redis_cache_hit():
 
 
 def test_analytics_connections_returns_list():
+    from src.infrastructure.database.session import get_db_session
     from src.presentation.api.v1.analytics import router
     from src.presentation.dependencies.auth_deps import (
-        get_current_admin_user,
         get_current_active_user,
+        get_current_admin_user,
     )
-    from src.infrastructure.database.session import get_db_session
 
     user = _make_user(UserRole.ADMIN)
     app = FastAPI()
@@ -144,9 +143,7 @@ def test_analytics_connections_returns_list():
         "src.infrastructure.repositories.connection_log_repository.ConnectionLogRepository.get_geo_points",
         new=AsyncMock(return_value=geo_data),
     ):
-        with patch(
-            "src.presentation.api.v1.analytics.ConnectionLogRepository"
-        ) as MockRepo:
+        with patch("src.presentation.api.v1.analytics.ConnectionLogRepository") as MockRepo:
             mock_repo_instance = AsyncMock()
             mock_repo_instance.get_geo_points = AsyncMock(return_value=geo_data)
             MockRepo.return_value = mock_repo_instance
@@ -185,6 +182,7 @@ def _api_keys_app(user: User = None, service: "MagicMock" = None):
 
 def test_create_api_key_success():
     from datetime import datetime
+
     from src.core.entities.api_key import ApiKey
 
     user = _make_user(UserRole.ADMIN)
@@ -476,7 +474,7 @@ def test_dashboard_summary():
 
 
 def test_dashboard_attendance_trend():
-    from src.presentation.schemas.dashboard import AttendanceTrend, AttendancePoint
+    from src.presentation.schemas.dashboard import AttendancePoint, AttendanceTrend
 
     app = _dashboard_app()
 
@@ -892,6 +890,7 @@ async def test_require_classement_manager_aumonier():
 @pytest.mark.asyncio
 async def test_require_classement_manager_non_servant_forbidden():
     from fastapi import HTTPException
+
     from src.presentation.api.v1.classement import require_classement_manager
 
     parent = _make_user(UserRole.PARENT)
@@ -903,8 +902,9 @@ async def test_require_classement_manager_non_servant_forbidden():
 @pytest.mark.asyncio
 async def test_require_classement_manager_servant_without_nomination():
     from fastapi import HTTPException
-    from src.presentation.api.v1.classement import require_classement_manager
+
     import src.infrastructure.repositories.responsable_repository as nom_module
+    from src.presentation.api.v1.classement import require_classement_manager
 
     servant = _make_user(UserRole.SERVANT)
     mock_session = AsyncMock()

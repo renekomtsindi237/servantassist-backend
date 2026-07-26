@@ -123,10 +123,12 @@ async def test_sport_event_list_events():
     session = _mock_session()
     repo = SportCultureEventRepository(session)
     events = [_make_event(), _make_event()]
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=2),
-        _sa_exec_result(scalars_list=events),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=2),
+            _sa_exec_result(scalars_list=events),
+        ]
+    )
 
     result, total = await repo.list_events()
     assert total == 2
@@ -141,10 +143,12 @@ async def test_sport_event_list_events_with_filters():
     session = _mock_session()
     repo = SportCultureEventRepository(session)
     now = datetime.utcnow()
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar=0),
-        _sa_exec_result(scalars_list=[]),
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar=0),
+            _sa_exec_result(scalars_list=[]),
+        ]
+    )
 
     result, total = await repo.list_events(
         event_type=EventType.TOURNOI,
@@ -376,7 +380,7 @@ async def test_event_participation_enrich_found():
     session.execute = AsyncMock(return_value=_sa_exec_result(scalar_one=servant))
 
     with patch("src.infrastructure.repositories.sport_culture_repository.decrypt_str_fields"):
-        result = await repo.enrich_participation(p)
+        await repo.enrich_participation(p)
 
     assert p.servant_name == "Pierre Ngo"
 
@@ -554,7 +558,7 @@ async def test_event_team_enrich_with_captain():
     session.execute = AsyncMock(return_value=_sa_exec_result(scalar_one=captain))
 
     with patch("src.infrastructure.repositories.sport_culture_repository.decrypt_str_fields"):
-        result = await repo.enrich_team(team)
+        await repo.enrich_team(team)
 
     assert team.captain_name == "Marc Ateba"
 
@@ -575,13 +579,15 @@ async def test_event_team_enrich_with_members():
     member.first_name = "Paul"
     member.last_name = "Nkolo"
 
-    session.execute = AsyncMock(side_effect=[
-        _sa_exec_result(scalar_one=captain),   # captain
-        _sa_exec_result(scalars_list=[member]),  # members
-    ])
+    session.execute = AsyncMock(
+        side_effect=[
+            _sa_exec_result(scalar_one=captain),  # captain
+            _sa_exec_result(scalars_list=[member]),  # members
+        ]
+    )
 
     with patch("src.infrastructure.repositories.sport_culture_repository.decrypt_str_fields"):
-        result = await repo.enrich_team(team)
+        await repo.enrich_team(team)
 
     assert "Paul Nkolo" in team.members_names
 

@@ -112,11 +112,13 @@ async def test_discipline_enrich_case_all_found():
     verdict_user.first_name = "Chef"
     verdict_user.last_name = "Responsable"
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=accused),
-        _exec_result(first=reporter),
-        _exec_result(first=verdict_user),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=accused),
+            _exec_result(first=reporter),
+            _exec_result(first=verdict_user),
+        ]
+    )
 
     with patch("src.infrastructure.repositories.discipline_repository.decrypt_str_fields"):
         result = await repo.enrich_case(case)
@@ -132,11 +134,13 @@ async def test_discipline_enrich_case_no_users():
     repo = _make_enc_repo(session)
     case = _make_case(verdict_by=None)
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=None),  # accused
-        _exec_result(first=None),  # reporter
-        # verdict_by is None, so no 3rd call
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=None),  # accused
+            _exec_result(first=None),  # reporter
+            # verdict_by is None, so no 3rd call
+        ]
+    )
 
     result = await repo.enrich_case(case)
     assert result["accused_first_name"] is None

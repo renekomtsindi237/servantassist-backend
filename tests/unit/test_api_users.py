@@ -48,15 +48,16 @@ def _make_user_entity(role_value="SERVANT"):
 
 def _build_client(current_user=None, mock_session=None, role="ADMIN"):
     """Build a TestClient with dependency overrides."""
-    from fastapi.testclient import TestClient
     from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from src.infrastructure.database.session import get_db_session
     from src.presentation.api.v1.users import router
     from src.presentation.dependencies.auth_deps import (
         get_current_active_user,
         get_current_admin_or_aumonier,
         get_current_admin_user,
     )
-    from src.infrastructure.database.session import get_db_session
 
     app = FastAPI()
     app.include_router(router, prefix="/users")
@@ -78,6 +79,7 @@ def _build_client(current_user=None, mock_session=None, role="ADMIN"):
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /me
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_my_profile_servant():
     client, user, session = _build_client(role="SERVANT")
@@ -114,6 +116,7 @@ def test_get_my_profile_non_servant():
 #  PATCH /me
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_update_my_profile():
     profile = _make_profile_response("SERVANT")
     client, user, session = _build_client(role="SERVANT")
@@ -131,6 +134,7 @@ def test_update_my_profile():
 # ─────────────────────────────────────────────────────────────────────────────
 #  PATCH /me/password
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_change_my_password():
     client, user, session = _build_client(role="SERVANT")
@@ -151,6 +155,7 @@ def test_change_my_password():
 # ─────────────────────────────────────────────────────────────────────────────
 #  DELETE /me/photo
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_delete_my_photo_no_photo():
     user = _make_user_entity("SERVANT")
@@ -181,6 +186,7 @@ def test_delete_my_photo_success():
 # ─────────────────────────────────────────────────────────────────────────────
 #  POST /me/link-parent
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_self_link_parent_non_servant():
     client, user, session = _build_client(role="PARENT")
@@ -229,6 +235,7 @@ def test_self_link_parent_success():
 #  DELETE /me/link-parent/{parent_id}
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_self_unlink_parent_non_servant():
     client, user, session = _build_client(role="PARENT")
     response = client.delete(f"/users/me/link-parent/{uuid4()}")
@@ -251,13 +258,14 @@ def test_self_unlink_parent_success():
 #  GET /directory
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_list_directory():
     client, user, session = _build_client(role="SERVANT")
 
     mock_service = MagicMock()
-    mock_service.list_users = AsyncMock(return_value={
-        "items": [], "total": 0, "page": 1, "page_size": 50, "total_pages": 0, "links": None
-    })
+    mock_service.list_users = AsyncMock(
+        return_value={"items": [], "total": 0, "page": 1, "page_size": 50, "total_pages": 0, "links": None}
+    )
 
     with patch("src.presentation.api.v1.users.UserService", return_value=mock_service):
         with patch("src.presentation.api.v1.users.UserRepository"):
@@ -270,13 +278,14 @@ def test_list_directory():
 #  GET / (admin list)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_list_users_admin():
     client, user, session = _build_client(role="ADMIN")
 
     mock_service = MagicMock()
-    mock_service.list_users = AsyncMock(return_value={
-        "items": [], "total": 0, "page": 1, "page_size": 20, "total_pages": 0, "links": None
-    })
+    mock_service.list_users = AsyncMock(
+        return_value={"items": [], "total": 0, "page": 1, "page_size": 20, "total_pages": 0, "links": None}
+    )
 
     with patch("src.presentation.api.v1.users.UserService", return_value=mock_service):
         with patch("src.presentation.api.v1.users.UserRepository"):
@@ -288,6 +297,7 @@ def test_list_users_admin():
 # ─────────────────────────────────────────────────────────────────────────────
 #  GET /{user_id}
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_get_user():
     client, user, session = _build_client(role="ADMIN")
@@ -312,6 +322,7 @@ def test_get_user():
 #  PATCH /{user_id}
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_admin_update_user():
     client, user, session = _build_client(role="ADMIN")
     profile = _make_profile_response("ADMIN")
@@ -329,6 +340,7 @@ def test_admin_update_user():
 # ─────────────────────────────────────────────────────────────────────────────
 #  PATCH /{user_id}/activate & /deactivate
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_activate_user():
     client, user, session = _build_client(role="ADMIN")
@@ -362,6 +374,7 @@ def test_deactivate_user():
 #  POST /{user_id}/reset-password
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_admin_reset_password():
     client, user, session = _build_client(role="ADMIN")
 
@@ -379,6 +392,7 @@ def test_admin_reset_password():
 #  DELETE /{user_id}
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_delete_user():
     client, user, session = _build_client(role="ADMIN")
 
@@ -395,6 +409,7 @@ def test_delete_user():
 # ─────────────────────────────────────────────────────────────────────────────
 #  POST /me/accept-terms & /me/data-consent
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def test_accept_terms():
     client, user, session = _build_client(role="SERVANT")
@@ -430,6 +445,7 @@ def test_record_data_consent():
 #  GET /{user_id}/children
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_get_user_children():
     client, user, session = _build_client(role="ADMIN")
     child = _make_user_entity("SERVANT")
@@ -450,6 +466,7 @@ def test_get_user_children():
 #  PATCH /{user_id}/link-parent
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def test_link_parent():
     client, user, session = _build_client(role="ADMIN")
     target_id = uuid4()
@@ -462,8 +479,7 @@ def test_link_parent():
     with patch("src.presentation.api.v1.users.UserService", return_value=mock_service):
         with patch("src.presentation.api.v1.users.UserRepository"):
             response = client.patch(
-                f"/users/{target_id}/link-parent",
-                json={"parent_id": str(parent_id), "unlink": False}
+                f"/users/{target_id}/link-parent", json={"parent_id": str(parent_id), "unlink": False}
             )
 
     assert response.status_code == 200

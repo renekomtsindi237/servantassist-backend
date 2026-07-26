@@ -15,7 +15,6 @@ from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-
 from sqlmodel import select
 
 from src.core.entities.attendance_session import (

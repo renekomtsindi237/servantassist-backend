@@ -229,9 +229,7 @@ class SubGroupService:
         SubGroupCategory.CHORALE: "Chorale",
     }
 
-    async def get_or_create_canonical_group(
-        self, category: SubGroupCategory, created_by: UUID
-    ) -> SubGroup:
+    async def get_or_create_canonical_group(self, category: SubGroupCategory, created_by: UUID) -> SubGroup:
         """
         Recupere le sous-groupe canonique d'une categorie (Aspirants, Confirmes,
         Aines, Chorale), ou le cree s'il n'existe pas encore — plutot que
@@ -298,9 +296,7 @@ class SubGroupService:
             current = await self.group_repo.get_active_membership(user_id)
             already_aine = current and current.sub_group_id == group.id
             if count >= AINES_MAX_MEMBERS and not already_aine:
-                group = await self.get_or_create_canonical_group(
-                    SubGroupCategory.CONFIRMES, added_by
-                )
+                group = await self.get_or_create_canonical_group(SubGroupCategory.CONFIRMES, added_by)
 
         # Vérifier si déjà dans ce groupe
         current = await self.group_repo.get_active_membership(user_id)

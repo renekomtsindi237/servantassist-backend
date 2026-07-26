@@ -452,9 +452,7 @@ async def test_create_action_success():
 @pytest.mark.asyncio
 async def test_create_action_depense_forces_brouillon():
     """Une DEPENSE reste BROUILLON meme si un autre statut est demande (Art. Econome)."""
-    action = _make_action(
-        poste=PosteResponsable.ECONOME, category=ActionCategory.DEPENSE, amount=5000.0
-    )
+    action = _make_action(poste=PosteResponsable.ECONOME, category=ActionCategory.DEPENSE, amount=5000.0)
     svc = _make_svc()
     svc.action_repo.create.return_value = action
     svc.action_repo.enrich_action.return_value = _enriched_action(action)

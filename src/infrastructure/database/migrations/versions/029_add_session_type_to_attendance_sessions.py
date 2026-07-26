@@ -7,7 +7,6 @@ Create Date: 2026-05-24
 from typing import Union
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "029"

@@ -138,9 +138,7 @@ class MemberCotisationRepository:
             .join(CotisationPeriod, MemberCotisation.period_id == CotisationPeriod.id)
             .where(
                 MemberCotisation.user_id == user_id,
-                MemberCotisation.status.in_(
-                    [CotisationStatus.PAYE, CotisationStatus.PAYE_PARTIELLEMENT]
-                ),
+                MemberCotisation.status.in_([CotisationStatus.PAYE, CotisationStatus.PAYE_PARTIELLEMENT]),
                 CotisationPeriod.cotisation_type == CotisationType.ORDINAIRE,
                 CotisationPeriod.period_type == period_type,
                 CotisationPeriod.start_date <= end_date,

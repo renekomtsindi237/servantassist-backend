@@ -173,8 +173,8 @@ class DisciplineService:
                 accused_user_id, OffenseCategory.NON_RESPECT_TENUE, since
             )
             if count >= 3:
-                from src.core.entities.convocation import ConvocationMotif
                 from src.application.services.convocation_service import ConvocationService
+                from src.core.entities.convocation import ConvocationMotif
                 from src.infrastructure.repositories.convocation_repository import (
                     ConvocationRepository,
                 )
@@ -273,15 +273,10 @@ class DisciplineService:
 
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=(
-                f"Votre poste ne vous autorise pas a prononcer une sanction de type "
-                f"{sanction_type.value}."
-            ),
+            detail=(f"Votre poste ne vous autorise pas a prononcer une sanction de type " f"{sanction_type.value}."),
         )
 
-    async def render_verdict(
-        self, case_id: UUID, data: DisciplineVerdict, decider: User
-    ) -> DisciplineCaseResponse:
+    async def render_verdict(self, case_id: UUID, data: DisciplineVerdict, decider: User) -> DisciplineCaseResponse:
         """Rendre directement un verdict (Aumonier, ou poste habilite selon le type de sanction)."""
         case = await self.case_repo.get(case_id)
         if not case:
@@ -342,9 +337,7 @@ class DisciplineService:
         majority_required = len(seats_filled) // 2 + 1
         return seats_filled, majority_required
 
-    async def cast_vote(
-        self, case_id: UUID, voter: User, data: DisciplineVoteCast
-    ) -> DisciplineCaseResponse:
+    async def cast_vote(self, case_id: UUID, voter: User, data: DisciplineVoteCast) -> DisciplineCaseResponse:
         """
         Enregistre le vote d'un siege du conseil de discipline.
 
@@ -369,9 +362,7 @@ class DisciplineService:
             )
 
         nominations = await self.nomination_repo.get_active_by_user(voter.id)
-        council_nomination = next(
-            (n for n in nominations if n.poste in COUNCIL_POSTES), None
-        )
+        council_nomination = next((n for n in nominations if n.poste in COUNCIL_POSTES), None)
         if not council_nomination:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -467,8 +458,7 @@ class DisciplineService:
             majority_required=majority_required,
             votes=vote_responses,
             tally=tally,
-            is_decided=case.status
-            in (DisciplineCaseStatus.VERDICT_RENDU, DisciplineCaseStatus.EXECUTE),
+            is_decided=case.status in (DisciplineCaseStatus.VERDICT_RENDU, DisciplineCaseStatus.EXECUTE),
         )
 
     # ══════════════════════════════════════════════════════════════════

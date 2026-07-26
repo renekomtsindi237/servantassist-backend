@@ -21,7 +21,6 @@ from collections import defaultdict
 from datetime import datetime
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision = "048"

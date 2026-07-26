@@ -17,7 +17,6 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
-
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
 
@@ -241,6 +240,7 @@ async def test_error_handler_catches_servant_assist_exception():
     result = await mw.dispatch(req, call_next_raises)
     assert result.status_code == 400
     import json
+
     body = json.loads(result.body)
     assert "bad input" in body["detail"]
     assert "error_id" in body
@@ -263,6 +263,7 @@ async def test_error_handler_catches_sqlalchemy_error():
     result = await mw.dispatch(req, call_next_raises)
     assert result.status_code == 503
     import json
+
     body = json.loads(result.body)
     assert "error_id" in body
 
@@ -289,6 +290,7 @@ async def test_error_handler_catches_generic_exception_production():
 
     assert result.status_code == 500
     import json
+
     body = json.loads(result.body)
     assert "Une erreur interne" in body["detail"]
     assert "error_id" in body
@@ -316,6 +318,7 @@ async def test_error_handler_catches_generic_exception_dev():
 
     assert result.status_code == 500
     import json
+
     body = json.loads(result.body)
     assert "dev error detail" in body["detail"]
 
@@ -328,8 +331,8 @@ async def test_error_handler_catches_generic_exception_dev():
 @pytest.mark.asyncio
 async def test_payload_encryption_disabled_passthrough():
     """When PAYLOAD_ENCRYPTION_ENABLED is False, all requests pass through."""
-    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
     import src.infrastructure.config.settings as settings_mod
+    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
 
     app = Starlette()
     mw = PayloadEncryptionMiddleware(app)
@@ -347,8 +350,8 @@ async def test_payload_encryption_disabled_passthrough():
 @pytest.mark.asyncio
 async def test_payload_encryption_get_method_passthrough():
     """GET requests are never decrypted."""
-    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
     import src.infrastructure.config.settings as settings_mod
+    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
 
     app = Starlette()
     mw = PayloadEncryptionMiddleware(app)
@@ -366,8 +369,8 @@ async def test_payload_encryption_get_method_passthrough():
 @pytest.mark.asyncio
 async def test_payload_encryption_no_pubkey_header_passthrough():
     """POST without the pubkey header passes through unchanged."""
-    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
     import src.infrastructure.config.settings as settings_mod
+    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
 
     app = Starlette()
     mw = PayloadEncryptionMiddleware(app)
@@ -385,8 +388,8 @@ async def test_payload_encryption_no_pubkey_header_passthrough():
 @pytest.mark.asyncio
 async def test_payload_encryption_empty_body_returns_400():
     """POST with pubkey header but empty body returns 400."""
-    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
     import src.infrastructure.config.settings as settings_mod
+    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
 
     app = Starlette()
     mw = PayloadEncryptionMiddleware(app)
@@ -401,6 +404,7 @@ async def test_payload_encryption_empty_body_returns_400():
 
     assert result.status_code == 400
     import json
+
     body = json.loads(result.body)
     assert "vide" in body["detail"]
 
@@ -408,9 +412,9 @@ async def test_payload_encryption_empty_body_returns_400():
 @pytest.mark.asyncio
 async def test_payload_encryption_decryption_value_error_returns_400():
     """Decryption ValueError (bad tag) returns 400."""
-    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
     import src.infrastructure.config.settings as settings_mod
     import src.infrastructure.security.payload_encryption as enc_mod
+    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
 
     app = Starlette()
     mw = PayloadEncryptionMiddleware(app)
@@ -433,9 +437,9 @@ async def test_payload_encryption_decryption_value_error_returns_400():
 @pytest.mark.asyncio
 async def test_payload_encryption_runtime_error_returns_503():
     """RuntimeError (no private key) returns 503."""
-    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
     import src.infrastructure.config.settings as settings_mod
     import src.infrastructure.security.payload_encryption as enc_mod
+    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
 
     app = Starlette()
     mw = PayloadEncryptionMiddleware(app)
@@ -458,9 +462,9 @@ async def test_payload_encryption_runtime_error_returns_503():
 @pytest.mark.asyncio
 async def test_payload_encryption_success():
     """Successful decryption reinjects plaintext body."""
-    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
     import src.infrastructure.config.settings as settings_mod
     import src.infrastructure.security.payload_encryption as enc_mod
+    from src.presentation.middleware.payload_encryption import PayloadEncryptionMiddleware
 
     app = Starlette()
     mw = PayloadEncryptionMiddleware(app)

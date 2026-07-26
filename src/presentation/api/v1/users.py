@@ -528,28 +528,37 @@ async def export_personal_data(
     """
     from sqlmodel import col, select
 
-    from src.core.entities.attendance import Attendance
     from src.core.entities.assignment import Assignment
+    from src.core.entities.attendance import Attendance
     from src.core.entities.cotisation import MemberCotisation
 
     # Présences
-    stmt_att = select(Attendance).where(
-        Attendance.user_id == current_user.id
-    ).order_by(col(Attendance.created_at).desc()).limit(100)
+    stmt_att = (
+        select(Attendance)
+        .where(Attendance.user_id == current_user.id)
+        .order_by(col(Attendance.created_at).desc())
+        .limit(100)
+    )
     result_att = await session.exec(stmt_att)
     attendances = result_att.all()
 
     # Cotisations
-    stmt_cot = select(MemberCotisation).where(
-        MemberCotisation.user_id == current_user.id
-    ).order_by(col(MemberCotisation.year).desc()).limit(100)
+    stmt_cot = (
+        select(MemberCotisation)
+        .where(MemberCotisation.user_id == current_user.id)
+        .order_by(col(MemberCotisation.year).desc())
+        .limit(100)
+    )
     result_cot = await session.exec(stmt_cot)
     cotisations = result_cot.all()
 
     # Affectations
-    stmt_asg = select(Assignment).where(
-        Assignment.user_id == current_user.id
-    ).order_by(col(Assignment.created_at).desc()).limit(50)
+    stmt_asg = (
+        select(Assignment)
+        .where(Assignment.user_id == current_user.id)
+        .order_by(col(Assignment.created_at).desc())
+        .limit(50)
+    )
     result_asg = await session.exec(stmt_asg)
     assignments = result_asg.all()
 
@@ -587,7 +596,9 @@ async def export_personal_data(
             {
                 "event_id": str(a.event_id),
                 "status": a.status.value if hasattr(a.status, "value") else str(a.status),
-                "liturgical_role": a.liturgical_role.value if a.liturgical_role and hasattr(a.liturgical_role, "value") else None,
+                "liturgical_role": (
+                    a.liturgical_role.value if a.liturgical_role and hasattr(a.liturgical_role, "value") else None
+                ),
                 "created_at": str(a.created_at)[:19] if a.created_at else None,
             }
             for a in assignments

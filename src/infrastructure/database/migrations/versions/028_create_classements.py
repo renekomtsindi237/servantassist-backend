@@ -7,9 +7,8 @@ Create Date: 2026-05-24
 from typing import Union
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import JSON, UUID
-
 from alembic import op
+from sqlalchemy.dialects.postgresql import JSON, UUID
 
 revision: str = "028"
 down_revision: Union[str, None] = "027"

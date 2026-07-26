@@ -235,7 +235,7 @@ async def test_notification_mark_sent_with_error():
     session.commit = AsyncMock()
     session.refresh = AsyncMock()
 
-    result = await repo.mark_sent(n.id, error_message="SMTP error")
+    await repo.mark_sent(n.id, error_message="SMTP error")
     assert n.status == NotificationStatus.FAILED
 
 
@@ -263,10 +263,12 @@ async def test_notification_mark_read():
     n1 = _make_notification(recipient_id=user_id, status=NotificationStatus.SENT)
     n2 = _make_notification(recipient_id=user_id, status=NotificationStatus.SENT)
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=n1),
-        _exec_result(first=n2),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=n1),
+            _exec_result(first=n2),
+        ]
+    )
     session.commit = AsyncMock()
 
     count = await repo.mark_read([n1.id, n2.id], user_id)
@@ -382,7 +384,7 @@ async def test_notif_pref_upsert_creates_new():
     session.commit = AsyncMock()
     session.refresh = AsyncMock()
 
-    result = await repo.upsert(uuid4(), NotificationType.RAPPEL_EVENEMENT, email_enabled=True)
+    await repo.upsert(uuid4(), NotificationType.RAPPEL_EVENEMENT, email_enabled=True)
     session.add.assert_called_once()
 
 
@@ -399,7 +401,7 @@ async def test_notif_pref_upsert_updates_existing():
     session.commit = AsyncMock()
     session.refresh = AsyncMock()
 
-    result = await repo.upsert(pref.user_id, NotificationType.RAPPEL_EVENEMENT, email_enabled=True, in_app_enabled=False)
+    await repo.upsert(pref.user_id, NotificationType.RAPPEL_EVENEMENT, email_enabled=True, in_app_enabled=False)
     assert pref.email_enabled is True
     assert pref.in_app_enabled is False
 

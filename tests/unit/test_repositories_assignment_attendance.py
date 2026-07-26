@@ -115,10 +115,12 @@ async def test_assignment_list_paginated():
     session = _mock_session()
     repo = AssignmentRepository(session)
     assignments = [_make_assignment()]
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=1),
-        _exec_result(all_=assignments),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=1),
+            _exec_result(all_=assignments),
+        ]
+    )
 
     result, total = await repo.list_paginated()
     assert total == 1
@@ -132,10 +134,12 @@ async def test_assignment_list_paginated_with_filters():
 
     session = _mock_session()
     repo = AssignmentRepository(session)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=0),
-        _exec_result(all_=[]),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=0),
+            _exec_result(all_=[]),
+        ]
+    )
     now = datetime.utcnow()
 
     result, total = await repo.list_paginated(
@@ -233,10 +237,12 @@ async def test_assignment_enrich_assignment():
     event.start_time = datetime.utcnow()
     event.location = "Cathédrale"
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=user),
-        _exec_result(first=event),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=user),
+            _exec_result(first=event),
+        ]
+    )
 
     with patch("src.infrastructure.repositories.assignment_repository.decrypt_str_fields"):
         result = await repo.enrich_assignment(a)
@@ -349,10 +355,12 @@ async def test_attendance_list_paginated():
     session = _mock_session()
     repo = _make_att_repo(session)
     atts = [_make_attendance()]
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=1),
-        _exec_result(all_=atts),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=1),
+            _exec_result(all_=atts),
+        ]
+    )
 
     result, total = await repo.list_paginated()
     assert total == 1
@@ -365,10 +373,12 @@ async def test_attendance_list_paginated_with_filters():
 
     session = _mock_session()
     repo = _make_att_repo(session)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=0),
-        _exec_result(all_=[]),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=0),
+            _exec_result(all_=[]),
+        ]
+    )
     now = datetime.utcnow()
 
     result, total = await repo.list_paginated(

@@ -59,7 +59,7 @@ async def test_invitation_update():
     # get_by_id() after merge calls exec
     session.exec = AsyncMock(return_value=_exec_result(first=inv_updated))
 
-    result = await repo.update(inv.id, inv)
+    await repo.update(inv.id, inv)
     repo._encrypt_model.assert_called_once_with(inv)
     repo._decrypt_model.assert_called()
 
@@ -88,14 +88,16 @@ async def test_invitation_mark_as_used_success():
 
     # First exec for get_by_code; second for get_by_id inside update
     inv_updated = _make_invitation(id=inv.id, status=InvitationStatus.ACCEPTED)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=inv),          # get_by_code
-        _exec_result(first=inv_updated),  # get_by_id inside update
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=inv),  # get_by_code
+            _exec_result(first=inv_updated),  # get_by_id inside update
+        ]
+    )
     session.merge = AsyncMock()
     session.commit = AsyncMock()
 
-    result = await repo.mark_as_used(inv.code, user_id)
+    await repo.mark_as_used(inv.code, user_id)
     assert inv.status == InvitationStatus.ACCEPTED
     assert inv.used_by == user_id
 
@@ -121,12 +123,14 @@ async def test_invitation_revoke_success():
     inv = _make_invitation(status=InvitationStatus.PENDING)
     inv_revoked = _make_invitation(id=inv.id, status=InvitationStatus.REVOKED)
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=inv),          # get_by_id (first call in revoke)
-        _exec_result(first=inv_revoked),  # get_by_id inside update
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=inv),  # get_by_id (first call in revoke)
+            _exec_result(first=inv_revoked),  # get_by_id inside update
+        ]
+    )
     session.merge = AsyncMock()
     session.commit = AsyncMock()
 
-    result = await repo.revoke(inv.id)
+    await repo.revoke(inv.id)
     assert inv.status == InvitationStatus.REVOKED

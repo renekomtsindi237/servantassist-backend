@@ -100,10 +100,12 @@ async def test_cotisation_period_list_all():
     session = _mock_session()
     repo = CotisationPeriodRepository(session)
     periods = [_make_period()]
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=1),          # count
-        _exec_result(all_=periods),   # items
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=1),  # count
+            _exec_result(all_=periods),  # items
+        ]
+    )
 
     result, total = await repo.list_all()
     assert total == 1
@@ -117,10 +119,12 @@ async def test_cotisation_period_list_all_with_filter():
 
     session = _mock_session()
     repo = CotisationPeriodRepository(session)
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=0),
-        _exec_result(all_=[]),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=0),
+            _exec_result(all_=[]),
+        ]
+    )
 
     result, total = await repo.list_all(cotisation_type=CotisationType.ORDINAIRE, is_active=True)
     assert result == []
@@ -261,11 +265,13 @@ async def test_member_cotisation_get_period_stats():
     repo = MemberCotisationRepository(session)
 
     # Three exec calls: paid_count, total_collected, total_members
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(one=5),           # paid count
-        _exec_result(one=25000),       # total collected
-        _exec_result(one=10),          # total members
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(one=5),  # paid count
+            _exec_result(one=25000),  # total collected
+            _exec_result(one=10),  # total members
+        ]
+    )
 
     stats = await repo.get_period_stats(uuid4())
     assert stats["total_paid"] == 5
@@ -345,10 +351,12 @@ async def test_member_cotisation_enrich_cotisation():
     mock_period.title = "Cotisation 2026"
     mock_period.amount_expected = 5000
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=mock_user),
-        _exec_result(first=mock_period),
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=mock_user),
+            _exec_result(first=mock_period),
+        ]
+    )
 
     with patch("src.infrastructure.repositories.cotisation_repository.decrypt_str_fields"):
         result = await repo.enrich_cotisation(cot)
@@ -365,10 +373,12 @@ async def test_member_cotisation_enrich_no_user():
     repo = MemberCotisationRepository(session)
     cot = _make_member_cotisation()
 
-    session.exec = AsyncMock(side_effect=[
-        _exec_result(first=None),    # no user
-        _exec_result(first=None),    # no period
-    ])
+    session.exec = AsyncMock(
+        side_effect=[
+            _exec_result(first=None),  # no user
+            _exec_result(first=None),  # no period
+        ]
+    )
 
     result = await repo.enrich_cotisation(cot)
     assert result["user_first_name"] is None
