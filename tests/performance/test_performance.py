@@ -7,13 +7,36 @@ import time
 
 import pytest
 from httpx import AsyncClient
+from sqlmodel import select
 
+from src.core.entities.phone_verification_code import PhoneVerificationCode
+from src.infrastructure.security.field_encryption import get_encryptor
 from tests.conftest import VALID_PASSWORD, make_auth_header
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  TEMPS DE RÉPONSE — ENDPOINTS INDIVIDUELS
 # ═══════════════════════════════════════════════════════════════════════════
 MAX_RESPONSE_TIME_MS = 800  # Seuil max acceptable pour l'env de test (ms)
+
+
+async def _verify_phone(client: AsyncClient, db_session, phone_number: str) -> str:
+    """Miroir de `_verify_phone` (tests/e2e/test_auth_endpoints.py) — l'inscription
+    publique exige un `phone_verification_token` depuis l'ajout de la vérification
+    téléphone à `POST /auth/register`."""
+    resp = await client.post("/api/v1/auth/register/send-phone-code", json={"phone_number": phone_number})
+    assert resp.status_code == 200
+
+    phone_hmac = get_encryptor().hmac_index(phone_number)
+    result = await db_session.exec(select(PhoneVerificationCode).where(PhoneVerificationCode.phone_hmac == phone_hmac))
+    entry = result.first()
+    assert entry is not None, "Code de vérification non trouvé en base"
+
+    resp = await client.post(
+        "/api/v1/auth/register/verify-phone-code",
+        json={"phone_number": phone_number, "code": entry.code},
+    )
+    assert resp.status_code == 200
+    return resp.json()["verification_token"]
 
 
 @pytest.mark.performance
@@ -45,7 +68,10 @@ class TestResponseTime:
             elapsed_ms < MAX_RESPONSE_TIME_MS
         ), f"Login phone trop lent : {elapsed_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
-    async def test_register_response_time(self, client: AsyncClient):
+    async def test_register_response_time(self, client: AsyncClient, db_session):
+        phone = "+237600000100"
+        token = await _verify_phone(client, db_session, phone)
+
         start = time.perf_counter()
         resp = await client.post(
             "/api/v1/auth/register",
@@ -54,8 +80,9 @@ class TestResponseTime:
                 "password": "TestPass1",
                 "first_name": "Perf",
                 "last_name": "Test",
-                "phone_number": "+237600000100",
+                "phone_number": phone,
                 "role": "SERVANT",
+                "phone_verification_token": token,
             },
         )
         elapsed_ms = (time.perf_counter() - start) * 1000
@@ -118,7 +145,7 @@ class TestConcurrentLoad:
             avg_ms < MAX_RESPONSE_TIME_MS
         ), f"Moyenne par login concurrent : {avg_ms:.0f}ms > {MAX_RESPONSE_TIME_MS}ms"
 
-    async def test_sequential_registrations_throughput(self, client: AsyncClient):
+    async def test_sequential_registrations_throughput(self, client: AsyncClient, db_session):
         """10 inscriptions séquentielles — mesure le débit.
 
         Note : les requêtes concurrentes sur la même session SQLAlchemy de test
@@ -126,6 +153,9 @@ class TestConcurrentLoad:
         On teste donc le débit séquentiel ici.
         """
         COUNT = 10
+        phones = [f"+23761{i:06d}" for i in range(COUNT)]
+        tokens = [await _verify_phone(client, db_session, phone) for phone in phones]
+
         start = time.perf_counter()
 
         for i in range(COUNT):
@@ -136,8 +166,9 @@ class TestConcurrentLoad:
                     "password": "TestPass1",
                     "first_name": f"User{i}",
                     "last_name": "Sequential",
-                    "phone_number": f"+23760000{i:04d}",
+                    "phone_number": phones[i],
                     "role": "SERVANT",
+                    "phone_verification_token": tokens[i],
                 },
             )
             assert resp.status_code == 201, f"Registration {i} failed: {resp.status_code}"

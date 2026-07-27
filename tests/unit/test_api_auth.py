@@ -436,10 +436,20 @@ def test_verify_reset_code_phone():
 def test_get_server_pubkey():
     client, session, _ = _build_client()
 
+    mock_encryptor = MagicMock()
+    mock_encryptor.public_key_b64 = "base64urlpubkey=="
+
     with patch("src.presentation.api.v1.auth.get_settings") as mock_gs:
         settings = MagicMock()
-        settings.SERVER_EC_PUBLIC_KEY = "base64urlpubkey=="
+        settings.PAYLOAD_ENCRYPTION_PRIVATE_KEY = "fake-ec-private-key-for-test"
         mock_gs.return_value = settings
-        response = client.get("/auth/server-pubkey")
+        with patch(
+            "src.infrastructure.security.payload_encryption.get_payload_encryptor",
+            return_value=mock_encryptor,
+        ):
+            response = client.get("/auth/server-pubkey")
 
     assert response.status_code == 200
+    body = response.json()
+    assert body["enabled"] is True
+    assert body["key"] == "base64urlpubkey=="

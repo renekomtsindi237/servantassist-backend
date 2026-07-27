@@ -40,6 +40,7 @@ from src.application.services.event_service import EventService
 from src.core.entities.event import EventStatus, EventType, ParticipantStatus
 from src.core.entities.user import User
 from src.core.utils import utc_now
+from src.infrastructure.config.settings import get_settings
 from src.infrastructure.database.session import get_db_session
 from src.infrastructure.repositories.event_repository import EventRepository
 from src.infrastructure.repositories.user_repository import UserRepository
@@ -409,8 +410,6 @@ async def get_event_qr_code(
     import jwt
     import qrcode
 
-    from src.infrastructure.config.settings import get_settings
-
     settings = get_settings()
 
     # Vérifier que l'événement existe
@@ -481,7 +480,6 @@ async def check_in_event(
     from sqlmodel import select
 
     from src.core.entities.assignment import Assignment, AssignmentStatus
-    from src.infrastructure.config.settings import get_settings
 
     settings = get_settings()
 

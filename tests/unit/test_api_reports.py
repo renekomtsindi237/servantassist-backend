@@ -102,7 +102,7 @@ def test_create_report():
     response = client.post(
         "/reports/",
         json={
-            "type": "MEETING",
+            "type": "REUNION",
             "title": "Réunion de bureau",
             "content": "Contenu du rapport.",
             "report_date": "2026-06-20T10:00:00",
@@ -122,14 +122,7 @@ def test_create_report():
 def test_list_reports():
     report = _make_report_response()
     mock_service = MagicMock()
-    mock_service.list_reports = AsyncMock(
-        return_value={
-            "items": [report],
-            "total": 1,
-            "skip": 0,
-            "limit": 20,
-        }
-    )
+    mock_service.list_reports = AsyncMock(return_value=([report], 1))
     client, session, user, _ = _build_client(role_str="ADMIN", mock_service=mock_service)
 
     # Non-SERVANT user: _is_secretaire returns early with False (no DB call)
@@ -146,10 +139,12 @@ def test_list_reports():
 def test_get_my_reports():
     report = _make_report_response()
     mock_service = MagicMock()
-    mock_service.get_my_reports = AsyncMock(return_value=[report])
+    mock_service.get_my_reports = AsyncMock(return_value=([report], 1))
     client, session, user, _ = _build_client(role_str="ADMIN", mock_service=mock_service)
 
-    response = client.get("/reports/my-reports")
+    # La route reelle est GET /me/list (et non /my-reports, qui serait de
+    # toute facon intercepte par GET /{report_id} — enregistree avant elle).
+    response = client.get("/reports/me/list")
 
     assert response.status_code == 200
 
@@ -160,12 +155,17 @@ def test_get_my_reports():
 
 
 def test_get_report():
+    from src.core.entities.report import ReportStatus
+
     report = _make_report_response()
+    # Seuls les secretaires voient les brouillons ; un ADMIN "simple" (sans
+    # nomination secretaire) ne voit que les rapports publies (reports.py,
+    # meme regle que list_reports) — d'ou le statut PUBLIE ici.
+    report.status = ReportStatus.PUBLISHED
     mock_service = MagicMock()
     mock_service.get_report = AsyncMock(return_value=report)
     client, session, user, _ = _build_client(role_str="ADMIN", mock_service=mock_service)
 
-    # Admin role => _is_secretaire returns early (role.value != 'SERVANT')
     response = client.get(f"/reports/{report.id}")
 
     assert response.status_code == 200
@@ -194,7 +194,7 @@ def test_update_report():
 
 def test_delete_report():
     mock_service = MagicMock()
-    mock_service.delete_report = AsyncMock(return_value=None)
+    mock_service.delete_report = AsyncMock(return_value=True)
     client, session, user, _ = _build_client(role_str="ADMIN", mock_service=mock_service)
 
     response = client.delete(f"/reports/{uuid4()}")
@@ -265,9 +265,17 @@ def test_add_attachment():
 
 
 def test_get_attachments():
+    from src.core.entities.report import ReportStatus
+
     report_id = uuid4()
+    report = _make_report_response()
+    # get_attachments() applique la meme regle de visibilite que get_report() :
+    # seuls les secretaires voient les brouillons.
+    report.status = ReportStatus.PUBLISHED
     att = _make_attachment_response(report_id)
     mock_service = MagicMock()
+    # get_attachments() verifie d'abord que le rapport existe via get_report().
+    mock_service.get_report = AsyncMock(return_value=report)
     mock_service.get_attachments = AsyncMock(return_value=[att])
     client, session, user, _ = _build_client(role_str="ADMIN", mock_service=mock_service)
 

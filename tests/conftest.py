@@ -61,6 +61,7 @@ from src.core.entities.cotisation import (
 from src.core.entities.discipline import (
     DisciplineCase,
     DisciplineCaseStatus,
+    DisciplineCaseVote,
     OffenseCategory,
     SanctionSeverity,
     SanctionType,
